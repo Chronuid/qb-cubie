@@ -185,14 +185,14 @@ EBT(
         args=["--process"], # Das Argument, das die Funktion bekommt
         fs={
             "/etc/app/config.yaml": "tests/pre/1_config.yaml",
-            "./data/input.csv":     "tests/pre/1_input.csv"
+            "./data/pre.csv":     "tests/pre/1_input.csv"
         } # Mirror: Arena-Pfad ← Host-Dataset (Echte Kopie)
     ),
     
     post=State(
         fs={
             "/etc/app/config.yaml": "tests/post/1_config.yaml", 
-            "./data/input.csv":     "tests/post/1_input.csv"
+            "./data/pre.csv":     "tests/post/1_input.csv"
         } # Assert: Erwarteter Endzustand in der Arena ← Post-Dataset
     )
 )

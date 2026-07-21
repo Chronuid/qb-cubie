@@ -1,5 +1,5 @@
 # QA-Bench
-> *Simple and customizable **Quality Assurance** Builder*
+> *The **Quality Assurance** Builder*
 
  Warum komplexen Test-Code schreiben, wenn uns das maschinelle Lernen bereits vorgemacht hat, wie man Validierungs-Mechanismen elegant, skalierbar und universell gestaltet? Lass uns ein Code-Gym bauen!
 * (optional) **Auto-Assurance:** scanned den Source-Code, prüft welche Tests existieren und welche nicht und bereitet alle fehlenden Test-Schablonen zum Ausfüllen vor, um die Entwicklung zu vereinfachen.
@@ -18,32 +18,46 @@ Die Kern-Ideen basieren auf einigen Prinzipien der mathematischen Programmverifi
 Das klassische **Hoare-Tripel** beschreibt, wie ein Programm den Zustand einer Berechnung verändert:
 $$\text{Hoare-Tripel} = \{P\}\; S\; \{Q\}$$
 
-> Wenn die Vorbedingung $P$ vor der Ausführung von $S$ zutrifft, dann gilt nach der Ausführung von $S$ die Nachbedingung $Q$.
+> **Sprich:** Wenn die Vorbedingung $P$ vor der Ausführung von $S$ zutrifft, dann gilt nach der Ausführung von $S$ die Nachbedingung $Q$.
 
 Da wir in modernen Sprachen direkt mit Funktionen arbeiten, stellen wir dieses Tripel einfach auf das Verhalten von $S$ um:
 $$\{P\}\; S\; \{Q\} \quad \equiv \quad S: P \to Q$$
 
-> Das Programmsegment $S$ ist eine Abbildung (Funktion), die Daten des Typs $P$ (Eingabe) entgegennimmt und Daten des Typs $Q$ (Ausgabe) liefert.
+> **Sprich:** Das Programmsegment $S$ ist eine Abbildung (Funktion), die Daten des Typs $P$ (Eingabe) entgegennimmt und Daten des Typs $Q$ (Ausgabe) liefert.
 
 ---
 Das Projekt ist darauf ausgelegt die Prinzipien der Programmverifikation einfach und zugänglich umsetzen und automatisieren zu können, um für die synthetische Software-Generierung und Code-ML-Projekte verwendet werden zu können. Hierfür lässt sich die eben definierte Umstellung um den Suchraum des Code-Generators ($S \in \Sigma^*$) erweitern: 
 
  $$\mathcal{S}_{\text{summ}} = \{ S \in \Sigma^* \mid S: P \to Q \}$$
 
-> **Für Einsteiger übersetzt:** 
+> **Für Einsteiger übersetzt:**  
 > * $\Sigma^*$ (Sigma-Star) ist das unendliche Chaos – die Menge aller denkbaren Zeichenketten und Code-Zeilen, die man tippen könnte.
 > * $\mathcal{S}_{\text{summ}}$ ist am Ende die saubere "Kiste", in die wir alle funktionierenden Programme $S$ hineinsortieren.
->
-> *Lesehilfe für die Formel:* "Die Lösungsmenge $\mathcal{S}_{\text{summ}}$ besteht aus allen Quellcodes $S$ aus dem unendlichen Chaos $\Sigma^*$, für die gilt: Das Programm $S$ überführt die Eingabe $P$ korrekt in die Ausgabe $Q$."
+
+
+> **Sprich:** "Die Lösungsmenge $\mathcal{S}_{\text{summ}}$ besteht aus allen Quellcodes $S$ aus dem unendlichen Chaos $\Sigma^*$,  
+> für die gilt: Das Programm $S$ überführt die Eingabe $P$ korrekt in die Ausgabe $Q$."
 
 --- 
 
-Um die Nicht-Funktionalen Eigenschaften (wie z. B. Ausführungsgeschwindigkeit, Speicherverbrauch oder Linter-Styleguides) ebenfalls abdecken zu können, verknüpfen wir die funktionale Lösung mit weiteren Bedingungen ($C$ für Constraints):
-
+Um die Nicht-Funktionalen Eigenschaften (wie z. B. Ausführungsgeschwindigkeit, Speicherverbrauch oder Linter-Styleguides) oder auch abstrakte, semantisch definierte Intentionen abzudecken, verknüpfen wir die funktionale Lösung mit weiteren Bedingungen ($C$ für Constraints).
 $$\mathcal{S}_{\text{summ}} \cap C = \{ S \in \Sigma^* \mid S: P \to Q \} \cap C$$
 
-> Jedes Programm in unserer finalen Auswahl muss nun nicht mehr nur funktional korrekt sein, sondern zusätzlich das "Qualitäts-Sieb" $C$ passieren (Schnittmenge $\cap$). Erfüllt der Code den Styleguide oder das Zeitfenster nicht, fliegt er einfach raus.
+> **Für Einsteiger übersetzt:**  
+> 
+> Jedes Programm in unserer Auswahl muss nun nicht mehr nur funktional korrekt sein, sondern zusätzlich das "Qualitäts-Sieb" $C$ passieren.  
+> In der reinen Logik betrachten wir $C$ als die Menge aller denkbaren Programme, die unsere speziellen Anforderungen erfüllen.  
+>
+> **Bilden wir die Schnittmenge ($\cap$), bedeutet das in der Praxis ganz simpel:**  
+> * Erfüllt ein Code ($S$) deinen Styleguide, das Zeitfenster oder die semantischen RBT-Vorgaben ($C$) nicht, dann ist er einfach raus.  
+> Alles, was die Prüfungen nicht besteht, ist kein Teil der verifizierten Schnittmenge ($\cap$).  
+> * Erfüllt ein Code ($S$) deine Prüfungen ($C$), dann ist er einfach drinnen.  
+> Alles, was die Prüfungen besteht, ist ein Teil der verifizierten Schnittmenge ($\cap$).   
 
+> **Sprich:**  
+> "Die finale Menge der verifizierter Lösungen besteht aus exakt jenen Programmen des unendlichen Suchraums $\Sigma^*$,  
+> die sowohl funktional korrekt die Eingaben $P$ in die jeweils dazugehörigen Ausgaben $Q$ überführen,  
+> als auch den Rastern und Prüfungen aller definierten Qualitäten und Bedingungen $C$ entsprechen."
 ---
 
 ---
@@ -89,6 +103,34 @@ Ob hierbei "golden"/"synthetic" oder ein f"auth-lvl_{x}" für die tags verwendet
 
 ---
 
+### Prädikatenlogik
+In der Logik und Informatik sind die Prädikatenlogik erster Stufe (FOL) und die Logik höherer Stufe (HOL) formale Sprachen, die zur Formulierung mathematischer Aussagen und zur Verifizierung von Beweisen dienen. Der wesentliche Unterschied liegt in der Ausdrucksstärke: Während sich Quantoren in der FOL nur auf einzelne Objekte beziehen, erlaubt die HOL auch die Quantifizierung über Prädikate und Funktionen. 
+
+<details> 
+
+#### Prädikatenlogik erster Stufe (FOL)
+  * **Geltungsbereich:** Variablen beziehen sich nur auf einzelne Objekte (z. B. „alle Menschen“, „eine bestimmte Zahl“). 
+  * **Möglichkeiten:** Man kann $(\forall x (P(x) \implies Q(x)))$ formulieren, jedoch nicht über die Eigenschaft P selbst quantifizieren. 
+  * **Vorteile:** Sie ist semantisch vollständig (jede logisch wahre Aussage ist beweisbar) und lässt sich hervorragend automatisieren, weshalb sie den Standard für die meisten automatisierten Theorembeweiser darstellt. 
+
+#### Logik höherer Stufe (HOL) 
+* **Geltungsbereich:** Variablen können sich auf Relationen, Funktionen und Mengen von Objekten beziehen. 
+* **Möglichkeiten:** Man kann über Prädikate quantifizieren (z. B. „für alle Eigenschaften P gilt: Wenn P für 0 zutrifft...“). 
+* **Vorteile:** Sie bietet eine weitaus größere Ausdrucksstärke. Komplexe mathematische Theorien (wie etwa die der reellen Zahlen oder die Mengenlehre) lassen sich direkt formulieren, ohne dass komplizierte Metasprachen erforderlich sind. Allerdings geht bei Verwendung der Standardsemantik die Vollständigkeit verloren, und die Automatisierung gestaltet sich schwieriger.
+
+---
+
+* EBT: FOL
+* PBT: (HOL → EBT)
+* FVT: (FOL & HOL) #z.B mit Isabelle
+* RBT: Any$\cap$Prüfverfahren #bzw. Reviewer
+
+---
+
+</details>
+
+---
+
 ### Review-Based-Testing (RBT)
 
 Die simpelste und gleichzeitig komplexeste Art des Testens! Das RBT ist perfekt für Bootstrapping und Experimente und ist so mächtig, dass die menschliche Gesellschaft auf diese Weise alle Wissenschaften und Berufe bootstrappen konnte! 
@@ -98,6 +140,19 @@ Die simpelste und gleichzeitig komplexeste Art des Testens! Das RBT ist perfekt 
 
 
 ***... Done!***
+
+<details> 
+
+#### RBT: Any $\cap$ Prüfverfahren
+
+* **Einordnung:** RBT ist die Schnittmenge aus *allem* (Any) und dem jeweiligen Reviewer, was später Vertrauens-Scores für die maschinelle Verarbeitung benötigt.
+* **Interpretation & Schärfung:** RBT ist das einzige Testverfahren, das sich nicht in eine formale Schachtel pressen lässt, weil es als Brücke zwischen der "weichen" Realität (natürliche Sprache, Intentionen, Ästhetik) und dem formalen System fungiert.
+  * Das **Prüfungsverfahren** (ob Mensch oder LLM oder ein anderweitiges Verfahren) agiert hier als semantischer Compiler.
+  * **Confidence-Metriken** sind für die spätere Automatisierung relevant: Wenn ein KI-Agent die RBT-Rolle übernimmt, ist das Ergebnis nicht mehr binär (`True`/`False`), sondern probabilistisch. Damit das deterministische EBT aus diesen RBT-Reviews klare $P$ und $Q$ ableiten kann, brauchen wir Metriken (wie *Logprobs*, *Temperature-Evaluations* oder *Self-Consistency-Scores*).
+
+---
+
+</details>
 
 ---
 
@@ -115,6 +170,17 @@ Betrachte deine Test-Datensätze als eine Sammlung von Eingaben und Ausgaben, al
 
 ***... Done!*** (Erstelle so viele weitere Beispiele, wie du für sinnvoll erachtest.)
 
+<details> 
+
+#### EBT: FOL (bzw. Propositional / Ground Terms)
+
+* **Einordnung:** EBT entspricht First-Order Logic (FOL), da Variablen hier konkrete, individuelle Objekte sind.
+* **Interpretation & Schärfung:** Das ist konzeptionell eine hervorragende Brücke, auch wenn EBT streng formallogisch sogar noch eine Ebene *unter* der vollen FOL angesiedelt ist. FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). EBT hingegen arbeitet komplett quantorenfrei mit sogenannten "Ground Terms" oder Aussagenlogik. Es sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$". Dennoch: Da der *Scope* von EBT auf festen, individuellen Datenpunkten (Objekten) liegt, fügt sich EBT als das fundamentale Fundament der FOL perfekt in diese Skala ein.
+
+---
+
+</details>
+
 ---
 
 ### Property-Based-Testing (PBT)
@@ -130,6 +196,17 @@ Genug von der Erstellung einzelner Beispiele? Dann definiere die Bereiche und st
  - ... Sobald der Code bricht, schrumpft (shrinckt) QA-Bench das gigantische Fehler-Dokument vollautomatisch auf das exakte, minimale Byte zurück, das den Absturz verursacht hat.
 
 ***... Done!*** (Du erhältst den rauschfreien, mathematisch präzisen Edge Case.)
+
+<details> 
+
+#### PBT: (HOL → EBT) bzw. ($\forall$ → EBT)
+
+* **Einordnung:** PBT als Pfeil, der aus einer höheren Logik konkrete EBTs generiert.
+* **Interpretation & Schärfung:** Die Notation `(HOL → EBT)` trifft die *Mechanik* des Property-Based-Testing meisterhaft. Wenn du eine Eigenschaft (Property) definierst (z. B. "Für alle validen Markdown-Dateien gilt..."), bedienst du dich eines Allquantors ($\forall$) über eine gesamte Domäne. Du definierst das Gesetz auf einer Meta-Ebene (FOL/HOL), aber die Ausführung (der Pfeil $\to$) kompiliert dieses Gesetz gnadenlos in zehntausende, deterministische EBT-Paare hinunter, um das System empirisch zu fluten. Das ist reine, angewandte Falsifikation.
+
+---
+
+</details>
 
 ---
 
@@ -148,5 +225,17 @@ Mit der Empirie und der Stochastik hast du die Werkzeuge um alles zu validieren,
 
 ***... Done!*** (Sicherheit auf Krypto-Niveau, ganz ohne Code-Ausführung.)
 
+<details> 
+
+#### FVT: (FOL & HOL)
+
+* **Einordnung:** Formale Verifikation nutzt beide Welten, z. B. Isabelle.
+* **Interpretation & Schärfung:** Die FVT teilt sich in der Praxis in zwei Lager:  
+  * **FOL (SMT-Solver wie Z3):** Diese beweisen blitzschnell und hochgradig automatisiert Eigenschaften über individuelle Objekte und einfache Strukturen (z. B. "Die Länge der Output-Liste ist immer $\ge$ der Input-Liste").
+  * **HOL (Theorem Provers wie Isabelle/HOL, Coq):** Diese erlauben es dir, über Funktionen, Prädikate und komplexe mathematische Strukturen zu quantifizieren. Hier tauscht du Automatisierbarkeit gegen absolute, unbegrenzte Ausdruckskraft.
+
 ---
 
+</details>
+
+---
