@@ -175,7 +175,7 @@ Betrachte deine Test-Datensätze als eine Sammlung von Eingaben und Ausgaben, al
 #### EBT: FOL (bzw. Propositional / Ground Terms)
 
 * **Einordnung:** EBT entspricht First-Order Logic (FOL), da Variablen hier konkrete, individuelle Objekte sind.
-* **Interpretation & Schärfung:** Das ist konzeptionell eine hervorragende Brücke, auch wenn EBT streng formallogisch sogar noch eine Ebene *unter* der vollen FOL angesiedelt ist. FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). EBT hingegen arbeitet komplett quantorenfrei mit sogenannten "Ground Terms" oder Aussagenlogik. Es sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$". Dennoch: Da der *Scope* von EBT auf festen, individuellen Datenpunkten (Objekten) liegt, fügt sich EBT als das fundamentale Fundament der FOL perfekt in diese Skala ein.
+* **Interpretation & Schärfung:** FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). EBT hingegen arbeitet komplett quantorenfrei mit sogenannten "Ground Terms" oder Aussagenlogik. Es sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$". Dennoch: Da der *Scope* von EBT auf festen, individuellen Datenpunkten (Objekten) liegt, fügt sich EBT als das fundamentale Fundament der FOL perfekt in diese Skala ein.
 
 ---
 
