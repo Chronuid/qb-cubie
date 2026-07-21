@@ -1,4 +1,4 @@
-# QA
+# QA-Bench
 > *Simple and customizable **Quality Assurance** Builder*
 
  Warum komplexen Test-Code schreiben, wenn uns das maschinelle Lernen bereits vorgemacht hat, wie man Validierungs-Mechanismen elegant, skalierbar und universell gestaltet? Lass uns ein Code-Gym bauen!
