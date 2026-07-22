@@ -1,7 +1,6 @@
 # Example-Based-Testing (EBT)
 
 Willkommen in der greifbarsten und gleichzeitig kompromisslosesten Disziplin der Qualitätssicherung.  
-Hier geht es nicht um theoretische Beweise, sondern um absolute, in Stein gemeißelte Realitäten: Konkrete Werte, handfeste Argumente und exakte Systemzustände.  
 Wir definieren klare Realitäten und machen sie zu unserem "Golden Master" → dem unbestechlichen Standard, an dem sich jeder Code messen lassen kann.
 
 
@@ -33,7 +32,7 @@ EBT ist unser "Ground Truth"-Protokoll. Es stellt sicher, dass bei aller maschin
 Das Schöne am EBT ist, dass es nicht auf primitive Datentypen beschränkt bleibt. Das Prinzip der eingefrorenen Vor- und Nachbedingungen skaliert fraktal durch alle Architekturebenen deines Projekts:
 
 * **Micro-Dynamik (Die Funktions-Ebene):** Hier bewegen wir uns direkt im Arbeitsspeicher. Ein simples I/O-Paar. Ein Input ($P$) geht in die Funktion ($S$) hinein, ein Output ($Q$) kommt heraus.
-* **Meso-Dynamik (Die Service-Ebene):** Hier agiert unser Vorzeige-Beispiel, der *MD-Cleaner*. Wir testen isolierte Dateitransformationen in einer geschützten Arena (dem Pytest-Gym). Ein rohes Wikipedia-Markdown-Dokument wird in den Workspace geladen ($P$); das Skript bereinigt es; die Validierung prüft am Ende Byte-für-Byte gegen dein handverlesenes Ziel-Dokument ($Q$).
+* **Meso-Dynamik (Die Service-Ebene):** Hier agiert unser Vorzeige-Beispiel, der *MD-Cleaner*. Wir testen isolierte Dateitransformationen in einer geschützten Arena (dem Pytest-Gym). Ein rohes Wikipedia-Markdown-Dokument wird in den Workspace geladen ($P$); das Skript bereinigt es; die Validierung prüft am Ende gegen dein handverlesenes Ziel-Dokument ($Q$).
 * **Macro-Dynamik (Die Repo-Ebene):** Das absolute Endgegner-Level. Hier vergleichen wir ganze Projektbäume. $P$ ist der unaufgeräumte Legacy-Ordner, $Q$ ist die perfekt strukturierte Refactoring-Vision. Der Test vergleicht nicht nur Codezeilen, sondern Ordnerstrukturen, Abhängigkeiten und die Existenz ganzer Module.
 
 ---
@@ -77,12 +76,12 @@ QA-Bench führt solche Tests nicht blind im Projektordner aus, sondern etabliert
 2. **Setup:** Die `_raw.md` Datei ($P$) wird in diese Arena kopiert.
 3. **Action:** Das Skript (oder der KI-Agent) wird exklusiv auf diese Arena losgelassen und mutiert die Datei.
 4. **Reward:** Das Framework friert die Zeit ein und vergleicht das Resultat Byte-für-Byte mit der `_normalized.md` ($Q$).
-* Gibt es auch nur ein übersehenes Leerzeichen, schlägt der Test fehl und der Agent erhält ein detailliertes Diff (Reward = 0).
+* Gibt es auch nur ein übersehenes Leerzeichen, schlägt der Test fehl und wir erhalten ein detailliertes Diff (Reward = 0).
 * Sind die Dateien absolut identisch, ist die Funktion verifiziert (Reward = 1).
 
 
 
-Dieses Setup zwingt den Code (oder die KI), exakt die Transformation durchzuführen, die wir als Architekten vorgegeben haben – ohne dass wir ihr erklären müssen, *wie* sie das tun soll.
+Dieses Setup zwingt den Code, exakt die Transformation durchzuführen, die wir als Architekten vorgegeben haben – ohne dass wir ihr erklären müssen, *wie* sie das tun soll.
 
 ---
 
@@ -90,16 +89,16 @@ Dieses Setup zwingt den Code (oder die KI), exakt die Transformation durchzufüh
 
 ### 4. Die Gefahr der Underspezifikation (Das "Lazy Agent" Syndrom)
 
-EBT ist kompromisslos, hat aber eine gewaltige konzeptionelle Schwäche, die besonders in der KI-gestützten Entwicklung (Test-Driven Generation) gefährlich wird: **Die Maschine wählt immer den Weg des geringsten Widerstands.**
+EBT ist kompromisslos, hat aber eine gewaltige konzeptionelle Schwäche, die besonders in der KI-gestützten Entwicklung (Test-Driven Generation) gefährlich wird: **Die Maschine durchsucht den gesamten Lösungsraum, den wir mit unseren Definitionen abgesteckt haben - und findet meist zunächst die Wege mit dem geringsten Widerstand.**
 
 ---
 
 #### **Die Illusion der Abdeckung:**
 
 Nehmen wir ein simples Beispiel: Wir definieren als Input ($P$) die Zahl `2` und als Output ($Q$) die Zahl `4`.
-Unser Ziel ist es, dass der Agent eine Funktion schreibt, die den Input verdoppelt (`x * 2`). Der Agent könnte aber genauso gut einfach `return 4` oder `return x + 2` schreiben. Beide Wege bestehen den Test mit Bravour.
+Unser Ziel ist es eigentlich, dass wir Funktionen finden, die den Input verdoppelt (`x * 2`). Der Agent könnte aber genauso gut einfach `return 4` oder `return x + 2` schreiben. Beide Wege bestehen den Test mit Bravour.
 
-Das ist das Problem der **Underspezifikation**. Ein Golden Dataset beweist *nicht*, dass der Code universell korrekt ist. Es beweist lediglich, dass der Code *für dieses spezifische Beispiel* nicht falsch ist. Es können extrem komplexe, völlig fehlerhafte Programme entstehen, die den Lösungsraum schlichtweg überanpassen (Overfitting), um die Tests auszutricksen.
+Das ist das Problem der **Underspezifikation**. Ein Golden Dataset beweist *nicht*, dass der Code universell korrekt unserer Intention entspricht. Es beweist lediglich, dass der Code *für dieses spezifische Beispiel* nicht falsch ist. Es können extrem komplexe, völlig fehlerhafte Programme entstehen, die den Lösungsraum schlichtweg überanpassen (Overfitting), um die Tests auszutricksen.
 
 ---
 
@@ -210,7 +209,7 @@ EBT(
         args=["--process"], # Das Argument, das die Funktion bekommt
         fs={
             "/etc/app/config.yaml": "tests/pre/1_config.yaml",
-            "./data/pre.csv":     "tests/pre/1_input.csv"
+            "./data/pre.csv": "tests/pre/1_input.csv"
         } # Mirror: Arena-Pfad ← Host-Dataset (Echte Kopie)
     ),
     

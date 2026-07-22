@@ -2,9 +2,6 @@
 > *The **Quality Assurance** Builder*
 
  Warum komplexen Test-Code schreiben, wenn uns das maschinelle Lernen bereits vorgemacht hat, wie man Validierungs-Mechanismen elegant, skalierbar und universell gestaltet? Lass uns ein Code-Gym bauen!
-* (optional) **Auto-Assurance:** scanned den Source-Code, prüft welche Tests existieren und welche nicht und bereitet alle fehlenden Test-Schablonen zum Ausfüllen vor, um die Entwicklung zu vereinfachen.
-
-* **Info-Reports:** gute Einsehbarkeit der Coverage, Validations-Grade und Zustände.
 
 ---
 
@@ -26,7 +23,7 @@ $$\{P\}\; S\; \{Q\} \quad \equiv \quad S: P \to Q$$
 > **Sprich:** Das Programmsegment $S$ ist eine Abbildung (Funktion), die Daten des Typs $P$ (Eingabe) entgegennimmt und Daten des Typs $Q$ (Ausgabe) liefert.
 
 ---
-Das Projekt ist darauf ausgelegt die Prinzipien der Programmverifikation einfach und zugänglich umsetzen und automatisieren zu können, um für die synthetische Software-Generierung und Code-ML-Projekte verwendet werden zu können. Hierfür lässt sich die eben definierte Umstellung um den Suchraum des Code-Generators ($S \in \Sigma^*$) erweitern: 
+Das Projekt ist darauf ausgelegt die Prinzipien der Programmverifikation einfach und zugänglich umsetzen und automatisieren zu können. Hierfür lässt sich die eben definierte Umstellung um den Suchraum des Code-Generators ($S \in \Sigma^*$) erweitern: 
 
  $$\mathcal{S}_{\text{summ}} = \{ S \in \Sigma^* \mid S: P \to Q \}$$
 
@@ -40,7 +37,7 @@ Das Projekt ist darauf ausgelegt die Prinzipien der Programmverifikation einfach
 
 --- 
 
-Um die Nicht-Funktionalen Eigenschaften (wie z. B. Ausführungsgeschwindigkeit, Speicherverbrauch oder Linter-Styleguides) oder auch abstrakte, semantisch definierte Intentionen abzudecken, verknüpfen wir die funktionale Lösung mit weiteren Bedingungen ($C$ für Constraints).
+Um die Nicht-Funktionalen Eigenschaften (wie z. B. Ausführungsgeschwindigkeit, Speicherverbrauch oder Linter-Styleguides) oder auch abstrakte, semantisch definierte Intentionen und Regeln abzudecken, verknüpfen wir die funktionale Lösung mit weiteren Bedingungen ($C$ für Constraints).
 $$\mathcal{S}_{\text{summ}} \cap C = \{ S \in \Sigma^* \mid S: P \to Q \} \cap C$$
 
 > **Für Einsteiger übersetzt:**  
@@ -81,6 +78,7 @@ Um jede Art von Test schnell definieren zu können, empfiehlt es sich Utils zur 
 * **Func:** Definiert das Verhalten, die Funktionen und die Fähigkeiten der Code-Ausführung mit dem abstrakten Syntax-Baum:  
   **→ Objekt-Ausführung**  
 
+---
 
 ### Test-Rollen: Golden und Synthetisch  
 
@@ -92,6 +90,7 @@ Die atomare Validierungs-Logik ist für "Golden Datasets" und "Synthetische Data
 
 Ob hierbei "golden"/"synthetic" oder ein f"auth-lvl_{x}" für die tags verwendet wird, steht noch nicht fest und wird später auf dem Kern aufbauend dazu entwickelt. 
 
+---
 
 ### Test-Typen: Beispiele, Regeln und abstrakte Formeln
 * **RBT:** Review-Based-Testing
