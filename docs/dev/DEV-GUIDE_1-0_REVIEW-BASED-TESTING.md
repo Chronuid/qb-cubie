@@ -17,7 +17,7 @@ In seiner primitivsten Form benötigt das RBT nur zwei Informationen:
 
 ### Der Ausführungs-Lebenszyklus
 
-1. **Pausierung:** Sobald Pytest einen RBT-Knoten erreicht, wird das interne Capturing (`stdout`/`stdin`) dynamisch ausgesetzt. Der Testlauf friert ein.
+1. **Pausierung:** Das Framework pfuscht nicht im Capturing von Pytest herum. Wenn ein RBT-Knoten erreicht wird, ruft der Test den HumanReviewer auf und blockiert einfach (wartet synchron).
 2. **Präsentation:** Dem Reviewer (in diesem Fall dem Entwickler vor dem Terminal) wird das Target und die Direktive über die Konsole präsentiert.
 3. **Interaktion:** Das System nutzt ein klassisches Schritt-für-Schritt-Fragespiel. Es blockiert und wartet auf eine binäre Entscheidung (`y/n`) zur Korrektheit sowie auf einen optionalen schriftlichen Report.
 4. **Fortsetzung:** Die Eingabe wird ausgewertet. Der Test leuchtet in Pytest entsprechend grün oder rot, und der optionale schriftliche Report wird als Payload dem regulären Pytest-Report übergeben.

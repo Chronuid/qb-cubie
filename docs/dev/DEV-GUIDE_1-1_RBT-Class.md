@@ -7,7 +7,7 @@ Das `RBT` fungiert als Brücke zwischen unscharfen Anforderungen und dem harten,
 * **Target-Auswertung:** Wenn `target` nicht definiert ist, bezieht sich die Prüfung implizit auf das gesamte Projekt. Direkte Python-Objekte werden dynamisch zu String-Repräsentationen evaluiert. Strings werden direkt übergeben.
 
 * **Pytest-Orchestrierung & Lebenszyklus:** 
-  * Sobald der RBT-Knoten erreicht wird, friert der Testlauf ein und lässt dem Reviewer Zeit zur Prüfung. 
+  * Das Framework pfuscht nicht im Capturing von Pytest herum. Wenn ein RBT-Knoten erreicht wird, ruft der Test den HumanReviewer auf und blockiert einfach (wartet synchron).
   * Nach der Prüfung durch den Reviewer reicht sie das Test-Ergebnis und -Bericht nahtlos als Pytest-Ergebnis und -Report weiter.
 
 ### `RBT.target`

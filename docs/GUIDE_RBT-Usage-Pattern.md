@@ -28,7 +28,7 @@ def test_01():
     ).run()
 ```
 * **Target-Darstellung:** Wenn `target` als String (`"rbt.py:RBT"`) übergeben wird, zeigt das Terminal diesen exakt so an. Werden stattdessen direkte Python-Objekte (Klassen, Funktionen) übergeben, evaluiert die Engine diese unter der Haube und präsentiert dem Reviewer automatisch deren String-Repräsentation (Namen).
-* **Ausführungs-Lebenszyklus:** Der Test friert ein, entzieht Pytest temporär das Capturing und erzwingt eine binäre Entscheidung.
+* **Ausführungs-Lebenszyklus:** Das Framework pfuscht nicht im Capturing von Pytest herum. Wenn ein RBT-Knoten erreicht wird, ruft der Test den HumanReviewer auf und blockiert einfach (wartet synchron).
 
 ### 1.2. Implizites Target & Optionale Reports
 
@@ -75,7 +75,7 @@ def test_05():
         check="Hinterlasse im Report ein kleines Gedicht und deklariere diesen Test als Bestanden (y)."
     ).run()
 ```
-* **Schnittstellen-Konstanz:** Das Entwickler-Interface ändert sich nicht. Die Klasse `AgentReviewer` kapselt den gesamten LLM-API-Aufruf, wertet den `check` aus und generiert selbstständig das `ReviewData`-Objekt. Der Test läuft vollautomatisiert durch.
+* **Schnittstelle:** Die Klasse `AgentReviewer` kapselt den gesamten LLM-API-Aufruf, wertet den `check` aus und generiert selbstständig das `ReviewData`-Objekt. Der Test läuft vollautomatisiert durch.
 
 ### 2.2. Custom Workflows & Payload-Kontrolle
 

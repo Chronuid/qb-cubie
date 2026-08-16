@@ -1,5 +1,8 @@
-> # Cubie! 📦 
-> Your Quality-Bench (qb) | CUBE of Quants
+> # Cubie 
+> 
+> ---
+> 
+> Your Quality-Bench 📦 qb 📦 The CUBE of Quants
 > 
 > ---
 > Cubie ist ein kompromissloses Framework für strukturierte Qualitätssicherung. Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden werden muss. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so weit einzuengen, bis nur noch die korrekte Funktion überlebt.
@@ -118,7 +121,7 @@ Die drei Test-Paradigmen **Example-Based Testing (EBT)**, **Review-Based Testing
 
 *   **Logische Fundierung:** Konzeptionell die Schnittmenge aus **allen Testverfahren (Any)** und den Fähigkeiten des jeweiligen **Reviewers**. RBT lässt sich nicht in ein rein formales System pressen.
 *   **Kernidee und Anwendung:** Es dient als Brücke zwischen dem unendlichen Suchraum und dem automatisierten Testsystem. RBT ist das ideale Werkzeug für das **Bootstrapping** in frühen Projektphasen sowie für qualitative und subjektive Anforderungen (z. B. UI-Stil, Tonfall), die sich harten mathematischen Assertions entziehen.
-*   **Funktionsweise:** Beim Erreichen eines RBT-Knotens friert der Testlauf in Pytest dynamisch ein (das stdout/stdin-Capturing wird ausgesetzt). Der „Reviewer“ erhält die Prüfregel („Check“) und das Zielobjekt („Target“) präsentiert und muss eine binäre Entscheidung (passed: y/n) sowie optional einen schriftlichen Bericht abgeben.
+*   **Funktionsweise:** BDas Framework pfuscht nicht im Capturing von Pytest herum. Wenn ein RBT-Knoten erreicht wird, ruft der Test den HumanReviewer auf und blockiert einfach (wartet synchron). Der „Reviewer“ erhält die Prüfregel („Check“) und das Zielobjekt („Target“) präsentiert und muss eine binäre Entscheidung (passed: y/n) sowie optional einen schriftlichen Bericht abgeben.
 *   **Dependency Injection:** RBT arbeitet standardmäßig mit einem menschlichen Tester am Terminal (`HumanReviewer`). Über das Reviewer-Protokoll und den standardisierten `ReviewData`-Vertrag kann dieser jedoch mühelos gegen einen **automatisierten KI- bzw. LLM-Agenten** ausgetauscht werden, der komplexe Prüfungen vornimmt und strukturierte Metadaten im offenen Report-Dictionary ablegt.
 
 ---
@@ -138,10 +141,10 @@ Die drei Test-Paradigmen **Example-Based Testing (EBT)**, **Review-Based Testing
 
 ### Zusammenfassung der Unterschiede im Überblick
 
-| Kriterium | Example-Based Testing (EBT) | Review-Based Testing (RBT) | Erweitertes Property-Based Testing (ePBT) |
-| :--- | :--- | :--- | :--- |
-| **Logische Ebene** | Prädikatenlogik 1. Stufe (FOL) & Aussagenlogik | Schnittmenge aus allen Testarten und dem Prüfverfahren | Logik höherer Stufe (HOL) |
-| **Primärer Fokus** | Deterministische Transformationen, „Golden Masters“ | Qualitative, subjektive Kriterien & Bootstrapping | Deklaration universeller Gesetze & Systeminvarianten |
-| **Zustandserfassung** | Passive, eingefrorene `WorldState`-Objekte | Dynamisches Einfrieren des Testlaufs via `ReviewData`-Vertrag | Statische & dynamische Kette aus 4 integrierten Säulen |
-| **Verifikations-Art** | Exakter Byte-für-Byte-Abgleich oder logisches Mengen-Mapping | Menschliches y/n-Urteil oder semantische KI-Evaluation | Statische Syntaxbaum-Beweise & stochastische Flutung (Fuzzing) |
-| **Autoritätsstufe** | Absolute Fakten-Autorität (Ground Truth) | Explorative / subjektive Brücke | Hypothese (muss durch EBT verifiziert werden) |
+| Kriterium | Example-Based Testing (EBT) | Review-Based Testing (RBT)                                                   | Erweitertes Property-Based Testing (ePBT) |
+| :--- | :--- |:-----------------------------------------------------------------------------| :--- |
+| **Logische Ebene** | Prädikatenlogik 1. Stufe (FOL) & Aussagenlogik | Schnittmenge aus allen Testarten und dem Prüfverfahren                       | Logik höherer Stufe (HOL) |
+| **Primärer Fokus** | Deterministische Transformationen, „Golden Masters“ | Qualitative, subjektive Kriterien & Bootstrapping                            | Deklaration universeller Gesetze & Systeminvarianten |
+| **Zustandserfassung** | Passive, eingefrorene `WorldState`-Objekte | Dynamische Übergabe des Ergebnisses an den Testlauf via `ReviewData`-Vertrag | Statische & dynamische Kette aus 4 integrierten Säulen |
+| **Verifikations-Art** | Exakter Byte-für-Byte-Abgleich oder logisches Mengen-Mapping | Menschliches y/n-Urteil oder semantische KI-Evaluation                       | Statische Syntaxbaum-Beweise & stochastische Flutung (Fuzzing) |
+| **Autoritätsstufe** | Absolute Fakten-Autorität (Ground Truth) | Explorative / subjektive Brücke                                              | Hypothese (muss durch EBT verifiziert werden) |
