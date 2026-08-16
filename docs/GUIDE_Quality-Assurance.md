@@ -1,7 +1,12 @@
-# QA-Bench
-> *The **Quality Assurance** Builder*
+# CUBIE: Quality Assurance Guide
 
- Warum komplexen Test-Code schreiben, wenn uns das maschinelle Lernen bereits vorgemacht hat, wie man Validierungs-Mechanismen elegant, skalierbar und universell gestaltet? Lass uns ein Code-Gym bauen!
+
+**CUBIE ist nicht einfach nur deine "Q-Bench".**  → *Unter der Haube ist es dein **CUBE of QUANTS**.*
+
+* **QUANTS (Die Quantoren):** Die wahre Macht liegt nicht im isolierten Testfall, sondern in der iterativen Orchestrierung von Mengen-Mappings über formallogische Quantoren ( $\forall$ und $\exists$ ).
+
+
+* **CUBE (Der orthogonale Raum):** Ein einzelner Datenpunkt ist flach. Erst wenn du das System zwingst, Randfälle und strukturbrechende Beispiele zu verarbeiten, spannst du den Lösungsraum *orthogonal* in die Breite und Tiefe auf. Du baust buchstäblich einen mehrdimensionalen "Würfel" aus harten, deterministischen Fakten, aus dem fehlerhafter Code nicht mehr entkommen kann. Die gesamte Testsuite wird zum übergeordneten Allquantor.
 
 ---
 
@@ -96,7 +101,6 @@ Ob hierbei "golden"/"synthetic" oder ein f"auth-lvl_{x}" für die tags verwendet
 * **RBT:** Review-Based-Testing
 * **EBT:** Example-Based-Testing
 * **PBT:** Property-Based-Testing
-* **FVT:** Formal-Verification-Testing
 
 ---
 
@@ -121,7 +125,6 @@ In der Logik und Informatik sind die Prädikatenlogik erster Stufe (FOL) und die
 
 * EBT: FOL
 * PBT: (HOL → EBT)
-* FVT: (FOL & HOL) #z.B mit Isabelle
 * RBT: Any$\cap$Prüfverfahren #bzw. Reviewer
 
 ---
@@ -134,8 +137,7 @@ In der Logik und Informatik sind die Prädikatenlogik erster Stufe (FOL) und die
 
 Die simpelste und gleichzeitig komplexeste Art des Testens! Das RBT ist perfekt für Bootstrapping und Experimente und ist so mächtig, dass die menschliche Gesellschaft auf diese Weise alle Wissenschaften und Berufe bootstrappen konnte! 
 
-* Dokumentiere einfach die Regeln, welche geprüft werden sollen und lasse dich anpingen, wenn es Zeit für eine Review wird! 
-* *(Alternativ lässt sich auch ein LLM exakt darauf einspielen.)*
+* Dokumentiere einfach die Regeln, welche geprüft werden sollen und lasse dich anpingen, wenn es Zeit für eine Review wird!
 
 
 ***... Done!***
@@ -144,10 +146,9 @@ Die simpelste und gleichzeitig komplexeste Art des Testens! Das RBT ist perfekt 
 
 #### RBT: Any $\cap$ Prüfverfahren
 
-* **Einordnung:** RBT ist die Schnittmenge aus *allem* (Any) und dem jeweiligen Reviewer, was später Vertrauens-Scores für die maschinelle Verarbeitung benötigt.
-* **Interpretation & Schärfung:** RBT ist das einzige Testverfahren, das sich nicht in eine formale Schachtel pressen lässt, weil es als Brücke zwischen der "weichen" Realität (natürliche Sprache, Intentionen, Ästhetik) und dem formalen System fungiert.
+* **Einordnung:** RBT ist die Schnittmenge aus *allen Testarten* (Any) und den Fähigkeiten des jeweiligen Reviewers.
+* **Interpretation & Schärfung:** RBT ist das einzige Testverfahren, das sich nicht in eine formale Schachtel pressen lässt, weil es als Brücke zwischen der Unendlichkeit des Sigma-Sterns und dem formalen System fungiert.
   * Das **Prüfungsverfahren** (ob Mensch oder LLM oder ein anderweitiges Verfahren) agiert hier als semantischer Compiler.
-  * **Confidence-Metriken** sind für die spätere Automatisierung relevant: Wenn ein KI-Agent die RBT-Rolle übernimmt, ist das Ergebnis nicht mehr binär (`True`/`False`), sondern probabilistisch. Damit das deterministische EBT aus diesen RBT-Reviews klare $P$ und $Q$ ableiten kann, brauchen wir Metriken (wie *Logprobs*, *Temperature-Evaluations* oder *Self-Consistency-Scores*).
 
 ---
 
@@ -174,7 +175,8 @@ Betrachte deine Test-Datensätze als eine Sammlung von Eingaben und Ausgaben, al
 #### EBT: FOL (bzw. Propositional / Ground Terms)
 
 * **Einordnung:** EBT entspricht First-Order Logic (FOL), da Variablen hier konkrete, individuelle Objekte sind.
-* **Interpretation & Schärfung:** FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). EBT hingegen arbeitet komplett quantorenfrei mit sogenannten "Ground Terms" oder Aussagenlogik. Es sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$". Dennoch: Da der *Scope* von EBT auf festen, individuellen Datenpunkten (Objekten) liegt, fügt sich EBT als das fundamentale Fundament der FOL perfekt in diese Skala ein.
+* **Interpretation & Schärfung:** FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). Einzelne EBT-Tests basieren zwar komplett quantorenfrei auf der reinen Aussagenlogik (sogenannten "Ground Terms"), werden aber durch die Test-Strukturen und die iterierte Menge der Test-Datensätze in ihrer Mächtigkeit und Handhabung mit FOL-Definitionen gleichgesetzt. Ein isolierter Test sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$".  
+**Dennoch:** Da der Scope von EBT auf festen, individuellen Datenpunkten (Objekten) liegt und durch diese Mengen ein ganzer Raum orthogonal aufgespannt werden kann, fügt sich EBT als das unbestechliche Fundament perfekt in diese Skala ein.
 
 ---
 
@@ -190,48 +192,20 @@ Genug von der Erstellung einzelner Beispiele? Dann definiere die Bereiche und st
 - Lass die Maschine die Grenzen kollabieren.
 
 #### Beispiel: Nehme deine Dokumenten-Funktion und...
- - ... Sage QA-Bench, dass der Input *prinzipiell* jede beliebige PDF-Datei sein darf.
- - ... QA-Bench generiert autonom tausende Dokumente: extrem riesige, leere, strukturell beschädigte oder negativ formatierte Files.
- - ... Sobald der Code bricht, schrumpft (shrinckt) QA-Bench das gigantische Fehler-Dokument vollautomatisch auf das exakte, minimale Byte zurück, das den Absturz verursacht hat.
+ - ... Sage Cubie, dass der Input *prinzipiell* jede beliebige PDF-Datei sein darf.
+ - ... Cubie generiert autonom tausende Dokumente: extrem riesige, leere, strukturell beschädigte oder negativ formatierte Files.
+ - ... Sobald der Code bricht, schrumpft (shrinckt) Cubie das gigantische Fehler-Dokument vollautomatisch auf das exakte, minimale Byte zurück, das den Absturz verursacht hat.
 
 ***... Done!*** (Du erhältst den rauschfreien, mathematisch präzisen Edge Case.)
+
+(**Wichtig:** Hier gilt Karl Poppers Falsifikation. Dieser Generator wäre selbst eine Funktion, eine Hypothese, die es zu testen gilt. PBT synthetisiert unter der Haube Annahmen darüber, wie du deine EBT-Tests aufsetzen würdest, aber ob diese Annahme korrekt sind, ist nicht garantiert. Wenn ein PBT-Test einen Fehler findet, heißt das nicht direkt, dass der Code fehlerhaft ist, denn vielleicht ist deine PBT-Definition zu scharf gestellt oder fehlerhaft. Es wird strengstens empohlen die PBT-Ausgaben als Vorschläge für weitere EBT-Cases zu interpretieren, die es zu prüfen gilt. Erst wenn man sich sicher ist, dass die PBT-Definition zuverlässig funktioniert und korrekt ist, sollte man sie "unsupervised" einsetzen, wobei man stets bedenken sollte, dass der PBT-Test selbst auch nur eine Hypothese darüber bleibt, was richtig und was falsch wäre.)
 
 <details> 
 
 #### PBT: (HOL → EBT) bzw. ($\forall$ → EBT)
 
 * **Einordnung:** PBT als Pfeil, der aus einer höheren Logik konkrete EBTs generiert.
-* **Interpretation & Schärfung:** Die Notation `(HOL → EBT)` trifft die *Mechanik* des Property-Based-Testing meisterhaft. Wenn du eine Eigenschaft (Property) definierst (z. B. "Für alle validen Markdown-Dateien gilt..."), bedienst du dich eines Allquantors ($\forall$) über eine gesamte Domäne. Du definierst das Gesetz auf einer Meta-Ebene (FOL/HOL), aber die Ausführung (der Pfeil $\to$) kompiliert dieses Gesetz gnadenlos in zehntausende, deterministische EBT-Paare hinunter, um das System empirisch zu fluten. Das ist reine, angewandte Falsifikation.
-
----
-
-</details>
-
----
-
-### Formal-Verification-Testing (FVT)
-
-Mit der Empirie und der Stochastik hast du die Werkzeuge um alles zu validieren, aber mit der formalen Validierung kannst du deine Tests zu einer ultimativen Modellierung digitieren, welche den Spieß umdreht und dir das Repertoir mathematische Verfahren und Algorithmen eröffnet! Betrachte deine Test-Datensätze als Gleichungen und mathematische Sätze, welche die Landschaften modellieren!:
-
-- Definiere die Gesetze deines Codes.
-- Lass die Mathematik nach einem Widerspruch suchen.
-
-#### Beispiel: Nehme deine Dokumenten-Funktion und...
- - ... Definiere das unumstößliche Gesetz: *"Die Ausgabedatei darf strukturell niemals weniger Tabellenspalten enthalten als die Eingabedatei."*
- - ... QA-Bench übersetzt den Kontrollfluss deines Parsers in logische Formeln und übergibt sie dem SMT-Solver.
- - ... Der Solver sucht nicht blind, sondern berechnet mathematisch, ob ein theoretischer Input *existieren kann*, der dieses Gesetz verletzt.
- - ... Findet er einen (**SAT**), liefert er dir das exakte, mathematische Gegenbeispiel (Counterexample). Findet er keinen (**UNSAT**), ist dein Code für alle Ewigkeit mathematisch bewiesen.
-
-***... Done!*** (Sicherheit auf Krypto-Niveau, ganz ohne Code-Ausführung.)
-
-<details> 
-
-#### FVT: (FOL & HOL)
-
-* **Einordnung:** Formale Verifikation nutzt beide Welten, z. B. Isabelle.
-* **Interpretation & Schärfung:** Die FVT teilt sich in der Praxis in zwei Lager:  
-  * **FOL (SMT-Solver wie Z3):** Diese beweisen blitzschnell und hochgradig automatisiert Eigenschaften über individuelle Objekte und einfache Strukturen (z. B. "Die Länge der Output-Liste ist immer $\ge$ der Input-Liste").
-  * **HOL (Theorem Provers wie Isabelle/HOL, Coq):** Diese erlauben es dir, über Funktionen, Prädikate und komplexe mathematische Strukturen zu quantifizieren. Hier tauscht du Automatisierbarkeit gegen absolute, unbegrenzte Ausdruckskraft.
+* **Interpretation & Schärfung:** Wenn du eine Eigenschaft (Property) definierst (z. B. "Für alle validen Markdown-Dateien gilt..."), bedienst du dich eines Allquantors ($\forall$) über eine gesamte Domäne. Du definierst das Gesetz auf einer Meta-Ebene (FOL/HOL), aber die Ausführung (der Pfeil $\to$) kompiliert dieses Gesetz gnadenlos in zehntausende, deterministische EBT-Paare hinunter, um das System empirisch zu fluten. Das ist reine, angewandte Falsifikation.
 
 ---
 
