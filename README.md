@@ -1,19 +1,9 @@
-> # Cubie 
-> 
-> ---
-> 
-> Your Quality-Bench 📦 qb 📦 The CUBE of Quants
-> 
-> ---
-> Cubie ist ein kompromissloses Framework für strukturierte Qualitätssicherung. Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden werden muss. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so weit einzuengen, bis nur noch die korrekte Funktion überlebt.
+> # Cubie
+> Your Quality-Bench
 
+---
 
-
-### The Cube of Quants
-
-Wer das erste Mal mit Tests arbeitet, tappt oft in eine konzeptionelle Falle: Der Glaube, ein isoliert definierter Zielzustand ($Q$) bilde bereits ein "Golden Dataset".
-
-Cubie zwingt dich zum Umdenken. Ein einzelnes $P \to Q$ Mapping ist universell betrachtet extrem schwach. Das wahre Golden Dataset sollte niemals ein einzelnes Post-Attribut sein. Ein starkes Golden Dataset ist die Gesamtheit aller Testinstanzen für eine Funktion. Erst wenn du das Problem orthogonal ausleuchtest, formt die Testsuite den übergeordneten Allquantor ($\forall$), der über alle isolierten EBT-Instanzen iteriert. Das ist der *Cube of Quants* – ein mehrdimensionaler Lösungsraum, aus dem die Maschine  nicht mehr durch naive Unterspezifikation entkommt.
+Cubie ist ein kompromissloses Framework für strukturierte Qualitätssicherung. Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden werden muss. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so weit einzuengen, bis nur noch die korrekte Funktion überlebt.
 
 ---
 ## 🚀 Quickstart

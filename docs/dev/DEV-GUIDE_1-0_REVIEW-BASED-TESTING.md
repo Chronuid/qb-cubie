@@ -38,12 +38,8 @@ from typing import Dict, Any
 
 @dataclass
 class ReviewData:
-    # Der harte Vertrag für die RBT-Engine (Grün oder Rot)
-    passed: bool 
-    
-    # Das offene "JSON" für alles andere (Text, Metadaten, Signaturen, etc.)
-    report: Dict[str, Any] = field(default_factory=dict)
-
+    passed: bool  # Der harte Vertrag für die RBT-Engine (Grün oder Rot)
+    report: Dict[str, Any] = field(default_factory=dict) # Das offene "JSON" für alles andere (Text, Metadaten, Signaturen, etc.)
 ```
 
 * **`passed`:** Das einzige Attribut, das die `RBT`-Engine intern zwingend auswertet, um zu entscheiden, ob der Test in Pytest fehlschlägt oder durchläuft.
@@ -62,15 +58,15 @@ Damit dieses System skalierbar bleibt, müssen alle Reviewer (ob Mensch oder Mas
 Ein Reviewer muss mindestens eine ausführende Methode (z.B. `review`) bereitstellen, welche die Brücke zwischen dem definierten Test und der Pytest-Realität schlägt:
 
 ```python
-class MyCoolReviewerProtocol:
+from typing import Protocol
+
+class Reviewer(Protocol):
     def review(self, target: str, check: str) -> ReviewData:
         """
         Nimmt das Target und die Direktive entgegen, 
         führt den spezifischen Workflow aus (z.B. Terminal-Input oder LLM-API) 
         und gibt das standardisierte ReviewData-Paket zurück.
         """
-        ...
-
 ```
 
 * **Der Default (HumanReviewer):** Wird dem RBT-Test kein expliziter Reviewer übergeben, injiziert die Engine implizit einen menschlichen Terminal-Reviewer. Dieser übernimmt das Pausieren des Testlaufs, das Rendering des `checks` im Terminal und fängt die `y/n`-Eingaben sowie den optionalen Text ab, um daraus das `ReviewData`-Objekt zu konstruieren.
