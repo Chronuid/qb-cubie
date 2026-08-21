@@ -1,4 +1,5 @@
-> PRÄAMBEL: Der Irrtum der Personifizierung Der größte theoretische Fehler in der Analyse von Systemarchitekturen ist die naive Personifizierung. Es gibt hier keinen "faulen Code", keinen "faulen Agenten" und keine Maschine, die aus Bequemlichkeit den "Weg des geringsten Widerstands" wählt. Wer in diesen psychologischen Kategorien denkt, hat die mathematische Realität der Unterspezifikation nicht verstanden.
+> PRÄAMBEL: Der Irrtum der Personifizierung  
+> Der größte theoretische Fehler in der Analyse von Systemarchitekturen ist die naive Personifizierung. Es gibt hier keinen "faulen Code", keinen "faulen Agenten" und keine Maschine, die aus Bequemlichkeit den "Weg des geringsten Widerstands" wählt. Wer in diesen psychologischen Kategorien denkt, hat die mathematische Realität der Unterspezifikation nicht verstanden.
 > 
 > Dieses Dokument verbietet jegliche Personifizierung und betrachtet die Problematik ausschließlich durch die Linse der Mengenlehre im unendlichen Raum. Die Bibliothek von Babel hat keine Intention. Eine Suchanfrage liefert nicht eine falsche Antwort, sondern eine gigantische Menge an Treffern. Unterspezifikation ist keine Faulheit, sondern ein rein mathematisches Filter-Problem: Die zurückgegebene Schnittmenge ist schlichtweg zu groß.
 

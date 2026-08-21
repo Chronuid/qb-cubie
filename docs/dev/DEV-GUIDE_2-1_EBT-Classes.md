@@ -44,6 +44,7 @@ Das Attribut `target` repräsentiert das auszuführende Programmsegment ($S$), w
 Python-Funktionen oder -Klassen können wie gewohnt in das Testmodul importiert und als direkte Referenz (z. B. `target=my_func`) übergeben werden.
 
 
+#### Für die spätere Roadmap:
 2. **String-Referenzen (Target-Grammatik):**
 Alternativ kann das Target als String definiert werden, um Abhängigkeiten in den Test-Dateien zu reduzieren. Die Grammatik folgt hierbei dem Muster `"Dateiname:Funktionsname"` (z. B. `"main.py:my_func"` oder `"agent.py:refactor_repo"`).
 

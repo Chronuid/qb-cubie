@@ -15,26 +15,50 @@ def test_2(): EBT(target=my_func, pre={"x": 1, "y": 2}, post=3).run()
 def test_3(): EBT(target=my_func, pre={"x": 6}, post=31, arena="envs/custom_env_1").run()
 ```
 
+
+```python
+# Vollständige Deklaration
+def test_1(): 
+    EBT(
+        target=my_func, 
+        pre=WorldState(args=(1, 2)), 
+        post=WorldState(returns=3)
+    ).run()
+    
+def test_2(): 
+    EBT(
+        target=my_func, 
+        pre=WorldState(kwargs={"x": 1, "y": 2}), 
+        post=WorldState(returns=3)
+    ).run()
+
+def test_3(): 
+    EBT(
+        arena="envs/custom_env_1",
+        target=my_func, 
+        pre=WorldState(kwargs={"x": 6}), 
+        post=WorldState(returns=31), 
+    ).run()
+```
+
 ### 1.2. Datei-Transformationen & Seiteneffekte
 
 Hier kommt die Definition von `WorldState` ins Spiel, um **Funktions-Inputs** von **Dateisystem-Zuständen** sauber zu trennen:
 
 ```python
 def test_4(): 
-    EBT(target="cleaner.py:my_func",
-        
+    EBT(
+        target=my_func,
         # Vorbedingung (P)
         pre=WorldState(
             args=["kalkuel.md"], # Die Argumente für my_func("kalkuel.md")
             fs={"fixtures/pre/kalkuel.md"} # Welche Dateien werden in die Sandbox kopiert?
         ),
-        
         # Nachbedingung (Q)
         post=WorldState(
-            returns="Erfolgreich bereinigt", # Optional: Konsolenausgabe prüfen
+            returns="Erfolgreich bereinigt", # Für die Roadmap - Optional: Konsolenausgabe prüfen
             fs={"fixtures/post/kalkuel.md"} # Welchem Soll-Zustand muss die Sandbox danach entsprechen?
         ), 
-        
         tags=["optional"]
     ).run()
 ```
@@ -45,9 +69,9 @@ Wenn wir ganze Verzeichnisse oder Refactorings prüfen, zeigt das `WorldState`-M
 
 ```python
 def test_5(): 
-    EBT(target="agent.py:refactor_repo",
+    EBT(
+        target=Agent.refactor_repo(),
         arena="envs/qa_env", # Wo wird ausgeführt? (Arena, optional deklarierbar)
-        
         pre=WorldState(fs="fixtures/pre/project_x/"), # Copied in als Workspace-Root
         post=WorldState(
             fs="fixtures/post/project_x/", # Byte-Vergleich des gesamten Ordners
@@ -65,7 +89,8 @@ Das Dictionary-Pattern hingegen ist ein reiner Konfigurations-Ansatz (IoC) und g
 
 ```python
 def test_6(): 
-    EBT(target="main.py:my_func",
+    EBT(
+        target=my_func,
         arena="envs/qa_env",
         pre=WorldState(
             args=["--process"], # Das Argument, das die Funktion bekommt
@@ -104,14 +129,16 @@ Bedeutung: Es existiert mindestens ein Element in der erlaubten Ziel-Menge, das 
 Praxis-Beispiel (Datei-Zustände):
 
 #### Cubie Konfiguration für eine Q-Menge
+
 ```python
 def test_7():  
-    EBT(target="main.py:my_func",
-        pre="data/input/1_prompt.md",
+    EBT(
+        target=my_func,
+        pre=WorldState(fs="data/input/1_prompt.md"),
         post=[
-            "data/output/1_valid_response_a.md",
-            "data/output/1_valid_response_b.md",
-            "data/output/1_valid_response_c.md"
+            WorldState(fs="data/output/1_valid_response_a.md"),
+            WorldState(fs="data/output/1_valid_response_b.md"),
+            WorldState(fs="data/output/1_valid_response_c.md")
         ]
     ).run()
 ```
@@ -125,18 +152,19 @@ Bedeutung: Für alle definierten Elemente der Eingabe-Menge muss die Funktion ex
 Praxis-Beispiel (Datums-Format-Normalisierung, Datei-Zustände):
 
 #### Cubie Konfiguration für eine P-Menge
+
 ```python
 def test_8():  
-    EBT(target="main.py:my_func",
+    EBT(
+        target=my_func,
         pre=[
-            "data/input/1_date_format_us.txt",
-            "data/input/1_date_format_eu.txt",
-            "data/input/1_date_format_iso.txt"
+            WorldState(fs="data/input/1_date_format_us.txt"),
+            WorldState(fs="data/input/1_date_format_eu.txt"),
+            WorldState(fs="data/input/1_date_format_iso.txt")
         ],
-        post="data/output/1_date_format_normalized.txt"
+        post=WorldState(fs="data/output/1_date_format_normalized.txt")
     ).run()
 ```
-
 Das Framework iteriert deterministisch durch die Menge der Pre-Conditions und isoliert jede Ausführung in einer Arena. Jede Mutation muss in dem exakt gleichen Q-Dokument enden.
 
 #### Architektur-Hinweis: Abgrenzung zur Stochastik (PBT)
@@ -184,9 +212,10 @@ Um den Raum orthogonal aufzuspannen und das System zur Abstraktion zu zwingen, d
 ```python
 # Generator beschränkt auf Werte von 1 bis 5
 def test_9():  
-    EBT(target="main.py:my_func",
-        pre=("--min", "1", "--max", "5"),
-        post = [
+    EBT(
+        target=my_func,
+        pre=WorldState(args=("--min", "1", "--max", "5")),
+        post=[
             WorldState(returns=1),
             WorldState(returns=2),
             WorldState(returns=3),
@@ -194,11 +223,11 @@ def test_9():
             WorldState(returns=5)
         ]
     ).run()
-
 # Orthogonale Erweiterung – Generator beschränkt auf 3 bis 7
 def test_10():  
-    EBT(target="main.py:my_func",
-        pre=("--min", "3", "--max", "7"),
+    EBT(
+        target=my_func,
+        pre=WorldState(args=("--min", "3", "--max", "7")),
         post=[
             WorldState(returns=3),
             WorldState(returns=4),
@@ -207,7 +236,6 @@ def test_10():
             WorldState(returns=7)
         ]
     ).run()
-
 ```
 
 #### Das N:1 Mapping (Der beschränkte Allquantor $\forall$)
@@ -216,21 +244,19 @@ Müssen verschiedene unstrukturierte Eingänge (z. B. Datums-Format-Normaliserun
 
 ```python
 def test_11():  
-    EBT(target="main.py:my_func",
-        
+    EBT(
+        target=my_func,
         # Vorbedingung (P-Menge): Verschiedene verrauschte Eingangsquellen
         pre=[
             WorldState(args=["raw_us.md"], fs={"/app/input.md": "fixtures/pre/raw_us.md"}),
             WorldState(args=["raw_eu.md"], fs={"/app/input.md": "fixtures/pre/raw_eu.md"}),
             WorldState(args=["raw_iso.md"], fs={"/app/input.md": "fixtures/pre/raw_iso.md"})
         ],
-        
         # Nachbedingung (Q): Exakt ein kohärenter Ziel-Zustand
         post=WorldState(fs={"/app/output.md": "fixtures/post/normalized.md"}),
         tags=["universal"]
     ).run()
 ```
-
 
 ---
 
@@ -240,7 +266,7 @@ Das Attribut **`arena`** definiert den isolierten Ausführungsraum (die Sandbox)
 
 Die wichtigste Grundregel für den Lebenszyklus einer Arena lautet: **Der Raum bleibt konstant.** Wenn im `WorldState` der `pre`-Condition eine Arena definiert wird, gilt diese implizit und zwingend auch für die `post`-Condition. Das Framework testet schließlich die Mutation *innerhalb* dieser einen Welt ($P \to Q$).
 
-**Wann definiert man die Arena im `WorldState`?:* Man überschreibt die Arena auf lokaler State-Ebene **nicht**, um es bestimmten Eingaben (Edge-Cases) leichter zu machen. Das würde den Test verfälschen.
+* *Wann definiert man die Arena im `WorldState`?:* Man überschreibt die Arena auf lokaler State-Ebene **nicht**, um es bestimmten Eingaben (Edge-Cases) leichter zu machen. Das würde den Test verfälschen.
 Die lokale Arena-Definition wird ausschließlich dann genutzt, wenn das Target ($S$) die explizite Aufgabe hat, mit der Umgebung selbst zu interagieren – beispielsweise bei System-Skripten, Installationen oder dem Bootstrapping von Projekten.
 
 ### Validierung einer aktiven Umgebungs-Mutation
@@ -250,7 +276,7 @@ In diesem Szenario testen wir eine Funktion, deren einziger Zweck es ist, ein Pa
 ```python
 def test_12():
     EBT(
-        target="env_manager.py:install_package",
+        target=EnvManager.install_package(),
         pre=WorldState(args="requests", arena="envs/pre_env"),
         post=WorldState(arena="envs/post_env")
     ).run()

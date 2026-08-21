@@ -19,15 +19,7 @@ class EBT(CubieBase):
         self.pre = pre
         self.post = post
 
-        
-class ConventionMap:
-    def __init__(self):
-      self.for_class(EBT).when("pre").is_type(tuple).maps_to("pre", WorldState.args)
-      self.for_class(EBT).when("pre").is_type(dict).maps_to("pre", WorldState.kwargs)
-      self.for_class(EBT).when("post").is_type(str).maps_to("post", WorldState.returns)
-        ...
-
-    
+           
 @dataclass
 class WorldState:
     arena: Any = None
@@ -39,8 +31,6 @@ class WorldState:
 
 
 Das Example-Based-Testing (EBT) fungiert als kompromisslose Basis der Qualitätssicherung, indem es deterministische Realitäten als "Golden Master" definiert. Basierend auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$ spannt das Konzept den Raum von einfachen In-Memory-Funktionen bis hin zu komplexen Datei- und Ordner-Transformationen auf.
-
-Um die EBT-Klasse zu implementieren, müssen wir die dokumentierten Usage-Patterns dekonstruieren und daraus die abstrakten, systemischen Anforderungen ableiten.
 
 ---
 
