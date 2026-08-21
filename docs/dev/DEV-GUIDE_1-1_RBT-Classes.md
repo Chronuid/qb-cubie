@@ -30,6 +30,24 @@ Ermöglicht das dynamische Austauschen der Prüfinstanz (Dependency Injection).
 
 Eine Liste von Strings (z.B. `tags=["exploration"]`). Die Tags bleiben von Pytest-Marken differenzierbar, um zukünftige Plugins sauber anzudocken.
 
+Das Aufräumen der Mock-Klassen ist ein guter Schritt für die Code-Hygiene. Für Tests des Frameworks selbst reicht es später völlig, diese bei Bedarf isoliert im Test-Verzeichnis hochzuziehen.
+
+Hier sind die formulierten Abschnitte für deinen `DEV-GUIDE_1-1_RBT-Classes.md`. Sie greifen exakt unsere architektonischen Entscheidungen, das Pipeline-Pattern und die Gründe für das Wiring auf:
+
+
+### `RBT.run()` & Wiring
+
+Die `run()`-Methode ist der primäre Einstiegspunkt und fungiert als Top-Down-Kompositionsfunktion. Sie implementiert ein striktes Pipeline-Pattern, das den Testlauf in drei klar definierte Phasen unterteilt:
+
+* **`_arrange()`:** Bereitet die Eingabedaten vor. Hier wird das übergebene Zielobjekt (`target`) dynamisch zu seiner String-Repräsentation evaluiert.
+* **`_review()`:** Delegiert die eigentliche Prüfung an das injizierte Reviewer-Objekt und wartet synchron auf die Rückgabe des `ReviewData`-Pakets.
+* **`_report()`:** Formatiert das offene Dictionary in einen maschinenlesbaren, aber visuell ansprechenden JSON-Payload und übergibt das finale Prüfergebnis über eine harte `assert`-Anweisung an Pytest.
+
+**Die Verkabelung (Wiring):**
+Der Datenaustausch zwischen diesen Phasen erfolgt konsequent über geschützte Instanz-Attribute (wie `self._target_string`, `self._result` und `self._raw_json`). Dies vermeidet tiefe Parameterketten, wahrt eine extrem hohe Kohäsion und etabliert die Klasse selbst als dedizierten State-Container für den jeweiligen Testlauf.
+Zudem nutzt die Pipeline gezielt das Pytest-Feature `__tracebackhide__ = True`. Dadurch werden interne Framework-Aufrufe im Stacktrace ausgeblendet, sodass der Entwickler bei einem fehlgeschlagenen RBT-Knoten direkt zu seinem Test-Aufruf geleitet wird, anstatt sich durch Framework-Schichten graben zu müssen.
+
+
 ---
 
 ## `class ReviewData`
@@ -59,3 +77,16 @@ Der `HumanReviewer` ist auf das manuelle Bootstrapping ausgelegt und dient als S
 * **Präsentation:** Rendert das Target und die Direktive im Terminal.
 * **Interaktion:** Das System blockiert und wartet auf eine binäre Entscheidung (`y/n`) zur Korrektheit sowie auf einen optionalen schriftlichen Report.
 * **Rückgabe:** Konstruiert aus den Eingaben ein validiertes `ReviewData`-Objekt und gibt dieses an die übergeordnete `RBT`-Instanz zurück.
+
+> **Architektur-Hinweis (Tkinter):** Die Entscheidung, für das interaktive Testing auf die Standardbibliothek `tkinter` zu setzen, dient als robuster Bypass für das aggressive `stdin`/`stdout`-Capturing von Pytest. Anstatt innerhalb der Konsole gegen den Test-Runner zu kämpfen, spawnt das Framework ein leichtgewichtiges OS-Fenster. Dies entkoppelt die Eingabe vollständig vom Runner und blockiert den Ausführungsthread auf natürliche Weise.
+
+### `HumanReviewer.review()` & Wiring
+
+Ähnlich wie die RBT-Hauptklasse nutzt auch der `HumanReviewer` das Pipeline-Pattern, bei dem die `review()`-Methode den gesamten Lebenszyklus der Interaktion von oben nach unten orchestriert.
+
+* **Setup:** Die injizierten `target`- und `check`-Parameter werden in den internen Zustand überführt.
+* **`_run_gui()`:** Initialisiert das Tkinter-Fenster (forciert im Vordergrund via `-topmost`), delegiert das Rendern der UI an untergeordnete Kompositionsfunktionen (`_build_widgets`, `_build_buttons`) und friert den Thread anschließend über `wait_window()` synchron ein, bis der Nutzer interagiert.
+* **`_finalize()`:** Wird durch die Button-Events (`_on_pass` / `_on_fail`) getriggert. Diese Methode liest den Text-Report aus der UI aus, speichert ihn im Zustand und zerstört das Fenster, woraufhin die Pipeline fortgesetzt wird.
+
+**Die Verkabelung (Wiring):**
+Die Logik ist strikt von der Darstellung getrennt. Der valide Zustand der Prüfung (`self._passed`, `self._report_text`) wird flach in den Attributen der Instanz gehalten. Die GUI-Methoden dienen ausschließlich dazu, diese Attribute zu visualisieren und am Ende des Lebenszyklus mit den Eingaben des Nutzers zu befüllen. Statische Typen-Guards sichern die Pipeline ab, um das System zur Laufzeit zu schützen und statische Linter zufriedenzustellen. Sobald das Fenster geschlossen ist, konstruiert die Hauptmethode aus diesem sauberen internen Zustand das geforderte `ReviewData`-Objekt.

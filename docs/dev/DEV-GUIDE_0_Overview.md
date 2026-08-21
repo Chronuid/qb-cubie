@@ -46,8 +46,6 @@ graph RL
 
 ## 3. Struktur des `src`-Ordners
 
-Die aktuelle Code-Basis ist modular aufgebaut und wächst organisch. Das harte Limit für Dateigrößen (wie `core.py`) liegt bei 300 Zeilen. Wird dieses Limit erreicht, diktiert die Logik des Codes die Abspaltung in neue semantische Sub-Domänen.
-
 * `__init__.py`: Definiert die öffentliche API des Pakets.
 * `core.py`: Das Fundament. Hier liegen vorerst alle zentralen Klassen, Utilities und Marker (insbesondere die `CubieBase`-Klasse), bis die Modul-Grenze erreicht wird.
 * `ebt.py`: Beinhaltet die Logik für das *Example-Based-Testing*. Hier lebt aktuell auch das `WorldState`-Objekt, da es derzeit domänenspezifisch für EBT-Zustandsdeklarationen und Datei-Hydration genutzt wird.

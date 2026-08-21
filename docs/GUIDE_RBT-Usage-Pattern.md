@@ -10,7 +10,7 @@
 
 In seiner reinsten Form ist RBT für das manuelle Bootstrapping und interaktive Testing konzipiert. Der Entwickler vor dem Terminal agiert als primärer Reviewer.
 
-### 1.1. Explizites Target & Binäre Entscheidung
+### 1.1. Explizites Target & binäre Entscheidung
 
 Das klassische RBT-Muster benötigt eine Prüfregel (`check`) und optional ein Ziel (`target`). 
 
@@ -22,9 +22,9 @@ def test_01():
         check="""
             Das Terminal mit dem Testlauf pausiert, wartet geduldig auf deine Eingabe 
             und du bekommst das deklarierte Test-Ziel 'rbt.py:RBT' mitsamt diesem Test angezeigt.
-            
+                
             Du kannst diesen Test als 'Bestanden (y)' oder 'Fehlgeschlagen (n)' deklarieren.
-        """
+            """
     ).run()
 ```
 * **Target-Darstellung:** Wenn `target` als String (`"rbt.py:RBT"`) übergeben wird, zeigt das Terminal diesen exakt so an. Werden stattdessen direkte Python-Objekte (Klassen, Funktionen) übergeben, evaluiert die Engine diese unter der Haube und präsentiert dem Reviewer automatisch deren String-Repräsentation (Namen).
