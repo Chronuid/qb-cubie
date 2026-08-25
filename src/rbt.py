@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, Protocol
 
 
+# ========== PROTOCOLS & DATACLASSES ===================================================================================
+
 @dataclass
 class ReviewData:
     """Kapselt das standardisierte Ergebnis einer RBT-Prüfung."""
@@ -13,11 +15,14 @@ class ReviewData:
 
 class Reviewer(Protocol):
     """Definiert den Vertrag für alle injizierbaren Prüfinstanzen."""
-    def review(self, target: Optional[str], check: str) -> ReviewData: ...
+    def review(
+            self,
+            target: Optional[str],
+            check: str
+    ) -> ReviewData: ...
 
 
-# ======================================================================================================================
-
+# ========== REVIEW-BASED-TESTING ======================================================================================
 
 class RBT:
     """
@@ -38,7 +43,8 @@ class RBT:
         self._result: Optional[ReviewData] = None
         self._raw_json: Optional[str] = None
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Services ---------------------------------------------------------------------------------------------------
 
     def run(self) -> None:
         """Führt die Prüf-Pipeline sequenziell aus."""
@@ -47,7 +53,8 @@ class RBT:
         self._review()
         self._report()
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Pipes ------------------------------------------------------------------------------------------------------
 
     def _arrange(self) -> None:
         """Bereitet die Eingabedaten für den Prüfer vor."""
@@ -69,7 +76,8 @@ class RBT:
         payload = self._serialize(payload_data)
         assert self._result.passed, payload
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Utilities --------------------------------------------------------------------------------------------------
 
     @staticmethod
     def _evaluate(obj: Any) -> Optional[str]:
@@ -86,8 +94,7 @@ class RBT:
         return "\n".join(lines)
 
 
-# ======================================================================================================================
-
+# ========== HUMAN-IN-THE-LOOP =========================================================================================
 
 class HumanReviewer:
     """
@@ -101,7 +108,8 @@ class HumanReviewer:
         self._root: Optional[tk.Tk] = None
         self._text_widget: Optional[tk.Text] = None
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Services ---------------------------------------------------------------------------------------------------
 
     def review(self, target: Optional[str], check: str) -> ReviewData:
         """Führt den manuellen Review-Prozess durch."""
@@ -111,7 +119,8 @@ class HumanReviewer:
         report_payload = {"text": self._report_text} if self._report_text else {}
         return ReviewData(passed=self._passed, report=report_payload)
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Pipes ------------------------------------------------------------------------------------------------------
 
     def _run_gui(self) -> None:
         """Initialisiert und startet das blockierende GUI-Fenster."""
@@ -130,9 +139,8 @@ class HumanReviewer:
         if self._target:
             tk.Label(self._root, text=f"Target: {self._target}", font=("Arial", 12, "bold")).pack(pady=10)
         tk.Label(self._root, text=f"Check: {self._check}", font=("Arial", 12)).pack(pady=5)
-        text_widget = tk.Text(self._root, height=8, width=60)
-        text_widget.pack(pady=10, padx=20)
-        self._text_widget = text_widget
+        self._text_widget = tk.Text(self._root, height=8, width=60)
+        self._text_widget.pack(pady=10, padx=20)
         self._build_buttons()
 
     def _build_buttons(self) -> None:
@@ -146,7 +154,8 @@ class HumanReviewer:
             bg="red", fg="white", command=self._on_fail
         ).pack(side=tk.RIGHT, padx=20)
 
-    # ------------------------------------------------------------------------------------------------------------------
+
+    # ----- Utilities --------------------------------------------------------------------------------------------------
 
     def _on_pass(self) -> None:
         """Speichert das positive Ergebnis und schließt das Fenster."""

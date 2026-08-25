@@ -34,7 +34,7 @@ def test_2():
 
 def test_3(): 
     EBT(
-        arena="envs/custom_env_1",
+        arena=PyVenv("envs/custom_env_1"),
         target=my_func, 
         pre=WorldState(kwargs={"x": 6}), 
         post=WorldState(returns=31), 
@@ -113,7 +113,7 @@ Das Dictionary-Mapping `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` wird genau d
 
 ---
 
-## 2. Erweiterte EBT Usage-Patterns und Mengen-Mappings
+## 2. Erweiterte EBT Usage-Patterns
 
 ### 2.1. Das Fundament: 1:1 Mapping (Absolute Zuordnung)
 
@@ -193,9 +193,9 @@ Durch das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` entkop
 Neben dem Dateisystem verwaltet es funktionale Schnittstellen wie `stdout` (für CLI-Streams) oder `returns` (für Rückgabewerte von Funktionen).
 
 
-### 2.5 Anwendung auf komplexe Mengen-Mappings (Meso-Ebene)
+### 2.5 Anwendung auf diskrete Mengen-Mappings
 
-Da wir nun wissen, wie das `WorldState`-Objekt aufgebaut ist, können wir die im erweiterten Guide definierten Mappings (1:N und N:1) syntaktisch sauber und ohne Boilerplate direkt in der Cubie API abbilden.
+Da wir nun wissen, wie das `WorldState`-Objekt aufgebaut ist, können wir die erweiterten Patterns für Quantoren (1:N und N:1) verstehen.
 
 #### Das 1:N Mapping (Der beschränkte Existenzquantor $\exists$)
 

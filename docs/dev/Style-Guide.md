@@ -44,3 +44,12 @@ Wenn es um den laufenden Zustand eines Objekts geht, der sich durch Methodenaufr
 
 ### **Zusammenfassend:**
 Nutze `GROSSBUCHSTABEN` und `typing.Final` für Dinge, die du als "statisch" betrachtest. Nutze `self._variablenname` für internen wandelbaren Zustand und kontrolliere den Zugriff von außen, wenn nötig, über `@property`.
+
+---
+
+### "State-Guard Pattern" (Statische Typensicherheit in Pipelines)
+
+* **Der Kontext:** In Klassen mit strikter Pipeline-Abarbeitung werden Instanzvariablen in der `__init__` oft mit `None` vorbelegt (`Optional[...]`), da ihr echter Zustand erst in einer späteren Phase berechnet wird.
+* **Das Problem:** Statische Typ-Prüfer (Linter) meckern in nachgelagerten Methoden, weil sie nicht garantieren können, dass vorherige Methoden bereits aufgerufen wurden.
+* **Die Regel / Erkenntnis:** Anstatt Typisierungen aufzuweichen oder überall mit `assert` zu pfuschen, empfiehlt sich die Nutzung expliziter **State-Guards** am Methoden-Anfang (z.B. `if self._root is None: raise RuntimeError(...)`).
+* **Der Mehrwert:** Es befriedigt nicht nur den Linter restlos, sondern dient gleichzeitig als harter Laufzeitschutz gegen unvollständige Pipelines (Connascence of Execution), in welcher man Erklärungen formulieren kann, welche definieren was an jenen Stellen für einen sauberen Lauf erwartet wird.

@@ -106,5 +106,5 @@ Während der Entwicklung vom `rbt.py`-Modul hat sich bereits gezeigt, dass das R
 Um die interne Funktionsweise und die architektonischen Details der einzelnen Komponenten tiefgehender zu verstehen, existieren dedizierte Spezifikationen:
 
 * **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Classes.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
-* **[WorldState Deklarator (DEV-GUIDE_2-2)](../DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
-* **[ConventionMap Registry (DEV-GUIDE_3-1)](../DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.
+* **[WorldState Deklarator (DEV-GUIDE_2-2)](DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
+* **[ConventionMap Registry (DEV-GUIDE_3-1)](../guide_core/DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.

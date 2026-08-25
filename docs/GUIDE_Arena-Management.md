@@ -1,0 +1,92 @@
+## 📖 GUIDE: Arena-Management mit Cubie's PyVenv
+> DISCLAIMER: 
+> PyVenv bietet als funktionaler MVP keine OS-Level Security-Sandbox gegen etwaige Jailbreaks.
+
+Arenen (`PyVenv`) isolieren deine Tests in echten virtuellen Umgebungen. Damit das in der Praxis reibungslos funktioniert und dein Repository sauber bleibt, haben sich folgende Best Practices etabliert.
+
+
+### 1. Lokale Arenen (Innerhalb des Test-Ordners)
+
+Wenn Tests spezifische, isolierte Umgebungen benötigen (z. B. um Paket-Installationen zu prüfen), sollten diese nicht wild im Projekt verstreut werden.
+
+* **Struktur:** Lege einen dedizierten, versteckten Ordner (z. B. `tests/.arenas/`) an.
+
+* **Setup:** Mit schnellen Paketmanagern wie `uv` lassen sich diese Arenen in Millisekunden aufbauen:
+```bash
+# Initiale Erstellung der Arena
+uv venv tests/.arenas/qa_env_1
+
+# Optional: Spezifische Abhängigkeiten vorab installieren
+uv pip install requests --env tests/.arenas/qa_env_1
+
+```
+
+
+* **Nutzung im Code:** Da der Pfad relativ zum Ausführungsort von Pytest ist, kannst du ihn direkt deklarieren:
+```python
+def test_installation():
+    EBT(
+        arena=PyVenv("tests/.arenas/qa_env_1"),
+        target=my_installer_func,
+        # ...
+    ).run()
+```
+
+
+### 2. Externe Arenen (Andere Projekte referenzieren)
+
+Oft möchte man die Funktionalität eines externen Projekts testen (z. B. einen lokalen LLM-Server oder eine andere Microservice-Umgebung).
+
+* **Das Problem:** Absolute Pfade wie `/home/user/projects/anderes_projekt/.venv` in den EBT-Tests zu hardcoden, bricht sofort, sobald ein anderer Entwickler das Repository klont oder die CI/CD-Pipeline den Test ausführt.
+* **Die Lösung (Environment-Mapping):** Nutze eine `.env`-Datei oder die `conftest.py`, um externe Pfade dynamisch aufzulösen. So bleibt der Testcode umgebungsagnostisch.
+
+**Beispiel via `conftest.py`:**
+
+```python
+import os
+import pytest
+from pathlib import Path
+
+@pytest.fixture(scope="session")
+def external_arena():
+    """Löst den Pfad zum externen Projekt dynamisch auf."""
+    # Fallback auf einen relativen Nachbar-Ordner, falls keine Env-Var gesetzt ist
+    base_path = os.getenv("EXTERNAL_PROJECT_PATH", "../anderes_projekt")
+    return str(Path(base_path) / ".venv")
+```
+
+**Nutzung im Test:**
+
+```python
+def test_external_target(external_arena): # Pytest injiziert den Pfad
+    EBT(
+        arena=PyVenv(external_arena),
+        target=external_system.run,
+        # ...
+    ).run()
+
+```
+### 3. Security & Isolations-Qualität (Disclaimer)
+
+Die mitgelieferte `PyVenv`-Klasse repräsentiert den funktionalen MVP für das Arena-Protokoll. Sie konzentriert sich auf das absolute technische Minimum, um Abhängigkeiten sauber zu kapseln und Seiteneffekte im Dateisystem zu verhindern. 
+
+**Wichtig:** Diese Arena bietet keine tiefgreifende OS-Level-Isolation! 
+Wir können nicht garantieren, dass ein stoischer, chaotischer Fuzzer durch unvorhersehbare Mutationen nicht doch einen "Jail-Break" hinlegt und aus der Sandbox ausbricht. Der Subprozess läuft weiterhin mit den Rechten des Host-Systems.
+
+Für sicherheitskritische Anwendungen, die Ausführung von absolutem Fremdcode oder bei exzessiven, unüberwachten Fuzzing-Mutationen sollte zwingend auf stabilere Virtualisierungs-Technologien zurückgegriffen werden (z. B. durch die Implementierung einer dedizierten `DockerArena` oder MicroVMs), welche diese Sicherheit auf Kernel-Ebene garantieren können.
+
+### 4. Ausblick: Der `ArenaBuilder` (Automatisierung)
+
+Für die Zukunft (vielleicht schon in einer späteren Cubie-Iteration) drängt sich hier das Factory-Pattern auf. Anstatt Arenen manuell per CLI zu erstellen, könnte das Framework einen `ArenaBuilder` anbieten, der das Bootstrapping zur Laufzeit übernimmt:
+
+```python
+# ZUKUNFTS-VISION
+def test_future_auto_arena():
+    EBT(
+        # Der Builder erstellt das venv on-the-fly via uv und installiert 'ollama'
+        arena=ArenaBuilder("tests/.arenas/temp_1").with_packages(["ollama"]).build(),
+        target=my_func,
+        # ...
+    ).run()
+
+```
