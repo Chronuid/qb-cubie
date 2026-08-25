@@ -1,5 +1,6 @@
 ## `class EBT`
-Die `EBT`-Klasse ist die zentrale Orchestrierungs-Engine des Frameworks. Sie dient als direkte architektonische Übersetzung des formalen P S Q Paradigmas in ausführbaren Code. Die Klasse selbst agiert dabei als direktes Interface für die Definition der Test-Fälle.
+Die `EBT`-Klasse ist die zentrale Orchestrierungs-Engine des Frameworks. 
+Die Klasse selbst agiert dabei als direktes Interface für die Definition der Test-Fälle.
 
 **Kern-Verantwortlichkeiten:**
 
@@ -9,9 +10,9 @@ Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minim
 * **Erweiterte Formallogische Engine (Quantoren-Auflösung):**
 Die Klasse steuert den iterativen Prüfprozess für komplexe Lösungsräume.
 
-   * Werden Vorbedingungen (`pre`) als WorldState-Listen übergeben, wendet die Klasse deterministisch das Prinzip des beschränkten Allquantors ($\forall$) an, führt jeden Zustand isoliert aus und verknüpft die Assertions mit einem logischen UND.
+* Werden Vorbedingungen (`pre`) als WorldState-Listen übergeben, wendet die Klasse deterministisch das Prinzip des beschränkten Allquantors ($\forall$) an, führt jeden Zustand isoliert aus und verknüpft die Assertions mit einem logischen UND.
 
-   * Werden Nachbedingungen (`post`) als WorldState-Listen übergeben, schaltet die Engine auf das Prinzip des beschränkten Existenzquantors ($\exists$) um und bewertet den Test als bestanden (ODER-Verknüpfung), sobald der Output mit einem Element der Zielmenge übereinstimmt.
+* Werden Nachbedingungen (`post`) als WorldState-Listen übergeben, schaltet die Engine auf das Prinzip des beschränkten Existenzquantors ($\exists$) um und bewertet den Test als bestanden (ODER-Verknüpfung), sobald der Output mit einem Element der Zielmenge übereinstimmt.
 
 ---
 
@@ -25,13 +26,10 @@ Die Arena kann sowohl global auf der `EBT`-Ebene (als Parameter der Klasse) als 
 
 1. **Globale Definition (Konstanter Raum):** Wird die Arena auf Ebene der `EBT`-Klasse definiert, dient sie als konstanter, unveränderlicher Ausführungsraum für die gesamte Transformation. Die Testausführung findet vollständig innerhalb dieser einen Welt statt.
 
-
 2. **Lokaler Override (Umgebungs-Mutationen):** Die globale Arena kann auf `WorldState`-Ebene überschrieben werden. Dies sollte nicht genutzt werden, um bestimmte Eingaben (Edge-Cases) künstlich zu erleichtern, sondern ist für Szenarien gedacht, in denen das Target die explizite Aufgabe hat, die Umgebung selbst zu verändern.
-
 
 3. **Lebenszyklus und Assertion:**
    * Definiert der `pre`-State lokal eine Arena, gilt diese **implizit** auch für den `post`-State, da der Raum während einer normalen Ausführung konstant bleiben muss.
-
    * Wird jedoch eine Arena in `pre` deklariert (z. B. `envs/pre_env`) und eine *abweichende* Arena explizit in `post` deklariert (z. B. `envs/post_env`), wechselt die Semantik der Arena von einem Ausführungsort zu einer Assertion. Das Framework validiert dann, ob die Umgebung durch die Ausführung des Targets korrekt in den neuen Ziel-Zustand mutiert wurde.
 
 ---

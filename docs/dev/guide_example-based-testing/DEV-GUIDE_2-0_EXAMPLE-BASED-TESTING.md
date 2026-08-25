@@ -75,34 +75,36 @@ Sie fungiert als das einheitliche Ziel-Schema, in welches die übergeordnete `EB
 
 ---
 
+## Weiteres
+
+### Target-Execution (S) & Asynchronität
+Das EBT-Modul kümmert sich nicht darum, ob eine Funktion synchron oder asynchron aufgerufen wird. Sie kümmert sich lediglich um die Vorbedingungen und Nachbedingungen der Funktion.
+
+Es reicht nicht nur für den MVP, wenn die _validate-Phase dieses Callable rein synchron via self.target(*args, **kwargs) aufgerufen wird.
+Zudem gilt auch für die Zukunft, dass asynchrone Funktionen nicht von der EBT-Klasse selbst berücksichtigt werden müssen. Dementsprechend gilt, dass die EBT-Klasse keine await oder asyncio.run Implementierungen  benötigt, sondern die Verantwortung und Authorität über die Art des Aufrufs von Funktionen und die Art der Gestaltung der Systeme und Datensätze beim Nutzer liegen.
+Ein rein synchroner Aufruf via `self.target(*args, **kwargs)` ist völlig ausreichend.
+
+### Quantoren-Orchestrierung
+Für Existenz- und All-Quantoren muss während der `_arrange`-Phase erfasst werden, welche Art von Zustands-Deklarationen vorliegen. Diese werden über die pre- und post-Attribute deklariert, indem entweder einzelne World-State-Objekte, oder Listen von WorldState-Objekten definiert werden (`[WorldState]`). Die Frage, welche die `_arrange`-Phase beantworten soll, lautet: "Was genau liegt hier vor?"
+
+Darauf basierend gilt es eine Orchestrierungs-Strategie für die Testläufe zu deduzieren. 
+Die Details der Orchestrierungs-Strategien müssen als Hilfsfunktionen gestaltet werden. 
+* Wenn eine WorldState-Liste im `pre`-Attribut vorliegt, benötigen wir eine Allquantor-Logik, welche für jeden WorldState im `pre`-Attribute einen eigenen Testlauf ausführt und einen Fehler wirft, wenn auch nur ein einziger Lauf nicht mit dem erwarteten `post`-Zustand übereinstimt.
+* Wenn eine WorldState-Liste im `post`-Attribut vorliegt, benötigen wir eine Existenzquantor-Logik, welche den Fehler nur dann wirft, wenn kein einziger der erwarteten `post`-Zustände zutrifft.
+* Wenn eine WorldState-Liste sowohl im `pre`-Attribut, als auch im `post`-Attribut vorliegt, dann gilt logischerweise beides: Für jedes Objekt in der WorldState-Liste vom pre-Attribut wird ein Testlauf in einer iterativen Schleife geführt, welche einen Fehler wirft, wenn auch nur ein einziger Lauf nicht mit einem der definierten Zustände im `post`-Attribut zutrifft.
+
+Die `_validate`-Phase muss dann nur noch die Orchestrierungs-Strategie auslesen und dementsprechend die passende Hilfsfunktion aufrufen, welche durch die deklarierten Zustände iterieren. 
+
+### Die `_report`-Phase und Pytest
+
+Während der Entwicklung vom `rbt.py`-Modul hat sich bereits gezeigt, dass das Reporting für uns ein paar kleine Kniffe erwartet. Würden wir einfach nur die Assertion werfen und eine Erklärung liefern, würde das Pytest-Reporting die internen Mechanismen unserer Testklassen im Traceback führen. Daher benötigt es den intelligenten Einsatz von `__tracebackhide__`-Deklarationen, wobei wir darauf achten müssen, dass die EBT-Algorithmen versteckt werden, aber die Ausführung vom target dabei im Traceback erhalten bleibt.
+
+---
+
 ## Weiterführende Dokumentation der Kernkomponenten
 
 Um die interne Funktionsweise und die architektonischen Details der einzelnen Komponenten tiefgehender zu verstehen, existieren dedizierte Spezifikationen:
 
 * **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Classes.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
-* **[WorldState Deklarator (DEV-GUIDE_2-2)](DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
-* **[ConventionMap Registry (DEV-GUIDE_3-1)](DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.
-
----
-
-## Zukunftsfähigkeit & Erweiterbarkeit
-
-
-Die aktuellen Usage-Patterns sind bewusst auf pragmatische In-Memory- und topologische Datei-Transformationen optimiert (Shorthand-First). Für zukünftige Erweiterungen (z. B. vollständige VM-Isolierung oder UI-Automatisierung via CUA) gelten folgende Design-Empfehlungen für die Internas:
-
-* **Schnittstellen-Konstanz:** Die Attribute `arena`, `pre` und `post` müssen auf Engine-Ebene polymorph verarbeitet werden. Die Kern-Engine sollte nicht strukturell davon abhängen, dass die Attribute immer statisch den bisher dokumentierten Usage-Pattern entsprechen.
-* **Kapselung des Lifecycles:** Die Phasen Hydration, Execution und Assertion sollten im Code semantisch so weit entkoppelt sein, dass die Execution-Phase später durch alternative Treiber (z. B. VM-Controller, Screen-Parser) ersetzt werden kann.
-
-### 1. Interner Polymorphismus für `arena`
-
-Aktuell wird `arena` als einfacher `str` (Pfad zu einer Pytest-Sandbox) behandelt. Um die Engine zukunftssicher zu machen, ohne die Shorthand-Syntax zu brechen, sollte der interne Arena-Evaluator von Anfang an polymorph aufgebaut werden:
-
-*  **Jetzt:** Wenn `type(arena) == str`, initialisiert die Engine die Standard-Pytest-Sandbox.
-
-* **Zukunft:** Übergibt man später ein Objekt (z. B. `arena=VM("ubuntu-24.04")`), greift die Engine auf eine andere Implementierung zurück. Die API für den Nutzer bleibt identisch, die interne Ausführung skaliert mit.
-
-### 2. Entkopplung von `Execution` und `Assertion` durch Abstraktion
-
-* Wenn wir den Ausführungs- und Evaluierungs-Lebenszyklus (die 3 Phasen: *Hydration*, *Execution*, *Assertion*) intern sauber in Protokolle oder abstrakte Basisklassen zerlegen, ist es völlig egal, ob die `Execution`-Phase ein Python-Skript füttert oder CLI-Argumente, Klicks und Tastatureingaben an ein UI-Element sendet.
-
-* `args` und `kwargs` können im Fall von UI-Interaktionen später intern als Event-Payloads oder Command-Sequenzen interpretiert werden, ohne dass das strukturelle Schema des `WorldState`-Objekts kollabiert.
+* **[WorldState Deklarator (DEV-GUIDE_2-2)](../DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
+* **[ConventionMap Registry (DEV-GUIDE_3-1)](../DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.
