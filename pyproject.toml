@@ -6,4 +6,5 @@ dependencies = [
     "pytest>=9.0.3",
     "pathlib",
     "typing",
+    "msgspec"
 ]
