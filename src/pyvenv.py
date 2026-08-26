@@ -1,4 +1,4 @@
-import os, subprocess, sys, tempfile, shutil
+import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
 from typing import Any, Optional, Protocol
 from pyvenv_codec import MSGspecCodec
@@ -13,9 +13,11 @@ class IPCCodec(Protocol):
     def dump(self, obj: Any, path: str) -> None:
         """Schreibt das Objekt in den angegebenen Pfad."""
         ...
+
     def load(self, path: str) -> Any:
         """Liest das Objekt aus dem Pfad."""
         ...
+
     def get_runner_snippet(self, in_path: str, out_path: str) -> str:
         """Generiert den Python-Code für die Arena, passend zum Codec."""
         ...
@@ -28,16 +30,23 @@ class PyVenv:
     Führt Targets als leichtgewichtiger Arena-Runner in flüchtigen, virtuellen Python-Umgebungen aus.
     """
     # DISCLAIMER: Bietet als funktionaler MVP keine OS-Level Security-Sandbox gegen mutwillige Jailbreaks.
-    def __init__(self, env_path: str, codec: Optional[IPCCodec] = None):
-        self._env_path = Path(env_path)
+    def __init__(
+            self,
+            env_path: str,
+            codec: Optional[IPCCodec] = None,
+            custom_id: str | None = None
+    ):
         self.codec = codec or MSGspecCodec()
-        self._original_path: Optional[Path] = None
+        self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
+        self.arena_id = f"cubie_arena_{custom_id}_{uuid.uuid4().hex[:8]}"
+        self.env_path = Path(env_path)
+        self.virtual_path: Optional[Path] = None
+
         self._python_exe: Optional[Path] = None
         self._env_vars: Optional[dict] = None
         self._in_path: Optional[str] = None
         self._out_path: Optional[str] = None
         self._process: Optional[subprocess.CompletedProcess] = None
-
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
@@ -50,22 +59,19 @@ class PyVenv:
         try: return self.execute(target, args, kwargs)
         finally: self.teardown()
 
-
     # ↓--- each phase ---↓
 
     def setup(self) -> None:
         """Erstellt einen flüchtigen Klon der virtuellen Umgebung."""
         __tracebackhide__ = True
-        if not self._env_path.exists():
-            raise RuntimeError(f"STATE-GUARD: Basis-Arena nicht gefunden: {self._env_path}")
-        self._ensure_codec_requirements(self._env_path)
-        self._original_path = self._env_path
-        if self._original_path is None:
-            raise RuntimeError("STATE-GUARD: Backup des Original-Pfads ist fehlgeschlagen.")
-        clone_dir = tempfile.mkdtemp(prefix="cubie_arena_")
-        self._env_path = Path(clone_dir)
-        shutil.rmtree(self._env_path)
-        shutil.copytree(self._original_path, self._env_path, symlinks=True)
+        if not self.env_path.exists(): raise RuntimeError(f"STATE-GUARD: Basis-Arena nicht gefunden: {self.env_path}")
+        self._ensure_codec_requirements(self.env_path)
+        clone_dir = tempfile.mkdtemp(prefix=f"{self.arena_id}_")
+        self.virtual_path = Path(clone_dir)
+        if self.virtual_path is None:
+            raise RuntimeError(f"STATE-GUARD: Virtualisierung von {self.env_path} schlug fehl.")
+        shutil.rmtree(self.virtual_path)
+        shutil.copytree(self.env_path, self.virtual_path, symlinks=True)
 
     def execute(
             self,
@@ -81,11 +87,10 @@ class PyVenv:
     def teardown(self) -> None:
         """Zerstört den flüchtigen Klon restlos und stellt den Ursprungszustand her."""
         __tracebackhide__ = True
-        if self._original_path is None:
-            raise RuntimeError("STATE-GUARD: Teardown aufgerufen, aber '_original_path' fehlt.")
-        if self._env_path.exists(): shutil.rmtree(self._env_path)
-        self._env_path = self._original_path
-        self._original_path = None
+        if self.virtual_path is None: raise RuntimeError("STATE-GUARD: Teardown aufgerufen, aber 'virtual_path' fehlt.")
+        if self.virtual_path.exists(): shutil.rmtree(self.virtual_path)
+        self.virtual_path = None
+
 
     # ----- Pipes ------------------------------------------------------------------------------------------------------
 
@@ -107,8 +112,9 @@ class PyVenv:
 
     def _get_python_exe(self) -> None:
         __tracebackhide__ = True
-        if (self._env_path / "bin").exists(): bin_dir=self._env_path / "bin"
-        else: bin_dir=self._env_path / "Scripts"
+        if self.virtual_path is None: raise RuntimeError("STATE-GUARD: 'virtual_path' wurde nicht initialisiert.")
+        if (self.virtual_path / "bin").exists():  bin_dir = self.virtual_path / "bin"
+        else: bin_dir = self.virtual_path / "Scripts"
         exe = bin_dir / "python"
         if not exe.exists(): raise RuntimeError(f"Arena Python fehlt: {exe}")
         self._python_exe = exe
@@ -146,8 +152,7 @@ class PyVenv:
     def _inject_project_code(self) -> None:
         """Isoliert den PYTHONPATH von Host-Paketen und blockiert PYTHONHOME."""
         __tracebackhide__ = True
-        if self._env_vars is None:
-            raise RuntimeError("STATE-GUARD: '_env_vars' wurde nicht initialisiert.")
+        if self._env_vars is None: raise RuntimeError("STATE-GUARD: '_env_vars' wurde nicht initialisiert.")
         safe_paths = [p for p in sys.path if "site-packages" not in p and "dist-packages" not in p]
         self._env_vars["PYTHONPATH"] = os.pathsep.join(safe_paths)
         self._env_vars.pop("PYTHONHOME", None)
@@ -155,10 +160,10 @@ class PyVenv:
     def _activate_arena_env(self) -> None:
         """Überschreibt PATH und VIRTUAL_ENV, um die Sandbox auf OS-Ebene zu erzwingen."""
         __tracebackhide__ = True
-        if self._env_vars is None:
-            raise RuntimeError("STATE-GUARD: '_env_vars' wurde nicht initialisiert.")
-        self._env_vars["VIRTUAL_ENV"] = str(self._env_path.absolute())
-        bin_dir = self._env_path / "bin" if (self._env_path / "bin").exists() else self._env_path / "Scripts"
+        if self._env_vars is None or self.virtual_path is None:
+            raise RuntimeError("STATE-GUARD: '_env_vars' oder 'virtual_path' wurde nicht initialisiert.")
+        self._env_vars["VIRTUAL_ENV"] = str(self.virtual_path.absolute())
+        bin_dir = self.virtual_path / "bin" if (self.virtual_path / "bin").exists() else self.virtual_path / "Scripts"
         self._env_vars["PATH"] = f"{bin_dir.absolute()}{os.pathsep}{self._env_vars.get('PATH', '')}"
 
     # ↓--- _run_in_subprocess() ---↓
@@ -166,23 +171,20 @@ class PyVenv:
     def _setup_ipc_files(self) -> None:
         """Erstellt temporäre Dateien für den Datenaustausch und gibt deren File-Deskriptoren frei."""
         __tracebackhide__ = True
-        fd_in, self._in_path = tempfile.mkstemp(suffix=self.codec.file_suffix)
-        fd_out, self._out_path = tempfile.mkstemp(suffix=self.codec.file_suffix)
-        os.close(fd_in)
-        os.close(fd_out)
+        if self.virtual_path is None: raise RuntimeError("STATE-GUARD: 'virtual_path' wurde nicht initialisiert.")
+        self._in_path = str(self.virtual_path / f"ipc_in{self.codec.file_suffix}")
+        self._out_path = str(self.virtual_path / f"ipc_out{self.codec.file_suffix}")
 
     def _serialize_inputs(self, target: Any, args: tuple, kwargs: dict) -> None:
         """Serialisiert das Target und dessen Parameter in die Eingabedatei."""
         __tracebackhide__ = True
-        if self._in_path is None:
-            raise RuntimeError("STATE-GUARD: '_in_path' wurde nicht initialisiert.")
+        if self._in_path is None: raise RuntimeError("STATE-GUARD: '_in_path' wurde nicht initialisiert.")
         self.codec.dump((target, args, kwargs), self._in_path)
 
     def _deserialize_outputs(self) -> Any:
         """Liest das Ergebnis des Subprozesses aus und wirft bei Fehlern die entsprechende Exception."""
         __tracebackhide__ = True
-        if self._out_path is None:
-            raise RuntimeError("STATE-GUARD: '_out_path' wurde nicht initialisiert.")
+        if self._out_path is None: raise RuntimeError("STATE-GUARD: '_out_path' wurde nicht initialisiert.")
         status, result = self.codec.load(self._out_path)
         if status == "ERROR": raise RuntimeError(f"Arena Error: {result}")
         return result
@@ -190,10 +192,8 @@ class PyVenv:
     def _teardown_ipc_files(self) -> None:
         """Bereinigt die temporären Dateien nach Abschluss der Ausführung und setzt den Zustand zurück."""
         __tracebackhide__ = True
-        if self._in_path and os.path.exists(self._in_path):
-            os.remove(self._in_path)
-        if self._out_path and os.path.exists(self._out_path):
-            os.remove(self._out_path)
+        if self._in_path and os.path.exists(self._in_path): os.remove(self._in_path)
+        if self._out_path and os.path.exists(self._out_path): os.remove(self._out_path)
         self._in_path = None
         self._out_path = None
 
@@ -223,8 +223,7 @@ class PyVenv:
     def _raise_arena_error(self):
         """Gibt Laufzeit-Fehler der Arena bekannt."""
         __tracebackhide__ = True
-        if self._process is None:
-            raise RuntimeError("STATE-GUARD: '_process' wurde nicht initialisiert.")
+        if self._process is None: raise RuntimeError("STATE-GUARD: '_process' wurde nicht initialisiert.")
         if self._process.returncode != 0:
             raise RuntimeError(
                 f"Arena System-Fehler (Exit Code {self._process.returncode}):\n"

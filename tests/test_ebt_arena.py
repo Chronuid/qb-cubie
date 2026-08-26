@@ -16,21 +16,19 @@ def check_host_isolation():
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_arena_isolation_green():
-    # Dieser Test sollte grün leuchten
     EBT(
-        arena=PyVenv("tests/.arenas/empty_qa_venv_1"),
+        arena=PyVenv("tests/.arenas/empty_venv"),
         target=check_host_isolation,
         post=WorldState(returns=False)
     ).run()
 
 def test_arena_isolation_red():
-    # Dieser Test sollte rot leuchten
     EBT(
-        arena=PyVenv("tests/.arenas/empty_qa_venv_1"),
+        arena=PyVenv("tests/.arenas/empty_venv"),
         target=check_host_isolation,
-        post=WorldState(returns=True)
+        post=WorldState(returns=True),
+        expect=False
     ).run()
-
 
 # ======================================================================================================================
 # Diese Tests überprüfen, ob die Arenen voneinander isoliert sind.
@@ -57,7 +55,7 @@ def test_arena_import_success():
 def test_arena_import_fail():
     # Der import von cowsay sollte fehlschlagen.
     EBT(
-        arena=PyVenv("tests/.arenas/empty_qa_venv_1"),
+        arena=PyVenv("tests/.arenas/empty_venv"),
         target=check_arena_isolation,
         post=WorldState(returns=False)
     ).run()
@@ -82,7 +80,7 @@ def verify_cloned_env_vars(original_path_str: str):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_arena_env_vars():
-    arena_path = "tests/.arenas/empty_qa_venv_1"
+    arena_path = "tests/.arenas/empty_venv"
     abs_original = str(Path(arena_path).absolute())
     EBT( # 1. Pipeline führt Target im isolierten Klon aus
         arena=PyVenv(arena_path),
@@ -122,7 +120,7 @@ def _cleanup_mutation_file(arena_path: str) -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_arena_immutability():
-    base_arena = "tests/.arenas/empty_qa_venv_1"
+    base_arena = "tests/.arenas/empty_venv"
     mutation_file = Path(base_arena) / "böse_mutation.txt"
     _cleanup_mutation_file(base_arena)
     try:
@@ -135,7 +133,7 @@ def test_arena_immutability():
     finally: _cleanup_mutation_file(base_arena)
 
 def test_arena_uses_clone_path():
-    base_arena = "tests/.arenas/empty_qa_venv_1"
+    base_arena = "tests/.arenas/empty_venv"
     original_abs = str(Path(base_arena).absolute())
     EBT(
         arena=PyVenv(base_arena),
@@ -145,7 +143,7 @@ def test_arena_uses_clone_path():
     ).run()
 
 def test_arena_teardown_destroys_clone():
-    base_arena = "tests/.arenas/empty_qa_venv_1"
+    base_arena = "tests/.arenas/empty_venv"
     arena_instance = PyVenv(base_arena)
     EBT(
         arena=arena_instance,

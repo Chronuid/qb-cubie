@@ -1,10 +1,10 @@
 ## Ziel: Entwicklung des `ebt.py`-Moduls
 
-Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereitet. Nun gilt es, das `ebt.py`-Modul mit Leben zu füllen und zu entwickeln. 
+Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereitet. Wir befinden uns schon mitten in der Entwicklung vom `ebt.py`-Modul. 
 
 - Hierfür bitte ich um deine volle Unterstützung im Code-Engineering. Ich werde ausschließlich als "Phasen-Orchestrator" und "HumanReviewer" agieren und vertraue auf deine Fähigkeiten im Coding.
-- Ich habe zwar die 1. Phase der 1. Etappe für Vorschläge gekennzeichnet, aber gerne kannst du jederzeit während jeder Phase meine Ideen, Reviews und Entscheidungen kritisieren, in Frage stellen und Ideen einwerfen. Ich bin schließlich auch nur ein Mensch und bin offen für neue Perspektiven und Änderungs-Vorschläge.
-- Hier wird zwar schon die gesamte Entwicklung des ebt-Moduls als Ziel skizziert, aber zunächst gilt es erstmal den Fokus auf ein Sub-Ziel zu richten: Für diese Konversation ist die Phase 3 das fokussierte Sub-Ziel, welches wir erreichen wollen.
+- Ich habe die 1. Phase der 1. Etappe für Vorschläge gekennzeichnet, aber gerne kannst du jederzeit während jeder Phase meine Ideen, Reviews und Entscheidungen kritisieren, in Frage stellen und Ideen einwerfen. Ich bin schließlich auch nur ein Mensch und bin offen für neue Perspektiven und Änderungs-Vorschläge.
+- Hier wird zwar schon die gesamte Entwicklung des ebt-Moduls als Ziel skizziert, aber zunächst gilt es erstmal den Fokus auf ein Sub-Ziel zu richten: Für diese Konversation ist die Phase 4 das fokussierte Sub-Ziel, welches wir erreichen wollen.
 
 ## Kontext
 
@@ -12,6 +12,7 @@ Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereit
 Ich habe dir im Anhang die folgenden Dokumente hinterlegt:
 
 * `ebt.py`: Der aktuelle Code vom EBT-Modul.
+* `pyvenv.py`: Die Arena, welches vom EBT-Modul genutzt wird.
 * `GUIDE_EBT-Usage-Pattern.md`: die "Usage-Pattern" definieren die Anforderungen und das Verhalten für das RBT-Modul. 
 * `DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md`: das allgemeine Entwickler-Dokument für das Modul.
 * `DEV-GUIDE_2.2_WorldState-Class.md`: Dedizierte Erklärungen zur WorldState-Klasse.
@@ -40,15 +41,15 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 
 * **Phase 2 (DONE):** Grundlegende Funktionalität → test_1 und test_2 aus den Usage-Pattern im Format der vollständigen Deklaration. Hier entwickeln wir das gesamte funktionale Skellet des Moduls (ohne Arena, ohne FS und ohne Quantoren). Also das grundlegende Fundament und die wichtigsten Mechanismen.
 
-* **Phase 3 (OPEN):** Arena-Integration → test_3 aus den Usage-Pattern im Format der vollständigen Deklaration. Um die dokumentierten Anforderungen zu erfüllen, gilt es hierfür eine dedizierte PyVenv-Klasse zu realisieren, die sich per DI einsetzen, konfigurieren und austauschen lässt. Initial reicht es für den MVP, wenn wir auf einer simple Library wie z.B. pytest-venv aufbauen. Der Abgleich der Arenen innerhalb der WorldStates als Test kommt erst später, zunächst geht es nur um die Arenen für das statische EBT.arena-Attribut.
+* **Phase 3 (DONE):** Arena-Integration → test_3 aus den Usage-Pattern im Format der vollständigen Deklaration. Um die dokumentierten Anforderungen zu erfüllen, gilt es hierfür eine dedizierte PyVenv-Klasse zu realisieren, die sich per DI einsetzen, konfigurieren und austauschen lässt. Der Abgleich der Arenen innerhalb der WorldStates als Test kommt erst später, zunächst geht es nur um die Arenen für das statische EBT.arena-Attribut.
 
-* **Phase 4 (OPEN):** Dateisystem-Integration → test_4, test_5 und test_6. Hier können wir die Pytest-nativen Lösungen wie tmp-path und tmp-path-factory zurückgreifen.
+* **Phase 4 (OPEN):** Dateisystem-Integration → test_4, test_5 und test_6. Hier könnten wir die Pytest-nativen Lösungen wie tmp-path und tmp-path-factory zurückgreifen.
 
 * **Phase 5 (OPEN):** Quantoren → test_7, test_8, test_9, test_10 und test_11. Hier stellen wir sicher, dass man mit der reinen Deklaration WorldState-Listen im Konstruktur gleich eine ganze Reihe von Tests anstoßen kann. Dabei müssen wir lediglich zwischen Allquantoren und Existenzquantoren differenzieren und die Testlogik entsprechend umleiten, sowie wir sicherstellen, dass die Ergebnisse im Pytest-Report ohne Redundanz und verständlich dargestellt werden.
 
 * **Phase 6 (OPEN):** Arena-Abgleich → test_12. Hier verarbeiten wir die Arenen-Deklaration in den jeweiligen WorldStates. In der Theorie ist das zwar die gleiche Logik wie bei den vorherigen Tests, aber mir wurde gesagt, dass das ziemlich ineffizient werden könnte, weswegen wir das hier in einer eigenen Phase nochmal dediziert behandeln und uns effizientere Methoden für den Abgleich überlegen.
 
-* **Phase 7 (OPEN):** Stabilisierung, Feinschliff und Wrap-Up. Etwaige Kleinigkeiten und Nebensächlichkeiten prüfen, optimieren und verbessern. Dazu noch alles ordentlich dokumentieren und die Etappe sauber abschließen.
+* **Phase 7 (OPEN):** Stabilisierung, Feinschliff und Wrap-Up. Etwaige Kleinigkeiten und Nebensächlichkeiten prüfen, optimieren und verbessern. Dazu alles ordentlich dokumentieren und die Etappe sauber abschließen.
 
 ### Etappe 2: ConventionMap
 
@@ -65,6 +66,3 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 ---
 
 Wir sind aktuell bei der Etappe 1 in der ersten Phase. Wie verstehst du das Ganze? Hast du Rückfragen zur Entwicklung vom `ebt.py`-Modul, Vorschläge oder anderweitige Fragen?
-Wir müssen während dieser Konversation ein besonderes Augenmerk auf die Besprechung der Details und die Planung legen. Ich habe mir bisher noch keine großen Gedanken dazu gemacht, wie wir die arena überhaupt realisieren. Praktisch stelle ich mir darunter nur vor, dass man einen Ordner deklariert, welcher für den Testlauf dann als venv aktiviert wird. Wenn ich also in einem ganz anderen Projekt die Funktionalität von einer Funktion in diesem Projekt testen möchte, dann könnte ich einfach in der arena den Pfad zum Ordner des anderen Projekts deklarieren, wodurch das dazugehörige venv für den Testlauf aktiviert würde. 
-Beispielsweise hätte ich im Cubie-Projekt noch kein ollama installiert. Wenn ich aber die Funktionalität von ollama.run testen möchte, könnte ich einfach in einem anderen Projekt ollama installieren, den Pfad zum Ordner des Projekts als arena deklarieren und schon müsste es laufen. 
-Ob PyTest-Venv hier die eleganteste Lösung wäre, oder ob wir den Code dafür einfach selber fix schreiben sollten, weiß ich noch nicht. Ist pytest-venv hierfür geeignet, oder muss es zwingend über das plugin-muster genutzt werden, welches wir in der aktuellen Phase noch vermeiden müssen?

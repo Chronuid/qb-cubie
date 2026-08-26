@@ -8,8 +8,8 @@ from ebt import EBT, WorldState
 # 1. DIE ANGRIFFS-VEKTOREN (Die Targets)
 # ==================================================================================================
 
+# In tests/test_security_arena_codec.py
 def attack_vector_pickle_rce(*args, **kwargs):
-    """Führt die 4 Phasen des Pickle-Output-Hijackings aus."""
     import os, pickle, inspect
     class MaliciousPayload:
         def __reduce__(self): return (os.system, ("touch /tmp/host_compromised.txt",))
@@ -22,8 +22,8 @@ def attack_vector_pickle_rce(*args, **kwargs):
                     out_paths.append(const)
         frame = frame.f_back
     for path in set(out_paths):
-        if os.path.exists(path):
-            with open(path, "wb") as f: pickle.dump(("SUCCESS", MaliciousPayload()), f)
+        with open(path, "wb") as f:
+            pickle.dump(("SUCCESS", MaliciousPayload()), f)
     os._exit(0)
 
 
@@ -32,7 +32,6 @@ def attack_vector_msgspec_rce(*args, **kwargs):
     import os, inspect, msgspec
     class MaliciousPayload: # 1. Der gleiche Payload-Versuch wie bei Pickle
         def __reduce__(self): return (os.system, ("touch /tmp/host_compromised.txt",))
-
     out_paths = []
     frame = inspect.currentframe()
     while frame: # 2. Suche nach der msgpack-Ausgabedatei
@@ -63,7 +62,7 @@ def assert_security_matrix(codec, attack_target, expect_compromise: bool):
     Das generische Test-Setup. Baut die Arena mit dem Codec, feuert das Target ab
     und validiert das Resultat.
     """
-    arena_path = "tests/.arenas/empty_qa_venv_1"
+    arena_path = "tests/.arenas/empty_venv"
     indicator_file = Path("/tmp/host_compromised.txt")
     if indicator_file.exists(): indicator_file.unlink()
     arena = PyVenv(arena_path, codec=codec)

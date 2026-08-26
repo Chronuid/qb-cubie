@@ -43,14 +43,15 @@ class EBT:
             target: Any,
             arena: Any = None,
             pre: Union[WorldState, List[WorldState], None] = None,
-            post: Union[WorldState, List[WorldState], None] = None
+            post: Union[WorldState, List[WorldState], None] = None,
+            expect: bool = True or False
     ):
         self.target = target
         self.arena = arena
         self.pre = pre or WorldState()
         self.post = post or WorldState()
         self._actual_returns: Any = None
-
+        self.expect = expect
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
@@ -83,7 +84,8 @@ class EBT:
         __tracebackhide__ = True
         if not isinstance(self.post, WorldState):
             raise RuntimeError("STATE-GUARD: 'post' wurde nicht korrekt normalisiert.")
-        assert self._actual_returns == self.post.returns
+        if self.expect: assert self._actual_returns == self.post.returns
+        if not self.expect: assert self._actual_returns != self.post.returns
 
 
     # ----- Utilities --------------------------------------------------------------------------------------------------
@@ -95,8 +97,7 @@ class EBT:
         """Normalisiert die Argumente zu einem Tuple und verhindert versehentliches String-Unpacking."""
         __tracebackhide__ = True
         if args_raw is None: return ()
-        if isinstance(args_raw, (list, tuple)):
-            return tuple(args_raw)
+        if isinstance(args_raw, (list, tuple)): return tuple(args_raw)
         return (args_raw,)
 
     def _execute_target(self, args: tuple, kwargs: dict) -> None:
