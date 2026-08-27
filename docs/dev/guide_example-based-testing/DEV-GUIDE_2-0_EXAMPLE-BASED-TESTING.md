@@ -12,12 +12,14 @@ class EBT(CubieBase):
         arena,
         target,
         pre,
-        post
+        post,
+        expect
     ):
         self.arena = arena
         self.target = target
         self.pre = pre
         self.post = post
+        self.expect = expect
 
            
 @dataclass

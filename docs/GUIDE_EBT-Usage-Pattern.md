@@ -12,6 +12,7 @@ Für reine Funktionen müssen wir überhaupt kein `WorldState`-Objekt definieren
 # Shorthand für reine Funktionsaufrufe
 def test_1(): EBT(target=my_func, pre=(1, 2), post=3).run()
 def test_2(): EBT(target=my_func, pre={"x": 1, "y": 2}, post=3).run()
+def test_2_red(): EBT(target=my_func, pre={"x": 1, "y": 2}, post=4, expect=False).run()
 def test_3(): EBT(target=my_func, pre={"x": 6}, post=31, arena="envs/custom_env_1").run()
 ```
 
@@ -30,6 +31,14 @@ def test_2():
         target=my_func, 
         pre=WorldState(kwargs={"x": 1, "y": 2}), 
         post=WorldState(returns=3)
+    ).run()
+    
+def test_2_red(): 
+    EBT(
+        target=my_func, 
+        pre=WorldState(kwargs={"x": 1, "y": 2}), 
+        post=WorldState(returns=4),
+        expect=False
     ).run()
 
 def test_3(): 
