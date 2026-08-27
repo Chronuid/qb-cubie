@@ -1,6 +1,6 @@
-## Ziel: Entwicklung des `ebt.py`-Moduls
+## Ziel: Entwicklung des `ebt-shortened.py`-Moduls
 
-Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereitet. Wir befinden uns schon mitten in der Entwicklung vom `ebt.py`-Modul. 
+Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereitet. Wir befinden uns schon mitten in der Entwicklung vom `ebt-shortened.py`-Modul. 
 
 - Hierfür bitte ich um deine volle Unterstützung im Code-Engineering. Ich werde ausschließlich als "Phasen-Orchestrator" und "HumanReviewer" agieren und vertraue auf deine Fähigkeiten im Coding.
 - Ich habe die 1. Phase der 1. Etappe für Vorschläge gekennzeichnet, aber gerne kannst du jederzeit während jeder Phase meine Ideen, Reviews und Entscheidungen kritisieren, in Frage stellen und Ideen einwerfen. Ich bin schließlich auch nur ein Mensch und bin offen für neue Perspektiven und Änderungs-Vorschläge.
@@ -11,7 +11,7 @@ Wir haben die theoretischen Grundlagen gefestigt und die Dokumentation vorbereit
 ### Die Docs im Anhang
 Ich habe dir im Anhang die folgenden Dokumente hinterlegt:
 
-* `ebt.py`: Der aktuelle Code vom EBT-Modul.
+* `ebt-shortened.py`: Der aktuelle Code vom EBT-Modul.
 * `pyvenv.py`: Die Arena, welches vom EBT-Modul genutzt wird.
 * `GUIDE_EBT-Usage-Pattern.md`: die "Usage-Pattern" definieren die Anforderungen und das Verhalten für das RBT-Modul. 
 * `DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md`: das allgemeine Entwickler-Dokument für das Modul.
@@ -29,7 +29,7 @@ Weiterführende Funktionen und Mechanismen sollen sich zwar aus der Entwicklung 
 
 ## Auftrag
 
-Um das `ebt.py`-Modul zu entwickeln teilen wir die Entwicklung in Etappen und Phasen auf.  
+Um das `ebt-shortened.py`-Modul zu entwickeln teilen wir die Entwicklung in Etappen und Phasen auf.  
 Meine Prüfung stellt dabei die Kante dar, welche es ermöglicht von einer Phase zur nächsten zu kommen. Erst wenn ich grünes Licht gebe und die nächste Phase initiiere, gehen wir zur nächsten Phase über.
 
 ### Etappe 1: EBT-Foundation
@@ -43,7 +43,7 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 
 * **Phase 3 (DONE):** Arena-Integration → test_3 aus den Usage-Pattern im Format der vollständigen Deklaration. Um die dokumentierten Anforderungen zu erfüllen, gilt es hierfür eine dedizierte PyVenv-Klasse zu realisieren, die sich per DI einsetzen, konfigurieren und austauschen lässt. Der Abgleich der Arenen innerhalb der WorldStates als Test kommt erst später, zunächst geht es nur um die Arenen für das statische EBT.arena-Attribut.
 
-* **Phase 4 (OPEN):** Dateisystem-Integration → test_4, test_5 und test_6. Hier könnten wir die Pytest-nativen Lösungen wie tmp-path und tmp-path-factory zurückgreifen.
+* **Phase 4 (OPEN):** Dateisystem-Integration → test_4, test_5 und test_6.
 
 * **Phase 5 (OPEN):** Quantoren → test_7, test_8, test_9, test_10 und test_11. Hier stellen wir sicher, dass man mit der reinen Deklaration WorldState-Listen im Konstruktur gleich eine ganze Reihe von Tests anstoßen kann. Dabei müssen wir lediglich zwischen Allquantoren und Existenzquantoren differenzieren und die Testlogik entsprechend umleiten, sowie wir sicherstellen, dass die Ergebnisse im Pytest-Report ohne Redundanz und verständlich dargestellt werden.
 
@@ -65,4 +65,6 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 
 ---
 
-Wir sind aktuell bei der Etappe 1 in der ersten Phase. Wie verstehst du das Ganze? Hast du Rückfragen zur Entwicklung vom `ebt.py`-Modul, Vorschläge oder anderweitige Fragen?
+Wir sind aktuell bei der Etappe 1 in der ersten Phase. Wie verstehst du das Ganze? Hast du Rückfragen zur Entwicklung vom `ebt-shortened.py`-Modul, Vorschläge oder anderweitige Fragen?
+
+Da wir sowohl das Grundgerüst vom EBT-Modul, als auch die Arena bereits aufgesetzt haben, dürfte diese Phase rein handwerklich zwar leicht umzusetzen sein, allerdings müssen wir hier einen besonderen Wert darauf legen, dass wir es konzeptuell und technisch sauber umsetzen, damit die intentierten Ziele auch erreicht werden. Wir könnten zwar einfach beim setup die übergebenen Pfade für das fs mit dem Pfad vom env verschmelzen, aber wenn wir das nicht naiv, sondern sauber umsetzen, werden die kommenden Phasen wesentlich einfacher. Schließlich wollen wir das "venv" und das Filesystem logisch voneinander separiert evaluieren und handhaben können. 

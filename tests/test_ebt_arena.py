@@ -1,4 +1,3 @@
-from pyvenv import *
 from ebt import *
 
 
@@ -104,7 +103,6 @@ def mutate_active_venv():
     dummy_file.write_text("Diese Datei sollte nie im Original landen!")
     return True
 
-
 def check_path_isolation(original_path: str):
     """Gibt True zurück, wenn der aktive Pfad vom Original abweicht."""
     import os
@@ -139,7 +137,7 @@ def test_arena_uses_clone_path():
         arena=PyVenv(base_arena),
         target=check_path_isolation,
         pre=WorldState(args=(original_abs,)),
-        post=WorldState(returns=True) # Wir erwarten 'True', also dass die Pfade abweichen
+        post=WorldState(returns=True)
     ).run()
 
 def test_arena_teardown_destroys_clone():
@@ -151,6 +149,5 @@ def test_arena_teardown_destroys_clone():
         pre=WorldState(args=(str(Path(base_arena).absolute()),)),
         post=WorldState(returns=True)
     ).run()
-    # Nach dem Test: Wenn die Instanz einen Klon angelegt hat, muss dieser vernichtet sein
     if hasattr(arena_instance, '_clone_path') and arena_instance._clone_path:
         assert not os.path.exists(arena_instance._clone_path), "STATE-GUARD: Klon-Ordner wurde vom Teardown nicht gelöscht!"

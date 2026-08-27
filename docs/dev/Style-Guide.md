@@ -2,6 +2,9 @@
 
 Um einen einheitlichen, testbaren und pflegbaren Code im gesamten Projekt zu haben, gelten folgende Styleguide-Richtlinien: 
 
+### Englisch
+Um die Kommentare, Docstrings und Bezeichnungen im Code direkt einheitlich für alle ohne Umwege lesbar zu machen, gilt es diese in der englischen Sprache zu verfassen.
+
 ### Kurze, prägnante und eindeutige Methoden- und Variablen-Namen
 Bezeichner für Funktionen und Variablen sind auf das Wesentliche zu reduzieren. Sie bestehen idealerweise aus einem einzelnen, aussagekräftigen Wort. Der tiefere Bedeutungskontext ergibt sich implizit aus der umgebenden Klasse oder dem Modul. Zu lange, mit Underscores verkettete Beschreibungen (Bandwurmnamen) sind zu vermeiden. Zusätzlicher Kontext gehört in den Docstring oder in Inline-Kommentare.
 

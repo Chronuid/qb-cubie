@@ -48,7 +48,7 @@ graph RL
 
 * `__init__.py`: Definiert die öffentliche API des Pakets.
 * `core.py`: Das Fundament. Hier liegen vorerst alle zentralen Klassen, Utilities und Marker (insbesondere die `CubieBase`-Klasse), bis die Modul-Grenze erreicht wird.
-* `ebt.py`: Beinhaltet die Logik für das *Example-Based-Testing*. Hier lebt aktuell auch das `WorldState`-Objekt, da es derzeit domänenspezifisch für EBT-Zustandsdeklarationen und Datei-Hydration genutzt wird.
+* `ebt-shortened.py`: Beinhaltet die Logik für das *Example-Based-Testing*. Hier lebt aktuell auch das `WorldState`-Objekt, da es derzeit domänenspezifisch für EBT-Zustandsdeklarationen und Datei-Hydration genutzt wird.
 * `rbt.py`: Beinhaltet die Logik für das *Review-Based-Testing*. Aktuell bewusst als simpler Dummy konzipiert, um die Architektur und das Open-Closed-Principle (OCP) direkt an der Basis zu härten.
 * `plugin.py`: Die primäre Pytest-Integration zur Datenspeicherung.
 
