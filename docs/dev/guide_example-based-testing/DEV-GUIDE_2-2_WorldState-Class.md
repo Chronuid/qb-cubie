@@ -47,3 +47,7 @@ Das Attribut `fs` (Filesystem) bildet die topologische Ebene des Zustands-Deklar
 * **Die kontextuelle Dualität (als passiver Daten-Container):** Das Attribut selbst speichert nur die Topologie, wird von der `EBT`-Engine jedoch völlig unterschiedlich ausgewertet. Befinden sich die Daten im `pre`-State, dienen sie der Engine als Vorlage für die Workspaces. Befinden sie sich im `post`-State, liest die Engine sie als erwartete Soll-Struktur für das anschließende Byte-für-Byte-Diffing aus.
 
 * * **Architektonische Abgrenzung (`fs` vs. `arena`):** Während die Arena die unsichtbare Laufzeitumgebung darstellt, repräsentiert `fs` die physischen Dateien auf der Festplatte (Ordner, Skripte, Konfigurationen). Wenn das Ziel ist, zu testen, ob ein Skript eine Datei korrekt formatiert oder einen Ordner generiert hat, nutzt man ausschließlich `fs`.
+
+### `WorldState.expect`
+
+Das Attribut `expect` (bool: True or False) fungiert als Negation der Erwartungshaltung für einen Testlauf, um Negativ-Beispiele deklarieren zu können.

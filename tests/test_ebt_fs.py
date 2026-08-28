@@ -1,26 +1,27 @@
 from ebt import *
+from pyvenv import PyVenv
 from tempfs import *
 
 # ======================================================================================================================
 # ARENEN:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()
 
-test_arena=PyVenv("tests/.arenas/empty_venv")
+test_arena=TempFS()
 
-# ========== FS-TARGETS (Dummy-Funktionen für die Arena) ===============================================================
+# ========== FS-TARGETS (Dummy-Fuctions for the arena) =================================================================
 
 def target_read_file(filename: str) -> str:
-    """Liest eine Datei aus dem aktuellen Workspace und gibt den Inhalt zurück."""
+    """Reads a file from the current workspace and returns the content."""
     from pathlib import Path
     return Path(filename).read_text(encoding="utf-8").strip()
 
 def target_write_file(filename: str, content: str) -> bool:
-    """Schreibt Inhalt in eine Datei im aktuellen Workspace."""
+    """Writes content to a file in the current workspace."""
     from pathlib import Path
     Path(filename).write_text(content, encoding="utf-8")
     return True
 
 def target_modify_deep_file(folder: str, filename: str) -> bool:
-    """Geht in einen Ordner und verändert dort eine Datei."""
+    """Go into a folder and modify a file there."""
     from pathlib import Path
     target_path = Path(folder) / filename
     target_path.write_text("MODIFIZIERT", encoding="utf-8")
@@ -29,7 +30,7 @@ def target_modify_deep_file(folder: str, filename: str) -> bool:
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_fs_hydration_and_cwd():
-    """Beweist: pre.fs kopiert Dateien in den Workspace und die Arena setzt das CWD korrekt."""
+    """Verifies: pre.fs copies files into the workspace and the arena sets the CWD correctly."""
     EBT(
         arena=test_arena,
         target=target_read_file,
@@ -41,7 +42,7 @@ def test_fs_hydration_and_cwd():
     ).run()
 
 def test_fs_set_convention():
-    """Beweist: Ein Set wird implizit korrekt aufgelöst (Basename wird zum Zielpfad)."""
+    """Verifies: A set is resolved correctly implicitly (basename becomes the target path)."""
     EBT(
         arena=test_arena,
         target=target_read_file,
@@ -53,7 +54,7 @@ def test_fs_set_convention():
     ).run()
 
 def test_fs_post_assertion_green():
-    """Beweist: Das Byte-Diffing meldet Erfolg, wenn das Target den erwarteten FS-Zustand generiert."""
+    """Verifies: Byte-diffing reports success when the target generates the expected file system state."""
     EBT(
         arena=test_arena,
         target=target_write_file,
@@ -65,7 +66,7 @@ def test_fs_post_assertion_green():
     ).run()
 
 def test_fs_post_assertion_red():
-    """Beweist: Das Framework erkennt Abweichungen auf Byte-Ebene gnadenlos."""
+    """Verifies: The framework ruthlessly detects discrepancies at the byte level."""
     EBT(
         arena=test_arena,
         target=target_write_file,
@@ -75,7 +76,7 @@ def test_fs_post_assertion_red():
     ).run()
 
 def test_fs_deep_directory_diffing():
-    """Beweist: Ganze Ordnerstrukturen werden sauber hydriert und rekursiv auf Diffs geprüft."""
+    """Verifies: Entire folder structures are cleanly hydrated and recursively checked for diffs."""
     EBT(
         arena=test_arena,
         target=target_modify_deep_file,
