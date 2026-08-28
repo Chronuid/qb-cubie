@@ -2,11 +2,9 @@ import os
 import sys
 from pathlib import Path
 
-# conftest.py liegt in /tests, also ist das Parent-Directory dein Projekt-Root
+# conftest.py is located in /tests, so the parent directory is your project root
 PROJECT_ROOT = Path(__file__).parent.parent
-
-# 1. Den IDE-Rechtsklick aushebeln: CWD hart auf das Projekt-Root zwingen
+# 1. Override the IDE's right-click behavior: force the CWD to the project root
 os.chdir(PROJECT_ROOT)
-
-# 2. Den Pytest-Runner fixen: Das src/-Verzeichnis für Cubies Framework-Module bekanntmachen
+# 2. Fix the pytest runner: make the src/ directory known for Cubie's framework modules
 sys.path.insert(0, str(PROJECT_ROOT / "src"))

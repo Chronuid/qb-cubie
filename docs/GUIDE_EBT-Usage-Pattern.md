@@ -225,11 +225,13 @@ def test_9():
         target=my_func,
         pre=WorldState(args=("--min", "1", "--max", "5")),
         post=[
+            WorldState(returns=0, expect=False),
             WorldState(returns=1),
             WorldState(returns=2),
             WorldState(returns=3),
             WorldState(returns=4),
-            WorldState(returns=5)
+            WorldState(returns=5),
+            WorldState(returns=6, expect=False)
         ]
     ).run()
 # Orthogonale Erweiterung – Generator beschränkt auf 3 bis 7
@@ -238,11 +240,13 @@ def test_10():
         target=my_func,
         pre=WorldState(args=("--min", "3", "--max", "7")),
         post=[
+            WorldState(returns=2, expect=False),
             WorldState(returns=3),
             WorldState(returns=4),
             WorldState(returns=5),
             WorldState(returns=6),
-            WorldState(returns=7)
+            WorldState(returns=7),
+            WorldState(returns=8, expect=False)
         ]
     ).run()
 ```

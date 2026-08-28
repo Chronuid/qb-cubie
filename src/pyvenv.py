@@ -1,23 +1,8 @@
 import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
-from typing import Any, Optional, Protocol
+from typing import Any, Optional
 from pyvenv_codec import MSGspecCodec
-
-
-# ========== PROTOCOLS & DATACLASSES ===================================================================================
-
-class IPCCodec(Protocol):
-    file_suffix: str
-    requirements: list[str]
-    def dump(self, obj: Any, path: str) -> None:
-        """Writes the object to the specified path."""
-        ...
-    def load(self, path: str) -> Any:
-        """Reads the object from the path."""
-        ...
-    def get_runner_snippet(self, in_path: str, out_path: str) -> str:
-        """Generates the Python code for the arena, matching the codec."""
-        ...
+from protocols import IPCC
 
 
 # ========== ARENA =====================================================================================================
@@ -29,7 +14,7 @@ class PyVenv:
     def __init__(
             self,
             env_path: str,
-            codec: Optional[IPCCodec] = None,
+            codec: Optional[IPCC] = None,
             custom_id: str | None = None,
             fs: Optional[dict] = None
     ):
