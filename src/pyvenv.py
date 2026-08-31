@@ -2,29 +2,32 @@ import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
 from typing import Any, Optional
 from pyvenv_codec import MSGspecCodec
-from protocols import IPCC
+from protocols import IPCC, WorldState
 
 
-# ========== ARENA =====================================================================================================
+# ========== PYVENV-ARENA ==============================================================================================
 
 class PyVenv:
     """
     Executes targets as a lightweight arena runner within ephemeral, virtual Python environments.
-    """  # DISCLAIMER: Does not provide an OS-level security sandbox against potential jailbreaks.
+    """
+
     def __init__(
             self,
             env_path: str,
             codec: Optional[IPCC] = None,
-            custom_id: str | None = None,
-            fs: Optional[dict] = None
+            custom_id: str | None = None
     ):
         self.codec = codec or MSGspecCodec()
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
-        self.arena_id = f"cubie_arena_{custom_id}_{uuid.uuid4().hex[:8]}"
+        self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)
-        self.fs = fs or {}
         self.workspace_path: Optional[Path] = None
         self.virtual_path: Optional[Path] = None
+
+        # Zustands-Management
+        self._config_state: Optional[WorldState] = None
+        self._actual_returns: Any = None
 
         self._python_exe: Optional[Path] = None
         self._env_vars: Optional[dict] = None
@@ -34,46 +37,53 @@ class PyVenv:
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
-    # ↓--- Full Lifecycle ---↓
-
-    def run(self, target: Any, args: tuple, kwargs: dict) -> Any:
+    def run(self, target: Any, args: tuple, kwargs: dict, state: Optional[WorldState] = None) -> Any:
         """Encapsulates the entire lifecycle of the arena for standalone invocations."""
         __tracebackhide__ = True
-        self.setup()
+        self.setup(state or WorldState())
         try: return self.execute(target, args, kwargs)
         finally: self.teardown()
 
-    # ↓--- each phase ---↓
-
-    def setup(self) -> None:
-        """Creates an ephemeral clone of the virtual environment."""
+    def setup(self, state: WorldState) -> None:
+        """Creates an ephemeral clone of the virtual environment based on the configured state."""
         __tracebackhide__ = True
-        if not self.env_path.exists(): raise RuntimeError(f"STATE-GUARD: Base arena not found: {self.env_path}")
-        self._ensure_codec_requirements(self.env_path)
-        workspace_dir = tempfile.mkdtemp(prefix=f"{self.arena_id}_")
-        self.workspace_path = Path(workspace_dir)
-        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: 'workspace_path' could not be created.")
+        self._config_state = state
+        base_env = Path(state.arena) if isinstance(state.arena, str) else self.env_path
+        if not base_env.exists(): raise RuntimeError(f"STATE-GUARD: Base arena not found: {base_env}")
+        self._ensure_codec_requirements(base_env)
+        self.workspace_path = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_"))
+        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: Missing virtual environment.")
         self.virtual_path = self.workspace_path / ".venv"
-        if self.virtual_path is None: raise RuntimeError("STATE-GUARD: 'virtual_path' is missing for hydration.")
-        shutil.copytree(self.env_path, self.virtual_path, symlinks=True)
+        shutil.copytree(base_env, str(self.virtual_path), symlinks=True)
         self._hydrate()
 
-    def execute(
-            self,
-            target: Any,
-            args: tuple,
-            kwargs: dict
-    ) -> Any:
+    def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
+        """Executes the target in the subprocess and caches the functional returns."""
         __tracebackhide__ = True
         self._get_python_exe()
         self._prepare_env()
-        return self._run_in_subprocess(target, args, kwargs)
+        self._actual_returns = self._run_in_subprocess(target, args, kwargs)
+        return self._actual_returns
+
+    def get_state(self) -> WorldState:
+        """Packages and returns the mutated environment reality as a complete WorldState."""
+        __tracebackhide__ = True
+        if self._config_state is None: raise RuntimeError("STATE-GUARD: Missing config state.")
+        processing_fs = str(self.workspace_path.absolute()) if self.workspace_path else None
+        return WorldState(
+            args=self._config_state.args,
+            kwargs=self._config_state.kwargs,
+            arena=str(self.virtual_path.absolute()) if self.virtual_path else None,
+            fs=processing_fs,
+            returns=self._actual_returns,
+            expect=self._config_state.expect
+        )
 
     def teardown(self) -> None:
         """Completely destroys the ephemeral clone and restores the original state."""
         __tracebackhide__ = True
-        if self.workspace_path is None:
-            raise RuntimeError("STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
+        if self.workspace_path is None: raise RuntimeError(
+            "STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
         if self.workspace_path.exists(): shutil.rmtree(self.workspace_path)
         self.workspace_path = None
         self.virtual_path = None
@@ -83,11 +93,13 @@ class PyVenv:
     def _hydrate(self) -> None:
         """Projects the declared files and folders from the host into the Arena workspace."""
         __tracebackhide__ = True
-        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: 'workspace_path' is missing for hydration.")
-        for target_rel_path, host_source_path in self.fs.items():
+        if self.workspace_path is None or self._config_state is None:
+            raise RuntimeError("STATE-GUARD: 'workspace_path' or '_config_state' is missing.")
+        if not self._config_state.fs: return
+        for target_rel_path, host_source_path in self._config_state.fs.items():
             source = Path(host_source_path)
             target = self.workspace_path / target_rel_path
-            if not source.exists(): raise FileNotFoundError(f"Host path for fs mapping not found:  {source}")
+            if not source.exists(): raise FileNotFoundError(f"Host path not found: {source}")
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir(): shutil.copytree(source, target, symlinks=True, dirs_exist_ok=True)
             else: shutil.copy2(source, target)
@@ -105,8 +117,8 @@ class PyVenv:
                 check=True,
                 capture_output=True
             )
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Could not install codec requirements {requirements}: {e.stderr.decode()}")
+        except subprocess.CalledProcessError as e: raise RuntimeError(
+            f"Could not install codec requirements {requirements}: {e.stderr.decode()}")
 
     def _get_python_exe(self) -> None:
         __tracebackhide__ = True
@@ -127,8 +139,8 @@ class PyVenv:
     def _run_in_subprocess(self, target: Any, args: tuple, kwargs: dict) -> Any:
         """Wraps the callable, executes it in the arena, and unwraps the result."""
         __tracebackhide__ = True
-        if self._python_exe is None or self._env_vars is None:
-            raise RuntimeError("STATE-GUARD: Python executable or environment is missing.")
+        if self._python_exe is None or self._env_vars is None: raise RuntimeError(
+            "STATE-GUARD: Python executable or environment is missing.")
         self._setup_ipc_files()
         try:
             self._serialize_inputs(target, args, kwargs)
@@ -157,8 +169,8 @@ class PyVenv:
     def _activate_arena_env(self) -> None:
         """Overrides PATH and VIRTUAL_ENV to enforce the sandbox at the OS level."""
         __tracebackhide__ = True
-        if self._env_vars is None or self.virtual_path is None:
-            raise RuntimeError("STATE-GUARD: '_env_vars' or 'virtual_path' was not initialized.")
+        if self._env_vars is None or self.virtual_path is None: raise RuntimeError(
+            "STATE-GUARD: '_env_vars' or 'virtual_path' was not initialized.")
         self._env_vars["VIRTUAL_ENV"] = str(self.virtual_path.absolute())
         bin_dir = self.virtual_path / "bin" if (self.virtual_path / "bin").exists() else self.virtual_path / "Scripts"
         self._env_vars["PATH"] = f"{bin_dir.absolute()}{os.pathsep}{self._env_vars.get('PATH', '')}"
@@ -199,15 +211,15 @@ class PyVenv:
     def _generate_runner_script(self) -> str:
         """Generates the Python source code for the isolated execution wrapper."""
         __tracebackhide__ = True
-        if self._in_path is None or self._out_path is None:
-            raise RuntimeError("STATE-GUARD: In/out paths for script generation are missing.")
+        if self._in_path is None or self._out_path is None: raise RuntimeError(
+            "STATE-GUARD: In/out paths for script generation are missing.")
         return self.codec.get_runner_snippet(self._in_path, self._out_path)
 
     def _execute_runner_script(self, script: str) -> None:
         """Starts the subprocess with the generated script and catches system errors."""
         __tracebackhide__ = True
-        if self._python_exe is None or self._env_vars is None or self.workspace_path is None:
-            raise RuntimeError("STATE-GUARD: Python executable, environment, or workspace is missing.")
+        if self._python_exe is None or self._env_vars is None or self.workspace_path is None: raise RuntimeError(
+            "STATE-GUARD: Python executable, environment, or workspace is missing.")
         cmd_args = [str(self._python_exe), "-c", script]
         self._process = subprocess.run(
             cmd_args,
@@ -228,3 +240,54 @@ class PyVenv:
                 f"STDOUT: {self._process.stdout}\n"
                 f"STDERR: {self._process.stderr}"
             )
+
+
+# ========== ARENA-BUILDER =============================================================================================
+
+class ArenaBuilder:
+    """
+    Programmatically provisions base environments and constructs PyVenv arenas via a fluent interface.
+    """
+    def __init__(self, env_path: str):
+        self.env_path = Path(env_path)
+        self._packages: list[str] = []
+
+    # ----- Services ---------------------------------------------------------------------------------------------------
+
+    def with_packages(self, packages: list[str]) -> 'ArenaBuilder':
+        """Registers a list of packages to be installed in the arena."""
+        __tracebackhide__ = True
+        self._packages.extend(packages)
+        return self
+
+    def build(self) -> PyVenv:
+        """Constructs the physical environment if necessary and returns a ready-to-use PyVenv instance."""
+        __tracebackhide__ = True
+        self._ensure_venv_exists()
+        if self._packages: self._install_packages()
+        return PyVenv(env_path=str(self.env_path))
+
+    # ----- Utilities --------------------------------------------------------------------------------------------------
+
+    def _ensure_venv_exists(self) -> None:
+        """Creates a new uv virtual environment if the target path does not already exist."""
+        __tracebackhide__ = True
+        if self.env_path.exists(): return
+        self.env_path.parent.mkdir(parents=True, exist_ok=True)
+        try: subprocess.run(["uv", "venv", str(self.env_path), "--seed"], check=True, capture_output=True)
+        except subprocess.CalledProcessError as e: raise RuntimeError(
+            f"ArenaBuilder failed to create venv:\n{e.stderr.decode()}")
+
+    def _install_packages(self) -> None:
+        """Installs the registered packages sequentially using the arena's isolated uv pip."""
+        __tracebackhide__ = True
+        bin_dir = self.env_path / "bin" if (self.env_path / "bin").exists() else self.env_path / "Scripts"
+        python_exe = bin_dir / "python"
+        try:
+            subprocess.run(
+                ["uv", "pip", "install", *self._packages, "--python", str(python_exe)],
+                check=True,
+                capture_output=True
+            )
+        except subprocess.CalledProcessError as e: raise RuntimeError(
+            f"ArenaBuilder failed to install packages {self._packages}:\n{e.stderr.decode()}")

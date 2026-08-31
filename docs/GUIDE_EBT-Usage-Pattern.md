@@ -58,13 +58,11 @@ Hier kommt die Definition von `WorldState` ins Spiel, um **Funktions-Inputs** vo
 def test_4(): 
     EBT(
         target=my_func,
-        # Vorbedingung (P)
-        pre=WorldState(
+        pre=WorldState( # VORBEDINGUNG (P)
             args=["kalkuel.md"], # Die Argumente für my_func("kalkuel.md")
             fs={"fixtures/pre/kalkuel.md"} # Welche Dateien werden in die Sandbox kopiert?
         ),
-        # Nachbedingung (Q)
-        post=WorldState(
+        post=WorldState( # NACHBEDINGUNG (Q)
             returns="Erfolgreich bereinigt", # Für die Roadmap - Optional: Konsolenausgabe prüfen
             fs={"fixtures/post/kalkuel.md"} # Welchem Soll-Zustand muss die Sandbox danach entsprechen?
         ), 
@@ -259,14 +257,14 @@ Müssen verschiedene unstrukturierte Eingänge (z. B. Datums-Format-Normaliserun
 def test_11():  
     EBT(
         target=my_func,
-        # Vorbedingung (P-Menge): Verschiedene verrauschte Eingangsquellen
-        pre=[
+        pre=[ # Vorbedingung (P-Menge): Verschiedene verrauschte Eingangsquellen
             WorldState(args=["raw_us.md"], fs={"/app/input.md": "fixtures/pre/raw_us.md"}),
             WorldState(args=["raw_eu.md"], fs={"/app/input.md": "fixtures/pre/raw_eu.md"}),
             WorldState(args=["raw_iso.md"], fs={"/app/input.md": "fixtures/pre/raw_iso.md"})
         ],
-        # Nachbedingung (Q): Exakt ein kohärenter Ziel-Zustand
-        post=WorldState(fs={"/app/output.md": "fixtures/post/normalized.md"}),
+        post=WorldState( # Nachbedingung (Q): Exakt ein kohärenter Ziel-Zustand
+            fs={"/app/output.md": "fixtures/post/normalized.md"}
+        ),
         tags=["universal"]
     ).run()
 ```
@@ -290,7 +288,22 @@ In diesem Szenario testen wir eine Funktion, deren einziger Zweck es ist, ein Pa
 def test_12():
     EBT(
         target=EnvManager.install_package(),
-        pre=WorldState(args="requests", arena="envs/pre_env"),
-        post=WorldState(arena="envs/post_env")
+        pre=WorldState(args="requests", arena=PyVenv("envs/pre_env")),
+        post=WorldState(arena=PyVenv("envs/post_env"))
+    ).run()
+```
+
+```python
+def test_13():
+    EBT(
+        target=md_to_json_converter(),
+        pre=WorldState(
+            args="why-cats-like-to-cuddle.json", 
+            arena=TempFS("envs/pre_env/why-cats-like-to-cuddle.md")
+        ),
+        post=WorldState(
+            returns="'why-cats-like-to-cuddle.md' succesfully converted to json.",
+            arena=TempFS("envs/post_env/why-cats-like-to-cuddle.json")
+        )
     ).run()
 ```

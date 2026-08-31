@@ -38,7 +38,7 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 
 * **Phase 5:** Quantoren → DONE
 
-* **Phase 6 (OPEN):** Arena-Abgleich → test_12. Hier verarbeiten wir die Arenen-Deklaration in den jeweiligen WorldStates. In der Theorie ist das zwar die gleiche Logik wie bei den vorherigen Tests, aber mir wurde gesagt, dass das ziemlich ineffizient werden könnte, weswegen wir das hier in einer eigenen Phase nochmal dediziert behandeln und uns effizientere Methoden für den Abgleich überlegen.
+* **Phase 6:** Arena-Abgleich → Done
 
 * **Phase 7 (OPEN):** Stabilisierung, Feinschliff und Wrap-Up. Etwaige Kleinigkeiten und Nebensächlichkeiten prüfen, optimieren und verbessern. Dazu alles ordentlich dokumentieren und die Etappe sauber abschließen.
 
@@ -55,3 +55,5 @@ Nochmal zur Erinnerung: Wir gehen immer erst dann zur nächsten Phase über, wen
 Zusätzlich sei gesagt, dass die Phase 6 nicht ein einzelner Schritt darstellt, sondern eine ganze Phase, die wir noch in weitere Sub-Phasen aufteilen können. Wir One-Shotten hier nichts, sondern machen uns in aller Ruhe Gedanken und nehmen uns die Zeit, die es braucht, um das sauber und gut zu realisieren.
 
 Wir sind aktuell bei der Etappe 1 in der ersten Phase. Wie verstehst du das Ganze? Hast du Rückfragen zur Entwicklung vom `ebt.py`-Modul, Vorschläge oder anderweitige Fragen?
+
+

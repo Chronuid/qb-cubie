@@ -1,4 +1,5 @@
-from ebt import EBT, WorldState
+from ebt import EBT
+from protocols import WorldState
 
 
 def my_func(world): return f"Hello {world}!"

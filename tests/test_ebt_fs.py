@@ -1,5 +1,5 @@
 from ebt import *
-from pyvenv import PyVenv
+from protocols import WorldState
 from tempfs import *
 
 # ======================================================================================================================

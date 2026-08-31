@@ -1,5 +1,6 @@
 import os
 from ebt import *
+from protocols import WorldState
 from pyvenv import PyVenv
 
 # ======================================================================================================================
