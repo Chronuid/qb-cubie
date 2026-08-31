@@ -33,6 +33,17 @@ Dienen der eindeutigen Identifikation eines Testdurchlaufs. `custom_id` erlaubt 
 #### `EBT.expect`
 Ein boolescher Modifikator (Standard: `True`), der die formallogische Erwartungshaltung des gesamten Testlaufs invertiert. Wird `expect` auf `False` gesetzt, deklariert dies einen expliziten Negativ-Test – der Test leuchtet grün, wenn die Ausführung *fehlschlägt* bzw. die Assertions *nicht* zutreffen.  Sie kann lokal auf `WorldState`-Ebene überschrieben werden, um die Zustands-Deklarationen granular invertieren zu können.
 
+#### `EBT.FS_IGNORES` und `EBT.ARENA_IGNORES`
+
+Beides sind Set-basierte Konfigurations-Attribute (`Set[str]`), welche das strikte Byte-by-Byte-Diffing während der Validierungsphase steuern. Sie definieren präzise, welche Dateien oder Verzeichnisse bei der Evaluation der Zielzustände ignoriert werden, um Test-Flakiness durch flüchtige Daten oder erwartete, aber bedeutungslose Seiteneffekte zu verhindern.
+
+* **`EBT.FS_IGNORES`:** Dieses Set ist standardmäßig leer (`{""}`). Es greift tief in der `_evaluate_fs`-Methode. Wenn ein Pfad-Segment (Datei oder Ordnername) in diesem Set gelistet ist, wird das entsprechende Element mitsamt aller rekursiv darin verschachtelten Unterordner vollständig vom Dateisystem-Abgleich ausgeschlossen. Das ist ideal, um irrelevante Build-Artefakte (z. B. `build/`) oder dynamisch generierte Dateien aus der Gleichung zu nehmen, ohne die formale Logik des Tests zu brechen.
+* **`EBT.ARENA_IGNORES`:** Dieses Set enthält standardmäßig eine kuratierte Liste von flüchtigen Metadaten und umgebungsspezifischen Pfaden (z. B. `bin`, `Scripts`, `pyvenv.cfg`, `__pycache__`, `_virtualenv.py`). Es wird durch die `_evaluate_arena`-Methode (bzw. `_compare_venv_contents`) beim Abgleich isolierter Umgebungen wie der `PyVenv`-Arena herangezogen. Dies garantiert kompromisslos, dass systembedingte Varianzen, Caches oder flüchtige Paket-Hashes (wie `.dist-info`) die Evaluation des funktionalen Zustands nicht destabilisieren.
+
+**Konfigurations-Überschreibung:**
+Getreu den Python-Konventionen (consenting adults) lassen sich diese in Großbuchstaben geschriebenen Konfigurations-Attribute auf Instanz-Ebene überschreiben. Durch eine einfache Zuweisung vor dem `run()`-Aufruf (z. B. `ebt_run.FS_IGNORES = {"custom.log"}`) kann das Filter-Verhalten pro Testlauf flexibel an den jeweiligen Kontext angepasst werden, während das Cubie-Framework weiterhin die schwere Arbeit des sauberen Quantoren-Abgleichs übernimmt.
+
+
 ### EBT-Zustands-Attribute
 
 #### `EBT.pre`: `List[WorldState]`

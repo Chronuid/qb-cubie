@@ -120,6 +120,7 @@ class EBT:
     def _evaluate_arena(self, expected_arena: Any, outcome_arena: Optional[str]) -> bool:
         """Performs a targeted evaluation against the expected arena topology."""
         __tracebackhide__ = True
+        if not isinstance(expected_arena, str) and not hasattr(expected_arena, "env_path"): return outcome_arena is None
         if not outcome_arena: return False
         if isinstance(expected_arena, str): host_path = Path(expected_arena)
         elif hasattr(expected_arena, "env_path"): host_path = Path(str(expected_arena.env_path))
@@ -216,22 +217,33 @@ class EBT:
 
     # ↓--- _evaluate_fs() ---↓
 
-    @staticmethod
-    def _compare_paths(arena_path: Path, host_path: Path) -> bool:
+        # ↓--- _evaluate_fs() ---↓
+
+    def _compare_paths(self, arena_path: Path, host_path: Path) -> bool:
         """Compares individual files using byte-level diffing and folders via a recursive deep scan."""
         __tracebackhide__ = True
         if host_path.is_dir():
             if not arena_path.is_dir(): return False
-            for host_item in host_path.rglob('*'):
-                if not host_item.is_file(): continue
-                rel_path = host_item.relative_to(host_path)
-                arena_item = arena_path / rel_path
-                if not arena_item.exists() or not arena_item.is_file(): return False
-                if not filecmp.cmp(arena_item, host_item, shallow=False): return False
+            host_files = self._get_filtered_fs_files(host_path)
+            arena_files = self._get_filtered_fs_files(arena_path)
+            if set(host_files.keys()) != set(arena_files.keys()): return False
+            for rel_path, h_path in host_files.items():
+                if not filecmp.cmp(arena_files[rel_path], h_path, shallow=False): return False
             return True
         else:
             if not arena_path.is_file(): return False
             return filecmp.cmp(arena_path, host_path, shallow=False)
+
+    def _get_filtered_fs_files(self, base_dir: Path) -> dict[Path, Path]:
+        """Collects files for a directory comparison, respecting FS_IGNORES configuration."""
+        __tracebackhide__ = True
+        files = {}
+        for item in base_dir.rglob('*'):
+            if not item.is_file(): continue
+            rel_path = item.relative_to(base_dir)
+            if any(p in self.FS_IGNORES for p in rel_path.parts): continue
+            files[rel_path] = item
+        return files
 
     # ↓ ========== _report() ========== ↓
 
