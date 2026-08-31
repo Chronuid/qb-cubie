@@ -1,7 +1,5 @@
-> # Cubie
-> Your Quality-Bench
+> # Cubie: Quality-Bench
 
----
 
 Cubie ist ein kompromissloses Framework für strukturierte Qualitätssicherung. Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden werden muss. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so weit einzuengen, bis nur noch die korrekte Funktion überlebt.
 

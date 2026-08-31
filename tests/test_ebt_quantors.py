@@ -1,4 +1,5 @@
-from ebt import EBT, WorldState
+from ebt import EBT
+from protocols import WorldState
 import pytest
 
 # ========== TARGETS (Dummy-Functions for formal logic) ================================================================
@@ -215,7 +216,7 @@ def test_step_id_enumeration():
     )
     ebt_instance.run()
     traces = ebt_instance._traces
-    base_id = ebt_instance.run_id
+    base_id = ebt_instance._run_id
 
     # 1. Do we have exactly 3 traces?
     assert len(traces) == 3, "Traces were not generated for all pre-states."
@@ -239,7 +240,7 @@ def test_report_string_formatting():
     )
     with pytest.raises(AssertionError) as excinfo: ebt_instance.run()
     error_msg = str(excinfo.value)
-    base_id = ebt_instance.run_id
+    base_id = ebt_instance._run_id
     # 1. Check whether the physical execution is correctly declared as index 0.
     assert f"for step '{base_id}_0':" in error_msg
     # 2. Check whether the list of postconditions increments cleanly as Q-states.
@@ -260,6 +261,6 @@ def test_step_id_failure_in_forall():
     )
     with pytest.raises(AssertionError) as excinfo: ebt_instance.run()
     error_msg = str(excinfo.value)
-    base_id = ebt_instance.run_id
+    base_id = ebt_instance._run_id
     # The error must explicitly occur at index 2 (the third pre-state), since the first two completed successfully.
     assert f"for step '{base_id}_2':" in error_msg

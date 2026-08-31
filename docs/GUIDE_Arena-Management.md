@@ -95,7 +95,7 @@ def test_external_target(external_arena): # Pytest injiziert den Pfad
 
 ```
 
-### 2.3 Security & Isolations-Qualität (Disclaimer)
+### 2.3 Architektur-Prinzipien & Sicherheit
 
 Die mitgelieferte `PyVenv`-Klasse repräsentiert den funktionalen MVP für das Arena-Protokoll. Sie konzentriert sich auf das absolute technische Minimum, um Abhängigkeiten sauber zu kapseln und Seiteneffekte im Dateisystem zu verhindern.
 
@@ -103,20 +103,40 @@ Die mitgelieferte `PyVenv`-Klasse repräsentiert den funktionalen MVP für das A
 
 Für sicherheitskritische Anwendungen, die Ausführung von absolutem Fremdcode oder bei exzessiven, unüberwachten Fuzzing-Mutationen sollte zwingend auf stabilere Virtualisierungs-Technologien zurückgegriffen werden (z. B. durch die Implementierung einer dedizierten `DockerArena` oder MicroVMs), welche diese Sicherheit auf Kernel-Ebene garantieren können.
 
+### Flakiness-Protection im Byte-Diffing
+
+Python Virtual Environments sind aufgrund flüchtiger Metadaten von Natur aus anfällig für Flakiness beim statischen Vergleichen. Die EBT-Engine umgeht dieses Problem durch einen bidirektionalen Set-Abgleich, der volatile Dateien systematisch ausklammert. Ignoriert werden:
+
+* Umgebungs-Skripte mit harten absoluten Pfaden (`bin/`, `Scripts/`, `pyvenv.cfg`).
+* Flüchtige Meta- und Cache-Dateien (`__pycache__`, `.pyc`, `.lock`, `CACHEDIR.TAG`).
+* Paket-Metadaten (`.dist-info`), deren Hashes betriebssystemabhängig variieren können.
+Der verbleibende Byte-Diff konzentriert sich somit ausschließlich auf die semantisch relevanten Quellcodes im `site-packages`-Ordner.
+
+### State-Guard Pattern
+
+Alle Arenen nutzen konsequent explizite State-Guards am Anfang kritischer Methoden (z.B. `if self.workspace_path is None: raise RuntimeError(...)`). Dieses Vorgehen befriedigt nicht nur den Linter restlos, sondern dient gleichzeitig als harter Laufzeitschutz gegen unvollständige Pipelines (Connascence of Execution), da es statisch und dynamisch garantiert, dass die Arena korrekt aufgebaut wurde, bevor sie evaluiert wird.
+
 ---
 
-## 3. Ausblick: Der `ArenaBuilder` (Automatisierung)
+# 3. Provisioning mit dem `ArenaBuilder`
 
-Für die Zukunft (vielleicht schon in einer späteren Cubie-Iteration) drängt sich hier das Factory-Pattern auf. Anstatt Arenen manuell per CLI zu erstellen, könnte das Framework einen `ArenaBuilder` anbieten, der das Bootstrapping zur Laufzeit übernimmt:
+Um die Test-Dateien nicht mit manuellen Subprocess-Aufrufen für das Setup von Base-Environments zu überladen, bietet das Modul den `ArenaBuilder`. Er nutzt ein Fluent Interface, um Base-Arenen deklarativ per Code aufzubauen. Dies eignet sich hervorragend für das globale Provisioning (z.B. in der `conftest.py` oder auf Modul-Ebene).
 
+**Usage-Pattern:**
 ```python
-# ZUKUNFTS-VISION
-def test_future_auto_arena():
+from pyvenv import ArenaBuilder, PyVenv
+from ebt import *
+
+# 1. Globale Provisionierung der Base-Arena (Idempotent)
+base_arena_path = "tests/.arenas/ollama_env"
+ArenaBuilder(base_arena_path).with_packages(["ollama"]).build()
+
+# 2. Nutzung im EBT-Run
+def test_complex_mutation():
     EBT(
-        # Der Builder erstellt das venv on-the-fly via uv und installiert 'ollama'
-        arena=ArenaBuilder("tests/.arenas/temp_1").with_packages(["ollama"]).build(),
-        target=my_func,
-        # ...
+        target=target_do_something,
+        pre=WorldState(arena=PyVenv(base_arena_path)),
+        post=WorldState(returns=True)
     ).run()
 
 ```

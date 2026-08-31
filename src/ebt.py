@@ -2,19 +2,10 @@ import filecmp, inspect, uuid
 from typing import Union, List, Any, Optional
 from pathlib import Path
 from dataclasses import dataclass
-from protocols import Arena
+from protocols import Arena, WorldState
+
 
 # ==========  DATACLASSES ==============================================================================================
-
-@dataclass
-class WorldState:
-    """Declares execution environments, file system states, and functional parameters of a test world."""
-    arena: Any = None
-    args: Any = None
-    kwargs: Any = None
-    returns: Any = None
-    fs: Any = None
-    expect: bool = True or False
 
 @dataclass
 class EvaluationTrace:
@@ -43,12 +34,14 @@ class EBT:
     ):
         if inspect.isclass(arena): raise TypeError(f"STATE-GUARD: 'arena' must be an instance.")
         self.custom_id = custom_id or self.__class__.__name__.lower()
-        self.run_id = f"cubie_run_{self.custom_id}_{uuid.uuid4().hex[:8]}"
+        self._run_id = f"cubie_run_{self.custom_id}_{uuid.uuid4().hex[:8]}"
+        self.expect = expect
         self.target = target
         self.arena = arena
-        self.expect = expect
-        self.pre = pre or WorldState()
-        self.post = post or WorldState()
+
+        self.pre: List[WorldState] = self._ensure_list(pre)
+        self.post: List[WorldState] = self._ensure_list(post)
+        self._outcome: List[WorldState] = []
         self._traces: List[EvaluationTrace] = []
 
     # ----- Services ---------------------------------------------------------------------------------------------------
@@ -74,12 +67,12 @@ class EBT:
     def _validate(self) -> None:
         """Executes the pre-states (∀) and evaluates the outcome against all post-states (∃)."""
         __tracebackhide__ = True
-        pre_states = self.pre if isinstance(self.pre, list) else [self.pre]
-        post_states = self.post if isinstance(self.post, list) else [self.post]
-        for idx, pre in enumerate(pre_states):
-            step_id = f"{self.run_id}_{idx}"
-            outcome = self._execute_step(pre)
-            for post in post_states: self._traces.append(self._evaluate_step(pre, post, outcome, step_id))
+        for pre_idx, pre_state in enumerate(self.pre):
+            outcome = self._execute_step(pre_state)
+            self._outcome.append(outcome)
+            step_id = f"{self._run_id}_{pre_idx}"
+            for post_idx, _ in enumerate(self.post):
+                self._traces.append(self._evaluate_step(pre_idx, post_idx, step_id))
 
     def _report(self) -> None:
         """Preapares the report and asserts the results."""
@@ -94,18 +87,23 @@ class EBT:
         """Validates all declarations for logical runnability prior to execution (Fail-Fast)."""
         __tracebackhide__ = True
         if not callable(self.target): raise TypeError("STATE-GUARD: Target must be a callable function or method.")
-        post_states = self.post if isinstance(self.post, list) else [self.post]
-        for idx, post_state in enumerate(post_states):
+        for idx, post_state in enumerate(self.post):
             has_assertion = (post_state.returns is not None) or bool(post_state.fs) or bool(post_state.arena)
-            if not has_assertion:
-                raise RuntimeError(f"STATE-GUARD: Non-runnable WorldState in post-declaration (Index {idx}).")
+            if not has_assertion: raise RuntimeError(
+                f"STATE-GUARD: Non-runnable WorldState in post-declaration (Index {idx}).")
+
+    @staticmethod
+    def _ensure_list(raw_value: Union[WorldState, List[WorldState], None]) -> List[WorldState]:
+        """Ensures that inputs are uniformly converted into a list of WorldStates."""
+        __tracebackhide__ = True
+        if raw_value is None: return [WorldState()]
+        if isinstance(raw_value, list): return raw_value
+        return [raw_value]
 
     def _normalize_declarations(self) -> None:
         """Normalizes the file system topologies for all defined pre- and post-states."""
         __tracebackhide__ = True
-        pre_states = self.pre if isinstance(self.pre, list) else [self.pre]
-        post_states = self.post if isinstance(self.post, list) else [self.post]
-        for state in pre_states + post_states: state.fs = self._normalize_fs(state.fs)
+        for state in self.pre + self.post: state.fs = self._normalize_fs(state.fs)
 
     @staticmethod
     def _normalize_fs(fs_raw: Any) -> dict:
@@ -132,37 +130,30 @@ class EBT:
         return (args_raw,)
 
     def _execute_step(self, pre_state: WorldState) -> WorldState:
-        """Executes the target for a single step and returns the outcome state."""
+        """Executes the target for a single step and returns the normalized outcome state."""
         __tracebackhide__ = True
-        if self.arena:
-            self.arena.fs = pre_state.fs
-            self.arena.setup()
+        active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else self.arena
+        if active_arena: active_arena.setup(pre_state)
         args = self._normalize_args(pre_state.args)
         kwargs = pre_state.kwargs if pre_state.kwargs is not None else {}
-        if self.arena: actual_returns = self.arena.execute(self.target, args, kwargs)
-        else: actual_returns = self.target(*args, **kwargs)
+        if active_arena:
+            active_arena.execute(self.target, args, kwargs)
+            return active_arena.get_state()
+        actual_returns = self.target(*args, **kwargs)
         return WorldState(returns=actual_returns)
 
-    def _evaluate_step(
-            self,
-            pre_state: WorldState,
-            post_state: WorldState,
-            outcome: WorldState,
-            step_id: str
-    ) -> EvaluationTrace:
-        """Evaluates the outcome against the expected post-state (raw match)."""
+    def _evaluate_step(self, pre_idx: int, post_idx: int, step_id: str) -> EvaluationTrace:
+        """Evaluates the outcome against the expected post-state using index topology."""
         __tracebackhide__ = True
+        pre_state, post_state, outcome = self.pre[pre_idx], self.post[post_idx], self._outcome[pre_idx]
         raw_match = True
         if post_state.returns is not None and not self._evaluate_func(post_state, outcome): raw_match = False
-        if post_state.fs and not self._evaluate_fs(post_state.fs): raw_match = False
+        if post_state.fs and not self._evaluate_fs(post_state.fs, outcome.fs): raw_match = False
+        if post_state.arena and not self._evaluate_arena(post_state.arena, outcome.arena): raw_match = False
         target_name = getattr(self.target, '__name__', str(self.target))
         return EvaluationTrace(
-            step_id=step_id,
-            target=target_name,
-            pre=pre_state,
-            post=post_state,
-            outcome=outcome,
-            evaluation=raw_match
+            step_id=step_id, target=target_name, pre=pre_state,
+            post=post_state, outcome=outcome, evaluation=raw_match
         )
 
     @staticmethod
@@ -171,12 +162,52 @@ class EBT:
         __tracebackhide__ = True
         return outcome.returns == post_state.returns
 
-    def _evaluate_fs(self, expected_fs: dict) -> bool:
+    def _evaluate_arena(self, expected_arena: Any, outcome_arena: Optional[str]) -> bool:
+        """Performs a targeted evaluation against the expected arena topology."""
+        __tracebackhide__ = True
+        if not outcome_arena: return False
+        if isinstance(expected_arena, str): host_path = Path(expected_arena)
+        elif hasattr(expected_arena, "env_path"): host_path = Path(str(expected_arena.env_path))
+        else: raise TypeError(f"STATE-GUARD: Invalid expected_arena type: {type(expected_arena)}")
+        arena_path = Path(outcome_arena)
+        if not arena_path.exists() or not host_path.exists(): return False
+        return self._compare_venv_contents(arena_path, host_path)
+
+    def _compare_venv_contents(self, arena_path: Path, host_path: Path) -> bool:
+        """Compares venv contents bidirectionally, filtering volatile metadata."""
+        __tracebackhide__ = True
+        import filecmp
+        host_files = self._get_filtered_venv_files(host_path)
+        arena_files = self._get_filtered_venv_files(arena_path)
+        if set(host_files.keys()) != set(arena_files.keys()): return False
+        for rel_path in host_files.keys():
+            if not filecmp.cmp(arena_files[rel_path], host_files[rel_path], shallow=False): return False
+        return True
+
+    @staticmethod
+    def _get_filtered_venv_files(base_dir: Path) -> dict[Path, Path]:
+        """Collects all functional source files of a venv, ignoring caches and volatile metadata."""
+        __tracebackhide__ = True
+        ignored = {
+            "bin", "Scripts", "pyvenv.cfg", "CACHEDIR.TAG",
+            ".gitignore", ".lock", "__pycache__",
+            "_virtualenv.pth", "_virtualenv.py"
+        }
+        files = {}
+        for item in base_dir.rglob('*'):
+            if not item.is_file(): continue
+            parts = item.parts
+            if any(p in ignored or p.endswith(".dist-info") for p in parts): continue
+            if item.suffix == ".pyc": continue
+            files[item.relative_to(base_dir)] = item
+        return files
+
+    def _evaluate_fs(self, expected_fs: dict, outcome_fs: Optional[str]) -> bool:
         """Performs a byte-by-byte diff evaluation against the expected filesystem topology."""
         __tracebackhide__ = True
-        if self.arena is None or getattr(self.arena, "workspace_path", None) is None: return False
+        if not outcome_fs: return False
         for target_rel_path, host_source_path in expected_fs.items():
-            arena_path = Path(str(self.arena.workspace_path)) / target_rel_path
+            arena_path = Path(outcome_fs) / target_rel_path
             host_path = Path(host_source_path)
             if not arena_path.exists() or not host_path.exists(): return False
             if not self._compare_paths(arena_path, host_path): return False
@@ -201,6 +232,16 @@ class EBT:
 
     # ↓--- _report() ---↓
 
+    @staticmethod
+    def _evaluate_step_logic(traces: List[EvaluationTrace]) -> bool:
+        """Evaluates the boolean success of a single step based on positive and negative states."""
+        __tracebackhide__ = True
+        positives = [t for t in traces if t.post.expect]
+        negatives = [t for t in traces if not t.post.expect]
+        violates_neg = any(t.evaluation for t in negatives)
+        satisfies_pos = any(t.evaluation for t in positives) if positives else True
+        return satisfies_pos and not violates_neg
+
     def _assert_traces(self) -> None:
         """Evaluates overall quantifier logic and applies the global expect modifier."""
         __tracebackhide__ = True
@@ -221,23 +262,26 @@ class EBT:
         for t in self._traces: steps.setdefault(t.step_id, []).append(t)
         return steps
 
-    @staticmethod
-    def _evaluate_step_logic(traces: List[EvaluationTrace]) -> bool:
-        """Evaluates the boolean success of a single step based on positive and negative states."""
-        __tracebackhide__ = True
-        positives = [t for t in traces if t.post.expect]
-        negatives = [t for t in traces if not t.post.expect]
-        violates_neg = any(t.evaluation for t in negatives)
-        satisfies_pos = any(t.evaluation for t in positives) if positives else True
-        return satisfies_pos and not violates_neg
-
     def _build_report_message(self, step_id: str, traces: List[EvaluationTrace]) -> str:
         """Constructs a detailed error string, exposing all evaluated quantifier states."""
         __tracebackhide__ = True
         prefix = "EBT-Assert failed" if self.expect else "EBT-Negative-Assert failed"
-        base = traces[0]
-        lines = [f"{prefix} for step '{step_id}':",f"Target: {base.target} | Actual Returns: {base.outcome.returns}"]
-        for idx, t in enumerate(traces):
-            match_status = "Matched" if t.evaluation else "Mismatch"
-            lines.append(f"  [Q-State {idx}] Expected Returns: {t.post.returns} | Validation: {match_status}")
+        lines = [f"{prefix} for step '{step_id}':", f"Target: {traces[0].target}"]
+        for idx, t in enumerate(traces): lines.extend(self._format_trace_details(idx, t))
         return "\n".join(lines)
+
+    def _format_trace_details(self, idx: int, t: EvaluationTrace) -> List[str]:
+        """Formats the detailed property comparisons for a single EvaluationTrace."""
+        __tracebackhide__ = True
+        lines = [f"  [Q-State {idx}] Validation: {'Matched' if t.evaluation else 'Mismatch'}"]
+        if t.post.returns is not None:
+            match = "Match" if self._evaluate_func(t.post, t.outcome) else "Mismatch"
+            lines.append(f"    - Returns: Expected {t.post.returns} | Actual {t.outcome.returns} ({match})")
+        if t.post.fs:
+            match = "Match" if self._evaluate_fs(t.post.fs, t.outcome.fs) else "Mismatch"
+            lines.append(f"    - FS: Expected {t.post.fs} | Actual {t.outcome.fs} ({match})")
+        if t.post.arena:
+            match = "Match" if self._evaluate_arena(t.post.arena, t.outcome.arena) else "Mismatch"
+            expected = getattr(t.post.arena, "env_path", t.post.arena)
+            lines.append(f"    - Arena: Expected {expected} | Actual {t.outcome.arena} ({match})")
+        return lines

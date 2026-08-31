@@ -1,37 +1,5 @@
 # Example-Based-Testing
 
-```python
-#PSEUDOCODE
-from core import CubieBase
-from typing import Any
-from dataclasses import dataclass
-
-class EBT(CubieBase):
-    def __init__(
-        self,
-        arena,
-        target,
-        pre,
-        post,
-        expect
-    ):
-        self.arena = arena
-        self.target = target
-        self.pre = pre
-        self.post = post
-        self.expect = expect
-
-           
-@dataclass
-class WorldState:
-    arena: Any = None
-    args: Any = None
-    kwargs: Any = None
-    returns: Any = None
-    fs: Any = None
-```
-
-
 Das Example-Based-Testing (EBT) fungiert als kompromisslose Basis der Qualitätssicherung, indem es deterministische Realitäten als "Golden Master" definiert. Basierend auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$ spannt das Konzept den Raum von einfachen In-Memory-Funktionen bis hin zu komplexen Datei- und Ordner-Transformationen auf.
 
 ---
@@ -75,6 +43,16 @@ Sie fungiert als das einheitliche Ziel-Schema, in welches die übergeordnete `EB
 
 * **Das Normalisierungs-Ziel:** Das `WorldState`-Objekt ist das interne Zielformat der `EBT`-Klasse. Die `EBT`-Klasse nutzt Auto-Inferenz, um einfache Datentypen (Shorthands) unter der Haube implizit in vollumfängliche `WorldState`-Objekte umzuwandeln.
 
+
+## Das Arena-Protokoll
+
+Während die `EBT`-Klasse die formallogische Makro-Orchestrierung übernimmt und `WorldState` die Datenstruktur deklariert, ist das Arena-Protokoll für die physische Realität zuständig. Arenen kapseln die eigentliche Ausführung (das $S$ im Hoare-Tripel) und isolieren Seiteneffekte vom Host-System.
+
+* **Trennung von Orchestrierung und Ausführung:** Die EBT-Engine delegiert die Erschaffung der Testumgebung, die Ausführung des Targets und das Einsammeln der Resultate vollständig an die Arena.
+* **State-Injection:** Die Arena empfängt über ihre `setup(state: WorldState)`-Methode den deklarierten Ausgangszustand, projiziert diesen in einen isolierten Workspace und liefert nach der Ausführung über `get_state() -> WorldState` die veränderte, ungeschönte Realität an die Engine zurück.
+* **Spezialisierung:** Cubie bietet standardmäßig `PyVenv` für vollständige Laufzeit-Isolation (via Subprozesse und `uv`) und `TempFS` als extrem leichtgewichtige In-Memory-Alternative für reine Dateioperationen.
+
+
 ---
 
 ## Weiteres
@@ -95,18 +73,13 @@ Die Details der Orchestrierungs-Strategien müssen als Hilfsfunktionen gestaltet
 * Wenn eine WorldState-Liste im `post`-Attribut vorliegt, benötigen wir eine Existenzquantor-Logik, welche den Fehler nur dann wirft, wenn kein einziger der erwarteten `post`-Zustände zutrifft.
 * Wenn eine WorldState-Liste sowohl im `pre`-Attribut, als auch im `post`-Attribut vorliegt, dann gilt logischerweise beides: Für jedes Objekt in der WorldState-Liste vom pre-Attribut wird ein Testlauf in einer iterativen Schleife geführt, welche einen Fehler wirft, wenn auch nur ein einziger Lauf nicht mit einem der definierten Zustände im `post`-Attribut zutrifft.
 
-Die `_validate`-Phase muss dann nur noch die Orchestrierungs-Strategie auslesen und dementsprechend die passende Hilfsfunktion aufrufen, welche durch die deklarierten Zustände iterieren. 
-
-### Die `_report`-Phase und Pytest
-
-Während der Entwicklung vom `rbt.py`-Modul hat sich bereits gezeigt, dass das Reporting für uns ein paar kleine Kniffe erwartet. Würden wir einfach nur die Assertion werfen und eine Erklärung liefern, würde das Pytest-Reporting die internen Mechanismen unserer Testklassen im Traceback führen. Daher benötigt es den intelligenten Einsatz von `__tracebackhide__`-Deklarationen, wobei wir darauf achten müssen, dass die EBT-Algorithmen versteckt werden, aber die Ausführung vom target dabei im Traceback erhalten bleibt.
-
 ---
 
 ## Weiterführende Dokumentation der Kernkomponenten
 
 Um die interne Funktionsweise und die architektonischen Details der einzelnen Komponenten tiefgehender zu verstehen, existieren dedizierte Spezifikationen:
 
-* **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Classes.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
+* **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Class.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
 * **[WorldState Deklarator (DEV-GUIDE_2-2)](DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
+* **[Arenen & Sandbox-Protokolle (DEV-GUIDE_2-3)](DEV-GUIDE_2-3_Arenas.md):** Spezifikation des Arena-Protokolls, der `PyVenv` / `TempFS` Klassen sowie des dynamischen Provisionings durch den `ArenaBuilder`.
 * **[ConventionMap Registry (DEV-GUIDE_3-1)](../guide_core/DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.

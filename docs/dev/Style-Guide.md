@@ -43,10 +43,9 @@ Wenn es um den laufenden Zustand eines Objekts geht, der sich durch Methodenaufr
 
 * **Instanzattribute (`self.variable`):** Zustand wird immer in der `__init__`-Methode an `self` gebunden. Diese Variablen gehören nur dieser einen speziellen Instanz.
 * **Der "Protected" Unterstrich (`_variable`):** Wenn ein dynamischer Zustand nur für den internen Gebrauch der Klasse (und ihrer Subklassen) gedacht ist, stellst du einen einfachen Unterstrich voran. Das ist ein reines Gentlemen's Agreement: *„Du kannst diesen Wert von außen ändern, aber wenn dann etwas kaputtgeht, ist es dein Problem.“*
-* **Properties (`@property`):** Wenn ein dynamischer Wert beim Lesen oder Schreiben eine bestimmte Logik durchlaufen muss (z. B. Validierung), machst du ihn nicht direkt zugänglich. Du nutzt stattdessen den `@property`-Dekorator, um den Zugriff wie eine normale Variable aussehen zu lassen, obwohl im Hintergrund eine Methode läuft.
 
 ### **Zusammenfassend:**
-Nutze `GROSSBUCHSTABEN` und `typing.Final` für Dinge, die du als "statisch" betrachtest. Nutze `self._variablenname` für internen wandelbaren Zustand und kontrolliere den Zugriff von außen, wenn nötig, über `@property`.
+Nutze `GROSSBUCHSTABEN` und `typing.Final` für Dinge, die du als "statisch" betrachtest. Nutze `self._variablenname` für internen wandelbaren Zustand und kontrolliere den Zugriff von außen.
 
 ---
 
