@@ -204,7 +204,7 @@ def test_exclusive_negative_filters_red():
 # ========== ENUMERATION & TRACING =====================================================================================
 
 def test_step_id_enumeration():
-    """Verfiies: The step_ids for quantifier lists are neatly enumerated by index (_0, _1, _2)."""
+    """Verifies: The step_ids for quantifier lists are neatly enumerated by index (_0, _1, _2)."""
     ebt_instance = EBT( # We instantiate the object explicitly so that we can access the internal traces after the run.
         target=target_normalize,
         pre=[
@@ -249,7 +249,7 @@ def test_report_string_formatting():
 
 
 def test_step_id_failure_in_forall():
-    """Verifies: If a universal quantifier terminates prematurely, the cirrect step_id is reported."""
+    """Verifies: If a universal quantifier terminates prematurely, the correct step_id is reported."""
     ebt_instance = EBT(
         target=target_normalize,
         pre=[

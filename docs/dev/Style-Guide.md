@@ -14,8 +14,8 @@ Docstrings bestehen aus exakt einem Satz und erklären ausschließlich das Was, 
 ### Maximal 7-12 Zeilen pro Funktion
 Funktionskörper dürfen maximal 7 bis 12 Zeilen lang sein (Interfaces und Docstrings werden nicht mitgezählt). Um dieses Limit zu halten, müssen interne Logikzweige (Schleifen, komplexe Bedingungen) zwingend als eigenständige Blöcke in separate Hilfsfunktionen ausgelagert werden. Die Hauptfunktion fungiert anschließend als reine Kompositionsfunktion, die diese Blöcke lediglich aufruft und orchestriert.
 
-### Maximal 300 Zeilen pro Modul
-Die aktuelle Code-Basis ist modular aufgebaut und wächst organisch. Das harte Limit für Dateigrößen liegt bei 300 Zeilen. Wird dieses Limit erreicht, diktiert die Logik des Codes die Aufspaltung in neue logische Sub-Module.
+### Maximal 300-500 Zeilen pro Modul
+Die aktuelle Code-Basis ist modular aufgebaut und wächst organisch. Das harte Limit für Dateigrößen liegt bei 500 Zeilen. Wird dieses Limit erreicht, diktiert die Logik des Codes die Aufspaltung in neue logische Sub-Module.
 
 ### Narrative Programming (Top-Down-Lesbarkeit)
 Beim Lesen vom Code sollte man schnell das Wichtigste erfassen und sich leicht zurechtfinden können. Die Haupt-Funktionen einer Klasse (Services) stehen immer ganz oben in der Datei oder Klasse und agieren als Kompositionsfunktionen (das "Inhaltsverzeichnis", um den Code wie eine logische Geschichte von oben nach unten zu lesen) von Hilfs-Funktionen. 
