@@ -1,6 +1,7 @@
-from typing import Any, Optional, Protocol, runtime_checkable, Dict
+from typing import Any, Optional, Protocol, runtime_checkable, Dict, List
 from dataclasses import dataclass, field
 from pathlib import Path
+
 
 # ========== REVIEWER-PROTOCOL | REVIEW-BASED-TESTING ==================================================================
 
@@ -23,7 +24,7 @@ class Reviewer(Protocol):
     ) -> ReviewData: ...
 
 
-# ========== WORLDSTATE-PROTOCOL | EXAMPLE-BASED-TESTING ===============================================================
+# ========== WORLDSTATE-DATACLASS | EXAMPLE-BASED-TESTING ==============================================================
 
 @dataclass
 class WorldState:
@@ -66,6 +67,32 @@ class Arena(Protocol):
         """Destroys the workspace and cleans up all temporary environment states."""
         ...
 
+# ========== TRACING-DATACLASSES | EXAMPLE-BASED-TESTING ===============================================================
+
+@dataclass
+class EvaluationTrace:
+    """Encapsulates the complete trajectory and evaluation of a single execution step."""
+    step_id: str
+    target: str
+    pre: WorldState
+    post: WorldState
+    outcome: WorldState
+    evaluation: bool
+    duration: Optional[float] = None
+    diffs: Optional[dict] = None
+
+@dataclass
+class RunTrace:
+    """Encapsulates the complete trajetories of all steps and the evaluation of the entire run."""
+    run_id: str
+    target: str
+    expect: bool
+    arena: Optional[Arena] = None
+    traces: Optional[List[EvaluationTrace]] = None
+    evaluation: Optional[bool] = None
+    duration: Optional[float] = None
+
+
 # ========== IPC-CODEC-PROTOCOL | PYVENV-ARENA =========================================================================
 
 class IPCC(Protocol):
@@ -83,3 +110,11 @@ class IPCC(Protocol):
     def get_runner_snippet(self, in_path: str, out_path: str) -> str:
         """Generates the Python code for the arena, matching the codec."""
         ...
+
+# ========== REPORTER-PROTOCOL | EXAMPLE-BASED-TESTING =================================================================
+
+class Reporter(Protocol):
+    """
+    Protocol for EBT result reporters.
+    """
+    def report(self, trace: RunTrace) -> None: ...

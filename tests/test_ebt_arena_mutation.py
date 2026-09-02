@@ -156,5 +156,5 @@ def test_arena_uninstalls():
         post=[
             WorldState(returns=True, arena=PyVenv(BASE_ARENA)),
             WorldState(returns=False, arena=PyVenv(PKG_ARENA))
-        ]
+        ],
     ).run()
