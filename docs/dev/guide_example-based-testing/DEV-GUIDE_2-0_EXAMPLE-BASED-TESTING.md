@@ -14,9 +14,7 @@ Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minim
 
 * **Erweiterte Formallogische Engine (Quantoren-Auflösung):**
 Die Klasse steuert den iterativen Prüfprozess für komplexe Lösungsräume.
-
    * Werden Vorbedingungen (`pre`) als WorldState-Listen übergeben, wendet die Klasse deterministisch das Prinzip des beschränkten Allquantors ($\forall$) an, führt jeden Zustand isoliert aus und verknüpft die Assertions mit einem logischen UND.
-
    * Werden Nachbedingungen (`post`) als WorldState-Listen übergeben, schaltet die Engine auf das Prinzip des beschränkten Existenzquantors ($\exists$) um und bewertet den Test als bestanden (ODER-Verknüpfung), sobald der Output mit einem Element der Zielmenge übereinstimmt.
 
 ---
@@ -52,6 +50,23 @@ Während die `EBT`-Klasse die formallogische Makro-Orchestrierung übernimmt und
 * **State-Injection:** Die Arena empfängt über ihre `setup(state: WorldState)`-Methode den deklarierten Ausgangszustand, projiziert diesen in einen isolierten Workspace und liefert nach der Ausführung über `get_state() -> WorldState` die veränderte, ungeschönte Realität an die Engine zurück.
 * **Spezialisierung:** Cubie bietet standardmäßig `PyVenv` für vollständige Laufzeit-Isolation (via Subprozesse und `uv`) und `TempFS` als extrem leichtgewichtige In-Memory-Alternative für reine Dateioperationen.
 
+## `class RunTrace` und `EvaluationTrace`
+
+Die `RunTrace`-Datenklasse fungiert, zusammen mit den von ihr gekapselten `EvaluationTrace`-Objekten, als universeller, unveränderlicher Ergebnisträger eines Testlaufs. Anstatt Ergebnisse direkt zu assertieren oder flüchtig zu verarbeiten, gießt die `EBT`-Engine die gesamte formallogische Evaluation in diese feste Datenstruktur.
+
+* **Die Souveränität der Engine:** Die EBT-Klasse berechnet ausschließlich formallogische Fakten (die Auflösung der Quantoren $\forall$ und $\exists$) und speichert das finale Ergebnis im Attribut `evaluation`. 
+* **Historie und Nachvollziehbarkeit:** Eine `RunTrace` bündelt den gesamten Kontext eines Durchlaufs: Sie enthält Metadaten wie die Laufzeit (`duration`), den Modifikator (`expect`) und eine detaillierte Auflistung aller durchgeführten Mikro-Steps in Form von `EvaluationTrace`-Objekten.
+* **Prä-kalkulierte Diffs:** Jeder `EvaluationTrace` speichert bereits die ermittelten Abweichungen (Returns, Dateisystem-Topologie, Arena-State) im `diffs`-Attribut ab. Das macht nachgelagerte Analysen hochperformant, da keine Werte ein zweites Mal verglichen werden müssen.
+
+---
+
+## Das Reporter-Protokoll
+
+Um die Kern-Architektur des Cubie-Frameworks vollständig von spezifischen Test-Runnern (wie Pytest) zu entkoppeln, wurde das `Reporter`-Protokoll etabliert. Reporter sind reine Konsumenten der `RunTrace`-Datenstruktur.
+
+* **Trennung von Evaluation und Assertion:** Während die `EBT`-Klasse die Logik auswertet, übernimmt ein injizierter Reporter (z. B. der `PytestReporter`) ausschließlich die Formatierung von Fehlermeldungen und das Auslösen framework-spezifischer Assertions (z. B. `assert False`), sofern `trace.evaluation is False` gilt.
+* **Meta-Testing und Headless Runs:** Wird der EBT-Instanz `None` als Reporter übergeben, arbeitet die Engine völlig lautlos. In diesem "Headless Mode" wirft die Ausführung keine Exceptions, sondern die `run()`-Methode gibt am Ende schlicht das `RunTrace`-Objekt zurück. 
+* **Programmatische Weiterverwendung:** Dieser geräuschlose Rückfluss ermöglicht komplexe Architektur-Szenarien, wie beispielsweise Meta-Testing (eine EBT-Instanz testet eine andere EBT-Instanz) oder die Anbindung der Evaluationsdaten an grafische Benutzeroberflächen (z. B. via Tkinter für Review-Workflows) oder die Konstruktion von PBT- und Benchmark-Verfahren.
 
 ---
 

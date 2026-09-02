@@ -1,17 +1,19 @@
 # `class EBT`
 
-Die `EBT`-Klasse ist die zentrale Orchestrierungs-Engine des Frameworks. Sie dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die Zustände.
+Die `EBT`-Klasse dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die Zustände.
 
 ## Kern-Verantwortlichkeiten
 
-**Auto-Inferenz:**  
+#### **Auto-Inferenz:**  
 Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minimieren, unterstützt das Framework Shorthand-Eingaben. Die `EBT`-Klasse delegiert die komplexe Logik der automatischen Typen-Inferenz (das Umwandeln von primitiven Datentypen in standardisierte `WorldState`-Objekte) jedoch vollständig an die dedizierte `ConventionMap`. Details hierzu sind im entsprechenden DEV-GUIDE der `ConventionMap` dokumentiert.
 
-**Erweiterte Formallogische Engine:**  
+#### **Erweiterte Formallogische Engine:**  
   Die Klasse steuert den iterativen Prüfprozess für komplexe Lösungsräume. Sie verwaltet dabei drei fundamentale Zustands-Säulen auf Augenhöhe:
 * **`pre` (Vorbedingung):** Definiert den Ausgangszustand. Werden Listen übergeben, wendet die Engine deterministisch das Prinzip des beschränkten Allquantors ($\forall$) an und führt für jeden deklarierten Zustand einen isolierten Prüfdurchlauf aus.
 * **`_outcome` (Tatsächliches Resultat):** Repräsentiert die ungeschönte Realität *nach* der Ausführung des Targets. Das Handling und die physische Aggregation dieses Zustands (insbesondere von topologischen Mutationen und Seiteneffekten) wird in Zusammenarbeit mit der isolierten `Arena` und deren `Arena-Protokoll` erzeugt und verwaltet.
 * **`post` (Nachbedingung):** Definiert den erwarteten Soll-Zustand. Werden Listen übergeben, wendet die Engine das Prinzip des beschränkten Existenzquantors ($\exists$) an. Der Testzyklus gilt als bestanden, sobald das `_outcome` mit mindestens einem der definierten `post`-Zustände übereinstimmt (ODER-Verknüpfung).
+
+---
 
 ---
 
@@ -24,6 +26,11 @@ Definiert den isolierten Ausführungsraum (die Sandbox), in dem das Programmsegm
 
 #### `EBT.target`
 Repräsentiert das auszuführende Programmsegment ($S$), welches die Transformation von der Vorbedingung zur Nachbedingung vornimmt. Das Attribut akzeptiert direkte Callables (Python-Funktionen, Klassen oder Methoden), die in das Testmodul importiert und als direkte Referenz übergeben werden.
+
+#### `EBT.reporter`
+Dient als Dependency-Injection-Mechanismus für die externe Fehlerbehandlung und das finale Reporting. Es akzeptiert jedes Objekt, das dem `Reporter`-Protokoll entspricht (standardmäßig der `PytestReporter`). Dieses Attribut entkoppelt die formallogische Auswertung der Engine vollständig von spezifischen Test-Frameworks. Wird hier `None` deklariert, operiert die EBT-Instanz im lautlosen "Headless Mode" und delegiert keine Assertions nach außen.
+
+---
 
 ### EBT-Konfigurations-Attribute
 
@@ -43,6 +50,7 @@ Beides sind Set-basierte Konfigurations-Attribute (`Set[str]`), welche das strik
 **Konfigurations-Überschreibung:**
 Getreu den Python-Konventionen (consenting adults) lassen sich diese in Großbuchstaben geschriebenen Konfigurations-Attribute auf Instanz-Ebene überschreiben. Durch eine einfache Zuweisung vor dem `run()`-Aufruf (z. B. `ebt_run.FS_IGNORES = {"custom.log"}`) kann das Filter-Verhalten pro Testlauf flexibel an den jeweiligen Kontext angepasst werden, während das Cubie-Framework weiterhin die schwere Arbeit des sauberen Quantoren-Abgleichs übernimmt.
 
+---
 
 ### EBT-Zustands-Attribute
 
@@ -55,10 +63,23 @@ Das Resultat der Ausführung. Es fungiert als Trägerobjekt für die tatsächlic
 #### `EBT.post`: `List[WorldState]`
 Definiert das $Q$ (Post-Condition) im Hoare-Tripel. Es fungiert als reines Assertion-Objekt, gegen welches das generierte `_outcome`-Attribut durch die EBT-Engine verifiziert wird. 
 
+---
+
 ### EBT-Prozessierungs-Attribute
 
 #### `EBT._traces`: `List[EvaluationTrace]`
-Eine interne Liste, welche die vollständige Historie und Evaluation aller Teilschritte eines Testlaufs aufzeichnet. Jedes `EvaluationTrace`-Objekt kapselt exakt einen $\forall$-$\exists$-Vergleich (bestehend aus Target, spezifischem `pre`, erwartetem `post`, generiertem `_outcome` und dem booleschen Match-Ergebnis). Diese Traces bilden das Fundament für die finale Fehler-Aggregation in der `_report()`-Phase.
+Eine interne Liste, welche die vollständige Historie und Evaluation aller Teilschritte eines Testlaufs aufzeichnet. Jedes `EvaluationTrace`-Objekt kapselt exakt einen $\forall$-$\exists$-Vergleich (bestehend aus Target, spezifischem `pre`, erwartetem `post`, generiertem `_outcome`, den vorberechneten `diffs` und dem booleschen Match-Ergebnis). Diese Traces bilden das Fundament für die finale Konsolidierung.
+
+#### `EBT._run_duration`: `Optional[float]`
+Erfasst die exakte Ausführungszeit der gesamten Validierungs-Makro-Phase, um saubere Performance-Metriken für den Abschlussbericht bereitzustellen.
+
+#### `EBT._run_evaluation`: `Optional[bool]`
+Speichert das absolute, formallogische Endergebnis des gesamten Testlaufs. Dieser Wert wird in der `_evaluate_run`-Pipe berechnet, indem die Quantoren-Logik der Mikro-Steps zusammengeführt und der globale `expect`-Modifikator der `EBT`-Klasse angewendet wird.
+
+#### `EBT.run_trace`: `Optional[RunTrace]`
+Das finale, unveränderliche Trägerobjekt der Auswertung. Es bündelt den gesamten Kontext des Runs: Alle rohen `EvaluationTrace`-Objekte, die `_run_duration` und die finale `_run_evaluation`. Dieses Objekt wird als unteilbarer Fakt an den deklarierten `reporter` übergeben und bildet immer den verbindlichen Rückgabewert der öffentlichen `run()`-Methode.
+
+---
 
 ---
 
@@ -76,6 +97,8 @@ Die Klasse strukturiert ihre internen Methoden nach einem klaren Paradigma:
 * **Pipes:** Die zentralen Phasen-Orchestratoren (`_arrange`, `_validate`, `_report`), welche den sequenziellen Datenfluss durch die Makro-Architektur steuern.
 * **Utilities:** Isolierte, zustandslose Hilfsfunktionen (wie Pfad-Normalisierungen, Byte-Diffing-Algorithmen oder formallogische Evaluatoren), die von den Pipes aufgerufen werden, um spezifische Teilaufgaben zu lösen.
 
+---
+
 ### Lebenszyklus
 
 #### Steps
@@ -83,10 +106,12 @@ Ein Step repräsentiert exakt einen $\{P\}S\{Q\}$ Durchlauf für einen spezifisc
 1. **Mikro-Arrange:** Zuweisung des deterministischen Ausgangszustands `pre[i]` und der zugehörigen Zielzustände `post[n]`. Die Abbildung gegen eine Menge $n$ ist essenziell, da im Falle eines Existenzquantors mehrere valide Endzustände für ein einzelnes `_outcome` existieren können.
 2. **Mikro-Validate:** Aufbau der physischen Arena, synchrone Ausführung des Targets und das rein wertungsfreie Erfassen der entstandenen Realität in ein `_outcome[i]`-Objekt.
 3. **Mikro-Report:** Der sofortige Abgleich des `_outcome[i]`-Objekts mit den erwarteten `post[n]`-Zuständen (inkl. I/O-lastigem Byte-Diffing). Hierbei wird auch das **lokale `expect`-Attribut** des jeweiligen `WorldState`-Objekts berücksichtigt, um gezielte Negativ-Evaluationen (Invertierung der Erwartungshaltung) direkt auf Mikro-Ebene sauber aufzulösen. Die Ergebnisse werden als rohe `EvaluationTrace`-Objekte verpackt. 
-Das macht den Step extrem ressourceneffizient und ermöglicht es, hunderte Steps sicher parallel zu orchestrierenä
+Das macht den Step extrem ressourceneffizient und ermöglicht es, hunderte Steps sicher parallel zu orchestrieren.
 
 #### Runs
-Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die (zukünftig parallele) Abarbeitung der Mikro-Steps und konsolidiert am Ende die gesammelten, rohen Evaluations-Daten, um formallogische Quantoren auf das Gesamtbild anzuwenden.
+Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die (zukünftig parallele) Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
+
+---
 
 ### Phasen-Verantwortlichkeiten
 
@@ -100,9 +125,15 @@ Innerhalb dieser Makro-Phase finden die gesamten `Mikro-Validate` und `Mikro-Rep
 * **Mikro-Validate:** Ausführung des Targets in der Arena. Die Daten der Arenen-Zustände werden als WorldState-Objekt auf Klassen-Ebene im `_outcome`-Attribut gesammelt. 
 * **Mikro-Report:** Abschließend findet die Mikro-Evaluation und der direkte Abgleich gegen die `post[n]`-Zustände (inklusive deren lokaler `expect`-Regeln) statt. Die resultierenden, rohen `EvaluationTrace`-Objekte werden auf Klassen-Ebene im `_traces`-Attribut gesammelt.
 
-#### Report (Auswertung der Ergebnisse, Formatierung zum Bericht und Assertion)
-Die finale Makro-Phase ist vollständig von der Ausführung und den Dateisystemen entkoppelt (keinerlei I/O-Last). Rein konzeptuell sollte es dennoch während der Report-Phase möglich sein, basierend auf den `self.pre`-, `self._outcome`-, und `self.post`-Listen, die Evaluation erneut durchzuführen. In der Praxis verlassen wir uns in der Makro-Report-Phase im Regelfall auf die reine Konsolidierung der rohen `EvaluationTrace`-Liste.
-Anhand dieser Traces wendet die Phase rein logische Operationen (die Auflösung von All- und Existenzquantoren, $\forall$ und $\exists$) an, bereitet basierend auf dem **globalen `expect`-Modifikator** der `EBT`-Klasse die finale Assertion vor, erzeugt potentiell noch einen Diff und formatiert den Bericht für die Assertion, um den run mit der Übergabe an PyTest abzuschließen.
+#### Evaluate & Report (Auswertung, Konsolidierung und Delegation)
+Die finale Makro-Phase ist vollständig von der Ausführung und den Dateisystemen entkoppelt (keinerlei I/O-Last). Mit der Souveränität der Engine teilt sich dieser Abschlussbereich glasklar in zwei separate Verantwortlichkeiten auf:
+
+* **Die `_evaluate_run`-Logik (Fakten-Konsolidierung):** Anhand der gesammelten `EvaluationTrace`-Objekte wendet diese Phase rein logische Operationen an (die Auflösung von All- und Existenzquantoren, $\forall$ und $\exists$) und berechnet basierend auf dem **globalen `expect`-Modifikator** der `EBT`-Klasse das absolute Endergebnis. Diese Auswertung wird völlig wertungsfrei als Fakt in einer unveränderlichen `RunTrace`-Datenstruktur deklariert.
+* **Die `_report`-Pipe (Delegation):** Diese Phase übernimmt die Orchestrierung nach außen. Sie triggert die Evaluation und übergibt das fertige `RunTrace`-Objekt an den injizierten Reporter (standardmäßig den `PytestReporter`). Alle Pytest-spezifischen Assertions, String-Formatierungen und Diff-Reports sind vollständig in diesen Reporter ausgelagert. Wird `None` als Reporter deklariert, bleibt die Phase lautlos.
+
+Abschließend retourniert die öffentliche `run()`-Service-Methode das `RunTrace`-Objekt, um eine programmatische Weiterverarbeitung zu ermöglichen.
+
+---
 
 ---
 
