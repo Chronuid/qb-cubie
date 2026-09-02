@@ -8,7 +8,6 @@ class TempFS:
     """
     Executes targets directly within the host process and encapsulates file system operations in an ephemeral workspace.
     """
-
     def __init__(
             self,
             custom_id: str | None = None
@@ -96,8 +95,7 @@ class TempFS:
     def _switch_cwd_to_workspace(self) -> None:
         """Saves the host's current working directory and switches to the temporary workspace."""
         __tracebackhide__ = True
-        if self.workspace_path is None: raise RuntimeError(
-            "STATE-GUARD: 'workspace_path' is missing for the CWD change.")
+        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: 'workspace_path' is missing for CWD change.")
         self._original_cwd = Path.cwd()
         os.chdir(self.workspace_path)
 
