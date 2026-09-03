@@ -55,3 +55,6 @@ Nutze `GROSSBUCHSTABEN` und `typing.Final` für Dinge, die du als "statisch" bet
 * **Das Problem:** Statische Typ-Prüfer (Linter) meckern in nachgelagerten Methoden, weil sie nicht garantieren können, dass vorherige Methoden bereits aufgerufen wurden.
 * **Die Regel / Erkenntnis:** Anstatt Typisierungen aufzuweichen oder überall mit `assert` zu pfuschen, empfiehlt sich die Nutzung expliziter **State-Guards** am Methoden-Anfang (z.B. `if self._root is None: raise RuntimeError(...)`).
 * **Der Mehrwert:** Es befriedigt nicht nur den Linter restlos, sondern dient gleichzeitig als harter Laufzeitschutz gegen unvollständige Pipelines (Connascence of Execution), in welcher man Erklärungen formulieren kann, welche definieren was an jenen Stellen für einen sauberen Lauf erwartet wird.
+
+### Pure Worker & Stateful Orchestrators: 
+Operative Kernfunktionen (Worker) konsumieren ihren Kontext ausschließlich über Parameter und kommunizieren Ergebnisse strikt über return. Die Mutation von Klassenattributen (Zustand) obliegt den steuernden Haupt- oder Kompositionsfunktionen, welche die Ergebnisse der Worker aggregieren. Dies ermöglicht Thread-Sicherheit und maximale Testbarkeit, während die Kohäsion der Hauptklasse und deren Funktionen gefördert wird.

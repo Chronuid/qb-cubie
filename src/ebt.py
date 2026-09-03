@@ -1,6 +1,7 @@
-import filecmp, uuid, time
-from typing import Union, List, Set, Any, Optional
+import filecmp, uuid, time, os
 from pathlib import Path
+from typing import Union, List, Set, Any, Optional
+from concurrent.futures import ProcessPoolExecutor
 from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter
 from reporter import PytestReporter
 
@@ -18,7 +19,7 @@ class EBT:
             post: Union[WorldState, List[WorldState], None] = None,
             expect: bool = True or False,
             custom_id: Optional[str] = None,
-            reporter: Reporter = PytestReporter()
+            reporter: Reporter | None = PytestReporter()
     ):
         self.target = target
         self.arena = arena
@@ -39,24 +40,18 @@ class EBT:
         self._run_evaluation: Optional[bool] = None
         self._traces: List[EvaluationTrace] = []
         self.run_trace: Optional[RunTrace] = None
-
-        self._current_pre: Optional[int] = None
-        self._current_post: Optional[int] = None
-        self._t_step_start: Optional[float] = None
+        self.MULTIPROCESSING = False
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
     def run(self) -> RunTrace | None:
         """Executes the test pipeline, consisting of preparation, execution, and evaluation."""
         __tracebackhide__ = True
-        try:
-            self._t_run_start = time.perf_counter()
-            self._arrange()
-            self._validate()
-            self._run_duration = time.perf_counter() - self._t_run_start
-            self._report()
-        finally:
-            if self.arena: self.arena.teardown()
+        self._t_run_start = time.perf_counter()
+        self._arrange()
+        self._validate()
+        self._run_duration = time.perf_counter() - self._t_run_start
+        self._report()
         return self.run_trace
 
     # ---------- PIPES -------------------------------------------------------------------------------------------------
@@ -64,19 +59,13 @@ class EBT:
     def _arrange(self) -> None:
         """Validates and normalizes the states passed to the pipeline."""
         __tracebackhide__ = True
-        self._check_runnability()
         for state in self.pre + self.post: state.fs = self._normalize_fs(state.fs)
 
     def _validate(self) -> None:
         """Executes the pre-states (∀) and evaluates the outcome against all post-states (∃)."""
         __tracebackhide__ = True
-        for idx, _ in enumerate(self.pre):
-            self._current_pre = idx
-            self._t_step_start = time.perf_counter()
-            self._execute_step()
-            for p_idx, _ in enumerate(self.post):
-                self._current_post = p_idx
-                self._evaluate_step()
+        if not self.MULTIPROCESSING: self._validate_singleprocess()
+        else: self._validate_multiprocess()
 
     def _report(self) -> None:
         """Evaluates the run and delegates the Result to the reporter if present."""
@@ -85,20 +74,49 @@ class EBT:
         if not self.run_trace: raise TypeError("STATE-GUARD: No run_trace found.")
         if self.reporter: self.reporter.report(self.run_trace)
 
-    # ---------- Sub-Pipes ---------------------------------------------------------------------------------------------
+    # ---------- PROCESSING-STRATEGIES ---------------------------------------------------------------------------------
 
-    def _execute_step(self) -> None:
-        """Executes the target for a single step and saves the normalized outcome state."""
+    def _validate_singleprocess(self) -> None:
+        """Sequential processing reusing the unified task logic."""
         __tracebackhide__ = True
-        if self._current_pre is None: raise RuntimeError("STATE-GUARD: Missing pre_idx.")
-        pre_state = self.pre[self._current_pre]
-        args = self._normalize_args(pre_state.args)
-        kwargs = pre_state.kwargs if pre_state.kwargs is not None else {}
+        for pre_idx, pre_state in enumerate(self.pre):
+            outcome, traces = self._process_single_task(pre_idx, pre_state)
+            self._outcome.append(outcome)
+            self._traces.extend(traces)
+
+    def _validate_multiprocess(self) -> None:
+        n_worker = os.cpu_count() or 1
+        n_tasks = len(self.pre)
+        optimal_chunksize = max(1, n_tasks // (n_worker * 4))
+        pre_indices = list(range(n_tasks))
+        pre_states = self.pre
+        with ProcessPoolExecutor(max_workers=n_worker) as executor:
+            results = list(
+                executor.map(self._process_single_task,pre_indices, pre_states,chunksize=optimal_chunksize)
+            )
+        for outcome, traces in results:
+            self._outcome.append(outcome)
+            self._traces.extend(traces)
+
+    def _process_single_task(self, pre_idx: int, pre_state: WorldState) -> tuple[WorldState, List[EvaluationTrace]]:
+        """Parallel-ready processing reusing the stateless step functions."""
+        __tracebackhide__ = True
+        t_step_start = time.perf_counter()
         active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else self.arena
-        if active_arena:
-            active_arena.setup(pre_state); active_arena.execute(self.target, args, kwargs)
-            self._outcome.append(active_arena.get_state())
-        else: self._outcome.append(WorldState(returns=self.target(*args, **kwargs)))
+        traces = []
+        try:
+            outcome = self._execute_step(pre_state)
+            for post_state in self.post:
+                trace = self._evaluate_step(
+                    pre_idx=pre_idx, t_step_start=t_step_start,
+                    pre_state=pre_state, post_state=post_state, outcome=outcome
+                )
+                traces.append(trace)
+        finally:
+            if active_arena: active_arena.teardown()
+        return outcome, traces
+
+    # ---------- SUB-PIPES ---------------------------------------------------------------------------------------------
 
     def _evaluate_run(self) -> None:
         """Evaluates overall quantifier logic, applies the expect modifier and constructs RunTrace."""
@@ -107,32 +125,44 @@ class EBT:
         step_successes = {sid: self._evaluate_step_logic(traces) for sid, traces in steps.items()}
         self._run_evaluation = all(step_successes.values()) if self.expect else not all(step_successes.values())
         self.run_trace = RunTrace(
-            run_id=self._run_id,
+            run_id=self._run_id, arena=self.arena,
             target=getattr(self.target, '__name__', str(self.target)),
-            expect=self.expect,
-            arena=self.arena,
-            traces=self._traces,
-            evaluation=self._run_evaluation,
+            expect=self.expect, traces=self._traces, evaluation=self._run_evaluation,
             duration=self._run_duration
         )
 
-    def _evaluate_step(self) -> None:
-        """Evaluates the outcome against the expected post-state and appends the trace."""
+    def _execute_step(self, pre_state: WorldState) -> WorldState:
+        """Executes the target for a single step and returns the normalized outcome state."""
         __tracebackhide__ = True
-        if self._current_pre is None or self._current_post is None: raise RuntimeError("STATE-GUARD: Missing idx.")
-        pre_x, post_x = self.pre[self._current_pre], self.post[self._current_post]
-        outcome, diffs = self._outcome[self._current_pre], {}
-        if post_x.returns is not None and (r := self._evaluate_func(post_x, outcome)): diffs["returns"] = r
-        if post_x.fs and (f := self._evaluate_fs(post_x.fs, outcome.fs)): diffs["fs"] = f
-        if post_x.arena and (a := self._evaluate_arena(post_x.arena, outcome.arena)): diffs["arena"] = a
-        trace = EvaluationTrace(
-            step_id=f"{self._run_id}_{self._current_pre}",
+        args = self._normalize_args(pre_state.args)
+        kwargs = pre_state.kwargs if pre_state.kwargs is not None else {}
+        active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else self.arena
+        if active_arena:
+            active_arena.setup(pre_state)
+            active_arena.execute(self.target, args, kwargs)
+            return active_arena.get_state()
+        return WorldState(returns=self.target(*args, **kwargs))
+
+    def _evaluate_step(
+            self,
+            pre_idx: int, t_step_start: float,
+            pre_state: WorldState,
+            post_state: WorldState,
+            outcome: WorldState,
+    ) -> EvaluationTrace:
+        """Evaluates the outcome against the expected post-state and returns the trace."""
+        __tracebackhide__ = True
+        diffs = {}
+        if post_state.returns is not None and (r := self._evaluate_func(post_state, outcome)): diffs["returns"] = r
+        if post_state.fs and (f := self._evaluate_fs(post_state.fs, outcome.fs)): diffs["fs"] = f
+        if post_state.arena and (a := self._evaluate_arena(post_state.arena, outcome.arena)): diffs["arena"] = a
+        return EvaluationTrace(
+            step_id=f"{self._run_id}_{pre_idx}",
             target=getattr(self.target, '__name__', str(self.target)),
-            pre=pre_x, post=post_x, outcome=outcome,
+            pre=pre_state, post=post_state, outcome=outcome,
             evaluation=not bool(diffs), diffs=diffs or None,
-            duration=time.perf_counter() - self._t_step_start
+            duration=time.perf_counter() - t_step_start
         )
-        self._traces.append(trace)
 
     @staticmethod
     def _evaluate_func(post_state: WorldState, outcome: WorldState) -> Optional[dict]:
@@ -169,14 +199,6 @@ class EBT:
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
 
     # ↓ ========== _arrange() ========== ↓
-
-    def _check_runnability(self) -> None:
-        """Validates all declarations for logical runnability prior to execution (Fail-Fast)."""
-        __tracebackhide__ = True
-        if not callable(self.target): raise TypeError("STATE-GUARD: Target must be a callable function or method.")
-        for idx, post_state in enumerate(self.post):
-            has_assertion = (post_state.returns is not None) or bool(post_state.fs) or bool(post_state.arena)
-            if not has_assertion: raise RuntimeError(f"STATE-GUARD: Non-runnable WorldState in post (Index {idx}).")
 
     @staticmethod
     def _ensure_list(raw_value: Union[WorldState, List[WorldState], None]) -> List[WorldState]:
