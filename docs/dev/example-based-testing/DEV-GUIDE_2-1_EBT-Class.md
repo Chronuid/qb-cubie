@@ -13,6 +13,14 @@ Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minim
 * **`_outcome` (Tatsächliches Resultat):** Repräsentiert die ungeschönte Realität *nach* der Ausführung des Targets. Das Handling und die physische Aggregation dieses Zustands (insbesondere von topologischen Mutationen und Seiteneffekten) wird in Zusammenarbeit mit der isolierten `Arena` und deren `Arena-Protokoll` erzeugt und verwaltet.
 * **`post` (Nachbedingung):** Definiert den erwarteten Soll-Zustand. Werden Listen übergeben, wendet die Engine das Prinzip des beschränkten Existenzquantors ($\exists$) an. Der Testzyklus gilt als bestanden, sobald das `_outcome` mit mindestens einem der definierten `post`-Zustände übereinstimmt (ODER-Verknüpfung).
 
+#### **Agnostische Typ- und Prädikats-Evaluierung (Dynamic Typing):**
+Während das Framework in der Basis-Auswertung auf striktes Byte-by-Byte-Diffing und exakte Werte-Gleichheit (`==`) setzt, unterstützt die `EBT`-Engine nativ eine dynamische, formallogische Typen-Auflösung. Anstatt die Engine mit Parsing-Bibliotheken (wie Pydantic) aufzublähen, fungiert die Evaluierungsphase (`_evaluate_func` und `_evaluate_fs`) als intelligenter Router. 
+Werden in den `post`-Zuständen[cite: 1] keine festen Werte, sondern Typ-Deklarationen definiert, delegiert die Makro-Pipeline die Auswertung an dedizierte Worker (`_compare`-Pattern). Dies ermöglicht die nahtlose Validierung von:
+* **Native Types & Klassen:** Deklarationen via `type` (z. B. `str`, `list` oder benutzerdefinierte Klassen) werden als Laufzeit-Identitätsprüfung (`isinstance`) aufgelöst.
+* **Union Types & Wildcards:** `typing.Union` (oder `|`), `Optional` und `typing.Any` werden rekursiv entpackt und auf Erfüllbarkeit geprüft.
+* **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand[cite: 1].
+* **Callables (Prädikate):** Das Framework erkennt injizierte Funktionen (`Callable` oder `lambda`) und führt diese als zustandslose Prädikate aus. Dies gilt sowohl für funktionale Returns als auch für Dateisystem-Evaluierungen (`fs`). Schlägt ein Prädikat fehl oder wirft es typische Laufzeitfehler (z. B. `TypeError`, `KeyError`), wertet die Engine dies formallogisch sauber als Mismatch, ohne den Testlauf abstürzen zu lassen.
+
 ---
 
 ---
@@ -95,7 +103,7 @@ Das finale, unveränderliche Trägerobjekt der Auswertung. Es bündelt den gesam
 
 #### Allgemeine Muster
 Die Architektur des EBT-Moduls ist eine direkte softwaretechnische Manifestation der deterministischen Hoare-Logik ($\{P\}S\{Q\}$). Das Design folgt einem strikten Pipeline-Muster, das sich fraktal verhält: Die großen Makro-Phasen des gesamten Testlaufs spiegeln sich in isolierten Mikro-Phasen für jede einzelne Zustands-Transformation wider. 
-Ein zentrales Muster ist dabei die **Index-Topologie** (Objekt-Synchronität). Die Zustände existieren als Listen, die fest miteinander verankert sind: Ein `pre[i]` führt zwingend zu einem `_outcome[i]`, welches anschließend gegen eine Menge definierter Zielzustände `post[n]` validiert wird. Diese Entkopplung von Ausführung und Evaluation legt das Fundament für asynchrone Parallelisierungen.
+Ein zentrales Muster ist dabei die **Index-Topologie** (Objekt-Synchronität). Die Zustände existieren als Listen, die fest miteinander verankert sind: Ein `pre[i]` führt zwingend zu einem `_outcome[i]`, welches anschließend gegen eine Menge definierter Zielzustände `post[n]` validiert wird. 
 
 #### Komponenten
 Die Klasse strukturiert ihre internen Methoden nach einem klaren Paradigma:
@@ -115,7 +123,7 @@ Ein Step repräsentiert exakt einen $\{P\}S\{Q\}$ Durchlauf für einen spezifisc
 Das macht den Step extrem ressourceneffizient und ermöglicht es, hunderte Steps sicher parallel zu orchestrieren.
 
 #### Runs
-Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die (zukünftig parallele) Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
+Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
 
 ---
 

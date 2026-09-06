@@ -1,7 +1,7 @@
-import filecmp, uuid, time, os
+import filecmp, uuid, time, os, re, types
 from pathlib import Path
-from typing import Union, List, Set, Any, Optional
 from concurrent.futures import ProcessPoolExecutor
+from typing import Union, List, Set, Any, Optional, get_origin, get_args, Callable
 from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter
 from reporter import PytestReporter
 
@@ -19,7 +19,8 @@ class EBT:
             post: Union[WorldState, List[WorldState], None] = None,
             expect: bool = True or False,
             custom_id: Optional[str] = None,
-            reporter: Reporter | None = PytestReporter()
+            reporter: Reporter | None = PytestReporter(),
+            multiprocessing: bool = False,
     ):
         self.target = target
         self.arena = arena
@@ -40,7 +41,7 @@ class EBT:
         self._run_evaluation: Optional[bool] = None
         self._traces: List[EvaluationTrace] = []
         self.run_trace: Optional[RunTrace] = None
-        self.MULTIPROCESSING = False
+        self.MULTIPROCESSING = multiprocessing or False
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
@@ -164,13 +165,6 @@ class EBT:
             duration=time.perf_counter() - t_step_start
         )
 
-    @staticmethod
-    def _evaluate_func(post_state: WorldState, outcome: WorldState) -> Optional[dict]:
-        """Evaluates functional return values and returns a diff dict on mismatch."""
-        __tracebackhide__ = True
-        if outcome.returns == post_state.returns: return None
-        return {"expected": post_state.returns, "actual": outcome.returns}
-
     def _evaluate_arena(self, expected_arena: Any, outcome_arena: Optional[str]) -> Optional[dict]:
         """Performs a targeted evaluation against the expected arena topology and returns diffs."""
         __tracebackhide__ = True
@@ -187,14 +181,38 @@ class EBT:
         )
 
     def _evaluate_fs(self, expected_fs: dict, outcome_fs: Optional[str]) -> Optional[dict]:
-        """Performs a deep diff evaluation against the expected filesystem topology."""
+        """Performs a deep diff evaluation against the expected filesystem topology or callables."""
         __tracebackhide__ = True
         if not outcome_fs: return {"error": "Outcome FS is missing."}
         diffs = {}
-        for target_rel_path, host_source_path in expected_fs.items():
-            arena_path, host_path = Path(outcome_fs) / target_rel_path, Path(host_source_path)
+        for target_rel_path, expected_val in expected_fs.items():
+            arena_path = Path(outcome_fs) / target_rel_path
+            if callable(expected_val):
+                try:
+                    if not expected_val(arena_path): diffs[target_rel_path] = {"error": "Callable eval failed."}
+                except Exception as e: diffs[target_rel_path] = {"error": f"Callable raised Exception: {e}"}
+                continue
+            host_path = Path(expected_val)
             if path_diff := self._compare_paths(arena_path, host_path): diffs[target_rel_path] = path_diff
         return diffs or None
+
+    @staticmethod
+    def _evaluate_func(post_state: WorldState, outcome: WorldState) -> Optional[dict]:
+        """Evaluates functional return values dynamically."""
+        __tracebackhide__ = True
+        if EBT._compare(post_state.returns, outcome.returns): return None
+        return {"expected": str(post_state.returns), "actual": outcome.returns}
+
+    @staticmethod
+    def _compare(exp: Any, act: Any) -> bool:
+        """Routes values to the appropriate comparison strategy."""
+        if exp is Any: return True
+        if EBT._is_union(exp): return EBT._cmp_union(exp, act)
+        if isinstance(exp, type): return isinstance(act, exp)
+        if isinstance(exp, re.Pattern): return EBT._cmp_regex(exp, act)
+        if callable(exp): return EBT._cmp_call(exp, act)
+        if isinstance(exp, (dict, list, tuple)): return EBT._cmp_nest(exp, act)
+        return exp == act
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
 
@@ -231,6 +249,39 @@ class EBT:
     # ↓ ========== _validate() ========== ↓
 
     @staticmethod
+    def _is_union(exp: Any) -> bool:
+        """Checks if the expected value is a union type."""
+        origin = get_origin(exp)
+        return origin is Union or type(exp) is getattr(types, "UnionType", type(None))
+
+    @staticmethod
+    def _cmp_union(exp: Any, act: Any) -> bool:
+        """Evaluates union types against the actual value."""
+        return any(EBT._compare(arg, act) for arg in get_args(exp))
+
+    @staticmethod
+    def _cmp_regex(exp: re.Pattern, act: Any) -> bool:
+        """Evaluates a regular expression against the actual value."""
+        return False if act is None else bool(exp.match(str(act)))
+
+    @staticmethod
+    def _cmp_call(exp: Callable, act: Any) -> bool:
+        """Safely evaluates a callable predicate without triggering broad exception warnings."""
+        try: return bool(exp(act))
+        except (TypeError, ValueError, AttributeError, KeyError, IndexError): return False
+
+    @staticmethod
+    def _cmp_nest(exp: Any, act: Any) -> bool:
+        """Recursively evaluates nested data structures."""
+        if isinstance(exp, dict) and isinstance(act, dict):
+            if exp.keys() != act.keys(): return False
+            return all(EBT._compare(exp[k], act[k]) for k in exp)
+        if isinstance(exp, (list, tuple)) and isinstance(act, (list, tuple)):
+            if len(exp) != len(act): return False
+            return all(EBT._compare(e, a) for e, a in zip(exp, act))
+        return False
+
+    @staticmethod
     def _generate_diff(expected: dict[Path, Path], actual: dict[Path, Path]) -> Optional[dict]:
         """Generates a structured diff dictionary mapping missing, unexpected, and modified files."""
         __tracebackhide__ = True
@@ -254,8 +305,6 @@ class EBT:
             if is_arena and (item.suffix == ".pyc" or any(p.endswith(".dist-info") for p in rel_path.parts)): continue
             files[rel_path] = item
         return files
-
-    # ↓--- _evaluate_fs() ---↓
 
     def _compare_paths(self, arena_path: Path, host_path: Path) -> Optional[dict]:
         """Compares individual files or delegates recursive deep scans to the diff generator."""
