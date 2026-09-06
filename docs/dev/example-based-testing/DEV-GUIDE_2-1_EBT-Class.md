@@ -15,10 +15,10 @@ Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minim
 
 #### **Agnostische Typ- und Prädikats-Evaluierung (Dynamic Typing):**
 Während das Framework in der Basis-Auswertung auf striktes Byte-by-Byte-Diffing und exakte Werte-Gleichheit (`==`) setzt, unterstützt die `EBT`-Engine nativ eine dynamische, formallogische Typen-Auflösung. Anstatt die Engine mit Parsing-Bibliotheken (wie Pydantic) aufzublähen, fungiert die Evaluierungsphase (`_evaluate_func` und `_evaluate_fs`) als intelligenter Router. 
-Werden in den `post`-Zuständen[cite: 1] keine festen Werte, sondern Typ-Deklarationen definiert, delegiert die Makro-Pipeline die Auswertung an dedizierte Worker (`_compare`-Pattern). Dies ermöglicht die nahtlose Validierung von:
+Werden in den `post`-Zuständen keine festen Werte, sondern Typ-Deklarationen definiert, delegiert die Makro-Pipeline die Auswertung an dedizierte Worker (`_compare`-Pattern). Dies ermöglicht die nahtlose Validierung von:
 * **Native Types & Klassen:** Deklarationen via `type` (z. B. `str`, `list` oder benutzerdefinierte Klassen) werden als Laufzeit-Identitätsprüfung (`isinstance`) aufgelöst.
 * **Union Types & Wildcards:** `typing.Union` (oder `|`), `Optional` und `typing.Any` werden rekursiv entpackt und auf Erfüllbarkeit geprüft.
-* **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand[cite: 1].
+* **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand.
 * **Callables (Prädikate):** Das Framework erkennt injizierte Funktionen (`Callable` oder `lambda`) und führt diese als zustandslose Prädikate aus. Dies gilt sowohl für funktionale Returns als auch für Dateisystem-Evaluierungen (`fs`). Schlägt ein Prädikat fehl oder wirft es typische Laufzeitfehler (z. B. `TypeError`, `KeyError`), wertet die Engine dies formallogisch sauber als Mismatch, ohne den Testlauf abstürzen zu lassen.
 
 ---
