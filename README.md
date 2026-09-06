@@ -151,5 +151,5 @@ qb.RBT(
 
 Um die internen Mechanismen und komplexen Patterns tiefgehend zu verstehen, konsultiere die dedizierten Developer-Guides:
 
-* **[EBT Usage-Patterns](https://www.google.com/search?q=GUIDE_EBT-Usage-Pattern.md):** Ausführliche Beispiele für $\forall$- und $\exists$-Mappings, Dictionary-Patterns, Agnostic Typing und Umgebungs-Mutationen.
-* **[EBT Orchestration Engine](https://www.google.com/search?q=DEV-GUIDE_2-1_EBT-Class.md):** Architektur der Makro-/Mikro-Pipelines, Shorthand-Inferenz und das dynamische Evaluierungs-Routing.
+* **[EBT Usage-Patterns](docs/GUIDE_EBT-Usage-Pattern.md):** Ausführliche Beispiele für $\forall$- und $\exists$-Mappings, Dictionary-Patterns, Agnostic Typing und Umgebungs-Mutationen.
+* **[EBT Orchestration Engine](docs/dev/example-based-testing/DEV-GUIDE_2-1_EBT-Class.md):** Architektur der Makro-/Mikro-Pipelines, Shorthand-Inferenz und das dynamische Evaluierungs-Routing.
