@@ -13,6 +13,14 @@ Um die Entwickler-Erfahrung (DX) schlank zu halten und Boilerplate-Code zu minim
 * **`_outcome` (Tatsächliches Resultat):** Repräsentiert die ungeschönte Realität *nach* der Ausführung des Targets. Das Handling und die physische Aggregation dieses Zustands (insbesondere von topologischen Mutationen und Seiteneffekten) wird in Zusammenarbeit mit der isolierten `Arena` und deren `Arena-Protokoll` erzeugt und verwaltet.
 * **`post` (Nachbedingung):** Definiert den erwarteten Soll-Zustand. Werden Listen übergeben, wendet die Engine das Prinzip des beschränkten Existenzquantors ($\exists$) an. Der Testzyklus gilt als bestanden, sobald das `_outcome` mit mindestens einem der definierten `post`-Zustände übereinstimmt (ODER-Verknüpfung).
 
+#### **Agnostische Typ- und Prädikats-Evaluierung (Dynamic Typing):**
+Während das Framework in der Basis-Auswertung auf striktes Byte-by-Byte-Diffing und exakte Werte-Gleichheit (`==`) setzt, unterstützt die `EBT`-Engine nativ eine dynamische, formallogische Typen-Auflösung. Anstatt die Engine mit Parsing-Bibliotheken (wie Pydantic) aufzublähen, fungiert die Evaluierungsphase (`_evaluate_func` und `_evaluate_fs`) als intelligenter Router. 
+Werden in den `post`-Zuständen[cite: 1] keine festen Werte, sondern Typ-Deklarationen definiert, delegiert die Makro-Pipeline die Auswertung an dedizierte Worker (`_compare`-Pattern). Dies ermöglicht die nahtlose Validierung von:
+* **Native Types & Klassen:** Deklarationen via `type` (z. B. `str`, `list` oder benutzerdefinierte Klassen) werden als Laufzeit-Identitätsprüfung (`isinstance`) aufgelöst.
+* **Union Types & Wildcards:** `typing.Union` (oder `|`), `Optional` und `typing.Any` werden rekursiv entpackt und auf Erfüllbarkeit geprüft.
+* **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand[cite: 1].
+* **Callables (Prädikate):** Das Framework erkennt injizierte Funktionen (`Callable` oder `lambda`) und führt diese als zustandslose Prädikate aus. Dies gilt sowohl für funktionale Returns als auch für Dateisystem-Evaluierungen (`fs`). Schlägt ein Prädikat fehl oder wirft es typische Laufzeitfehler (z. B. `TypeError`, `KeyError`), wertet die Engine dies formallogisch sauber als Mismatch, ohne den Testlauf abstürzen zu lassen.
+
 ---
 
 ---
@@ -47,8 +55,14 @@ Beides sind Set-basierte Konfigurations-Attribute (`Set[str]`), welche das strik
 * **`EBT.FS_IGNORES`:** Dieses Set ist standardmäßig leer (`{""}`). Es greift tief in der `_evaluate_fs`-Methode. Wenn ein Pfad-Segment (Datei oder Ordnername) in diesem Set gelistet ist, wird das entsprechende Element mitsamt aller rekursiv darin verschachtelten Unterordner vollständig vom Dateisystem-Abgleich ausgeschlossen. Das ist ideal, um irrelevante Build-Artefakte (z. B. `build/`) oder dynamisch generierte Dateien aus der Gleichung zu nehmen, ohne die formale Logik des Tests zu brechen.
 * **`EBT.ARENA_IGNORES`:** Dieses Set enthält standardmäßig eine kuratierte Liste von flüchtigen Metadaten und umgebungsspezifischen Pfaden (z. B. `bin`, `Scripts`, `pyvenv.cfg`, `__pycache__`, `_virtualenv.py`). Es wird durch die `_evaluate_arena`-Methode (bzw. `_compare_venv_contents`) beim Abgleich isolierter Umgebungen wie der `PyVenv`-Arena herangezogen. Dies garantiert kompromisslos, dass systembedingte Varianzen, Caches oder flüchtige Paket-Hashes (wie `.dist-info`) die Evaluation des funktionalen Zustands nicht destabilisieren.
 
-**Konfigurations-Überschreibung:**
-Getreu den Python-Konventionen (consenting adults) lassen sich diese in Großbuchstaben geschriebenen Konfigurations-Attribute auf Instanz-Ebene überschreiben. Durch eine einfache Zuweisung vor dem `run()`-Aufruf (z. B. `ebt_run.FS_IGNORES = {"custom.log"}`) kann das Filter-Verhalten pro Testlauf flexibel an den jeweiligen Kontext angepasst werden, während das Cubie-Framework weiterhin die schwere Arbeit des sauberen Quantoren-Abgleichs übernimmt.
+#### `EBT.MULTIPROCESSING`
+Ein boolesches Konfigurations-Attribut (Standard: `False`), das die Skalierungs- und Ausführungsstrategie der zentralen Validierungsphase (`_validate`) steuert. 
+
+* **`EBT.MULTIPROCESSING=False` (Singleprocessing):** Die Engine iteriert sequenziell über alle definierten `pre`-Zustände. Dies ist das robuste Standardverhalten, ideal für einfache Tests und essenziell für lineares Debugging von fehlschlagenden Transformationen.
+* **`EBT.MULTIPROCESSING=True` (Multiprocessing):** Aktiviert die parallele Abarbeitung der Tasks mittels eines `ProcessPoolExecutor`. Die Engine teilt die Menge aller Eingabezustände (den beschränkten Allquantor $\forall$) dynamisch in Chunks auf und verteilt sie auf die verfügbaren System-Kerne (`os.cpu_count()`).
+
+**Architektonische Grundlage:** 
+Das parallele Ausführen ist nur deshalb sicher und stabil möglich, weil das Framework eine strikt zustandslose Mikro-Pipeline (`_process_single_task`) nutzt. Jeder einzelne Task orchestriert sein eigenes `Arena`-Setup, die Target-Ausführung, die Evaluation und das abschließende `Arena`-Teardown völlig isoliert in seinem Worker-Prozess. So können selbst komplexe Testläufe mit I/O-lastigem Byte-Diffing und isolierten Virtual-Environments kollisionsfrei und extrem performant skaliert werden.
 
 ---
 
@@ -89,7 +103,7 @@ Das finale, unveränderliche Trägerobjekt der Auswertung. Es bündelt den gesam
 
 #### Allgemeine Muster
 Die Architektur des EBT-Moduls ist eine direkte softwaretechnische Manifestation der deterministischen Hoare-Logik ($\{P\}S\{Q\}$). Das Design folgt einem strikten Pipeline-Muster, das sich fraktal verhält: Die großen Makro-Phasen des gesamten Testlaufs spiegeln sich in isolierten Mikro-Phasen für jede einzelne Zustands-Transformation wider. 
-Ein zentrales Muster ist dabei die **Index-Topologie** (Objekt-Synchronität). Die Zustände existieren als Listen, die fest miteinander verankert sind: Ein `pre[i]` führt zwingend zu einem `_outcome[i]`, welches anschließend gegen eine Menge definierter Zielzustände `post[n]` validiert wird. Diese Entkopplung von Ausführung und Evaluation legt das Fundament für asynchrone Parallelisierungen.
+Ein zentrales Muster ist dabei die **Index-Topologie** (Objekt-Synchronität). Die Zustände existieren als Listen, die fest miteinander verankert sind: Ein `pre[i]` führt zwingend zu einem `_outcome[i]`, welches anschließend gegen eine Menge definierter Zielzustände `post[n]` validiert wird. 
 
 #### Komponenten
 Die Klasse strukturiert ihre internen Methoden nach einem klaren Paradigma:
@@ -109,7 +123,7 @@ Ein Step repräsentiert exakt einen $\{P\}S\{Q\}$ Durchlauf für einen spezifisc
 Das macht den Step extrem ressourceneffizient und ermöglicht es, hunderte Steps sicher parallel zu orchestrieren.
 
 #### Runs
-Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die (zukünftig parallele) Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
+Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
 
 ---
 

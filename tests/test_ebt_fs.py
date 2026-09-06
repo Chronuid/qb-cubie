@@ -3,11 +3,10 @@ from protocols import WorldState
 from tempfs import *
 
 # ======================================================================================================================
-# ARENEN:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()
 
-test_arena=TempFS()
+test_arena=TempFS()  # ARENEN:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()
 
-# ========== FS-TARGETS (Dummy-Fuctions for the arena) =================================================================
+# ========== FS-TARGETS ================================================================================================
 
 def target_read_file(filename: str) -> str:
     """Reads a file from the current workspace and returns the content."""

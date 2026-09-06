@@ -50,19 +50,15 @@ class Arena(Protocol):
     def workspace_path(self) -> Optional[Path]:
         """Returns the absolute path to the isolated working directory after setup."""
         ...
-
     def setup(self, state: WorldState) -> None:
         """Creates the temporary workspace and hydrates it based on the provided WorldState."""
         ...
-
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
         """Executes the target within the isolated workspace and returns the raw functional result."""
         ...
-
     def get_state(self) -> WorldState:
         """Packages and returns the mutated environment reality as a complete WorldState."""
         ...
-
     def teardown(self) -> None:
         """Destroys the workspace and cleans up all temporary environment states."""
         ...
@@ -102,11 +98,9 @@ class IPCC(Protocol):
     def dump(self, obj: Any, path: str) -> None:
         """Writes the object to the specified path."""
         ...
-
     def load(self, path: str) -> Any:
         """Reads the object from the path."""
         ...
-
     def get_runner_snippet(self, in_path: str, out_path: str) -> str:
         """Generates the Python code for the arena, matching the codec."""
         ...

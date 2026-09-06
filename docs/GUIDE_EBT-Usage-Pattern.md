@@ -78,7 +78,7 @@ Wenn wir ganze Verzeichnisse oder Refactorings prüfen, zeigt das `WorldState`-M
 def test_5(): 
     EBT(
         target=Agent.refactor_repo(),
-        arena="envs/qa_env", # Wo wird ausgeführt? (Arena, optional deklarierbar)
+        arena=PyVenv("envs/qa_env"), # Wo wird ausgeführt? (Arena, optional deklarierbar)
         pre=WorldState(fs="fixtures/pre/project_x/"), # Copied in als Workspace-Root
         post=WorldState(
             fs="fixtures/post/project_x/", # Byte-Vergleich des gesamten Ordners
@@ -304,6 +304,82 @@ def test_13():
         post=WorldState(
             returns="'why-cats-like-to-cuddle.md' succesfully converted to json.",
             arena=TempFS("envs/post_env/why-cats-like-to-cuddle.json")
+        )
+    ).run()
+```
+
+
+## 3. Dynamische Typisierung und Prädikate (Agnostic Typing)
+
+In realen Systemen sind Rückgabewerte und Dateiinhalte oft volatil (z. B. Zeitstempel, UUIDs oder API-Payloads). Cubie zwingt dich hierbei nicht zu exakten Wert-Deklarationen. Du kannst in den `post`-Bedingungen jederzeit native Typen, Callables oder Reguläre Ausdrücke in das `WorldState`-Objekt injizieren. Die Engine löst diese agnostisch auf.
+
+### 3.1 Funktionale Returns typisieren (RegEx, Unions & Any)
+Anstatt feste Strings oder Dictionaries zu fordern, kannst du die erwartete Struktur deklarativ abstecken. Die Engine iteriert rekursiv durch verschachtelte Datenstrukturen.
+
+```python
+import re
+from typing import Union, Any
+from dataclasses import dataclass
+from ebt import EBT
+from protocols import WorldState
+
+@dataclass
+class User:
+    id: int
+
+def test_dynamic_payloads():
+    EBT(
+        target=my_api_client,
+        post=WorldState(
+            returns={
+                "task_id": re.compile(r"^REQ-\d{4}$"), # RegEx-Validierung
+                "user": User,                          # isinstance() Check (Klasse, nicht Instanz)
+                "metadata": Any,                       # Feld muss existieren, Wert egal
+                "next_page": Union[str, None],         # Union-Typen (oder str | None)
+                "items": list                          # Prüfung auf Collection-Ebene
+            }
+        )
+    ).run()
+
+```
+
+### 3.2 Prädikate (Callables) für Rückgabewerte
+
+Wenn statische Typen nicht ausreichen, kannst du eine beliebige Funktion (oder ein Lambda) übergeben. Die Funktion erhält den tatsächlichen Wert als Argument. Gibt sie `True` zurück, gilt der Test als bestanden.
+
+```python
+def test_with_custom_predicate():
+    EBT(
+        target=generate_password,
+        post=WorldState(
+            # Das Callable validiert die komplexe Logik hinter dem Return-Wert
+            returns=lambda actual: isinstance(actual, str) and len(actual) >= 12 and "!" in actual
+        )
+    ).run()
+```
+
+### 3.3 Semantische Dateisystem-Validierung (FS Content Typing)
+
+Standardmäßig gleicht das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` Dateien Byte-für-Byte ab. Wenn du jedoch eine dynamische Log- oder JSON-Datei generierst, kannst du statt eines Host-Pfades ein Callable übergeben.
+**Wichtig:** Das Callable erhält in diesem Fall ein `pathlib.Path`-Objekt der Arena, mit dem du den Inhalt semantisch prüfen kannst. Eine explizite Arena (wie `TempFS`) ist hierbei Pflicht.
+
+```python
+import json
+from pathlib import Path
+from tempfs import TempFS
+
+def validate_json_schema(p: Path) -> bool:
+    if not p.exists(): return False
+    data = json.loads(p.read_text())
+    return isinstance(data.get("duration"), float)
+
+def test_dynamic_file_content(tmp_path):
+    EBT(
+        arena=TempFS(), # Zwingend erforderlich für fs-Operationen!
+        target=create_dynamic_report,
+        pre=WorldState(fs={".": str(tmp_path)}),
+        post=WorldState(
+            fs={"report.json": validate_json_schema} # Aufruf des Prädikats statt Byte-Diffing
         )
     ).run()
 ```

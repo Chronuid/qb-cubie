@@ -2,7 +2,7 @@ from ebt import EBT
 from protocols import WorldState
 import pytest
 
-# ========== TARGETS (Dummy-Functions for formal logic) ================================================================
+# ========== TARGETS ===================================================================================================
 
 def target_normalize(text: str) -> str:
     """Standardizes a string (lowercase, no spaces)."""
