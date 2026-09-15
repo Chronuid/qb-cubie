@@ -1,10 +1,9 @@
 from ebt import *
-from protocols import WorldState
-from tempfs import *
+from arenas.tempfs import *
 
 # ======================================================================================================================
 
-test_arena=TempFS()  # ARENEN:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()
+test_arena=TempFS()  # ARENEN:  PyVenv("tests/arenas/empty_venv")  |  TempFS()
 
 # ========== FS-TARGETS ================================================================================================
 

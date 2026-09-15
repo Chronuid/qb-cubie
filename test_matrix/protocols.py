@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Tuple, List, Any, Optional
-from protocols import Arena, WorldState
+from typing import Protocol, Tuple, List, Any, Optional, Union
+from protocols import Arena, WorldState, RunTrace
 
 # ========== DATACLASSES ===============================================================================================
 
 @dataclass
 class Scenarios:
-    # 1:1 → arises implicitly when both values are 1.
-    n_to_one: int = 1  # N:1 → Scales the list of pre-states
-    one_to_n: int = 1  # 1:N → Scales the list of post-states
-    # N:N → arises implicitly when both values are greater than 1.
+    one_to_one: int = 1
+    n_to_one: int = 1
+    one_to_n: int = 1
+    n_to_n: int = 1
 
 @dataclass
 class Aspects:
@@ -24,13 +24,20 @@ class Overhead:
     arena: int = 0
 
 @dataclass
-class EBTMatrixConfig:
+class MatrixConfig:
     scenarios: Scenarios
     aspects: Aspects
     overhead: Overhead
     arena: Optional[Arena] = None
     multiprocessing: bool = False
 
+
+@dataclass
+class MatrixReport:
+    target_type: str      # Determined solution space (e.g., "N:1", "1:N", "1:1")
+    target: str           # Matrix target used (the S in {P}S{Q})
+    config: MatrixConfig  # All config data (scenarios, aspects, overhead, etc.)
+    trace: RunTrace       # All engine run data (including run_id, duration, evaluation)
 
 # ========== PROTOCOLS =================================================================================================
 
@@ -45,18 +52,21 @@ class MatrixTarget(Protocol):
         and navigate through noisy data.
         """
         ...
-    def _execute_memory(self, *args, **kwargs) -> Any: ...
-    def _execute_fs(self, *args, **kwargs) -> Any: ...
-    def _execute_env(self, *args, **kwargs) -> Any: ...
 
-
-    def build(self, config: EBTMatrixConfig, cache_root: Path) -> Tuple[List[WorldState], List[WorldState]]:
+    def build(
+            self,
+            config: MatrixConfig,
+            cache_root: Path
+    ) -> Tuple[List[WorldState], List[WorldState]]:
         """
         Orchestrates the incremental assembly of assets
         and composes the fully declared pre- and post-states for the engine from them.
         """
         ...
-    def _build_pre(self): ...
-    def _build_post(self): ...
 
-    ...
+
+class MatrixReporter(Protocol):
+    """
+    Protocol for EBT Matrix Benchmark result reporters.
+    """
+    def report(self, reports: Union[List[MatrixReport], MatrixReport]) -> None: ...

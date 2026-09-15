@@ -1,8 +1,8 @@
-# Cubie Core (`core.py`)
+# Cubie Core (`../../../src/core.py`)
 
 > *Das architektonische Fundament und der neutrale System-Knotenpunkt.*
 
-Das `core.py`-Modul ist das Herzstück des Cubie-Frameworks, enthält jedoch bewusst keine eigenen Test-Paradigmen oder Ausführungs-Engines. Anstatt als unspezifische "Utils-Sammelstelle" zu fungieren, ist der Core die formelle, innerste Schicht der Architektur. Er bündelt ausschließlich die geteilten Werkzeuge, Marker und Basisklassen, auf denen alle spezifischen Test-Typen (wie EBT, RBT, PBT) aufbauen.
+Das `../../../src/core.py`-Modul ist das Herzstück des Cubie-Frameworks, enthält jedoch bewusst keine eigenen Test-Paradigmen oder Ausführungs-Engines. Anstatt als unspezifische "Utils-Sammelstelle" zu fungieren, ist der Core die formelle, innerste Schicht der Architektur. Er bündelt ausschließlich die geteilten Werkzeuge, Marker und Basisklassen, auf denen alle spezifischen Test-Typen (wie EBT, RBT, PBT) aufbauen.
 
 Der Core sorgt dafür, dass das Framework modular bleibt und die einzelnen Test-Disziplinen nicht miteinander verschmelzen.
 
@@ -11,7 +11,7 @@ Der Core sorgt dafür, dass das Framework modular bleibt und die einzelnen Test-
 ## 1. Die "Gatekeeper"-Regel: Was gehört in den Core?
 
 Da der Core leicht Gefahr läuft, zu einem unübersichtlichen Ablageort für Hilfsfunktionen zu mutieren, gilt für dieses Modul eine strikte Aufnahmeregel.
-Ein Konzept, eine Klasse oder eine Funktion darf **nur dann** in `core.py` (und den zugehörigen Core-Dokumenten) leben, wenn es mindestens eine der folgenden Bedingungen erfüllt:
+Ein Konzept, eine Klasse oder eine Funktion darf **nur dann** in `../../../src/core.py` (und den zugehörigen Core-Dokumenten) leben, wenn es mindestens eine der folgenden Bedingungen erfüllt:
 
 1. **Domänen-Übergreifend:** Die Komponente wird zwingend von *mehr als einem* Test-Typ (z. B. von `EBT` **und** `RBT`) genutzt.
 2. **System-Brücke:** Die Komponente dient als formeller Knotenpunkt zwischen den internen Test-Klassen und externen Systemen (wie der Pytest-Orchestrierung oder Datenbank-Plugins).

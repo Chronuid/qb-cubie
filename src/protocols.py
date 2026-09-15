@@ -31,12 +31,12 @@ class WorldState:
     """
     Declares execution environments, file system states, and functional parameters of a test world.
     """
-    args: Any = None
-    kwargs: Any = None
-    arena: Any = None
-    fs: Any = None
-    returns: Any = None
-    expect: bool = True or False
+    args: Optional[Any] = None
+    kwargs: Optional[Any]  = None
+    arena: Optional[Any]  = None
+    fs: Optional[Any]  = None
+    returns: Optional[Any]  = None
+    expect: Optional[bool]  = True or False
 
 
 # ========== ARENA-PROTOCOL | EXAMPLE-BASED-TESTING ====================================================================
@@ -67,7 +67,9 @@ class Arena(Protocol):
 
 @dataclass
 class EvaluationTrace:
-    """Encapsulates the complete trajectory and evaluation of a single execution step."""
+    """
+    Encapsulates the complete trajectory and evaluation of a single execution step.
+    """
     step_id: str
     target: str
     pre: WorldState
@@ -79,7 +81,9 @@ class EvaluationTrace:
 
 @dataclass
 class RunTrace:
-    """Encapsulates the complete trajetories of all steps and the evaluation of the entire run."""
+    """
+    Encapsulates the complete trajetories of all steps and the evaluation of the entire run.
+    """
     run_id: str
     target: str
     expect: bool
@@ -92,23 +96,28 @@ class RunTrace:
 # ========== IPC-CODEC-PROTOCOL | PYVENV-ARENA =========================================================================
 
 class IPCC(Protocol):
+    """
+    Defines the contract for Inter-Process Communication Codecs.
+    """
     file_suffix: str
     requirements: list[str]
-
     def dump(self, obj: Any, path: str) -> None:
-        """Writes the object to the specified path."""
+        """Serializes and writes the object to the specified path."""
         ...
     def load(self, path: str) -> Any:
-        """Reads the object from the path."""
+        """Reads and deserializes the object from the specified path."""
         ...
     def get_runner_snippet(self, in_path: str, out_path: str) -> str:
-        """Generates the Python code for the arena, matching the codec."""
+        """Generates the matching Python execution snippet for the arena."""
         ...
+
 
 # ========== REPORTER-PROTOCOL | EXAMPLE-BASED-TESTING =================================================================
 
 class Reporter(Protocol):
     """
-    Protocol for EBT result reporters.
+    Defines the contract for EBT result reporters.
     """
-    def report(self, trace: RunTrace) -> None: ...
+    def report(self, trace: RunTrace) -> None:
+        """Processes and outputs the final execution run trace."""
+        ...

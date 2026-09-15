@@ -1,11 +1,11 @@
 from ebt import *
-from tempfs import *
-from pyvenv import PyVenv
+from arenas.tempfs import *
+from arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
-# ARENAS:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()
+# ARENAS:  PyVenv("tests/arenas/empty_venv")  |  TempFS()
 
-test_arena=PyVenv("tests/.arenas/empty_venv")
+test_arena=PyVenv("tests/arenas/empty_venv")
 
 # ========== TARGETS ===================================================================================================
 

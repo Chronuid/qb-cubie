@@ -366,20 +366,22 @@ Standardmäßig gleicht das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_
 ```python
 import json
 from pathlib import Path
-from tempfs import TempFS
+from arenas.tempfs import TempFS
+
 
 def validate_json_schema(p: Path) -> bool:
     if not p.exists(): return False
     data = json.loads(p.read_text())
     return isinstance(data.get("duration"), float)
 
+
 def test_dynamic_file_content(tmp_path):
     EBT(
-        arena=TempFS(), # Zwingend erforderlich für fs-Operationen!
+        arena=TempFS(),  # Zwingend erforderlich für fs-Operationen!
         target=create_dynamic_report,
         pre=WorldState(fs={".": str(tmp_path)}),
         post=WorldState(
-            fs={"report.json": validate_json_schema} # Aufruf des Prädikats statt Byte-Diffing
+            fs={"report.json": validate_json_schema}  # Aufruf des Prädikats statt Byte-Diffing
         )
     ).run()
 ```

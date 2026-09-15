@@ -46,15 +46,15 @@ graph RL
 
 ## 3. Struktur des `src`-Ordners
 
-* `__init__.py`: Definiert die öffentliche API des Pakets.
-* `core.py`: Das Fundament. Hier liegen vorerst alle zentralen Klassen, Utilities und Marker (insbesondere die `CubieBase`-Klasse), bis die Modul-Grenze erreicht wird.
+* `../../src/__init__.py`: Definiert die öffentliche API des Pakets.
+* `../../src/core.py`: Das Fundament. Hier liegen vorerst alle zentralen Klassen, Utilities und Marker (insbesondere die `CubieBase`-Klasse), bis die Modul-Grenze erreicht wird.
 * `ebt-shortened.py`: Beinhaltet die Logik für das *Example-Based-Testing*. Hier lebt aktuell auch das `WorldState`-Objekt, da es derzeit domänenspezifisch für EBT-Zustandsdeklarationen und Datei-Hydration genutzt wird.
-* `rbt.py`: Beinhaltet die Logik für das *Review-Based-Testing*. Aktuell bewusst als simpler Dummy konzipiert, um die Architektur und das Open-Closed-Principle (OCP) direkt an der Basis zu härten.
+* `../../src/rbt.py`: Beinhaltet die Logik für das *Review-Based-Testing*. Aktuell bewusst als simpler Dummy konzipiert, um die Architektur und das Open-Closed-Principle (OCP) direkt an der Basis zu härten.
 * `plugin.py`: Die primäre Pytest-Integration zur Datenspeicherung.
 
 ## 4. Die CubieBase & das Open-Closed-Principle (OCP)
 
-Die Klasse `CubieBase` (definiert in `core.py`) ist das architektonische Bindeglied zwischen den Test-Klassen (`EBT`, `RBT` etc.) und dem Plugin-System.
+Die Klasse `CubieBase` (definiert in `../../src/core.py`) ist das architektonische Bindeglied zwischen den Test-Klassen (`EBT`, `RBT` etc.) und dem Plugin-System.
 
 * **Marker-Klasse:** In erster Linie fungiert `CubieBase` als vererbbare Marker-Klasse. Sie erlaubt es dem System, Test-Instanzen eindeutig zu identifizieren.
 * **Erweiterbarkeit:** Benötigt das Plugin für alle Test-Typen einheitliche Attribute oder Serialisierungs-Methoden, werden diese zentral in `CubieBase` implementiert. Spezifische Logik bleibt in den abgeleiteten Klassen. Das garantiert das OCP: Neue Test-Typen (wie PBT oder FVT) können hinzugefügt werden, ohne die Kernmechanismen oder Plugins anpassen zu müssen.

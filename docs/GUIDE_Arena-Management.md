@@ -37,10 +37,10 @@ Wenn Tests spezifische, isolierte Umgebungen benötigen (z. B. um Paket-Installa
 
 ```bash
 # Initiale Erstellung der Arena
-uv venv tests/.arenas/qa_env_1
+uv venv tests/arenas/qa_env_1
 
 # Optional: Spezifische Abhängigkeiten vorab installieren
-uv pip install requests --env tests/.arenas/qa_env_1
+uv pip install requests --env tests/arenas/qa_env_1
 
 ```
 
@@ -51,7 +51,7 @@ uv pip install requests --env tests/.arenas/qa_env_1
 ```python
 def test_installation():
     EBT(
-        arena=PyVenv("tests/.arenas/qa_env_1"),
+        arena=PyVenv("tests/arenas/qa_env_1"),
         target=my_installer_func,
         # ...
     ).run()
@@ -123,13 +123,15 @@ Alle Arenen nutzen konsequent explizite State-Guards am Anfang kritischer Method
 Um die Test-Dateien nicht mit manuellen Subprocess-Aufrufen für das Setup von Base-Environments zu überladen, bietet das Modul den `ArenaBuilder`. Er nutzt ein Fluent Interface, um Base-Arenen deklarativ per Code aufzubauen. Dies eignet sich hervorragend für das globale Provisioning (z.B. in der `conftest.py` oder auf Modul-Ebene).
 
 **Usage-Pattern:**
+
 ```python
-from pyvenv import ArenaBuilder, PyVenv
+from arenas.pyvenv import ArenaBuilder, PyVenv
 from ebt import *
 
 # 1. Globale Provisionierung der Base-Arena (Idempotent)
-base_arena_path = "tests/.arenas/ollama_env"
+base_arena_path = "tests/arenas/ollama_env"
 ArenaBuilder(base_arena_path).with_packages(["ollama"]).build()
+
 
 # 2. Nutzung im EBT-Run
 def test_complex_mutation():

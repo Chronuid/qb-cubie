@@ -1,7 +1,7 @@
 import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
-from typing import Any, Optional
-from pyvenv_codec import MSGspecCodec
+from typing import Any, Optional, List
+from arenas.codecs import MSGspecCodec
 from protocols import IPCC, WorldState
 
 
@@ -9,31 +9,31 @@ from protocols import IPCC, WorldState
 
 class PyVenv:
     """
-    Executes targets as a lightweight arena runner within ephemeral, virtual Python environments.
+    Executes targets as isolated arena runner within ephemeral, virtual Python environments.
     """
-
     def __init__(
             self,
-            env_path: str,
+            env_path: str = "src/arenas/arena_envs/empty_test_env",
             codec: Optional[IPCC] = None,
+            decontams: Optional[List] = None,
             custom_id: str | None = None
     ):
         self.codec = codec or MSGspecCodec()
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)
+        self._decontams = ["pytest", "_pytest"]
+        if decontams: self._decontams.extend(decontams)
         self.workspace_path: Optional[Path] = None
         self.virtual_path: Optional[Path] = None
-
-        # Zustands-Management
         self._config_state: Optional[WorldState] = None
         self._actual_returns: Any = None
-
         self._python_exe: Optional[Path] = None
         self._env_vars: Optional[dict] = None
         self._in_path: Optional[str] = None
         self._out_path: Optional[str] = None
         self._process: Optional[subprocess.CompletedProcess] = None
+
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
@@ -178,17 +178,22 @@ class PyVenv:
     # ↓--- _run_in_subprocess() ---↓
 
     def _setup_ipc_files(self) -> None:
-        """Creates temporary files for data exchange and releases their file descriptors."""
+        """Creates temporary files for data exchange and injects the phantom middleware."""
         __tracebackhide__ = True
-        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: 'workspace_path' was not initialized.")
+        if self.workspace_path is None:
+            raise RuntimeError("STATE-GUARD: 'workspace_path' was not initialized.")
         self._in_path = str(self.workspace_path / f"ipc_in{self.codec.file_suffix}")
         self._out_path = str(self.workspace_path / f"ipc_out{self.codec.file_suffix}")
+        phantom_src = Path("src/arenas/phantom_hook.py")
+        if not phantom_src.exists():
+            raise FileNotFoundError(f"STATE-GUARD: Phantom-Middleware missing at {phantom_src}")
+        shutil.copy2(phantom_src, self.workspace_path / "_cubie_phantom.py")
 
     def _serialize_inputs(self, target: Any, args: tuple, kwargs: dict) -> None:
         """Serializes the target and its parameters into the input file."""
         __tracebackhide__ = True
         if self._in_path is None: raise RuntimeError("STATE-GUARD: '_in_path' was not initialized.")
-        self.codec.dump((target, args, kwargs), self._in_path)
+        self.codec.dump((target, args, kwargs, self._decontams), self._in_path)
 
     def _deserialize_outputs(self) -> Any:
         """Reads the output of the subprocess and throws the appropriate exception in case of errors."""
