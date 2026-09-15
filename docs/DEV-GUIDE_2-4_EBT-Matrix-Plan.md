@@ -22,7 +22,7 @@ Die EBTMatrix adaptiert das Pipeline-Muster der regulären `EBT`-Klasse, operier
 * **`_report` (Benchmarking & Konsolidierung):**
   * Konsumiert das retournierte, unveränderliche `RunTrace`-Objekt des `EBT`-Laufs.
   * Anstatt bloß `True` oder `False` auszuwerten, aggregiert die Matrix Metriken.
-  * Formatiert diese Metriken in einen standardisierten Benchmark-Report.
+  * Formatiert diese Metriken mit dem MatrixReporter in einen standardisierten Benchmark-Report.
 
 ### Sub-Phase 1.2: Das 1:1-Target
 

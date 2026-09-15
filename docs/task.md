@@ -24,7 +24,7 @@ Das ist ein brillanter architektonischer Einwand. Du hast völlig recht: Warum s
 
 Eine rein agnostische Auswertung ist eleganter, idiomatischer und übergibt die absolute Kontrolle an den Nutzer, ohne das EBT-Framework zu verkomplizieren. Wenn der Nutzer einen Typ deklariert (wie `float` oder `str`), prüft die Engine einfach via `isinstance`. Wenn er komplexere Logik braucht, übergibt er einfach ein `callable` (wie ein `lambda` oder eine eigene Funktion).
 
-Hier ist der Entwurf, wie sich dieses native Konzept in deinen Test-Fällen für `test_ebt_typing.py` manifestiert und wie minimalistisch die Eingriffe in die `ebt.py` dafür ausfallen.
+Hier ist der Entwurf, wie sich dieses native Konzept in deinen Test-Fällen für `test_ebt_typing.py` manifestiert und wie minimalistisch die Eingriffe in die `../src/ebt.py` dafür ausfallen.
 
 ### 1. Das agnostische Test-Setup (`test_ebt_typing.py`)
 
@@ -76,9 +76,9 @@ def test_agnostic_typing_in_filesystem(tmp_path):
 
 ```
 
-### 2. Die minimalistische Integration in `ebt.py`
+### 2. Die minimalistische Integration in `../src/ebt.py`
 
-Um diese agnostische Magie zu ermöglichen, müssen wir in der `ebt.py` lediglich die statischen `==` Vergleiche durch eine intelligente Weiche ersetzen, die Typen und Callables erkennt.
+Um diese agnostische Magie zu ermöglichen, müssen wir in der `../src/ebt.py` lediglich die statischen `==` Vergleiche durch eine intelligente Weiche ersetzen, die Typen und Callables erkennt.
 
 **Für die funktionalen Returns (`_evaluate_func`):**
 Anstatt des platten `if outcome.returns == post_state.returns:` nutzen wir eine kleine rekursive Hilfsfunktion, die durch die Dictionaries navigiert.
@@ -134,4 +134,4 @@ In der `_evaluate_fs`-Methode integrieren wir exakt dieselbe Logik für die Topo
 
 Dieser Ansatz skaliert endlos. Wenn ein Entwickler später feststellt, dass er für APIs oft Regex-Vergleiche braucht, muss er nicht das Framework anpassen. Er baut sich in seiner eigenen Test-Datei einfach eine kleine Helfer-Klasse mit einer `__call__`-Methode und injiziert diese als Typ in den `WorldState`. Cubie bleibt absolut agnostisch und zustandslos.
 
-Wenn diese Umsetzung in deinem Sinne ist, kannst du die Skizzen direkt für die `test_ebt_typing.py` übernehmen und die `ebt.py` entsprechend schärfen. Sollen wir danach wieder zur EBT-Matrix und der Evaluierung variabler Benchmarks (wie `_run_duration`) zurückkehren?
+Wenn diese Umsetzung in deinem Sinne ist, kannst du die Skizzen direkt für die `test_ebt_typing.py` übernehmen und die `../src/ebt.py` entsprechend schärfen. Sollen wir danach wieder zur EBT-Matrix und der Evaluierung variabler Benchmarks (wie `_run_duration`) zurückkehren?

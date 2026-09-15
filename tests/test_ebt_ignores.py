@@ -2,15 +2,15 @@ import subprocess, sys
 from pathlib import Path
 from ebt import EBT
 from protocols import WorldState
-from tempfs import TempFS
-from pyvenv import PyVenv, ArenaBuilder
+from arenas.tempfs import TempFS
+from arenas.pyvenv import PyVenv, ArenaBuilder
 
 # ======================================================================================================================
 # PROVISIONING & FIXTURES
 # ======================================================================================================================
 
-BASE_ARENA = "tests/.arenas/ignore_base"
-COWSAY_ARENA = "tests/.arenas/ignore_cowsay"
+BASE_ARENA = "tests/arenas/ignore_base"
+COWSAY_ARENA = "tests/arenas/ignore_cowsay"
 
 ArenaBuilder(BASE_ARENA).build()
 ArenaBuilder(COWSAY_ARENA).with_packages(["cowsay"]).build()

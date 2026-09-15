@@ -1,7 +1,6 @@
-import os
 from ebt import *
 from protocols import WorldState
-from pyvenv import PyVenv
+from arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # These tests verify that the arenas are isolated from the host (cubie).
@@ -78,7 +77,34 @@ def verify_cloned_env_vars(original_path_str: str):
     if "cubie_arena_" not in venv_path: return False
     return True
 
+# ======================================================================================================================
+# Default-Arena (ohne explizite Pfadangabe)
+
+def return_true_in_default():
+    return True
+
+def get_default_virtual_env():
+    import os
+    return os.environ.get("VIRTUAL_ENV")
+
 # ----------------------------------------------------------------------------------------------------------------------
+
+def test_default_pyvenv_execution():
+    """Prüft, ob die PyVenv-Arena völlig ohne Pfadangabe funktional aufgerufen werden kann."""
+    EBT(
+        arena=PyVenv(), # Nutzt den Default-Pfad zur mitgelieferten empty_venv
+        target=return_true_in_default,
+        post=WorldState(returns=True)
+    ).run()
+
+def test_default_pyvenv_isolation():
+    """Prüft, ob die Default-Arena korrekt als geklonte isolierte 'cubie_arena_' Umgebung geladen wird."""
+    EBT(
+        arena=PyVenv(),
+        target=get_default_virtual_env,
+        # Das Callable prüft, ob die Umgebung dynamisch durch das Arena-Protokoll generiert wurde
+        post=WorldState(returns=lambda actual: actual is not None and "cubie_arena_" in actual)
+    ).run()
 
 def test_arena_env_vars():
     arena_path = "tests/.arenas/empty_venv"

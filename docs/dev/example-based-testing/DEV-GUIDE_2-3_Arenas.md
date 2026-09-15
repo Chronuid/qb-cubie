@@ -45,6 +45,13 @@ Die `PyVenv`-Arena ist das Schwergewicht für maximale Sicherheit und Umgebungsk
 * **`PyVenv.codec`:** Eine Instanz des `IPCC`-Protokolls (standardmäßig `MSGspecCodec`), verantwortlich für die Serialisierung und Deserialisierung der I/O-Daten zwischen dem Host und der isolierten Umgebung.
 * **`PyVenv.custom_id`** & **`PyVenv.arena_id`:** Die Identifikations-Attribute für die semantische Benennung und das garantierte Tracing vom temporären Workspace.
 
+#### Dekontamination & Phantom-Middleware (State-Guard)
+
+Um das isolierte Environment vor ungewollten Import-Ästen des Host-Systems zu schützen, nutzt `PyVenv` eine injizierte Middleware (`_cubie_phantom.py`).
+* **Das `decontams` Attribut:** Eine Liste an Strings (Modulnamen), die dem Konstruktor übergeben wird (z.B. `decontams=["heavy_data_lib"]`). Die Arena erweitert diese Liste standardmäßig um Test-Frameworks wie `pytest`.
+* **Der Phantom-Hook:** Bevor das Target im Subprozess importiert wird, klinkt sich ein `MetaPathFinder` in das Importsystem ein. Versucht der Code, ein in `decontams` gelistetes Modul zu laden, wird der Import lautlos durch ein `PhantomObject` gemockt.
+* **Sicherheit:** Dies schützt ausschließlich den Import-Ast, um das Target sauber zu extrahieren. Greift die Laufzeit-Logik aktiv auf ein Phantom-Objekt zu, stürzt der Testlauf formallogisch korrekt ab.
+
 #### Pfad- und Zustands-Attribute
 * **`PyVenv.workspace_path`:** Hält den absoluten Pfad (`Path`) zum temporär generierten Verzeichnis für den aktuellen Testlauf. 
 * **`PyVenv.virtual_path`:** Zeigt direkt auf das isolierte `.venv`-Verzeichnis innerhalb vom Workspace, welches den dynamischen Klon darstellt.

@@ -33,7 +33,11 @@ Werden in den `post`-Zuständen keine festen Werte, sondern Typ-Deklarationen de
 Definiert den isolierten Ausführungsraum (die Sandbox), in dem das Programmsegment ($S$) operiert. Wird die Arena hier auf Ebene der `EBT`-Klasse definiert, dient sie als konstanter, unveränderlicher Ausführungsraum für die gesamte Transformation. Sie kann lokal auf `WorldState`-Ebene überschrieben werden, wenn das Target explizit die Aufgabe hat, seine Umgebung selbst zu mutieren.
 
 #### `EBT.target`
-Repräsentiert das auszuführende Programmsegment ($S$), welches die Transformation von der Vorbedingung zur Nachbedingung vornimmt. Das Attribut akzeptiert direkte Callables (Python-Funktionen, Klassen oder Methoden), die in das Testmodul importiert und als direkte Referenz übergeben werden.
+Repräsentiert das auszuführende Programmsegment ($S$), welches die Transformation vornimmt. Das Attribut ist hochdynamisch und akzeptiert:
+* **Direkte Callables:** Reguläre Funktionen, `@staticmethod`, `@classmethod` oder verschachtelte Klassen (Nested Classes). Der IPC-Codec löst die Namensräume über den `__qualname__` iterativ auf, um die OOP-Kapselung strikt zu wahren.
+* **String-Referenzen (Late-Binding):** Akzeptiert voll qualifizierte Pfade als String (z.B. `"my_pkg.module.run"` oder `"module:run"`). Dies ist essenziell für Targets, die auf dem Host-System noch nicht existieren und erst zur Laufzeit via `WorldState.fs` in die Arena injiziert oder exklusiv in der Arena (Drittanbieter-Pakete) installiert werden. 
+* **HINWEIS:** *Die Übergabe von an Instanzen gebundenen Methoden ist experimentell. Die EBT-Engine warnt hierbei explizit, da die Rehydrierung des Instanz-Zustandes über IPC bei komplexen Objekten fehlschlagen kann. Es wird dringend die Nutzung zustandsloser statischer Methoden empfohlen.)*
+
 
 #### `EBT.reporter`
 Dient als Dependency-Injection-Mechanismus für die externe Fehlerbehandlung und das finale Reporting. Es akzeptiert jedes Objekt, das dem `Reporter`-Protokoll entspricht (standardmäßig der `PytestReporter`). Dieses Attribut entkoppelt die formallogische Auswertung der Engine vollständig von spezifischen Test-Frameworks. Wird hier `None` deklariert, operiert die EBT-Instanz im lautlosen "Headless Mode" und delegiert keine Assertions nach außen.

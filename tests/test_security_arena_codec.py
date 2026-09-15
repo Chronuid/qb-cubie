@@ -1,6 +1,6 @@
 from pathlib import Path
-from pyvenv import PyVenv
-from pyvenv_codec import PickleCodec, MSGspecCodec
+from arenas.pyvenv import PyVenv
+from arenas.codecs import PickleCodec, MSGspecCodec
 from ebt import EBT
 from protocols import WorldState
 

@@ -10,3 +10,7 @@ dependencies = [
     "uuid",
     "fsspec"
 ]
+packages = ["src"]
+include = [
+  "src/arenas/**/*",
+]

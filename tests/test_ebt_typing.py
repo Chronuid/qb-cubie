@@ -4,7 +4,7 @@ from typing import Union, Any
 from ebt import EBT
 from protocols import WorldState
 from dataclasses import dataclass
-from tempfs import TempFS
+from arenas.tempfs import TempFS
 
 # ========== TARGETS ===================================================================================================
 
