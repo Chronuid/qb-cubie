@@ -3,6 +3,15 @@ revision = 3
 requires-python = ">=3.13"
 
 [[package]]
+name = "cloudpickle"
+version = "3.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/fb/576f067976d320f5f0114a8d9fa1215425441bb35627b1993e5afd8111e5/cloudpickle-3.1.2.tar.gz", hash = "sha256:7fda9eb655c9c230dab534f1983763de5835249750e85fbcef43aaa30a9a2414", size = 22330, upload-time = "2025-11-03T09:25:26.604Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl", hash = "sha256:9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a", size = 22228, upload-time = "2025-11-03T09:25:25.534Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -17,6 +26,7 @@ version = "0.0.2"
 source = { virtual = "." }
 dependencies = [
     { name = "fsspec" },
+    { name = "loky" },
     { name = "msgspec" },
     { name = "pathlib" },
     { name = "pytest" },
@@ -27,6 +37,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fsspec" },
+    { name = "loky" },
     { name = "msgspec" },
     { name = "pathlib" },
     { name = "pytest", specifier = ">=9.0.3" },
@@ -50,6 +61,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc35312d08ba8bf51fdd999c576889fc2c24cb97f4f10/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730", size = 20503, upload-time = "2025-10-18T21:55:43.219Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
+]
+
+[[package]]
+name = "loky"
+version = "3.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cloudpickle" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/22/278d945801da206ad49ec30686a9faa140f977afd07143c136252546af0d/loky-3.6.0.tar.gz", hash = "sha256:12c1655148c369dd1739a514a4f5b01b76538ffead916f9ad442ef6c0e9be896", size = 115338, upload-time = "2026-08-31T08:38:07.59Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/42/f9/d9b7f7551d397c1a11b0aea666e8607fc95b7e3ba97b338d83b94e44a51e/loky-3.6.0-py3-none-any.whl", hash = "sha256:992365f32e034277a995b170f49549ad7d0ee62d9c91d190ef2c267f8339df17", size = 66017, upload-time = "2026-08-31T08:38:06.036Z" },
 ]
 
 [[package]]

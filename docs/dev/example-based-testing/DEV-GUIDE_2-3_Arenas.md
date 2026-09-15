@@ -1,6 +1,12 @@
-# Arenen & Sandbox-Protokolle
+<center>
+
+# `Arenas` 
+
+![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image") 
 
 Arenen bilden die physische Ausführungsschicht innerhalb der Cubie-Architektur. Während die `EBT`-Klasse die formallogische Ebene (die Beweisführung) orchestriert, übernehmen die Arenen die Rolle des isolierten Labors. Sie garantieren, dass Seiteneffekte, Datei-Installationen oder veränderte Umgebungsvariablen das Host-System nicht kompromittieren.
+</center>
+
 
 ## Das `Arena`-Protokoll
 
@@ -91,3 +97,13 @@ Die `TempFS`-Arena ist die performante, leichtgewichtige Alternative für Progra
 #### Prozessierungs-Attribute
 * **`TempFS._config_state`:** Referenziert den durch die EBT-Engine übergebenen initialen Pre-State.
 * **`TempFS._actual_returns`:** Fängt den direkten, unmodifizierten Rückgabewert des nativ im Host-Prozess ausgeführten Targets ab.
+
+---
+
+<center>
+
+![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+
+</center>
+
+---

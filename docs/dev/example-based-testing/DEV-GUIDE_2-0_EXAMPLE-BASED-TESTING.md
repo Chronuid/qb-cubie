@@ -1,6 +1,12 @@
-# Example-Based-Testing
+<center>
+
+# `EXAMPLE-BASED-TESTING`
+
+![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image")
 
 Das Example-Based-Testing (EBT) fungiert als kompromisslose Basis der Qualitätssicherung, indem es deterministische Realitäten als "Golden Master" definiert. Basierend auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$ spannt das Konzept den Raum von einfachen In-Memory-Funktionen bis hin zu komplexen Datei- und Ordner-Transformationen auf.
+</center>
+
 
 ---
 
@@ -90,9 +96,18 @@ Die Details der Orchestrierungs-Strategien müssen als Hilfsfunktionen gestaltet
 
 ---
 
+<center>
+
+![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+
+
+---
 ## Weiterführende Dokumentation der Kernkomponenten
 
 Um die interne Funktionsweise und die architektonischen Details der einzelnen Komponenten tiefgehender zu verstehen, existieren dedizierte Spezifikationen:
+</center>
+
+
 
 * **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Class.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
 * **[WorldState Deklarator (DEV-GUIDE_2-2)](DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.

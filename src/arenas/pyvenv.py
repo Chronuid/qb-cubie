@@ -22,7 +22,7 @@ class PyVenv:
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)
-        self._decontams = ["pytest", "_pytest"]
+        self._decontams = ["pytest", "_pytest", "loky"]
         if decontams: self._decontams.extend(decontams)
         self.workspace_path: Optional[Path] = None
         self.virtual_path: Optional[Path] = None
@@ -33,7 +33,6 @@ class PyVenv:
         self._in_path: Optional[str] = None
         self._out_path: Optional[str] = None
         self._process: Optional[subprocess.CompletedProcess] = None
-
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 

@@ -1,4 +1,5 @@
-from typing import Any, Optional, Protocol, runtime_checkable, Dict, List
+import typing
+from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -120,4 +121,31 @@ class Reporter(Protocol):
     """
     def report(self, trace: RunTrace) -> None:
         """Processes and outputs the final execution run trace."""
+        ...
+
+
+# ========== MULTIRPOCESSOR-PROTOCOLS ==================================================================================
+
+
+class Mapper(typing.ContextManager['Mapper'], Protocol):
+    """
+    The execution interface of the multiprocessor protocol, which also manages its own lifecycle.
+    """
+    def map(self, fn: Callable, *iterables: Iterable) -> Iterable[Any]: ...
+
+
+class Multiprocessor(Protocol):
+    """
+    The DI protocol for the multiprocessor registration.
+    """
+    priority: int
+
+    @staticmethod
+    def check_condition(pre_states: list, post_states: list) -> bool:
+        """The hook-case under review. Evaluates whether this processor is responsible."""
+        ...
+
+    @staticmethod
+    def create_handler(n_tasks: int) -> Mapper:
+        """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
         ...

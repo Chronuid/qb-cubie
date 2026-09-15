@@ -1,8 +1,8 @@
-import filecmp, uuid, time, os, re, types
+import filecmp, uuid, time, re, types
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor
-from typing import Union, List, Set, Any, Optional, get_origin, get_args, Callable
-from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter
+from typing import Union, Set, get_origin, get_args, Optional
+from multiprocessors import *
+from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor
 from reporter import PytestReporter
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
@@ -21,7 +21,8 @@ class EBT:
             custom_id: Optional[str] = None,
             reporter: Reporter | None = PytestReporter(),
             multiprocessing: bool = False,
-    ):
+            multiprocessors: Optional[List['Multiprocessor']] = None
+        ):
         self.target = target
         self.arena = arena
         self.pre: List[WorldState] = self._ensure_list(pre)
@@ -42,6 +43,8 @@ class EBT:
         self._traces: List[EvaluationTrace] = []
         self.run_trace: Optional[RunTrace] = None
         self.MULTIPROCESSING = multiprocessing or False
+        self.MULTIPROCESSORS: List['Multiprocessor'] = [PickleProcessor(), LokyProcessor()]
+        if multiprocessors is not None: self.MULTIPROCESSORS.extend(multiprocessors)
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
@@ -86,15 +89,15 @@ class EBT:
             self._traces.extend(traces)
 
     def _validate_multiprocess(self) -> None:
-        n_worker = os.cpu_count() or 1
-        n_tasks = len(self.pre)
-        optimal_chunksize = max(1, n_tasks // (n_worker * 4))
-        pre_indices = list(range(n_tasks))
-        pre_states = self.pre
-        with ProcessPoolExecutor(max_workers=n_worker) as executor:
-            results = list(
-                executor.map(self._process_single_task,pre_indices, pre_states,chunksize=optimal_chunksize)
-            )
+        """Parallele Ausführung über die entkoppelte DI-Fassade (MultiprocessManager)."""
+        __tracebackhide__ = True
+        manager = MultiprocessManager(
+            pre_states=self.pre,
+            post_states=self.post,
+            task_func=self._process_single_task,
+            processors = self.MULTIPROCESSORS
+        )
+        results = list(manager.execute())
         for outcome, traces in results:
             self._outcome.append(outcome)
             self._traces.extend(traces)
