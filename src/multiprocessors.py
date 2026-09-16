@@ -192,7 +192,7 @@ class MultiprocessResolver:
 
 class MultiprocessRunner:
     """
-    Encapsulates the physical execution. Leaves heuristics to the respective handler.
+    Encapsulates the physical execution. Leaves optimization heuristics to the respective processors.
     """
     def __init__(
             self,

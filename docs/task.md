@@ -20,118 +20,160 @@ In dieser Etappe entwickeln wir das EBT-Modul vollkommen souverän und unabhäng
 ---
 
 
-Das ist ein brillanter architektonischer Einwand. Du hast völlig recht: Warum sollten wir das Framework mit einem proprietären Matcher-Ökosystem aufblähen, wenn Python durch sein Duck-Typing und First-Class-Objects bereits die perfekten Werkzeuge dafür mitbringt?
+---
 
-Eine rein agnostische Auswertung ist eleganter, idiomatischer und übergibt die absolute Kontrolle an den Nutzer, ohne das EBT-Framework zu verkomplizieren. Wenn der Nutzer einen Typ deklariert (wie `float` oder `str`), prüft die Engine einfach via `isinstance`. Wenn er komplexere Logik braucht, übergibt er einfach ein `callable` (wie ein `lambda` oder eine eigene Funktion).
+Danke für die super Erklärungen! Tatsächlich hat mich das simple Drehkreuz-Beispiel sogar etwas eingeschüchtert, weil ich das 'FSM'-Pattern  für ein noch wesentlich rudimentärere State Machine in Erwägung ziehe.  
+Ich erkläre und zeige dir einfach mal die Klassen, die Herausforderung und beleuchte das gewünschte Ziel-Feature. Dazu präsentiere ich dir meine Überlegungen und Vorstellungen dazu, wie ich die Gestaltungs einer FSM aktuell auffasse.  
+Dadurch solltest du ziemlich gut einordnen können, ob ich deine Erklärungen richtig begriffen habe (oder nicht), sowie du auch mein Ziel für die gewünschten Mechanismen verstehst, die ich damit intendiere - und womit wir praktischerweise direkt ein simples Übungsbeispiel an der Hand haben!
 
-Hier ist der Entwurf, wie sich dieses native Konzept in deinen Test-Fällen für `test_ebt_typing.py` manifestiert und wie minimalistisch die Eingriffe in die `../src/ebt.py` dafür ausfallen.
+---
 
-### 1. Das agnostische Test-Setup (`test_ebt_typing.py`)
+Das Modul ist modular aufgebaut und nutzt klassische Entwurfsmuster, um Flexibilität und Entkopplung zu fördern:
 
-Anstatt auf proprietäre Objekte zurückzugreifen, nutzt der Test ausschließlich native Python-Typen und Lambda-Funktionen.
-
+* **Strategy-Pattern & Chain of Responsibility:** Die Auswahl des richtigen Prozessors erfolgt nicht über starre `if/else`-Blöcke, sondern über eine dynamische Kette von eigenständigen Objekten, die anhand ihrer Priorität und ihrer Eignung (`check_condition`) bewertet werden.
+* **Facade-Pattern:** Der `MultiprocessManager` dient als alleiniger, aufgeräumter Einstiegspunkt (Fassade) für die übergeordnete `EBT`-Klasse.
+* **Object Composition (ContextManager-Mapper):** Die eigentlichen Executor-Pools (z. B. `ProcessPoolExecutor`) werden nicht vererbt, sondern in zustandslose Mapper-Objekte gewrappt, die als eigene ContextManager (`__enter__`, `__exit__`) fungieren. Das kapselt den Lebenszyklus (Teardown) der Worker  ab.
+* 
 ```python
-import pytest
-from pathlib import Path
-from cubie.ebt import EBT
-from cubie.protocols import WorldState
+########################################################################################################################
+# in `protocols.py`
 
-def dummy_return_dynamic():
-    """Simuliert eine API, die dynamische Werte zurückgibt."""
-    import time, uuid
-    return {"id": uuid.uuid4().hex, "time": time.time(), "status": "OK"}
+class Multiprocessor(Protocol):
+    """The DI protocol for the multiprocessor registration."""
+    priority: int # mutable value to affect the selection-processes in the Chain of Responsibilities 
 
-def create_dynamic_file():
-    """Simuliert die Erstellung einer Log-Datei mit flüchtigem Inhalt."""
-    Path("dynamic.log").write_text("Timestamp: 123456")
-    return True
-
-def test_agnostic_typing_in_returns():
-    """Verifies that native types and callables seamlessly evaluate dynamic returns."""
-    EBT(
-        target=dummy_return_dynamic,
-        post=WorldState(
-            returns={
-                "id": str,                                   # Reine Python-Typisierung
-                "time": float,                               # Reine Python-Typisierung
-                "status": "OK",                              # Exakter Match
-                "id_length": lambda actual: len(actual["id"]) == 32 # Agnostisches Callable (Prädikat)
-            }
-        )
-    ).run()
-
-def test_agnostic_typing_in_filesystem(tmp_path):
-    """Verifies that native callables can evaluate FS topologies instead of strict diffing."""
-    EBT(
-        target=create_dynamic_file,
-        pre=WorldState(fs={".": str(tmp_path)}),
-        post=WorldState(
-            returns=True,
-            fs={
-                # Wir übergeben ein Callable, welches das Path-Objekt der Arena auswertet!
-                "dynamic.log": lambda p: p.exists() and p.stat().st_size > 0 
-            }
-        )
-    ).run()
-
-```
-
-### 2. Die minimalistische Integration in `../src/ebt.py`
-
-Um diese agnostische Magie zu ermöglichen, müssen wir in der `../src/ebt.py` lediglich die statischen `==` Vergleiche durch eine intelligente Weiche ersetzen, die Typen und Callables erkennt.
-
-**Für die funktionalen Returns (`_evaluate_func`):**
-Anstatt des platten `if outcome.returns == post_state.returns:` nutzen wir eine kleine rekursive Hilfsfunktion, die durch die Dictionaries navigiert.
-
-```python
     @staticmethod
-    def _evaluate_func(post_state: WorldState, outcome: WorldState) -> Optional[dict]:
-        """Evaluates functional return values dynamically (exact, types, callables)."""
-        __tracebackhide__ = True
+    def check_condition(pre_states: list, post_states: list) -> bool:
+        """The hook-case. Evaluates whether this processor is suitable for the responsibility under those conditions."""
+        ...
+
+    @staticmethod
+    def create_handler(n_tasks: int) -> Mapper:
+        """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
+        ...
+
+########################################################################################################################
+# in `multiprocessors.py`
+
+class MultiprocessManager:
+    """
+    Receives all data of the EBT class, controls the resolver and runner, and provides the execution.
+    """
+    def __init__(
+            self,
+            pre_states: list,
+            post_states: list,
+            task_func: Callable,
+            processors: List[Multiprocessor]
+    ):
+        self._pre_states = pre_states
+        self._post_states = post_states
+        self._task_func = task_func
+        self._processors = processors
+        self.processor = self._resolve_handler()
+        self.runner = self._setup_runner()
         
-        def _deep_compare(expected: Any, actual: Any) -> bool:
-            if isinstance(expected, type):
-                return isinstance(actual, expected)
-            if callable(expected):
-                try: return bool(expected(actual))
-                except Exception: return False
-            if isinstance(expected, dict) and isinstance(actual, dict):
-                if expected.keys() != actual.keys(): return False
-                return all(_deep_compare(expected[k], actual[k]) for k in expected)
-            # Listen und Tupel analog...
-            return expected == actual
+    def execute(self) -> Iterable: return self.runner.execute()
 
-        if _deep_compare(post_state.returns, outcome.returns): return None
-        return {"expected": str(post_state.returns), "actual": outcome.returns}
+    def _resolve_handler(self):
+        return MultiprocessResolver.resolve(
+            self._pre_states,
+            self._post_states,
+            self._processors
+        )
 
+    def _setup_runner(self):
+        return MultiprocessRunner(
+            handler=self.processor,
+            pre_states=self._pre_states,
+            task_func=self._task_func
+        )
+
+
+class MultiprocessResolver:
+    """
+    Manages the Chain of Responsibility and determines the responsible multiprocessor.
+    """
+    @classmethod
+    def resolve(
+            cls, 
+            pre_states: list, 
+            post_states: list, 
+            processors: List[Multiprocessor]
+    ) -> Multiprocessor:
+        sorted_mps = sorted(processors, key=lambda p: getattr(p, "priority", 0), reverse=True)
+        for mp in sorted_mps:
+            if getattr(mp, "priority", 0) > 0 and mp.check_condition(pre_states, post_states): return mp
+        raise RuntimeError("STATE-GUARD: ...")
+    
+    @classmethod
+    def _find_eligible_processor(
+            cls,
+            processors: List[Multiprocessor],
+            pre_states: list,
+            post_states: list
+    ) -> Multiprocessor:
+        """Iterates through the pipeline and triggers the evaluation of the hooks."""
+        for mp in processors:
+            if cls._is_processor_active(mp) and mp.check_condition(pre_states, post_states): return processor
+        raise RuntimeError("STATE-GUARD: ...")
+        
+    @staticmethod
+    def _is_processor_active(processor: Multiprocessor) -> bool:
+        """Checks whether the processor is actually activated by a priority > 0."""
+        return getattr(processor, "priority", 0) > 0
+
+
+
+class MultiprocessRunner:
+    """Encapsulates the physical execution."""
+    def __init__(
+            self,
+            handler: Multiprocessor,
+            pre_states: list,
+            task_func: Callable
+    ): ...
+    def execute(self) -> Iterable:...
 ```
 
-**Für das Dateisystem (`_evaluate_fs`):**
-In der `_evaluate_fs`-Methode integrieren wir exakt dieselbe Logik für die Topologie. Wenn der definierte Host-Pfad in Wahrheit eine Funktion (Callable) oder ein Typ ist, wird der `_compare_paths`-Aufruf umgangen.
+Aktuell läuft das genau so, wie es soll. Allerdings hatten wir einige Herausforderungen mit dem sauberen Aufsetzen der check_condition-Implementierungen der jeweiligen mps. Das war aber Glück im Unglück, denn dadurch kam eine Idee für einen so simplen und eleganten Lösungsansatz auf, dass dieser universell für jeden mp nutzbar wäre: 
+Die EAFP-Strategie 'Easier to Ask for Forgiveness than Permission'-Strategie! Der MultiprocessManager hält im Regelfall eine ganze Registry an potentiell ausführbaren Multiprocessors. 
+Aber was, wenn der Processor einfach abstürzt? Heißt es dann "aus die Maus" für den MultiprocessManager, sobald ein ausgewählter Processor abstürzt? Ich denke nicht! Schließlich managed der MultiprocessManager eine ganze Registry an Processors, deren setup und deren Ausführung. 
+
+Wenn ein setup oder eine execute mit einem ausgewählten mp fehlschlägt, dann könnten wir:
+* den priority-Wert dess fehlgeschlagen mp im jeweiligen Zustand der Registry auf 0 setzen.
+* die Informationen über den Fehlschlag (z.B. mit warnings.warn) an Entwickler/Nutzer leiten.
+* Alle Phasen vom Prozess nochmal (mit dem aktualisierten Zustand `_processors`Registry) von anfang an durchlaufen. 
+
+Das Ziel ist ein fehlertorantes System mit einer Graceful Degradation.
+Die Idee war es die Graceful Degration über die bereits implementierte Chain-of-Responsibility in Kombination mit einer Finite-State-Machine zu realisieren.
+
+Ich habe das jetzt so ausführlich und umfassend beschrieben, aber die Idee ist im Prinzip wirklich nichts anderes als: 
 
 ```python
-    def _evaluate_fs(self, expected_fs: dict, outcome_fs: Optional[str]) -> Optional[dict]:
-        """Performs a deep diff evaluation against the expected filesystem topology or callables."""
-        __tracebackhide__ = True
-        if not outcome_fs: return {"error": "Outcome FS is missing."}
-        diffs = {}
-        for target_rel_path, expected_val in expected_fs.items():
-            arena_path = Path(outcome_fs) / target_rel_path
+class MultiprocessManager:
+    def __init__(...):
+        self._pre_states = pre_states
+        self._post_states = post_states
+        self._task_func = task_func
+        self._processors = processors
+        
+        self._pending_exec = None
+        # ======= STEP-0: Startpunkt =======
+        self.processor = None
+        self.runner = None
+        # --- STEP-1 ---
+        try: self.processor = self._resolve_handler()
+        except: processor_prio_to(0), send_info("friendly-warning"), FSM.back_to_zero()
+        # --- STEP-2 ---
+        try: self.runner = self._setup_runner()
+        except: processor_prio_to(0), send_info("friendly-warning"), FSM.back_to_zero()
+
             
-            # Die agnostische Weiche:
-            if callable(expected_val):
-                try:
-                    if not expected_val(arena_path): diffs[target_rel_path] = {"error": "Callable evaluation failed."}
-                except Exception as e:
-                    diffs[target_rel_path] = {"error": f"Callable raised Exception: {e}"}
-                continue
-                
-            host_path = Path(expected_val)
-            if path_diff := self._compare_paths(arena_path, host_path): diffs[target_rel_path] = path_diff
-            
-        return diffs or None
+    def execute(self) -> Iterable: 
+        # --- STEP-3 ---
+        try: return self.runner.execute()
+        except: processor_prio_to(0), send_info("friendly-warning"), FSM.back_to_zero()
 ```
 
-Dieser Ansatz skaliert endlos. Wenn ein Entwickler später feststellt, dass er für APIs oft Regex-Vergleiche braucht, muss er nicht das Framework anpassen. Er baut sich in seiner eigenen Test-Datei einfach eine kleine Helfer-Klasse mit einer `__call__`-Methode und injiziert diese als Typ in den `WorldState`. Cubie bleibt absolut agnostisch und zustandslos.
-
-Wenn diese Umsetzung in deinem Sinne ist, kannst du die Skizzen direkt für die `test_ebt_typing.py` übernehmen und die `../src/ebt.py` entsprechend schärfen. Sollen wir danach wieder zur EBT-Matrix und der Evaluierung variabler Benchmarks (wie `_run_duration`) zurückkehren?
+Die Logik dahinter müsste man natürlich noch Feinarbeiten. Ich habe schließlich noch kein FSM gebaut, sondern nur ein paar try-except-Blöcke mit Pseudo-Code und Kommentaren in die bisherige Implementierung gepackt, um die grobe Vorstellung für das FSM zu skizzieren. 
