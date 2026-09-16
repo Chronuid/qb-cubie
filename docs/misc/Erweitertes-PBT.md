@@ -8,7 +8,7 @@ Die Werkzeuge der Softwareentwicklung werden in diesem Modell nicht länger isol
 * **Typing-Protokolle (Strukturelles PBT):** Formulieren statische Verträge (wie Duck-Typing-Interfaces). Der Type-Checker agiert als Beweismaschine, die verifiziert, dass die definierte Eigenschaft (Property) über den gesamten abstrakten Syntaxbaum hinweg gültig bleibt.
 * **Linter & AST-Queries (Meta-PBT):** Werkzeuge wie Tree-sitter prüfen Invarianten auf der Architektur-Ebene. Sie beweisen Eigenschaften wie maximale Komplexität oder Einhaltung von Namespace-Grenzen.
 * **Design by Contract (Laufzeit-PBT):** Erzwingt definierte Vor- und Nachbedingungen direkt in der Produktionsumgebung. Jeder reale Funktionsaufruf wird zu einem impliziten Testlauf gegen die deklarierte Invariante.
-* **Data Generation / Fuzzing (Grenzbereichs-PBT):* Setzt auf den bewiesenen Strukturen der vorherigen Ebenen auf und generiert extreme Randwerte, um das dynamische Verhalten der Geschäftslogik zu verifizieren.
+* **Data Generation / Fuzzing (Grenzbereichs-PBT):** Setzt auf den bewiesenen Strukturen der vorherigen Ebenen auf und generiert extreme Randwerte, um das dynamische Verhalten der Geschäftslogik zu verifizieren.
 
 ### Formelle Definition des erweiterten PBT
 

@@ -1,9 +1,9 @@
 import os
+import pickle
 from concurrent.futures import ProcessPoolExecutor
 from typing import Callable, Iterable, List, Any
 from protocols import Mapper, Multiprocessor
 from loky import get_reusable_executor
-
 
 
 ########################################################################################################################
@@ -89,26 +89,12 @@ class LokyProcessor:
 # ========== STATE INSPECTOR ========================================================================================= #
 
 class StateInspector:
-    """
-    Encapsulates the traversal and evaluation of states.
-    """
     @staticmethod
-    def has_unpicklable_callables(pre_states: list, post_states: list) -> bool:
-        """Searches for local closures or lambdas in the defined states."""
-        for state in pre_states + post_states:
-            if StateInspector._is_local_callable(getattr(state, "returns", None)): return True
-            fs = getattr(state, "fs", {}) or {}
-            if any(StateInspector._is_local_callable(v) for v in fs.values()): return True
-            args = getattr(state, "args", ()) or ()
-            if any(StateInspector._is_local_callable(a) for a in args): return True
-        return False
-
-    @staticmethod
-    def _is_local_callable(obj: Any) -> bool:
-        if not callable(obj): return False
-        name = getattr(obj, "__name__", "")
-        qualname = getattr(obj, "__qualname__", "")
-        return name == "<lambda>" or "<locals>" in qualname
+    def has_unpicklable_callables(*containers) -> bool:
+        try:
+            pickle.dumps(containers)
+            return False
+        except (AttributeError, TypeError, pickle.PicklingError): return True
 
 
 ########################################################################################################################
@@ -137,7 +123,7 @@ class MultiprocessManager:
         self._post_states = post_states
         self._task_func = task_func
         self._processors = processors
-        self.handler = self._resolve_handler()
+        self.processor = self._resolve_handler()
         self.runner = self._setup_runner()
 
     def execute(self) -> Iterable: return self.runner.execute()
@@ -152,7 +138,7 @@ class MultiprocessManager:
 
     def _setup_runner(self):
         return MultiprocessRunner(
-            handler=self.handler,
+            handler=self.processor,
             pre_states=self._pre_states,
             task_func=self._task_func
         )
@@ -177,7 +163,7 @@ class MultiprocessResolver:
                 return processor
         raise RuntimeError(
             "STATE-GUARD: MultiprocessResolver could not find a valid processor throughout the 'resolve'. "
-            "-> Are all priorities set correctly?"
+            "-> Are all processors really working as they should and are all priorities set correctly?"
         )
 
     @classmethod
@@ -193,7 +179,7 @@ class MultiprocessResolver:
                 return processor
         raise RuntimeError(
             "STATE-GUARD: MultiprocessResolver could not find a valid processor during '_find_eligable_processor'. "
-            "-> Are all priorities set correctly?"
+            "-> Are all processors really working as they should and are all priorities set correctly?"
         )
 
     @staticmethod
