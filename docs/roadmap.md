@@ -6,7 +6,7 @@
 * **Phase 4:** Dateisystem-Integration → DONE
 * **Phase 5:** Quantoren → DONE
 * **Phase 6:** Arena-Abgleich → Done
-* **Phase 7 (OPEN):** Stabilisierung, Feinschliff und Wrap-Up. Etwaige Kleinigkeiten und Nebensächlichkeiten prüfen, optimieren und verbessern. Dazu alles ordentlich dokumentieren und die Etappe sauber abschließen.
+* **Phase 7:** Stabilisierung, Feinschliff und Wrap-Up. → Done
 
 ### Etappe 2: ConventionMap
 ...
