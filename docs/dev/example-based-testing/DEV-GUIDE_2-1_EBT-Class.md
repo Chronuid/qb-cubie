@@ -1,6 +1,30 @@
-# `class EBT`
+<center>
 
-Die `EBT`-Klasse dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die Zustände.
+# `class EBT` 
+
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+
+Die `EBT`-Klasse dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die `WorldState`-Zustände.
+</center>
+
+
+---
+
+## Konstruktor-API (Quick-Lookup)
+
+Die `EBT`-Klasse fungiert als zentraler Orchestrator. Ihr Konstruktor definiert den gesamten Test-Lebenszyklus und dient als primäres Interface:
+
+* **`target`** (`Any`): Das auszuführende Programmsegment ($S$). Akzeptiert Callables oder String-Referenzen (Late-Binding).
+* **`arena`** (`Optional[Arena]`): Der isolierte Ausführungsraum (Sandbox wie `TempFS` oder `PyVenv`), in dem das Target operiert.
+* **`pre`** (`Union[WorldState, List[WorldState], None]`): Die Vorbedingungen ($P$). Die Übergabe einer Liste triggert automatisch den beschränkten Allquantor ($\forall$).
+* **`post`** (`Union[WorldState, List[WorldState], None]`): Die Nachbedingungen ($Q$). Die Übergabe einer Liste triggert automatisch den beschränkten Existenzquantor ($\exists$).
+* **`expect`** (`bool`): Invertiert die formallogische Erwartungshaltung des Tests (Negativ-Test) (Default: `True`).
+* **`custom_id`** (`Optional[str]`): Optionaler, semantischer Name für den Testlauf (für Logging und Tracing).
+* **`reporter`** (`Optional[Reporter]`): Injizierter Konsument für externe Assertions und Formatierungen (Default: `PytestReporter` | `None`: aktiviert den Headless-Mode).
+* **`multiprocessing`** (`bool`): Aktiviert die asynchrone, parallele Ausführung der State-Pipelines über Worker-Pools (Default: `False`).
+* **`multiprocessors`** (`Optional[List[Multiprocessor]]`): DI-Hook-Registry für eigene Prozessor-Strategien (erweitert den Auto-Routing-Standard der Engine).
+
+---
 
 ## Kern-Verantwortlichkeiten
 
@@ -20,6 +44,11 @@ Werden in den `post`-Zuständen keine festen Werte, sondern Typ-Deklarationen de
 * **Union Types & Wildcards:** `typing.Union` (oder `|`), `Optional` und `typing.Any` werden rekursiv entpackt und auf Erfüllbarkeit geprüft.
 * **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand.
 * **Callables (Prädikate):** Das Framework erkennt injizierte Funktionen (`Callable` oder `lambda`) und führt diese als zustandslose Prädikate aus. Dies gilt sowohl für funktionale Returns als auch für Dateisystem-Evaluierungen (`fs`). Schlägt ein Prädikat fehl oder wirft es typische Laufzeitfehler (z. B. `TypeError`, `KeyError`), wertet die Engine dies formallogisch sauber als Mismatch, ohne den Testlauf abstürzen zu lassen.
+
+#### Multiprocessing - Strategy-Pattern & Chain of Responsibility with DI-Hook-Registry:
+Wenn `multiprocessing=True` gesetzt ist, routet die `EBT`-Engine die Aufgabe durch eine entkoppelte Multiprocessing-Architektur. Das Framework nutzt das Strategy-Pattern (Chain of Responsibility), um zur Laufzeit den Ausführungsweg zu bestimmen. 
+Anstatt die Parallelisierungslogik hart in der Engine zu verdrahten, delegiert die `EBT`-Klasse die Verantwortung an eine priorisierte Hook-Registry. Diese Registry wertet den Zustand der Engine aus und wählt den Ausführungsweg. Durch das DI-Interface können Entwickler zudem vollständig eigene Backends in die Chain einklinken.
+Detaillierte Spezifikationen zur internen Resolution und den einzelnen Prozessoren finden sich im ergänzenden Dokument: **[Multiprocessors (DEV-GUIDE_2-4)](DEV-GUIDE_2-4_Multiprocessors.md)**.
 
 ---
 
@@ -41,6 +70,15 @@ Repräsentiert das auszuführende Programmsegment ($S$), welches die Transformat
 
 #### `EBT.reporter`
 Dient als Dependency-Injection-Mechanismus für die externe Fehlerbehandlung und das finale Reporting. Es akzeptiert jedes Objekt, das dem `Reporter`-Protokoll entspricht (standardmäßig der `PytestReporter`). Dieses Attribut entkoppelt die formallogische Auswertung der Engine vollständig von spezifischen Test-Frameworks. Wird hier `None` deklariert, operiert die EBT-Instanz im lautlosen "Headless Mode" und delegiert keine Assertions nach außen.
+
+#### `EBT.MULTIPROCESSORS`
+Eine Hook-Registry zur Steuerung der Parallelisierungs-Strategien via Dependency Injection (DI). 
+
+**Der smarte Standard (Auto-Routing):** Wird dem Konstruktor kein Argument übergeben, greift der Cubie-Standard. Hierbei nutzt Cubie einen heuristischen `StateInspector`, der die `WorldState`-Objekte analysiert und dynamisch zwischen zwei Standard-Prozessoren wählt:
+1. **Fast-Path (`PickleProcessor`):** Der native Python-Pickler. Blitzschnell, speichereffizient, aber limitiert auf Serialisierungen der Standardbibliothek. Greift, wenn keine dynamischen Prädikate erkannt werden.
+2. **Slow-Path (`LokyProcessor`):** Wird vollautomatisch aktiviert, sobald Cubie unpickelbare Elemente (wie `lambda`-Funktionen oder lokale `<locals>`-Closures) in den Zuständen erkennt. Nutzt `cloudpickle` für tiefe Bytecode-Serialisierung und extrem robuste Worker-Isolation.
+
+**Custom Processors (DI):** Das Attribut erlaubt es, das gesamte Multiprocessing-Verhalten durch eigene Implementierungen (z. B. für `joblib`, `Ray` oder `Celery`) zu überschreiben. Eigene Prozessoren müssen lediglich das `Multiprocessor`-Protokoll implementieren und gliedern sich nahtlos in die Chain of Responsibility ein.
 
 ---
 
@@ -64,9 +102,6 @@ Ein boolesches Konfigurations-Attribut (Standard: `False`), das die Skalierungs-
 
 * **`EBT.MULTIPROCESSING=False` (Singleprocessing):** Die Engine iteriert sequenziell über alle definierten `pre`-Zustände. Dies ist das robuste Standardverhalten, ideal für einfache Tests und essenziell für lineares Debugging von fehlschlagenden Transformationen.
 * **`EBT.MULTIPROCESSING=True` (Multiprocessing):** Aktiviert die parallele Abarbeitung der Tasks mittels eines `ProcessPoolExecutor`. Die Engine teilt die Menge aller Eingabezustände (den beschränkten Allquantor $\forall$) dynamisch in Chunks auf und verteilt sie auf die verfügbaren System-Kerne (`os.cpu_count()`).
-
-**Architektonische Grundlage:** 
-Das parallele Ausführen ist nur deshalb sicher und stabil möglich, weil das Framework eine strikt zustandslose Mikro-Pipeline (`_process_single_task`) nutzt. Jeder einzelne Task orchestriert sein eigenes `Arena`-Setup, die Target-Ausführung, die Evaluation und das abschließende `Arena`-Teardown völlig isoliert in seinem Worker-Prozess. So können selbst komplexe Testläufe mit I/O-lastigem Byte-Diffing und isolierten Virtual-Environments kollisionsfrei und extrem performant skaliert werden.
 
 ---
 
@@ -161,8 +196,18 @@ Um das Zusammenspiel zwischen Makro-Orchestrierung (Runs) und Mikro-Ausführung 
 
 ### 4.1 Anatomie des EvaluationTrace
 
-![Alternativtext](docs/assets/EvaluationTrace.jpg "Error while trying to load the image")
+![Error while trying to load the image](docs/assets/EvaluationTrace.jpg)
 
 ### 4.2 Die Makro-/Mikro-Orchestrierung (Runs & Steps)
 
-![Alternativtext](docs/assets/runs_and_steps.jpg "Error while trying to load the image")
+![Error while trying to load the image](docs/.assets/runs_and_steps.jpg)
+
+---
+
+<center>
+
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
+
+</center>
+
+---

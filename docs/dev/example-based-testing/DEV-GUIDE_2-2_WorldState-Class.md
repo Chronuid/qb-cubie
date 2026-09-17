@@ -1,14 +1,22 @@
-## `class WorldState`
+<center>
+
+# `class WorldState` 
+
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Die `WorldState`-Klasse ist ein Zustands-Deklarator, der alle Variablen einer Test-Welt kapselt. Sie dient als standardisierte Datenstruktur zur Definition von Zuständen. Seien es nun Vorbedingungen ($P$) oder Nachbedingungen ($Q$) innerhalb des EBT-Paradigmas.
 Die Klasse ist konzeptionell die Antwort auf die Frage, wie man komplexe Tests sauber abbildet, ohne den Code mit Boilerplate zu überladen. 
 Sie fungiert als das einheitliche Ziel-Schema, in welches die übergeordnete `EBT`-Klasse alle primitiven Eingaben (Shorthands) implizit konvertiert.
+</center>
 
 * **Die Kernidentität:** Die Klasse fungiert als strikter "Zustands-Deklarator". Sie ist das standardisierte Objekt, das eine konkrete "Welt" (sei es $P$ oder $Q$) kapselt.
 
 * **Die Trennung der Ebenen:** Ihre wichtigste strukturelle Eigenschaft ist die klare Trennung: Sie separiert die funktionale Ausführungsebene, wie Code-Inputs (`args`) oder Outputs (`returns`), strikt von der topologischen Dateisystem-Ebene (`fs`).
 
 * **Das Normalisierungs-Ziel:** Das `WorldState`-Objekt ist das interne Zielformat der `EBT`-Klasse. Die `EBT`-Klasse nutzt Auto-Inferenz, um einfache Datentypen (Shorthands) unter der Haube implizit in vollumfängliche `WorldState`-Objekte umzuwandeln.
+
+
+
 
 ---
 
@@ -51,3 +59,13 @@ Das Attribut `fs` (Filesystem) bildet die topologische Ebene des Zustands-Deklar
 ### `WorldState.expect`
 
 Das Attribut `expect` (bool: True or False) fungiert als Negation der Erwartungshaltung für einen Testlauf, um Negativ-Beispiele deklarieren zu können.
+
+---
+
+<center>
+
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
+
+</center>
+
+---

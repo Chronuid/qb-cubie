@@ -8,8 +8,8 @@ from arenas.pyvenv import PyVenv, ArenaBuilder
 # GLOBAL PROVISIONING (Golden Masters)
 # ======================================================================================================================
 
-BASE_ARENA = "tests/arenas/mutation_base"
-PKG_ARENA = "tests/arenas/mutation_pkg"
+BASE_ARENA = "tests/.deprecated_arenas/mutation_base"
+PKG_ARENA = "tests/.deprecated_arenas/mutation_pkg"
 ArenaBuilder(BASE_ARENA).build()
 ArenaBuilder(PKG_ARENA).with_packages(["cowsay"]).build()
 

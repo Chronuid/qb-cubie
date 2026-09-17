@@ -8,7 +8,9 @@ dependencies = [
     "typing",
     "msgspec",
     "uuid",
-    "fsspec"
+    "fsspec",
+    "loky",
+    "hypothesis"
 ]
 packages = ["src"]
 include = [

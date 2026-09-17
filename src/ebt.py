@@ -1,12 +1,20 @@
-import filecmp, uuid, time, os, re, types
+import dataclasses, filecmp, uuid, time, re, types, functools
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor
-from typing import Union, List, Set, Any, Optional, get_origin, get_args, Callable
-from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter
+from typing import Union, Set, get_origin, get_args, Optional
+from multiprocessors import *
+from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor
 from reporter import PytestReporter
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
 
+@dataclasses.dataclass(frozen=True)
+class EBTContext:
+    target: Any
+    arena: Optional[Arena]
+    post_states: List[WorldState]
+    run_id: str
+    fs_ignores: Set[str]
+    arena_ignores: Set[str]
 class EBT:
     """
     Orchestrates example-based-testing runs according to the formal Hoare triple `{P}S{Q}`.
@@ -21,7 +29,8 @@ class EBT:
             custom_id: Optional[str] = None,
             reporter: Reporter | None = PytestReporter(),
             multiprocessing: bool = False,
-    ):
+            multiprocessors: Optional[List['Multiprocessor']] = None
+        ):
         self.target = target
         self.arena = arena
         self.pre: List[WorldState] = self._ensure_list(pre)
@@ -42,6 +51,8 @@ class EBT:
         self._traces: List[EvaluationTrace] = []
         self.run_trace: Optional[RunTrace] = None
         self.MULTIPROCESSING = multiprocessing or False
+        self.MULTIPROCESSORS: List['Multiprocessor'] = [PickleProcessor(), LokyProcessor()]
+        if multiprocessors: self.MULTIPROCESSORS.extend(multiprocessors)
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
@@ -55,7 +66,7 @@ class EBT:
         self._report()
         return self.run_trace
 
-    # ---------- PIPES -------------------------------------------------------------------------------------------------
+    # ---------- SUB-SERVICES ------------------------------------------------------------------------------------------
 
     def _arrange(self) -> None:
         """Validates and normalizes the states passed to the pipeline."""
@@ -77,47 +88,69 @@ class EBT:
 
     # ---------- PROCESSING-STRATEGIES ---------------------------------------------------------------------------------
 
+    def _build_context(self) -> EBTContext:
+        """Safely encapsulates the volatile OOP state into an FP record."""
+        return EBTContext(
+            target=self.target,
+            arena=self.arena,
+            post_states=self.post,
+            run_id=self._run_id,
+            fs_ignores=self.FS_IGNORES,
+            arena_ignores=self.ARENA_IGNORES
+        )
+
     def _validate_singleprocess(self) -> None:
         """Sequential processing reusing the unified task logic."""
         __tracebackhide__ = True
+        ctx = self._build_context()
         for pre_idx, pre_state in enumerate(self.pre):
-            outcome, traces = self._process_single_task(pre_idx, pre_state)
+            outcome, traces = self._process_single_task(pre_idx, pre_state, ctx)
             self._outcome.append(outcome)
             self._traces.extend(traces)
 
     def _validate_multiprocess(self) -> None:
-        n_worker = os.cpu_count() or 1
-        n_tasks = len(self.pre)
-        optimal_chunksize = max(1, n_tasks // (n_worker * 4))
-        pre_indices = list(range(n_tasks))
-        pre_states = self.pre
-        with ProcessPoolExecutor(max_workers=n_worker) as executor:
-            results = list(
-                executor.map(self._process_single_task,pre_indices, pre_states,chunksize=optimal_chunksize)
-            )
+        """Parallel execution via the decoupled DI facade (MultiprocessManager)."""
+        __tracebackhide__ = True
+        ctx = self._build_context()
+        task_func = functools.partial(self._process_single_task, ctx=ctx)
+        manager = MultiprocessManager(
+            pre_states=self.pre,
+            post_states=self.post,
+            task_func=task_func,
+            processors=self.MULTIPROCESSORS
+        )
+        raw_results = manager.execute()
+        if isinstance(raw_results, Exception): raise raw_results
+        if raw_results is None: raise RuntimeError("STATE-GUARD: MultiprocessManager.execute() returned None (FAIL).")
+        results = list(raw_results)
         for outcome, traces in results:
             self._outcome.append(outcome)
             self._traces.extend(traces)
 
-    def _process_single_task(self, pre_idx: int, pre_state: WorldState) -> tuple[WorldState, List[EvaluationTrace]]:
+    @staticmethod
+    def _process_single_task(
+            pre_idx: int,
+            pre_state: WorldState,
+            ctx: EBTContext
+    ) -> tuple[WorldState, List[EvaluationTrace]]:
         """Parallel-ready processing reusing the stateless step functions."""
         __tracebackhide__ = True
         t_step_start = time.perf_counter()
-        active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else self.arena
+        active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else ctx.arena
         traces = []
         try:
-            outcome = self._execute_step(pre_state)
-            for post_state in self.post:
-                trace = self._evaluate_step(
+            outcome = EBT._execute_step(pre_state, ctx.target, active_arena)
+            for post_state in ctx.post_states:
+                trace = EBT._evaluate_step(
                     pre_idx=pre_idx, t_step_start=t_step_start,
-                    pre_state=pre_state, post_state=post_state, outcome=outcome
+                    pre_state=pre_state, post_state=post_state, outcome=outcome, ctx=ctx
                 )
                 traces.append(trace)
         finally:
             if active_arena: active_arena.teardown()
         return outcome, traces
 
-    # ---------- SUB-PIPES ---------------------------------------------------------------------------------------------
+    # ---------- HELPER ------------------------------------------------------------------------------------------------
 
     def _evaluate_run(self) -> None:
         """Evaluates overall quantifier logic, applies the expect modifier and constructs RunTrace."""
@@ -132,40 +165,64 @@ class EBT:
             duration=self._run_duration
         )
 
-    def _execute_step(self, pre_state: WorldState) -> WorldState:
+    @staticmethod
+    def _execute_step(pre_state: WorldState, target: Any, active_arena: Optional[Arena]) -> WorldState:
         """Executes the target for a single step and returns the normalized outcome state."""
         __tracebackhide__ = True
-        args = self._normalize_args(pre_state.args)
+        args = EBT._normalize_args(pre_state.args)
         kwargs = pre_state.kwargs if pre_state.kwargs is not None else {}
-        active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else self.arena
+        if not isinstance(kwargs, dict):
+            raise TypeError(f"STATE-GUARD: Expected a dict for 'kwargs', but received {type(kwargs).__name__}.")
         if active_arena:
             active_arena.setup(pre_state)
-            active_arena.execute(self.target, args, kwargs)
+            active_arena.execute(target, args, kwargs)
             return active_arena.get_state()
-        return WorldState(returns=self.target(*args, **kwargs))
+        return WorldState(returns=target(*args, **kwargs))
 
+    @staticmethod
     def _evaluate_step(
-            self,
             pre_idx: int, t_step_start: float,
-            pre_state: WorldState,
-            post_state: WorldState,
-            outcome: WorldState,
+            pre_state: WorldState, post_state: WorldState,
+            outcome: WorldState, ctx: EBTContext
     ) -> EvaluationTrace:
         """Evaluates the outcome against the expected post-state and returns the trace."""
         __tracebackhide__ = True
-        diffs = {}
-        if post_state.returns is not None and (r := self._evaluate_func(post_state, outcome)): diffs["returns"] = r
-        if post_state.fs and (f := self._evaluate_fs(post_state.fs, outcome.fs)): diffs["fs"] = f
-        if post_state.arena and (a := self._evaluate_arena(post_state.arena, outcome.arena)): diffs["arena"] = a
+        diffs = EBT._calculate_diffs(post_state, outcome, ctx)
         return EvaluationTrace(
-            step_id=f"{self._run_id}_{pre_idx}",
-            target=getattr(self.target, '__name__', str(self.target)),
+            step_id=f"{ctx.run_id}_{pre_idx}",
+            target=getattr(ctx.target, '__name__', str(ctx.target)),
             pre=pre_state, post=post_state, outcome=outcome,
             evaluation=not bool(diffs), diffs=diffs or None,
             duration=time.perf_counter() - t_step_start
         )
 
-    def _evaluate_arena(self, expected_arena: Any, outcome_arena: Optional[str]) -> Optional[dict]:
+    @staticmethod
+    def _calculate_diffs(post: WorldState, outcome: WorldState, ctx: EBTContext) -> dict:
+        """Isolates the formal-logical diff calculation and delegates to the type guard."""
+        __tracebackhide__ = True
+        diffs = {}
+        if post.returns is not None: EBT._append_diff(diffs, "returns", EBT._evaluate_func(post, outcome))
+        if post.arena:
+            EBT._append_diff(
+                diffs,
+                "arena",
+                EBT._evaluate_arena(post.arena, outcome.arena, ctx.arena_ignores)
+            )
+        if post.fs:
+            if not isinstance(post.fs, dict): raise TypeError("STATE-GUARD: post_state.fs must be a dict.")
+            EBT._append_diff(diffs, "fs", EBT._evaluate_fs(post.fs, outcome.fs, ctx.fs_ignores))
+        return diffs
+
+    @staticmethod
+    def _append_diff(diffs: dict, key: str, val: Any) -> None:
+        """Validates the data type and appends identified diffs to the target dictionary."""
+        __tracebackhide__ = True
+        if val is not None:
+            if not isinstance(val, dict): raise TypeError(f"STATE-GUARD: {key} evaluation must return a dict.")
+            diffs[key] = val
+
+    @staticmethod
+    def _evaluate_arena(expected_arena: Any, outcome_arena: Optional[str], arena_ignores: Set[str]) -> Optional[dict]:
         """Performs a targeted evaluation against the expected arena topology and returns diffs."""
         __tracebackhide__ = True
         if not isinstance(expected_arena, str) and not hasattr(expected_arena, "env_path"):
@@ -173,14 +230,15 @@ class EBT:
         if not outcome_arena: return {"error": "Outcome arena is completely missing."}
         host_path = Path(expected_arena) if isinstance(expected_arena, str) else Path(str(expected_arena.env_path))
         arena_path = Path(outcome_arena)
-        if not arena_path.exists() or not host_path.exists(): return {
-            "error": f"Missing paths. Arena: {arena_path.exists()}, Host: {host_path.exists()}"}
-        return self._generate_diff(
-            self._collect_topology(host_path, self.ARENA_IGNORES, is_arena=True),
-            self._collect_topology(arena_path, self.ARENA_IGNORES, is_arena=True)
+        if not arena_path.exists() or not host_path.exists():
+            return {"error": f"Missing paths. Arena: {arena_path.exists()}, Host: {host_path.exists()}"}
+        return EBT._generate_diff(
+            EBT._collect_topology(host_path, arena_ignores, is_arena=True),
+            EBT._collect_topology(arena_path, arena_ignores, is_arena=True)
         )
 
-    def _evaluate_fs(self, expected_fs: dict, outcome_fs: Optional[str]) -> Optional[dict]:
+    @staticmethod
+    def _evaluate_fs(expected_fs: dict, outcome_fs: Optional[str], fs_ignores: Set[str]) -> Optional[dict]:
         """Performs a deep diff evaluation against the expected filesystem topology or callables."""
         __tracebackhide__ = True
         if not outcome_fs: return {"error": "Outcome FS is missing."}
@@ -193,8 +251,24 @@ class EBT:
                 except Exception as e: diffs[target_rel_path] = {"error": f"Callable raised Exception: {e}"}
                 continue
             host_path = Path(expected_val)
-            if path_diff := self._compare_paths(arena_path, host_path): diffs[target_rel_path] = path_diff
+            if path_diff := EBT._compare_paths(arena_path, host_path, fs_ignores): diffs[target_rel_path] = path_diff
         return diffs or None
+
+    @staticmethod
+    def _compare_paths(arena_path: Path, host_path: Path, fs_ignores: Set[str]) -> Optional[dict]:
+        """Compares individual files or delegates recursive deep scans to the diff generator."""
+        __tracebackhide__ = True
+        if not arena_path.exists() or not host_path.exists():
+            return {"error": f"Path not found. Arena: {arena_path.exists()}, Host: {host_path.exists()}"}
+        if host_path.is_dir() and arena_path.is_dir():
+            return EBT._generate_diff(
+                EBT._collect_topology(host_path, fs_ignores),
+                EBT._collect_topology(arena_path, fs_ignores)
+            )
+        if host_path.is_file() and arena_path.is_file():
+            if not filecmp.cmp(arena_path, host_path, shallow=False): return {"modified": [str(host_path.name)]}
+            return None
+        return {"error": "Topology mismatch (file vs dir)."}
 
     @staticmethod
     def _evaluate_func(post_state: WorldState, outcome: WorldState) -> Optional[dict]:
@@ -305,18 +379,6 @@ class EBT:
             if is_arena and (item.suffix == ".pyc" or any(p.endswith(".dist-info") for p in rel_path.parts)): continue
             files[rel_path] = item
         return files
-
-    def _compare_paths(self, arena_path: Path, host_path: Path) -> Optional[dict]:
-        """Compares individual files or delegates recursive deep scans to the diff generator."""
-        __tracebackhide__ = True
-        if not arena_path.exists() or not host_path.exists(): return {
-            "error": f"Path not found. Arena: {arena_path.exists()}, Host: {host_path.exists()}"}
-        if host_path.is_dir() and arena_path.is_dir(): return self._generate_diff(
-            self._collect_topology(host_path, self.FS_IGNORES), self._collect_topology(arena_path, self.FS_IGNORES))
-        if host_path.is_file() and arena_path.is_file():
-            if not filecmp.cmp(arena_path, host_path, shallow=False): return {"modified": [str(host_path.name)]}
-            return None
-        return {"error": "Topology mismatch (file vs dir)."}
 
     # ↓ ========== _report() ========== ↓
 
