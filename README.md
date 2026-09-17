@@ -1,7 +1,8 @@
 <center>
 
 # `Cubie: Quality-Bench`
-![Alternativtext](docs/assets/cubie-banner.png "Error while trying to load the image")
+
+![Error while trying to load the image](docs/.assets/cubie-banner.png)
 
 **Cubie ist ein Framework für strukturierte Qualitätssicherung.**  
 *Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden wird. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so präzise abzustecken, dass du deine gesuchten Funktionen finden kannst!*
@@ -147,9 +148,20 @@ qb.RBT(
 
 ---
 
+---
+
+<center>
+
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
+
+
+---
+
 ## 📚 Dokumentation & Guides
 
 Um die internen Mechanismen und komplexen Patterns tiefgehend zu verstehen, konsultiere die dedizierten Developer-Guides:
+
+</center>
 
 * **[EBT Usage-Patterns](docs/GUIDE_EBT-Usage-Pattern.md):** Ausführliche Beispiele für $\forall$- und $\exists$-Mappings, Dictionary-Patterns, Agnostic Typing und Umgebungs-Mutationen.
 * **[EBT Orchestration Engine](docs/dev/example-based-testing/DEV-GUIDE_2-1_EBT-Class.md):** Architektur der Makro-/Mikro-Pipelines, Shorthand-Inferenz und das dynamische Evaluierungs-Routing.

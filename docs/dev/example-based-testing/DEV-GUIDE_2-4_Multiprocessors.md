@@ -2,7 +2,7 @@
 
 # `Multiprocessors` 
 
-![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skalierung von Cubie. Es entkoppelt die formallogische Auswertung (EBT) vollständig von den physischen Details der Prozess-Erstellung, Inter-Prozess-Kommunikation (IPC) und Serialisierung.
 </center>
@@ -174,7 +174,7 @@ Sollte ein absoluter Blackbox-Modus nötig sein, in dem die nativen Fallbacks ph
 
 <center>
 
-![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
 
 </center>
 

@@ -2,7 +2,7 @@
 
 # `class EBT` 
 
-![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Die `EBT`-Klasse dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die `WorldState`-Zustände.
 </center>
@@ -196,17 +196,17 @@ Um das Zusammenspiel zwischen Makro-Orchestrierung (Runs) und Mikro-Ausführung 
 
 ### 4.1 Anatomie des EvaluationTrace
 
-![Alternativtext](docs/assets/EvaluationTrace.jpg "Error while trying to load the image")
+![Error while trying to load the image](docs/assets/EvaluationTrace.jpg)
 
 ### 4.2 Die Makro-/Mikro-Orchestrierung (Runs & Steps)
 
-![Alternativtext](docs/assets/runs_and_steps.jpg "Error while trying to load the image")
+![Error while trying to load the image](docs/.assets/runs_and_steps.jpg)
 
 ---
 
 <center>
 
-![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
 
 </center>
 

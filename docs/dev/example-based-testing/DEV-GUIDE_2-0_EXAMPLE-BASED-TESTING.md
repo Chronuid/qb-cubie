@@ -2,7 +2,7 @@
 
 # `EXAMPLE-BASED-TESTING`
 
-![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image")
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Das Example-Based-Testing (EBT) fungiert als kompromisslose Basis der Qualitätssicherung, indem es deterministische Realitäten als "Golden Master" definiert. Basierend auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$ spannt das Konzept den Raum von einfachen In-Memory-Funktionen bis hin zu komplexen Datei- und Ordner-Transformationen auf.
 </center>
@@ -105,7 +105,7 @@ Die Details der Orchestrierungs-Strategien müssen als Hilfsfunktionen gestaltet
 
 <center>
 
-![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
 
 
 ---

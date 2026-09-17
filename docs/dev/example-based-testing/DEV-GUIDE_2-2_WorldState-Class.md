@@ -2,7 +2,7 @@
 
 # `class WorldState` 
 
-![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Die `WorldState`-Klasse ist ein Zustands-Deklarator, der alle Variablen einer Test-Welt kapselt. Sie dient als standardisierte Datenstruktur zur Definition von Zuständen. Seien es nun Vorbedingungen ($P$) oder Nachbedingungen ($Q$) innerhalb des EBT-Paradigmas.
 Die Klasse ist konzeptionell die Antwort auf die Frage, wie man komplexe Tests sauber abbildet, ohne den Code mit Boilerplate zu überladen. 
@@ -64,7 +64,7 @@ Das Attribut `expect` (bool: True or False) fungiert als Negation der Erwartungs
 
 <center>
 
-![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
 
 </center>
 

@@ -2,7 +2,7 @@
 
 # `Arenas` 
 
-![Alternativtext](docs/assets/cubie-logo-written.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
 
 Arenen bilden die physische Ausführungsschicht innerhalb der Cubie-Architektur. Während die `EBT`-Klasse die formallogische Ebene (die Beweisführung) orchestriert, übernehmen die Arenen die Rolle des isolierten Labors. Sie garantieren, dass Seiteneffekte, Datei-Installationen oder veränderte Umgebungsvariablen das Host-System nicht kompromittieren.
 </center>
@@ -102,7 +102,7 @@ Die `TempFS`-Arena ist die performante, leichtgewichtige Alternative für Progra
 
 <center>
 
-![Alternativtext](docs/assets/cubie-small.png "Error while trying to load the image") 
+![Error while trying to load the image](docs/.assets/cubie-small.png) 
 
 </center>
 
