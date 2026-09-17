@@ -7,20 +7,26 @@
 Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skalierung von Cubie. Es entkoppelt die formallogische Auswertung (EBT) vollständig von den physischen Details der Prozess-Erstellung, Inter-Prozess-Kommunikation (IPC) und Serialisierung.
 </center>
 
-### Kern-Verantwortlichkeiten 
+---
+
+---
+
+### Kern-Verantwortlichkeiten
 
 * **Abstrakte Parallelisierung:** Verteilung von $N$ unabhängigen `pre`-Zuständen auf asynchrone System-Worker, ohne die Makro-Pipeline der `EBT`-Engine mit Threading- oder Subprocess-Logik zu belasten.
 * **Auto-Routing (State Inspection):** Dynamische Analyse der übergebenen Zustände zur Laufzeit, um die Serialisierungs-Strategie zu wählen (z.B. Wechsel auf `cloudpickle`, sobald unpickelbare `lambda`-Funktionen entdeckt werden).
 * **Dependency Injection (DI) Bereitstellung:** Öffnung der Ausführungsschicht durch Protokolle, sodass Entwickler das Standard-Verhalten durch eigene Backends (wie `Celery`, `Ray` oder `joblib`) personalisieren können.
+* **Graceful Degradation (Self-Healing):** Automatische Fehlerbehandlung bei Abstürzen (z.B. Setup-Fehler auf C-Ebene im Pickle-Modul). Das System fängt Laufzeit-Crashs ab, markiert den fehlerhaften Prozessor temporär als inaktiv und weicht stufenlos auf den nächsten Resolver-Kandidaten aus, ohne den Entwickler-Testlauf zu zerstören.
 
+---
 
 ### Design und Pattern
 
-Das Modul ist modular aufgebaut und nutzt klassische Entwurfsmuster, um Flexibilität und Entkopplung zu fördern:
+Das Modul ist modular aufgebaut und nutzt klassische Entwurfsmuster um Flexibilität, Resilienz und Entkopplung zu fördern:
 
-* **Strategy-Pattern & Chain of Responsibility:** Die Auswahl des richtigen Prozessors erfolgt nicht über starre `if/else`-Blöcke, sondern über eine dynamische Kette von eigenständigen Objekten, die anhand ihrer Priorität und ihrer Eignung (`check_condition`) bewertet werden.
-* **Facade-Pattern:** Der `MultiprocessManager` dient als alleiniger, aufgeräumter Einstiegspunkt (Fassade) für die übergeordnete `EBT`-Klasse.
-* **Object Composition (ContextManager-Mapper):** Die eigentlichen Executor-Pools (z. B. `ProcessPoolExecutor`) werden nicht vererbt, sondern in zustandslose Mapper-Objekte gewrappt, die als eigene ContextManager (`__enter__`, `__exit__`) fungieren. Das kapselt den Lebenszyklus (Teardown) der Worker  ab.
+* **Strategy-Pattern & Chain of Responsibility:** Die Auswahl des richtigen Prozessors erfolgt über eine dynamische Kette von eigenständigen Objekten, die anhand ihrer Priorität und ihrer Eignung (`check_condition`) bewertet werden.
+* **Finite-State-Machine (FSM) & Fallback:** Der Kern-Manager agiert als fehlertoleranter Zustandsautomat. Bei Abstürzen der Worker-Pools deaktiviert der Kontrollfluss das fehlerhafte Glied in der Kette, springt nahtlos auf den Startzustand zurück und evaluiert die verbleibenden Ausführungswege neu.
+* **Object Composition (ContextManager-Mapper):** Die eigentlichen Executor-Pools (z. B. `ProcessPoolExecutor`) werden nicht vererbt, sondern in zustandslose Mapper-Objekte gewrappt, die als eigene ContextManager (`__enter__`, `__exit__`) fungieren. Das kapselt den Lebenszyklus (Teardown) der Worker ab.
 
 ---
 
@@ -29,16 +35,26 @@ Das Modul ist modular aufgebaut und nutzt klassische Entwurfsmuster, um Flexibil
 Die operative Ausführung ist in drei logische Instanzen unterteilt:
 
 ### Manager
-Der `MultiprocessManager` ist die **Fassade** des Moduls. Er wird in der `_validate_multiprocess`-Phase der `EBT`-Klasse aufgerufen und nimmt alle erforderlichen Daten (Zustände, Target-Funktion, Registry-Liste) entgegen. Er orchestriert den internen Ablauf, indem er zuerst den `Resolver` beauftragt und anschließend den Sieger-Prozessor an den `Runner` zur finalen Ausführung übergibt.
+
+Der `MultiprocessManager` ist das **Zentrum der Ausführung** und arbeitet intern als fehlertoleranter Zustandsautomat. Er wird in der `_validate_multiprocess`-Phase der `EBT`-Klasse aufgerufen und zirkuliert so lange durch vier feste Zustände, bis ein finales Ergebnis (`SUCCESS`) oder ein absoluter Fehlschlag (`FAIL`) erreicht wird:
+
+1. **INITIAL:** Setzt den Ausführungskontext (`ctx`), alte Instanzen und Fehler-Logs zurück.
+2. **RESOLVE:** Beauftragt den `Resolver`, den am höchsten priorisierten und geeigneten Prozessor aus der Registry zu ermitteln.
+3. **SETUP:** Instanziiert den `Runner` über den gewählten Prozessor.
+4. **EXECUTE:** Führt die physische Multiprocessing-Last aus.
+
+**Self-Healing:** Stürzt ein Prozessor in der `SETUP`- oder `EXECUTE`-Phase ab, fängt der Manager den Crash ab (`_degrade_and_warn`). Er warnt den Entwickler, setzt die `priority` des verursachenden Prozessors in der lokalen Registry auf `0` und erzwingt einen Rücksprung in den Zustand `INITIAL`. Die FSM weicht somit völlig autonom auf die verbleibende Chain-of-Responsibility aus.
 
 ### Resolver
-Der `MultiprocessResolver` ist eine **zustandslose Logik-Maschine**. Er erhält die Liste der verfügbaren Prozessoren und ermittelt den zuständigen Kandidaten:
+
+Der `MultiprocessResolver` ist eine **zustandslose Logik-Maschine**. Er erhält die Liste der verfügbaren Prozessoren und ermittelt den aktuell zuständigen Kandidaten:
+
 1. **Sortierung:** Die Liste wird absteigend nach dem Attribut `priority` sortiert.
-2. **Filterung:** Prozessoren mit einer Priorität von `0` gelten als deaktiviert und werden ignoriert.
-3. **Prüfung:** Durch Aufruf der `check_condition(pre, post)`-Methode wird verifiziert, ob der Prozessor für die vorliegenden Daten geeignet ist. Der erste Prozessor, der `True` liefert, gewinnt.
-4. **State-Guard:** Findet der Resolver keinen fähigen Kandidaten, wirft er einen `RuntimeError`, um stille Systemausfälle zu verhindern.
+2. **Filterung:** Prozessoren mit einer Priorität von `0` (entweder manuell deaktiviert oder durch die FSM wegen Absturzes markiert) gelten als inaktiv und werden ignoriert.
+3. **Prüfung:** Durch Aufruf der `check_condition(pre, post)`-Methode wird verifiziert, ob der Prozessor für die vorliegenden Daten geeignet ist. **State-Guard:** Findet der Resolver keinen fähigen Kandidaten, wirft er einen `RuntimeError`, um einen `FAIL`-State im Manager zu triggern und Endlosschleifen zu verhindern.
 
 ### Runner
+
 Der `MultiprocessRunner` ist der **Arbeiter**. Er instanziiert den vom Resolver gelieferten `Mapper` über das ContextManager-Protokoll (`with ... as mapper:`) und delegiert die Target-Ausführung an ihn.
 
 ---
@@ -108,7 +124,7 @@ class RayMapper:
 Der eigentliche Prozessor agiert primär als Filter oder Trigger (Hook) und als Factory für den Mapper. Die Methode `create_handler` reicht hierbei lediglich die Task-Anzahl an die Mapper-Instanz weiter. Das eigentliche Routing durch die Responsibility Chain wird durch die Kombination aus Priorität und der `check_condition`-Funktion umgesetzt.
 
 * **Der Hook (Spezifischer Trigger):** mit spezifischen `check_condition` (z.B. Scannen der `pre_states` nach einem bestimmten Datentyp oder einer spezifischen Arena), kann man Prozessoren bauen, die nur bei ganz bestimmten Testfällen eingreifen.
-* **Priority-Chain** man kann die spezifischen Trigger breiter setzen und über die priority die Evaluation des Objekts in der Kette beeinflussen. Setzt man eine sehr hohe Priorität für einen Multiprocessor, überwiegt dieser in seiner Wertung für die Auswahl gegenüberen einem weniger hoch priorisierten Multiprocessors in der Registry, insofern beide check_condition-Prüfungen zutreffen.
+* **Priority-Chain** man kann die spezifischen Trigger breiter setzen und über die priority die Evaluation des Objekts in der Kette beeinflussen. Setzt man eine sehr hohe Priorität für einen Multiprocessor, überwiegt dieser in seiner Wertung für die Auswahl gegenüberen weniger hoch priorisierten Multiprocessors in der Registry, insofern beide check_condition-Prüfungen zutreffen.
 * **Der Total-Override:** Gibt die `check_condition` immer `True` zurück, übernimmt dieser Prozessor die Priorität stets die Ausführung, insofern dessen priority-Wert am höchsten ist.
 
 ```python
@@ -151,6 +167,8 @@ qb.EBT(
 **⚠️ Architektur-Disclaimer zum EBT-Standard (`MULTIPROCESSORS`):**
 Wenn das Argument `multiprocessors=[...]` übergeben wird, nutzt die `EBT`-Klasse intern ein "Gentleman's Agreement" via `.extend()`. Das bedeutet, die injizierten Prozessoren werden *zusätzlich* zu den nativen Standards (`Pickle` und `Loky`) in die Hook-Registry geladen. Der Resolver wählt dann den besten Kandidaten anhand der Priorität.
 Sollte ein absoluter Blackbox-Modus nötig sein, in dem die nativen Fallbacks physisch nicht existieren dürfen (z. B. für strenge Unit-Tests der DI-Logik), kann das Klassen-Attribut nach der Instanziierung der EBT-Klasse (z.B. als `engine`) einfach überschrieben werden: `engine.MULTIPROCESSORS = [MyCustomProcessor()]`, bevor der eigentliche Testlauf mit `engine.run()` gestartet wird.
+
+---
 
 ---
 

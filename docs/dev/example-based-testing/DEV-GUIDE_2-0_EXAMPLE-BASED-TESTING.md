@@ -10,6 +10,8 @@ Das Example-Based-Testing (EBT) fungiert als kompromisslose Basis der Qualitäts
 
 ---
 
+---
+
 ## `class EBT`
 Die `EBT`-Klasse ist die zentrale Orchestrierungs-Engine des Frameworks. Sie dient als direkte architektonische Übersetzung des formalen P S Q Paradigmas in ausführbaren Code. Die Klasse selbst agiert dabei als direktes Interface für die Definition der Test-Fälle.
 
@@ -47,14 +49,17 @@ Sie fungiert als das einheitliche Ziel-Schema, in welches die übergeordnete `EB
 
 * **Das Normalisierungs-Ziel:** Das `WorldState`-Objekt ist das interne Zielformat der `EBT`-Klasse. Die `EBT`-Klasse nutzt Auto-Inferenz, um einfache Datentypen (Shorthands) unter der Haube implizit in vollumfängliche `WorldState`-Objekte umzuwandeln.
 
+---
 
-## Das Arena-Protokoll
+## `class Arena(Protocol)`
 
 Während die `EBT`-Klasse die formallogische Makro-Orchestrierung übernimmt und `WorldState` die Datenstruktur deklariert, ist das Arena-Protokoll für die physische Realität zuständig. Arenen kapseln die eigentliche Ausführung (das $S$ im Hoare-Tripel) und isolieren Seiteneffekte vom Host-System.
 
 * **Trennung von Orchestrierung und Ausführung:** Die EBT-Engine delegiert die Erschaffung der Testumgebung, die Ausführung des Targets und das Einsammeln der Resultate vollständig an die Arena.
 * **State-Injection:** Die Arena empfängt über ihre `setup(state: WorldState)`-Methode den deklarierten Ausgangszustand, projiziert diesen in einen isolierten Workspace und liefert nach der Ausführung über `get_state() -> WorldState` die veränderte, ungeschönte Realität an die Engine zurück.
 * **Spezialisierung:** Cubie bietet standardmäßig `PyVenv` für vollständige Laufzeit-Isolation (via Subprozesse und `uv`) und `TempFS` als extrem leichtgewichtige In-Memory-Alternative für reine Dateioperationen.
+
+---
 
 ## `class RunTrace` und `EvaluationTrace`
 
@@ -66,13 +71,15 @@ Die `RunTrace`-Datenklasse fungiert, zusammen mit den von ihr gekapselten `Evalu
 
 ---
 
-## Das Reporter-Protokoll
+## `class Reporter(Protocol)`
 
 Um die Kern-Architektur des Cubie-Frameworks vollständig von spezifischen Test-Runnern (wie Pytest) zu entkoppeln, wurde das `Reporter`-Protokoll etabliert. Reporter sind reine Konsumenten der `RunTrace`-Datenstruktur.
 
 * **Trennung von Evaluation und Assertion:** Während die `EBT`-Klasse die Logik auswertet, übernimmt ein injizierter Reporter (z. B. der `PytestReporter`) ausschließlich die Formatierung von Fehlermeldungen und das Auslösen framework-spezifischer Assertions (z. B. `assert False`), sofern `trace.evaluation is False` gilt.
 * **Meta-Testing und Headless Runs:** Wird der EBT-Instanz `None` als Reporter übergeben, arbeitet die Engine völlig lautlos. In diesem "Headless Mode" wirft die Ausführung keine Exceptions, sondern die `run()`-Methode gibt am Ende schlicht das `RunTrace`-Objekt zurück. 
 * **Programmatische Weiterverwendung:** Dieser geräuschlose Rückfluss ermöglicht komplexe Architektur-Szenarien, wie beispielsweise Meta-Testing (eine EBT-Instanz testet eine andere EBT-Instanz) oder die Anbindung der Evaluationsdaten an grafische Benutzeroberflächen (z. B. via Tkinter für Review-Workflows) oder die Konstruktion von PBT- und Benchmark-Verfahren.
+
+---
 
 ---
 

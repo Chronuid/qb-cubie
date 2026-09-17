@@ -48,7 +48,7 @@ Werden in den `post`-Zuständen keine festen Werte, sondern Typ-Deklarationen de
 #### Multiprocessing - Strategy-Pattern & Chain of Responsibility with DI-Hook-Registry:
 Wenn `multiprocessing=True` gesetzt ist, routet die `EBT`-Engine die Aufgabe durch eine entkoppelte Multiprocessing-Architektur. Das Framework nutzt das Strategy-Pattern (Chain of Responsibility), um zur Laufzeit den Ausführungsweg zu bestimmen. 
 Anstatt die Parallelisierungslogik hart in der Engine zu verdrahten, delegiert die `EBT`-Klasse die Verantwortung an eine priorisierte Hook-Registry. Diese Registry wertet den Zustand der Engine aus und wählt den Ausführungsweg. Durch das DI-Interface können Entwickler zudem vollständig eigene Backends in die Chain einklinken.
-Detaillierte Spezifikationen zur internen Resolution und den einzelnen Prozessoren finden sich im ergänzenden Dokument: **[Multiprocessors (DEV-GUIDE_2-4)](DEV-GUIDE_2-4_Multprocessors.md)**.
+Detaillierte Spezifikationen zur internen Resolution und den einzelnen Prozessoren finden sich im ergänzenden Dokument: **[Multiprocessors (DEV-GUIDE_2-4)](DEV-GUIDE_2-4_Multiprocessors.md)**.
 
 ---
 

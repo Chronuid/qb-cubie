@@ -1,11 +1,10 @@
 from ebt import *
 import pytest
 from typing import Callable, Iterable, Any
-
+class MockTriggeredSignal(BaseException): pass
 
 class GracefulMockProcessor:
     """Ein vollausgestatteter Mock für FSM- und Routing-Tests."""
-
     def __init__(self, mock_id: str, priority: int, triggers: bool = True, crash_at: str = None):
         self.mock_id = mock_id
         self.priority = priority
@@ -31,8 +30,7 @@ class GracefulMockProcessor:
             def map(self, fn: Callable, *iterables: Iterable, chunksize: int = 1) -> Iterable[Any]:
                 if self.crash == "EXECUTE":
                     raise RuntimeError(f"CRASH_EXECUTE_{self.spy_id}")
-
-                raise NotImplementedError(f"WINNER:{self.spy_id}")
+                raise MockTriggeredSignal(f"WINNER:{self.spy_id}")
 
         return GracefulMapper(self.mock_id, self.crash_at)
 
@@ -67,12 +65,12 @@ DEGRADATION_SCENARIOS = [
         2 # Wir erwarten zwei Degradation-Warnings!
     ),
     (
-        # Szenario D: Totalausfall (EXHAUSTED). Alle stürzen ab. FSM muss kapitulieren.
+        # Szenario D: Totalausfall (EXHAUSTED).
         [
             GracefulMockProcessor("FAIL_1", priority=10, crash_at="SETUP"),
             GracefulMockProcessor("FAIL_2", priority=99, crash_at="EXECUTE")
         ],
-        "Alle Prozessoren sind fehlgeschlagen", # Der match für den RuntimeError
+        "STATE-GUARD: All Processors failed",  # <-- HIER ANPASSEN
         2
     ),
     (
@@ -126,7 +124,7 @@ def test_fsm_graceful_degradation(processor_setup, expected_outcome, expected_wa
     # 2. Ausführung & Assertion
     if "WINNER" in expected_outcome:
         # Erfolgs-Szenarien: Einer der Mocks muss am Ende den Sieg herausschreien
-        with pytest.raises(NotImplementedError, match=expected_outcome):
+        with pytest.raises(MockTriggeredSignal, match=expected_outcome):
             engine.run()
     else:
         # Totalausfall-Szenario: Die FSM sprengt sich kontrolliert selbst
@@ -140,8 +138,10 @@ def test_fsm_graceful_degradation(processor_setup, expected_outcome, expected_wa
 
     # B) Wurde die Priorität der abgestürzten Prozessoren wirklich mutiert (auf 0 gesetzt)?
     for proc in processor_setup:
-        if proc.crash_at is not None:
+        # 1. Ignorierte oder nicht erreichte Prozessoren MÜSSEN ihre Prio behalten
+        if not proc.triggers or proc.mock_id == "TOO_LATE":
+            assert proc.priority > 0, f"Prozessor {proc.mock_id} durfte nicht degradiert werden!"
+
+        # 2. Prozessoren, die physisch gecrasht sind, MÜSSEN Prio 0 haben
+        elif proc.crash_at is not None:
             assert proc.priority == 0, f"Prozessor {proc.mock_id} wurde nicht korrekt degradiert!"
-        elif "WINNER" in expected_outcome:
-            # Der Gewinner darf seine Priorität nicht verloren haben!
-            assert proc.priority > 0

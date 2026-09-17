@@ -169,7 +169,7 @@ def test_state_inspector_metamorphic_ebt(data_and_oracle):
 ####### ===================  HYPOTHESIS-GEN | PYTEST-PARAM  | CUBIE-VALID  ==================================== ########
 ########## -------------------------------------------------------------------------------------------------- ##########
 
-# ========== HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION ==========================================================
+# ==========  HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION  ========================================================
 
 from hypothesis import given, settings, strategies as st
 from protocols import WorldState
@@ -209,19 +209,15 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
             is_batch_poisoned = True
             poison = draw(unpicklable_callable())
             target_field = draw(st.sampled_from(["returns", "args", "fs", "kwargs"]))
-            if target_field == "returns":
-                state.returns = poison
-            elif target_field == "args":
-                state.args = (poison,)
-            elif target_field == "fs":
-                state.fs = {"vergiftet.py": poison}
-            elif target_field == "kwargs":
-                state.kwargs = {"vergiftetes_kwarg": poison}
+            if target_field == "returns": state.returns = poison
+            elif target_field == "args": state.args = (poison,)
+            elif target_field == "fs": state.fs = {"vergiftet.py": poison}
+            elif target_field == "kwargs": state.kwargs = {"vergiftetes_kwarg": poison}
         pre_states.append(state)
     return pre_states, is_batch_poisoned
 
 
-# ========== PYTEST-PARAMETRISIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKTE ====================================
+# ==========  PYTEST-PARAMETRISIERUNG  |   KARTESISCHE-PRODUKTE  =======================================================
 
 settings.register_profile("smoke", max_examples=100)
 settings.register_profile("deep", max_examples=1000)
@@ -236,7 +232,10 @@ settings.load_profile("smoke")
 @given(data=st.data())
 def test_state_inspector_scalable_matrix(width, depth, data):
     pre_states_list, expected_result = data.draw(scalable_fuzzing_batch(max_width=width, max_depth=depth))
-# ========== CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERFIKATIONEN =============================
+
+
+# ==========  CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERFIIKATIONEN  ===========================
+
     test_ebt = EBT(
         target=StateInspector.has_unpicklable_callables,
         pre=WorldState(args=(pre_states_list, [])),

@@ -5,7 +5,7 @@ from protocols import WorldState, Mapper
 from arenas.tempfs import TempFS
 from arenas.pyvenv import PyVenv
 from multiprocessors import PickleProcessor, LokyProcessor
-
+class MockTriggeredSignal(BaseException): pass
 
 # ========== TARGETS ===================================================================================================
 
@@ -75,13 +75,14 @@ class DummyMapper:
     def __enter__(self) -> 'DummyMapper': return self
     def __exit__(self, exc_type, exc_val, exc_tb) -> None: pass
     def map(self, fn: Callable, *iterables: Iterable, chunksize: int = 1) -> Iterable[Any]:
-        raise NotImplementedError("DummyMapper was successfully triggered!")
+        raise MockTriggeredSignal("DummyMapper was successfully triggered!")
 
 class MockProcessor:
     priority = 999
     @staticmethod
     def check_condition(pre_states: list, post_states: list) -> bool: return True
-    def create_handler(self, n_tasks: int) -> Mapper: return DummyMapper()
+    @staticmethod
+    def create_handler(n_tasks: int) -> Mapper: return DummyMapper()
 
 
 class ConfigurableMockProcessor:
@@ -102,7 +103,7 @@ class ConfigurableMockProcessor:
             def __enter__(self): return self
             def __exit__(self, exc_type, exc_val, exc_tb): pass
             def map(self, fn: Callable, *iterables: Iterable, chunksize: int = 1) -> Iterable[Any]:
-                raise NotImplementedError(f"WINNER:{self.spy_id}")
+                raise MockTriggeredSignal(f"WINNER:{self.spy_id}")
         return SpyMapper(self.mock_id)
 
 # ========== FACTORY-LISTS ============================================================================================
@@ -309,7 +310,8 @@ def test_custom_processor_injections(
     engine.MULTIPROCESSORS = [factory() for factory in BASE_PROCESSORS]
     engine.MULTIPROCESSORS.append(active_processor)
     if isinstance(active_processor, MockProcessor):
-        with pytest.raises(NotImplementedError, match="DummyMapper was successfully triggered!"): engine.run()
+        with pytest.raises(MockTriggeredSignal, match="DummyMapper was successfully triggered!"):
+            engine.run()
     else:
         run_trace = engine.run()
         assert run_trace.evaluation is True
@@ -381,6 +383,6 @@ def test_multiprocess_resolutions(
         multiprocessing=True
     )
     engine.MULTIPROCESSORS = processor_setup
-    expected_exception = NotImplementedError if "WINNER" in expected_error_match else RuntimeError
+    expected_exception = MockTriggeredSignal if "WINNER" in expected_error_match else RuntimeError
     with pytest.raises(expected_exception, match=expected_error_match):
         engine.run()

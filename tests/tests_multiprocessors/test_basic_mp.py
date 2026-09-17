@@ -89,20 +89,6 @@ def test_forall_singleprocessing():
 
 # =========== SÄULE 1: DI & INTERFACE ==================================================================================
 
-def test_ebt_accepts_and_routes_custom_processor():
-    """Demonstrates that a processor injected via DI overwrites the default registry."""
-    engine = EBT(
-        target=target_normalize,
-        pre=[WorldState(args=(" TEXT ",))],
-        post=[WorldState(returns="text")],
-        multiprocessing=True,
-        multiprocessors=[MockProcessor()]
-    )
-    # Da der MockProcessor einen DummyMapper lädt, der einen NotImplementedError wirft,
-    # erwarten wir genau diesen Fehler. Das beweist, dass das Routing funktioniert.
-    with pytest.raises(NotImplementedError, match="DummyMapper was successfully triggered!"):
-        engine.run()
-
 
 def test_ebt_standard_multiprocessing_works_implicitly():
     """Tests the implicit functionality of the native pickler (fallback)."""
