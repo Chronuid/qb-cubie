@@ -1,21 +1,17 @@
 import json
 import tkinter as tk
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, Protocol
+from typing import Dict, Any, Optional
 from protocols import Reviewer
 
 
-# ========== DATACLASSES ===============================================================================================
+# ========== REVIEW-BASED-TESTING ======================================================================================
 
 @dataclass
 class ReviewData:
     """Encapsulates the standardized result of an RBT test."""
     passed: bool
     report: Dict[str, Any] = field(default_factory=dict)
-
-
-# ========== REVIEW-BASED-TESTING ======================================================================================
-
 class RBT:
     """
     Orchestrates the review-based test process.

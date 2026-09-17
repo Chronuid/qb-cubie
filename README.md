@@ -30,7 +30,7 @@ def test_01(): qb.EBT(target=calculate_tax, pre=(100, 19), post=119).run()
 
 ---
 
-## 🧠 Core Paradigms & API
+## 🧠 Core Paradigms
 
 Cubie basiert auf fundamentaler Prädikatenlogik. Das Spektrum der Qualitätssicherung teilt sich in zwei essenzielle Säulen auf: **Example-Based Testing (EBT)** und **Review-Based Testing (RBT)**.
 

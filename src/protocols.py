@@ -140,12 +140,10 @@ class Multiprocessor(Protocol):
     """
     priority: int
 
-    @staticmethod
-    def check_condition(pre_states: list, post_states: list) -> bool:
+    def check_condition(self, pre_states: list, post_states: list) -> bool:
         """The hook-case under review. Evaluates whether this processor is responsible."""
         ...
 
-    @staticmethod
-    def create_handler(n_tasks: int) -> Mapper:
+    def create_handler(self, n_tasks: int) -> Mapper:
         """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
         ...

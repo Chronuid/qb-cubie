@@ -357,8 +357,7 @@ def test_multiprocess_with_local_closures(
         target=target_state_mutator, # Passes the input through 1:1
         arena=arena_factory(),
         pre=[WorldState(args=("CUBIE_CLOSURE",))],
-        # We pass our local closure as a validator
-        post=[WorldState(returns=my_local_closure)],
+        post=[WorldState(returns=my_local_closure)], # We pass our local closure as a validator
         multiprocessing=True,
         **kwargs
     )

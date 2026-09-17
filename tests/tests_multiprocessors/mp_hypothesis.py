@@ -9,7 +9,7 @@ from multiprocessors import StateInspector
 ####### =======================  HYPOTHESIS-EXPLORATION  ======================================================= #######
 ########## -------------------------------------------------------------------------------------------------- ##########
 
-def safe_global_func(): pass
+def _global_func(): pass
 
 @st.composite
 def unpicklable_callable(draw):
@@ -22,7 +22,7 @@ leaf_strategy = st.one_of(
     st.integers(),
     st.text(),
     st.none(),
-    st.just(safe_global_func),
+    st.just(_global_func),
     unpicklable_callable()
 )
 
@@ -34,7 +34,6 @@ recursive_data = st.recursive(
         st.lists(children),
         st.tuples(children),
         st.dictionaries(st.text(), children)
-        # st.sets(children) wurde entfernt, um TypeError zu vermeiden!
     ),
     max_leaves=20
 )
@@ -94,7 +93,7 @@ def test_stateinspector_has_upickable_callables():
 def test_stateinspector_safe_callables_allow_fast_path():
     """
     Testet die Gegenprobe: Sichere Callables (Built-ins, globale Funktionen)
-    und primitive Daten dürfen keinen False-Positive auslösen.
+    und primitive Daten dürfen keine False-Positive auslösen.
     """
     test_ebt = EBT(
         target=StateInspector.has_unpicklable_callables,
@@ -102,7 +101,7 @@ def test_stateinspector_safe_callables_allow_fast_path():
             WorldState(args=([scenario_safe_primitives], [])), # P3: Keine Callables, nur primitive Typen
             WorldState(args=([scenario_safe_builtins], [])), # P4: Built-in Callables sind sicher und pickelbar
         ],
-        post=WorldState(returns=False) # Q: Unsere Erwartung ist, dass der Inspector meldet: "Alles sauber, Fast-Path erlaubt!"
+        post=WorldState(returns=False) # Q: Wir erwarten, dass der Inspector meldet: "Alles sauber, Fast-Path erlaubt!"
     )
     test_ebt.run()
 
@@ -115,7 +114,7 @@ def test_stateinspector_safe_callables_allow_fast_path():
 
 # ========== HYPOTHESIS-EXPLORATION ====================================================================================
 
-def safe_global_func(): pass
+def global_func(): pass
 
 @st.composite
 def unpicklable_callable(draw):
@@ -125,7 +124,7 @@ def unpicklable_callable(draw):
 
 @st.composite
 def generated_state_with_expectation(draw):
-    safe_leaves = st.one_of(st.integers(), st.text(), st.none(), st.just(safe_global_func))
+    safe_leaves = st.one_of(st.integers(), st.text(), st.none(), st.just(global_func))
     recursive_tree = st.recursive(
         safe_leaves,
         lambda children: st.one_of(
@@ -181,7 +180,7 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
     Ein dynamischer Generator, der Breite und Tiefe als Parameter annimmt.
     Er generiert direkt eine ganze LISTE von WorldStates für die EBT-Pipe.
     """
-    safe_leaves = st.one_of(st.integers(), st.text(), st.none(), st.just(safe_global_func))
+    safe_leaves = st.one_of(st.integers(), st.text(), st.none(), st.just(global_func))
     # 1. TIEFE & BREITE (Die Datenstruktur)
     recursive_tree = st.recursive(
         safe_leaves,
@@ -234,7 +233,7 @@ def test_state_inspector_scalable_matrix(width, depth, data):
     pre_states_list, expected_result = data.draw(scalable_fuzzing_batch(max_width=width, max_depth=depth))
 
 
-# ==========  CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERFIIKATIONEN  ===========================
+# ==========  CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERFIIKATIONEN  ==========================
 
     test_ebt = EBT(
         target=StateInspector.has_unpicklable_callables,
