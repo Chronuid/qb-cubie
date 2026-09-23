@@ -1,5 +1,5 @@
 [project]
-name = "cubie"
+
 version = "0.0.3"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,7 +12,10 @@ dependencies = [
     "loky",
     "hypothesis"
 ]
-packages = ["src"]
 include = [
   "src/arenas/**/*",
 ]
+
+[tool.setuptools]
+packages = ["cubie"]
+include-package-data = true
