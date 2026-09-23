@@ -12,9 +12,7 @@ dependencies = [
     "loky",
     "hypothesis"
 ]
-include = [
-  "src/arenas/**/*",
-]
+
 
 [tool.setuptools]
 packages = ["cubie"]
