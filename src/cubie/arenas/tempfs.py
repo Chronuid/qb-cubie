@@ -1,7 +1,7 @@
 import os, tempfile, shutil, uuid, warnings
 from pathlib import Path
 from typing import Any, Optional
-from protocols import WorldState
+from ..protocols import WorldState
 
 
 class TempFS:

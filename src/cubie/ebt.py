@@ -1,9 +1,9 @@
 import dataclasses, filecmp, uuid, time, re, types, functools
 from pathlib import Path
 from typing import Union, Set, get_origin, get_args, Optional
-from multiprocessors import *
-from protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor
-from reporter import PytestReporter
+from .multiprocessors import *
+from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor
+from .reporter import PytestReporter
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
 

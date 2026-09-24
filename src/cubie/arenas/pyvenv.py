@@ -1,19 +1,20 @@
 import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
 from typing import Any, Optional, List
-from arenas.codecs import MSGspecCodec
-from protocols import IPCC, WorldState
+from ..arenas.codecs import MSGspecCodec
+from ..protocols import IPCC, WorldState
 
 
 # ========== PYVENV-ARENA ==============================================================================================
 
+CURRENT_DIR = Path(__file__).parent
 class PyVenv:
     """
     Executes targets as isolated arena runner within ephemeral, virtual Python environments.
     """
     def __init__(
             self,
-            env_path: str = "src/arenas/arena_envs/empty_test_env",
+            env_path: str = str(CURRENT_DIR / "arena_envs" / "empty_test_env"),
             codec: Optional[IPCC] = None,
             decontams: Optional[List] = None,
             custom_id: str | None = None
@@ -183,7 +184,7 @@ class PyVenv:
             raise RuntimeError("STATE-GUARD: 'workspace_path' was not initialized.")
         self._in_path = str(self.workspace_path / f"ipc_in{self.codec.file_suffix}")
         self._out_path = str(self.workspace_path / f"ipc_out{self.codec.file_suffix}")
-        phantom_src = Path("src/arenas/phantom_hook.py")
+        phantom_src = CURRENT_DIR / "phantom_hook.py"
         if not phantom_src.exists():
             raise FileNotFoundError(f"STATE-GUARD: Phantom-Middleware missing at {phantom_src}")
         shutil.copy2(phantom_src, self.workspace_path / "_cubie_phantom.py")

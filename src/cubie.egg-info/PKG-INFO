@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: cubie
+Version: 0.0.3
+Requires-Python: >=3.13
+Requires-Dist: pytest>=9.0.3
+Requires-Dist: pathlib
+Requires-Dist: typing
+Requires-Dist: msgspec
+Requires-Dist: uuid
+Requires-Dist: fsspec
+Requires-Dist: loky
+Requires-Dist: hypothesis
+Requires-Dist: path>=17.1.1

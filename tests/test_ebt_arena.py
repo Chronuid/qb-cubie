@@ -1,6 +1,6 @@
-from ebt import *
-from protocols import WorldState
-from arenas.pyvenv import PyVenv
+from src.cubie.ebt import *
+from src.cubie.protocols import WorldState
+from src.cubie.arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # These tests verify that the arenas are isolated from the host (cubie).

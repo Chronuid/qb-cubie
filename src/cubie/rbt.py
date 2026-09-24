@@ -2,7 +2,7 @@ import json
 import tkinter as tk
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional
-from protocols import Reviewer
+from .protocols import Reviewer
 
 
 # ========== REVIEW-BASED-TESTING ======================================================================================

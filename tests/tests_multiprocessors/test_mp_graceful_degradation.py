@@ -1,4 +1,4 @@
-from ebt import *
+from src.cubie.ebt import *
 import pytest
 from typing import Callable, Iterable, Any
 class MockTriggeredSignal(BaseException): pass

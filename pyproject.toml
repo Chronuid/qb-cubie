@@ -10,10 +10,11 @@ dependencies = [
     "uuid",
     "fsspec",
     "loky",
-    "hypothesis"
+    "hypothesis",
+    "path>=17.1.1",
 ]
 
 
 [tool.setuptools]
-packages = ["cubie"]
+package-dir = {"" = "src"}
 include-package-data = true

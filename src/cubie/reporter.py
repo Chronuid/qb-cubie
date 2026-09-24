@@ -1,5 +1,5 @@
 from typing import List, Dict
-from ebt import RunTrace, EvaluationTrace
+from .ebt import RunTrace, EvaluationTrace
 
 # ========== PYTEST REPORTER ===========================================================================================
 

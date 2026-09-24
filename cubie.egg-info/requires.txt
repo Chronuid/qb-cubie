@@ -1,0 +1,8 @@
+pytest>=9.0.3
+pathlib
+typing
+msgspec
+uuid
+fsspec
+loky
+hypothesis

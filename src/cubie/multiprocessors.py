@@ -2,7 +2,7 @@ import os, pickle, warnings
 from enum import Enum, auto
 from concurrent.futures import ProcessPoolExecutor
 from typing import Callable, Iterable, List, Any
-from protocols import Mapper, Multiprocessor
+from .protocols import Mapper, Multiprocessor
 from loky import get_reusable_executor
 
 
