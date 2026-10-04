@@ -3,7 +3,11 @@ from enum import Enum, auto
 from concurrent.futures import ProcessPoolExecutor
 from typing import Callable, Iterable, List, Any
 from .protocols import Mapper, Multiprocessor
-from loky import get_reusable_executor
+
+try:
+    from loky import get_reusable_executor
+    LOKY_AVAILABLE = True
+except ImportError:  LOKY_AVAILABLE = False
 
 
 ########################################################################################################################
@@ -70,9 +74,19 @@ class LokyProcessor:
     priority = 1
     @staticmethod
     def check_condition(pre_states: list, post_states: list) -> bool:
-        return StateInspector.has_unpicklable_callables(pre_states, post_states)
+        needs_loky = StateInspector.has_unpicklable_callables(pre_states, post_states)
+        if needs_loky and not LOKY_AVAILABLE:
+            warnings.warn(
+                "Loky is not installed, but lambdas/closures were found in the test states. "
+                "Native multiprocessing might fail. "
+                "Install the MP module via: uv pip install -e .[mp]"
+            )
+            return False
+        return needs_loky and LOKY_AVAILABLE
+
     @staticmethod
     def create_handler(n_tasks: int) -> LokyMapper:
+        if not LOKY_AVAILABLE: raise RuntimeError("LokyProcessor was called without the Loky module installed.")
         return LokyMapper(n_tasks)
 
 

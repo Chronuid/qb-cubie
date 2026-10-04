@@ -4,17 +4,17 @@ version = "0.0.3"
 requires-python = ">=3.13"
 dependencies = [
     "pytest>=9.0.3",
-    "pathlib",
-    "typing",
-    "uuid",
-    "fsspec",
-    "loky",
-    "hypothesis",
-    "path>=17.1.1",
-    "networkx>=3.7",
     "msgspec>=0.22.0",
+    "fsspec==2026.9.0",
+    "path>=17.1.1",
+    "loky==3.7.0",
+    "cloudpickle",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "hypothesis==6.168.3",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

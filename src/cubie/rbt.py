@@ -56,8 +56,7 @@ class RBT:
     def _report(self) -> None:
         """Passes the final test result, along with the payload, to the test framework."""
         __tracebackhide__ = True
-        if self._result is None:
-            raise RuntimeError("RBT Pipeline Error: The review phase yielded no result.")
+        if self._result is None: raise RuntimeError("RBT Pipeline Error: The review phase yielded no result.")
         payload_data = {"reviewer_report": self._result.report}
         payload = self._serialize(payload_data)
         assert self._result.passed, payload
@@ -67,15 +66,13 @@ class RBT:
     @staticmethod
     def _evaluate(obj: Any) -> Optional[str]:
         """Converts the passed target object into a string."""
-        if obj is None or isinstance(obj, str):
-            return obj
+        if obj is None or isinstance(obj, str):  return obj
         return getattr(obj, "__name__", str(obj))
 
     def _serialize(self, data: Dict[str, Any]) -> str:
         self._raw_json = json.dumps(data, ensure_ascii=False)
         lines = ["\n--- RBT Report ---"]
-        for key, value in data.get("reviewer_report", {}).items():
-            lines.append(f"- {key}: {value}")
+        for key, value in data.get("reviewer_report", {}).items(): lines.append(f"- {key}: {value}")
         return "\n".join(lines)
 
 
