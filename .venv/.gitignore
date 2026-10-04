@@ -1,2 +1,5 @@
 *
+* .hypothesis/
 * tests/.arenas/
+* src/cubie.egg-info/
+* docs/.assets/

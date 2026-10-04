@@ -1,8 +1,8 @@
 import pytest
 from hypothesis import given, strategies as st
-from ebt import EBT
-from protocols import WorldState
-from multiprocessors import StateInspector
+from src.cubie.ebt import EBT
+from src.cubie.protocols import WorldState
+from src.cubie.multiprocessors import StateInspector
 
 
 ########################################################################################################################
@@ -69,9 +69,7 @@ def test_state_inspector_traversal_stability(returns_data, fs_data, args_data):
 ####### =======================  CUBIE-VALIDATION  ============================================================= #######
 ########## -------------------------------------------------------------------------------------------------- ##########
 
-
 # ========== SCENARIOS =================================================================================================
-
 scenario_kwargs = WorldState(kwargs={"on_success": lambda: "done"})
 scenario_nested = WorldState(args=([lambda x: x],))
 scenario_safe_primitives = WorldState(kwargs={"a": 1, "b": "test", "c": None}, fs={"file.txt": 123})
@@ -110,7 +108,6 @@ def test_stateinspector_safe_callables_allow_fast_path():
 ########################################################################################################################
 ####### =======================  HYPOTHESIS-GENERATED CUBIE-ORCHESTRATION  ===================================== #######
 ########## -------------------------------------------------------------------------------------------------- ##########
-
 
 # ========== HYPOTHESIS-EXPLORATION ====================================================================================
 
@@ -152,7 +149,6 @@ def generated_state_with_expectation(draw):
 
 
 # ========== CUBIE-VALIDATION ==========================================================================================
-
 @given(data_and_oracle=generated_state_with_expectation())
 def test_state_inspector_metamorphic_ebt(data_and_oracle):
     state, expected_result = data_and_oracle
@@ -168,12 +164,10 @@ def test_state_inspector_metamorphic_ebt(data_and_oracle):
 ####### ===================  HYPOTHESIS-GEN | PYTEST-PARAM  | CUBIE-VALID  ==================================== ########
 ########## -------------------------------------------------------------------------------------------------- ##########
 
-# ==========  HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION  ========================================================
-
 from hypothesis import given, settings, strategies as st
-from protocols import WorldState
+from src.cubie import WorldState
 
-
+# ==========  HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION  ========================================================
 @st.composite
 def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
     """
@@ -193,7 +187,6 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
     # 2. BREITE DER TESTLISTEN (Menge der States)
     num_states = draw(st.integers(min_value=1, max_value=max_width))
     pre_states = []
-
     # Das globale Orakel für den gesamten Batch
     is_batch_poisoned = False
     for _ in range(num_states):
@@ -217,7 +210,6 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
 
 
 # ==========  PYTEST-PARAMETRISIERUNG  |   KARTESISCHE-PRODUKTE  =======================================================
-
 settings.register_profile("smoke", max_examples=100)
 settings.register_profile("deep", max_examples=1000)
 settings.register_profile("stress", max_examples=5000, deadline=None)
@@ -231,10 +223,7 @@ settings.load_profile("smoke")
 @given(data=st.data())
 def test_state_inspector_scalable_matrix(width, depth, data):
     pre_states_list, expected_result = data.draw(scalable_fuzzing_batch(max_width=width, max_depth=depth))
-
-
-# ==========  CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERFIIKATIONEN  ==========================
-
+    # ==========  CUBIE-VALIDIERUNG  |  DYNAMISCH-EXPLORATIVE KARTESISCHE-PRODUKT VERIFIKATIONEN  ======================
     test_ebt = EBT(
         target=StateInspector.has_unpicklable_callables,
         pre=WorldState(args=(pre_states_list, [])),

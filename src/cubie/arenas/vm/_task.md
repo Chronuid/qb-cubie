@@ -42,7 +42,6 @@ class Arena(Protocol):
     def teardown(self) -> None:
         """Destroys the workspace and cleans up all temporary environment states."""
         ...
-
 ```
 
 * State-Guard Pattern: Sofortiger, harter Abbruch der Pipeline, wenn deklarierte Ressourcen (wie das Basis-Image) auf dem Host physisch fehlen.
@@ -73,4 +72,33 @@ Die Wahl von Libvirt und QEMU/KVM ist eine fundamentale Architekturentscheidung 
 * Programmatische Orchestrierung: Libvirt bietet robuste, C-basierte Python-Bindings, die explizit für asynchrone Cloud- und CI-Workloads konzipiert wurden, anstatt fehleranfällige CLI-Wrapper aufzurufen.
 * Ephemere CoW-Snapshots: Durch qemu-img und QCOW2-Backing-Files lassen sich in Millisekunden flüchtige Overlays über das Original-Image legen. Jeder EBT-Run operiert in einem exklusiven, winzigen Delta-State, der nach dem Teardown sofort verworfen wird.
 * Netzwerklose IPC (VirtIO-Serial): QEMU ermöglicht dedizierte, serielle Hardware-Kanäle zwischen Host und Gast.
-* Direkte Cgroup-Integration: Libvirt kontrolliert die Linux-Cgroups der emulierten Domains direkt, wodurch die in EBT geforderten Hard-Limits für RAM und CPU deterministisch und ohne Container-Lügen greifen. 
+* Direkte Cgroup-Integration: Libvirt kontrolliert die Linux-Cgroups der emulierten Domains direkt, wodurch die in EBT geforderten Hard-Limits für RAM und CPU deterministisch und ohne Container-Lügen greifen
+
+---
+
+## Entwicklungs-Phasen
+
+### **Phase 1: Wizard-Kernprozess (Top-Down in `wizards.py`)**
+* Definition der Nutzungsmuster und Abläufe.
+* Verankern der Nutzungsmuster und Abläufe als Test-Suites.
+* Ausarbeitung der sequenziellen Zustandsübergänge.
+
+
+### **Phase 2: Fassaden-Implementierung**
+* Entwicklung der mutablen Interfaces zur kontextabhängigen Steuerung (Headless-Mode für Pipelines vs. interaktive UI).
+* Python-SDK-Interface (Optimierte Schnittstellen zum Wirzard-Kernprozess)
+* CLI-Interface (Weiterentwickelbar zur TUI)
+* GUI-Interface (Pyside6)
+
+### **Phase 3: Basis-Integration (`vmarena.py` Setup)**
+* Implementierung der `setup()`-Methode inklusive des State-Guard-Patterns zur Validierung der Host-Ressourcen.
+* Einbindung der Wizards als Self-Healing-Mechanismus, um bei fehlenden Abhängigkeiten wie dem Hypervisor direkt einzugreifen.
+
+### **Phase 4: Libvirt-Kapselung (`libvirt_handles.py`)**
+* Auslagerung der C-nahen API-Aufrufe und der verbosen XML-Deklarationen für Domains und Speichermedien.
+* Bereitstellung von Funktionen zur spezifischen Auswertung der Libvirt-Fehlercodes (`get_error_code()`).
+
+### **Phase 5: Ausführungslogik & Isolation (`vmarena.py`)**
+* Definition der Nutzungsmuster und Variationen.
+* Verankern der Nutzungsmuster und Variationen als Test-Suites.
+* Entwicklung zur Erfüllung der Test-Suites.

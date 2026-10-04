@@ -242,7 +242,7 @@ import libvirt, asyncio, struct, msgpack, tblib
 from typing import Any
 from pathlib import Path
 
-class LibvirtVmArena:
+class VmArena:
     def __init__(self, run_id: str, base_image: Path):
         self.run_id = run_id
         self.base_image = base_image

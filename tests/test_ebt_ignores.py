@@ -3,17 +3,14 @@ from pathlib import Path
 from src.cubie.ebt import EBT
 from src.cubie.protocols import WorldState
 from src.cubie.arenas.tempfs import TempFS
-from src.cubie.arenas.pyvenv import PyVenv, ArenaBuilder
+from src.cubie.arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # PROVISIONING & FIXTURES
 # ======================================================================================================================
 
-BASE_ARENA = "tests/arenas/ignore_base"
-COWSAY_ARENA = "tests/arenas/ignore_cowsay"
-
-ArenaBuilder(BASE_ARENA).build()
-ArenaBuilder(COWSAY_ARENA).with_packages(["cowsay"]).build()
+BASE_ARENA = "tests/.arenas/empty_venv"
+COWSAY_ARENA = "tests/.arenas/cowsay_env"
 
 # ======================================================================================================================
 # TARGETS (The Mutators)

@@ -196,7 +196,7 @@ Um das Zusammenspiel zwischen Makro-Orchestrierung (Runs) und Mikro-Ausführung 
 
 ### 4.1 Anatomie des EvaluationTrace
 
-![Error while trying to load the image](docs/assets/EvaluationTrace.jpg)
+![Error while trying to load the image](docs/.assets/EvaluationTrace.jpg)
 
 ### 4.2 Die Makro-/Mikro-Orchestrierung (Runs & Steps)
 

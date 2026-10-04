@@ -15,23 +15,16 @@ class GracefulMockProcessor:
         return self.triggers
 
     def create_handler(self, n_tasks: int):
-        if self.crash_at == "SETUP":
-            raise ValueError(f"CRASH_SETUP_{self.mock_id}")
-
+        if self.crash_at == "SETUP": raise ValueError(f"CRASH_SETUP_{self.mock_id}")
         class GracefulMapper:
             def __init__(self, spy_id: str, crash: str):
                 self.spy_id = spy_id
                 self.crash = crash
-
             def __enter__(self): return self
-
             def __exit__(self, exc_type, exc_val, exc_tb): pass
-
             def map(self, fn: Callable, *iterables: Iterable, chunksize: int = 1) -> Iterable[Any]:
-                if self.crash == "EXECUTE":
-                    raise RuntimeError(f"CRASH_EXECUTE_{self.spy_id}")
+                if self.crash == "EXECUTE": raise RuntimeError(f"CRASH_EXECUTE_{self.spy_id}")
                 raise MockTriggeredSignal(f"WINNER:{self.spy_id}")
-
         return GracefulMapper(self.mock_id, self.crash_at)
 
 
@@ -79,19 +72,14 @@ DEGRADATION_SCENARIOS = [
         [
             # Prio 100: Fliegt sofort raus, weil check_condition False ist (Kein Crash, kein Warning!)
             GracefulMockProcessor("WRONG_TYPE", priority=100, triggers=False, crash_at=None),
-
             # Prio 90: Wird probiert, stürzt aber im EXECUTE ab -> Degradation + 1 Warning
             GracefulMockProcessor("KAMIKAZE_1", priority=90, triggers=True, crash_at="EXECUTE"),
-
             # Prio 80: Wird probiert, stürzt schon im SETUP ab -> Degradation + 1 Warning
             GracefulMockProcessor("KAMIKAZE_2", priority=80, triggers=True, crash_at="SETUP"),
-
             # Prio 70: Fliegt raus (check_condition False)
             GracefulMockProcessor("IGNORED", priority=70, triggers=False, crash_at=None),
-
             # Prio 10: Der Retter in der Not! Läuft sauber durch.
             GracefulMockProcessor("THE_SAVIOR", priority=10, triggers=True, crash_at=None),
-
             # Prio 5: Wird gar nicht erst erreicht, weil Prio 10 schon gewinnt.
             GracefulMockProcessor("TOO_LATE", priority=5, triggers=True, crash_at="EXECUTE")
         ],

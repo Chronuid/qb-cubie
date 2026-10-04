@@ -1,0 +1,68 @@
+import pytest
+import cubie as qb
+from cubie import WorldState, PyVenv
+
+
+# ======================================================================================================================
+# TARGETS: INTEGRATED UX-SIMULATION
+# ======================================================================================================================
+
+def target_embedded_wizard_flow(user_input: str) -> str:
+    """
+    Führt die VmArena in einer geblindeten Umgebung aus und füttert den
+    automatisch startenden, internen Wizard mit simulierten Tasteneingaben.
+    """
+    import os
+    import builtins
+    from cubie import VmArena, WorldState
+    os.environ["PATH"] = "/usr/local/bin:/usr/bin:/bin" # 1. Versteckt Hypervisoren (VirtualBox, libvirt, etc.)
+    builtins.input = lambda prompt: user_input # 2. Den interaktiven Wizard-Prompt (y/n) innerhalb der Arena abfangen
+    try: # Triggert den Lebenszyklus. Da der Hypervisor im PATH fehlt, muss setup() den Wizard starten.
+        VmArena(os="ubuntu-latest").setup(WorldState())
+        return "WIZARD_COMPLETED_SUCCESSFULLY"
+    except Exception as e: return str(e) # Wir fangen den Ausstieg des Wizards ab, um die UX-Nachrichten zu validieren.
+
+
+# ======================================================================================================================
+# TESTS: SELF-HEALING UX & ONBOARDING
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_embedded_wizard_user_abort():
+    """
+    Beweist: Wenn der integrierte Wizard automatisch anspringt und der Nutzer
+    mit 'n' ablehnt, bricht die Arena den Setup-Vorgang geordnet und mit
+    einer sauberen Meldung ab, statt einen rohen Systemfehler zu werfen.
+    """
+    qb.EBT(
+        target=target_embedded_wizard_flow,
+        pre=WorldState(
+            args=("n",),  # Nutzer lehnt die automatische Installation ab
+            arena=PyVenv()  # Isoliertes Ausführungs-Labor
+        ),
+        post=[ # Der Existenzquantor prüft, ob die Klasse die Ablehnung sauber verarbeitet hat.
+            WorldState(returns=lambda msg: "Installation durch Nutzer abgebrochen" in msg),
+            WorldState(returns=lambda msg: "Setup aborted" in msg)
+        ]
+    ).run()
+
+@pytest.mark.skip()
+def test_embedded_wizard_proceeds_to_install():
+    """
+    Beweist: Wenn der Nutzer mit 'y' bestätigt, initiiert die Klasse
+    den Installations-Prozess für die fehlende Technologie.
+    """
+    qb.EBT(
+        target=target_embedded_wizard_flow,
+        pre=WorldState(
+            args=("y",), # Nutzer stimmt der automatischen Installation zu
+            arena=PyVenv()
+        ),
+        post=[
+            # Da die Testumgebung keine sudo-Rechte für echte Installationen hat,
+            # erwarten wir, dass der Wizard exakt bis zum Installationsversuch kommt.
+            WorldState(returns=lambda msg: "Starte Download" in msg),
+            WorldState(returns=lambda msg: "Berechtigungen fehlen" in msg),
+            WorldState(returns=lambda msg: "Executing install routine" in msg)
+        ]
+    ).run()

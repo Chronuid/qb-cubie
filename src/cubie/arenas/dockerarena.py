@@ -1,4 +1,4 @@
-from cubie import DeviceResources
+from ..protocols import DeviceResources
 from typing import Optional
 
 class DockerArena:

@@ -147,3 +147,11 @@ class Multiprocessor(Protocol):
     def create_handler(self, n_tasks: int) -> Mapper:
         """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
         ...
+
+# ========== ISOLATION-ARENA-PROTOCOLS =================================================================================
+
+@dataclass
+class DeviceResources:
+    ram_mb: Optional[int] = None
+    cpu_cores: Optional[float] = None
+    # Extensible in the future to include I/O limits, GPU allocations, etc.

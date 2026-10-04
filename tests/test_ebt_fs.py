@@ -3,7 +3,7 @@ from src.cubie.arenas.tempfs import *
 
 # ======================================================================================================================
 
-test_arena=TempFS()  # ARENEN:  PyVenv("tests/arenas/empty_venv")  |  TempFS()
+test_arena=TempFS()  # ARENEN:  PyVenv()  |  TempFS()
 
 # ========== FS-TARGETS ================================================================================================
 

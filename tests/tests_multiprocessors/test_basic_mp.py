@@ -9,7 +9,7 @@ from src.cubie.arenas.pyvenv import PyVenv
 ########################################################################################################################
 # ==========  ARENAS:  PyVenv("tests/arenas/empty_venv")  |  TempFS()  =================================================
 
-test_arena=PyVenv("tests/arenas/test_venv")
+test_arena=PyVenv()
 
 
 # ========== TARGETS ===================================================================================================
@@ -89,7 +89,6 @@ def test_forall_singleprocessing():
 
 # =========== SÄULE 1: DI & INTERFACE ==================================================================================
 
-
 def test_ebt_standard_multiprocessing_works_implicitly():
     """Tests the implicit functionality of the native pickler (fallback)."""
     engine = EBT(
@@ -134,7 +133,6 @@ def test_ebt_multiprocessing_with_local_closure():
     )
     run_trace = engine.run()
     assert run_trace.evaluation is True
-
 
 
 # =========== SÄULE 3: EDGE CASES & ARENA ISOLATION ====================================================================

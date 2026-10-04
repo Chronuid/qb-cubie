@@ -100,7 +100,7 @@ class EBT:
         )
 
     def _validate_singleprocess(self) -> None:
-        """Sequential processing reusing the unified task logic."""
+        """Sequential processing, reusing the unified task logic."""
         __tracebackhide__ = True
         ctx = self._build_context()
         for pre_idx, pre_state in enumerate(self.pre):

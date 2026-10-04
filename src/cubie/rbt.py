@@ -108,8 +108,7 @@ class HumanReviewer:
     def _run_gui(self) -> None:
         """Initializes and starts the blocking GUI window."""
         self._root = tk.Tk()
-        if self._root is None:
-            raise RuntimeError("GUI Error: Tkinter root could not be created.")
+        if self._root is None: raise RuntimeError("GUI Error: Tkinter root could not be created.")
         self._root.title("RBT - Manual Check")
         self._root.attributes('-topmost', True)
         self._build_widgets()
@@ -117,8 +116,7 @@ class HumanReviewer:
 
     def _build_widgets(self) -> None:
         """Constructs the visual UI elements for the window."""
-        if self._root is None:
-            raise RuntimeError("GUI Error: Root window is not initialized.")
+        if self._root is None: raise RuntimeError("GUI Error: Root window is not initialized.")
         if self._target:
             tk.Label(self._root, text=f"Target: {self._target}", font=("Arial", 12, "bold")).pack(pady=10)
         tk.Label(self._root, text=f"Check: {self._check}", font=("Arial", 12)).pack(pady=5)

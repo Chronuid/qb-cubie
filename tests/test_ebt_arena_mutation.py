@@ -2,17 +2,14 @@ import subprocess, sys
 from pathlib import Path
 from src.cubie.ebt import EBT
 from src.cubie.protocols import WorldState
-from src.cubie.arenas.pyvenv import PyVenv, ArenaBuilder
+from src.cubie.arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # GLOBAL PROVISIONING (Golden Masters)
 # ======================================================================================================================
 
-BASE_ARENA = "tests/.deprecated_arenas/mutation_base"
-PKG_ARENA = "tests/.deprecated_arenas/mutation_pkg"
-ArenaBuilder(BASE_ARENA).build()
-ArenaBuilder(PKG_ARENA).with_packages(["cowsay"]).build()
-
+BASE_ARENA = "tests/.arenas/empty_venv"
+PKG_ARENA = "tests/.arenas/cowsay_env"
 
 # ======================================================================================================================
 # TARGETS (The Mutators)

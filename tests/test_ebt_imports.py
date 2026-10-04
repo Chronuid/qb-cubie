@@ -16,7 +16,7 @@ from src.cubie.arenas.pyvenv import PyVenv
     params=[
         None,
         TempFS(),
-        PyVenv("tests/.arenas/empty_venv")
+        PyVenv()
     ],
     ids=["No_Arena", "TempFS", "PyVenv"]
 )

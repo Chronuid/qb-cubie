@@ -214,7 +214,7 @@ class MultiprocessResolver:
             if getattr(processor, "priority", 0) > 0 and processor.check_condition(pre_states, post_states):
                 return processor
         raise RuntimeError(
-            "STATE-GUARD: MultiprocessResolver could not find a valid processor throughout the 'resolve'. "
+            "STATE-GUARD: MultiprocessResolver could not find a valid processor throughout 'resolve'. "
             "-> Are all processors really working as they should and are all priorities set correctly?"
         )
 
@@ -230,7 +230,7 @@ class MultiprocessResolver:
             if cls._is_processor_active(processor) and processor.check_condition(pre_states, post_states):
                 return processor
         raise RuntimeError(
-            "STATE-GUARD: MultiprocessResolver could not find a valid processor during '_find_eligable_processor'. "
+            "STATE-GUARD: MultiprocessResolver could not find a valid processor throughout '_find_eligable_processor'. "
             "-> Are all processors really working as they should and are all priorities set correctly?"
         )
 

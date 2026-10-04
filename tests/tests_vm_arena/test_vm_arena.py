@@ -1,0 +1,173 @@
+import platform
+
+import pytest
+
+import cubie as qb
+from cubie import VmArena, WorldState
+
+# Physische Realitäten: Funktionierende, bootfähige Images/Snapshots
+WIN_IMAGE = "my_portable_win_universe"
+LINUX_IMAGE = "my_portable_linux_universe"
+IMAGE = "my_portable_universe"
+
+# ======================================================================================================================
+# TARGETS
+# ======================================================================================================================
+
+def check_os_identity():
+    import os, sys
+    return os.name, sys.platform
+
+def resolve_home_path():
+    from pathlib import Path
+    return str(Path("~").expanduser())
+
+def apply_strict_permissions():
+    import os
+    path = "protected.txt"
+    with open(path, "w") as f: f.write("secret")
+    os.chmod(path, 0o400) # Read-Only (POSIX)
+    return os.access(path, os.W_OK)
+
+def echo_complex_payload(payload):
+    return payload
+
+# ======================================================================================================================
+# TESTS: OS-SPEZIFISCHE LOGIK & BERECHTIGUNGEN
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_vm_os_provisioning_windows():
+    qb.EBT(
+        target=check_os_identity,
+        pre=WorldState(arena=VmArena(os=WIN_IMAGE)),
+        post=WorldState(returns=("nt", "win32"))
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_os_provisioning_linux():
+    qb.EBT(
+        target=check_os_identity,
+        pre=WorldState(arena=VmArena(os=LINUX_IMAGE)),
+        post=WorldState(returns=("posix", "linux"))
+    ).run()
+
+@pytest.mark.skip()
+def test_cross_os_home_routing():
+    qb.EBT(
+        target=resolve_home_path,
+        pre=WorldState(arena=VmArena(os=WIN_IMAGE)),
+        post=[
+            # Existenzquantor: Einer der Windows-Pfade muss matchen
+            WorldState(returns=lambda p: p.startswith("C:\\Users\\")),
+            WorldState(returns=lambda p: p.startswith("D:\\Users\\"))
+        ]
+    ).run()
+
+@pytest.mark.skip()
+def test_posix_permission_handling():
+    qb.EBT(
+        target=apply_strict_permissions,
+        pre=WorldState(arena=VmArena(os=LINUX_IMAGE)),
+        post=WorldState(returns=False) # Schreiben nicht mehr erlaubt im User-Space
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_ipc_integrity():
+    complex_data = {"key": "value", "list": [1, 2, 3], "unicode": "こんにちは"}
+    qb.EBT(
+        target=echo_complex_payload,
+        pre=WorldState(
+            args=(complex_data,),
+            arena=VmArena(os=WIN_IMAGE)
+        ),
+        post=WorldState(returns=complex_data)
+    ).run()
+
+
+# ======================================================================================================================
+# TARGETS (Die in der VM ausgeführt werden)
+# ======================================================================================================================
+
+def target_get_guest_os() -> str:
+    """Liest die Systemarchitektur des Gast-Betriebssystems aus."""
+    return platform.system()
+
+def target_get_current_user() -> str:
+    """Ermittelt den ausführenden System-User innerhalb der VM."""
+    import getpass
+    return getpass.getuser()
+
+def target_write_to_guest_fs(filename: str, content: str) -> bool:
+    """Manipuliert das Dateisystem innerhalb der isolierten VM."""
+    from pathlib import Path
+    Path(filename).write_text(content)
+    return True
+
+# ======================================================================================================================
+# TESTS: ECHTE FUNKTIONALITÄT & ISOLATION
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_vm_actual_boot_and_execution():
+    """Beweist: Das Image wird gebootet, der Code wird via IPC injiziert und das Resultat kehrt zurück."""
+    qb.EBT(
+        target=target_get_guest_os,
+        pre=WorldState(arena=VmArena(os=IMAGE)),
+        post=WorldState(returns="Linux")
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_executes_in_user_space():
+    """Beweist: Die Ausführung findet NICHT als Root statt, um Berechtigungs-Tests nicht zu verfälschen."""
+    qb.EBT(
+        target=target_get_current_user,
+        pre=WorldState(arena=VmArena(os=IMAGE)),
+        post=WorldState(
+            returns=lambda user: user not in ["root", "Administrator", "system"]
+        )
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_isolated_fs_mutation():
+    """Beweist: Host-Dateien werden in den User-Space projiziert, mutiert und validiert."""
+    qb.EBT(
+        target=target_write_to_guest_fs,
+        pre=WorldState(
+            args=("guest_output.txt", "Hello from user space!"),
+            arena=VmArena(os=IMAGE),
+            fs={"/app/": "tests/fixtures/vm_pre/"}
+        ),
+        post=WorldState(
+            returns=True,
+            fs={"/app/guest_output.txt": lambda p: p.read_text() == "Hello from user space!"}
+        )
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_jailbreak_prevention():
+    """
+    Beweist die physische OS-Grenze: Ein Lese-Versuch auf eine sensible Host-Datei
+    muss innerhalb der VM zwingend fehlschlagen (FileNotFoundError).
+    """
+    def target_read_host_secret():
+        from pathlib import Path
+        return Path("/etc/hostname").read_text() # Versucht, direkt auf das Laufwerk des Hosts zuzugreifen
+    qb.EBT(
+        target=target_read_host_secret,
+        pre=WorldState(arena=VmArena(os=IMAGE)),
+        expect=False # Der Host-Pfad existiert in der Gast-VM nicht, daher erwarten wir einen Crash (expect=False)
+    ).run()
+
+@pytest.mark.skip()
+def test_vm_state_guard_red():
+    """
+    Beweist: Wenn das reale Image fehlt oder korrupt ist, verhindert der State-Guard
+    den Start des Hypervisors, bevor Ressourcen verschwendet werden.
+    """
+    qb.EBT(
+        target=target_get_guest_os,
+        pre=WorldState(arena=VmArena(os="idontexist")),
+        post=WorldState(returns="Linux"),
+        expect=False  # Muss durch den RuntimeError im setup() fehlschlagen
+    ).run()

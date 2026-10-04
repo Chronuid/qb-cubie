@@ -1,0 +1,339 @@
+import pytest
+
+import cubie as qb
+from cubie import WorldState, VmArena, DeviceResources
+import time, concurrent.futures
+
+# Physische Realitäten: Funktionierende, bootfähige Images/Snapshots
+WIN_IMAGE = "my_portable_win_universe"
+LINUX_IMAGE = "my_portable_linux_universe"
+IMAGE = "my_portable_universe"
+
+########################################################################################################################
+# ======================================================================================================================
+# TARGETS: RESSOURCEN-LIMITATION & NETZWERK-ISOLATION
+# ======================================================================================================================
+
+def target_memory_leak():
+    """Alloziert exponentiell Speicher, bis der Kernel-OOM-Killer den Prozess terminiert."""
+    memory_hog = []
+    while True: memory_hog.append("A" * 10**6)
+
+def target_read_cgroup_memory_limit() -> int:
+    """Liest das zugewiesene Speicherlimit aus dem virtuellen Dateisystem der cgroup v2 aus und konvertiert in MB."""
+    from pathlib import Path
+    try:
+        limit_bytes = int(Path("/sys/fs/cgroup/memory.max").read_text().strip())
+        return limit_bytes // (1024 * 1024)
+    except Exception: return -1
+
+def target_network_request() -> bool:
+    """Führt einen simplen HTTP-GET-Request durch, um den Egress zu prüfen."""
+    import urllib.request
+    # Timeout von 5 Sekunden verhindert hängende Tests bei erfolgreichem Drop/Blackhole
+    urllib.request.urlopen("http://1.1.1.1", timeout=5)
+    return True
+
+# ======================================================================================================================
+# TESTS: 1. RESSOURCEN-LIMITATION UND CGROUPS-ENFORCEMENT
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_hard_memory_limit_enforcement():
+    """
+    Beweist: Ein Speicherlimit ist eine physische Grenze. Der Prozess wird durch
+    das Signal 9 (SIGKILL) des OOM-Killers terminiert, was den Test formell crasht.
+    """
+    qb.EBT(
+        target=target_memory_leak,
+        pre=WorldState(
+            arena=VmArena(
+                os=IMAGE,
+                resources=DeviceResources(ram_mb=64)
+            )
+        ),
+        expect=False # Der garantierte Absturz wird als Test-Erfolg gewertet.
+    ).run()
+
+@pytest.mark.skip()
+def test_cgroup_limit_delegation():
+    """
+    Beweist: Die deklarativ angeforderten Hardware-Limits werden korrekt an die
+    cgroups des Gast-Systems durchgereicht und können dort verifiziert werden.
+    """
+    qb.EBT(
+        target=target_read_cgroup_memory_limit,
+        pre=WorldState(
+            arena=VmArena(
+                os=IMAGE,
+                resources=DeviceResources(ram_mb=128)
+            )
+        ),
+        post=WorldState(returns=128)
+    ).run()
+
+# ======================================================================================================================
+# TESTS: 2. NETZWERK-ISOLATION UND AIR-GAPPING
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_default_egress_blockade():
+    """
+    Beweist: Ohne explizite Freigabe (Air-Gapped) blockiert die Arena jeglichen Egress.
+    Der Aufruf mündet in einem TimeoutError / URLError.
+    """
+    qb.EBT(
+        target=target_network_request,
+        pre=WorldState(
+            arena=VmArena(
+                os=IMAGE,
+                network=False # Explizit, obwohl False der Default sein sollte
+            )
+        ),
+        expect=False # Netzwerk-Fehler bringt das Target formell zum Absturz.
+    ).run()
+
+@pytest.mark.skip()
+def test_explicit_network_activation():
+    """
+    Beweist: Wenn das `network`-Flag gesetzt ist, routet der Hypervisor den Datenverkehr
+    korrekt durch das Loopback- oder VirtIO-Interface ins externe Netz.
+    """
+    qb.EBT(
+        target=target_network_request,
+        pre=WorldState(
+            arena=VmArena(
+                os=IMAGE,
+                network=True
+            )
+        ),
+        post=WorldState(returns=True)
+    ).run()
+
+
+########################################################################################################################
+# ======================================================================================================================
+# TARGETS: EPHEMERALITÄT, COPY-ON-WRITE, IPC-INTEGRITÄT & TRACEBACKS
+# ======================================================================================================================
+
+def target_write_pollution(flag_path: str) -> bool:
+    """Schreibt eine Signatur-Datei in das Gast-Dateisystem, um den Zustand zu modifizieren."""
+    from pathlib import Path
+    Path(flag_path).write_text("POLLUTED")
+    return True
+
+def target_check_pollution(flag_path: str) -> bool:
+    """Prüft die Existenz der Signatur-Datei."""
+    from pathlib import Path
+    return Path(flag_path).exists()
+
+def target_overwrite_core_binary() -> bool:
+    """Versucht, eine systemkritische Binärdatei mit rohen Bytes zu überschreiben."""
+    from pathlib import Path
+    Path("/bin/sh").write_text("malicious payload")
+    return True
+
+
+def _inner_crash():
+    """Tiefere Call-Stack-Ebene zur Provokation eines strukturierten Fehlers."""
+    raise ValueError("Simulated Architecture Crash")
+
+def target_nested_crash():
+    """Löst bewusst einen Crash aus, dessen Traceback über IPC serialisiert werden muss."""
+    _inner_crash()
+
+# ======================================================================================================================
+# TESTS: 3. EPHEMERALITÄT UND COPY-ON-WRITE (CoW)
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_sequential_ephemerality_isolation():
+    """
+    Beweist: Aufeinanderfolgende Testläufe werden nicht durch persistierte Zustände kontaminiert (Test Pollution).
+    Der Hypervisor muss den diffundierten Zustand der vorherigen Arena erfolgreich isolieren und vernichten.
+    """
+    flag = "/tmp/cubie_sequential_pollution.flag"
+    qb.EBT( # 1. Run: Schreibt die Signatur-Datei in das Image
+        target=target_write_pollution,
+        pre=WorldState(args=(flag,), arena=VmArena(os=IMAGE)),
+        post=WorldState(returns=True)
+    ).run()
+    qb.EBT( # 2. Run: Die zweite Arena-Instanz darf die Modifikation der ersten nicht sehen
+        target=target_check_pollution,
+        pre=WorldState(args=(flag,), arena=VmArena(os=IMAGE)),
+        post=WorldState(returns=False)  # Zwingendes Kriterium für CoW / Snapshot-Rollback
+    ).run()
+
+@pytest.mark.skip()
+def test_parallel_ephemerality_isolation():
+    """
+    Beweist: Bei gleichzeitiger (paralleler) Ausführung teilen sich die Arenen keine Mounts oder Overlays.
+    Jede Instanz operiert in einem kryptografisch oder logisch strikt abgetrennten Workspace.
+    """
+    flag = "/tmp/cubie_parallel_pollution.flag"
+    def run_mutator():
+        qb.EBT(
+            target=target_write_pollution,
+            pre=WorldState(args=(flag,), arena=VmArena(os=IMAGE)),
+            post=WorldState(returns=True)
+        ).run()
+    def run_validator():
+        qb.EBT(
+            target=target_check_pollution,
+            pre=WorldState(args=(flag,), arena=VmArena(os=IMAGE)),
+            post=WorldState(returns=False)
+        ).run()
+    # Paralleler Stresstest der CoW-Infrastruktur via ThreadPool
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        f1 = executor.submit(run_mutator)
+        f2 = executor.submit(run_validator)
+        f1.result()
+        f2.result()
+
+@pytest.mark.skip()
+def test_rootfs_immutability():
+    """
+    Beweist: Das Basis-Root-Dateisystem ist durch Mechanismen wie dm-verity oder
+    Read-Only-Mounts gegen Modifikationen geschützt.
+    """
+    qb.EBT(
+        target=target_overwrite_core_binary,
+        pre=WorldState(arena=VmArena(os=IMAGE)),
+        expect=False  # Muss durch OSError, PermissionError oder EROFS (Read-Only File System) crashen
+    ).run()
+
+
+# ======================================================================================================================
+# TESTS: 4. IPC-INTEGRITÄT UND EXCEPTION-HANDLING
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_ipc_traceback_reconstruction():
+    """
+    Beweist: Der IPC-Kanal ist in der Lage, Fehlerkontexte inklusive Stacktrace
+    verlustfrei über Hypervisor-Grenzen hinweg zu transportieren (z. B. via tblib).
+    """
+    try: # Wir verzichten auf expect=False, damit der EBT-Runner die Exception bis in diesen Host-Kontext durchreicht.
+        qb.EBT(
+            target=target_nested_crash,
+            pre=WorldState(arena=VmArena(os=IMAGE))
+        ).run()
+        assert False, "STATE-GUARD: Das Target ist nicht gecrasht, oder der Fehler wurde verschluckt."
+    except Exception as e:
+        error_msg = str(e)
+        # Validierung der rekonstruierten Traceback-Metadaten
+        assert "ValueError" in error_msg, "Die Art der Exception ging bei der Deserialisierung verloren."
+        assert "Simulated Architecture Crash" in error_msg, "Die Payload der Exception ging verloren."
+        # Der absolute Beweis, dass der Stacktrace (Call-Stack) intakt ist:
+        assert "_inner_crash" in error_msg, "Der tiefe Call-Stack wurde nicht über die IPC-Grenze rekonstruiert."
+
+
+########################################################################################################################
+# ======================================================================================================================
+# TARGETS: NEBENLÄUFIGKEIT & SOCKET-ISOLATION, PATH TRAVERSAL & SYMLINK-SICHERHEIT
+# ======================================================================================================================
+
+def target_echo_worker(worker_id: int) -> int:
+    """Ein simples Target, das seine ID zurückgibt, um die saubere Rückführung via IPC zu beweisen."""
+    return worker_id
+
+def target_simulated_workload() -> float:
+    """Simuliert eine kurze Arbeitslast in der Gast-VM, um die Warteschlangen-Drosselung messbar zu machen."""
+    time.sleep(0.5)
+    return time.time()
+
+def target_create_malicious_symlink(link_name: str) -> bool:
+    """Erzeugt innerhalb des Gast-Dateisystems einen bösartigen Symlink auf sensible Host-Daten."""
+    import os
+    os.symlink("/etc/shadow", link_name)
+    return True
+
+def target_relative_traversal() -> str:
+    """Versucht, über relative Pfade aus dem gekapselten Workspace auszubrechen."""
+    with open("../../../../etc/passwd", "r") as f: return f.read()
+
+
+# ======================================================================================================================
+# TESTS: 5. NEBENLÄUFIGKEIT, SOCKET-ISOLATION UND WARTESCHLANGE
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_parallel_socket_isolation():
+    """
+    Beweist: Das gleichzeitige Spawnen mehrerer Arenen verursacht keine EADDRINUSE-Fehler.
+    Die IPC nutzt dynamische Ephemeral Ports oder UUID-Unix-Sockets.
+    """
+    def run_arena(w_id: int):
+        return qb.EBT(
+            target=target_echo_worker,
+            pre=WorldState(args=(w_id,), arena=VmArena(os=IMAGE)),
+            post=WorldState(returns=w_id)
+        ).run()
+    # Spawnt 5 Arenen strikt parallel. Jede muss ihre isolierte IPC-Brücke erfolgreich etablieren.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(run_arena, i) for i in range(5)]
+        for f in futures: assert f.result() is not None, "Eine Arena ist an Socket-Contention gescheitert."
+
+@pytest.mark.skip()
+def test_arena_queueing_prevents_oom():
+    """
+    Beweist: Übersteigt die Last die Hardware-Kapazität, greift die interne Warteschlange.
+    Der Test wirft hunderte EBT-Requests asynchron ein und beweist, dass der Host nicht an OOM stirbt,
+    sondern die EBT-Engine die Requests limitiert abarbeitet.
+    """
+    start_time = time.time()
+    def run_workload(_):
+        return qb.EBT(
+            target=target_simulated_workload,
+            pre=WorldState(arena=VmArena(os=IMAGE)),
+            post=WorldState(returns=lambda _: True)  # Prädikat akzeptiert den Timestamp
+        ).run()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor: # Wir fordern 50 Arenen gleichzeitig an.
+        futures = [executor.submit(run_workload, i) for i in range(50)]
+        concurrent.futures.wait(futures)
+    duration = time.time() - start_time
+    # Eine einzelne Ausführung dauert 0.5s. Wenn alle 50 physisch sofort liefen (was zum OOM führen würde), 
+    # wäre die Dauer ~0.5s. Wenn eine Warteschlange (z.B. Limit auf 5 parallele VMs) greift, 
+    # dauert es zwingend mehrere Sekunden. Das beweist die aktive Drosselung.
+    assert duration > 2.0, "STATE-GUARD: Die Warteschlange hat versagt. Zu viele VMs wurden zeitgleich gebootet."
+
+
+# ======================================================================================================================
+# TESTS: 6. PATH TRAVERSAL & SYMLINK-SICHERHEIT
+# ======================================================================================================================
+
+@pytest.mark.skip()
+def test_symlink_breakout_prevention():
+    """
+    Beweist: Erzeugt der untrusted Gastcode einen Symlink auf sensible Host-Pfade (wie /etc/shadow), 
+    löst die Cubie-Post-Validierung diesen beim fs-Mapping nicht unbeabsichtigt auf dem Host auf.
+    """
+    link_name = "secret_link"
+    qb.EBT(
+        target=target_create_malicious_symlink,
+        pre=WorldState(
+            args=(link_name,),
+            arena=VmArena(os=IMAGE),
+            fs={"/app/": "tests/fixtures/vm_pre/"}
+        ),
+        post=WorldState(
+            returns=True,
+            # Das Prädikat verifiziert, dass Cubie das File als "Symlink" liest und NICHT dem Pfad
+            # auf dem Host-System folgt, um Berechtigungslecks zu verhindern.
+            fs={f"/app/{link_name}": lambda p: p.is_symlink() and not p.read_text().startswith("root:")}
+        )
+    ).run()
+
+@pytest.mark.skip()
+def test_relative_path_traversal_blocked():
+    """
+    Beweist: Versuche, durch relative Traversal-Pfade (../../..) aus dem Mount auszubrechen, 
+    werden strikt durch die Arena-Grenzen (chroot/Mount-Isolierung) geblockt.
+    """
+    qb.EBT(
+        target=target_relative_traversal,
+        pre=WorldState(arena=VmArena(os=IMAGE)),
+        # Die Ausführung muss mit einem PermissionError oder FileNotFoundError crashen, 
+        # da der gekapselte User keinen physischen Zugriff auf das Host-Root haben darf.
+        expect=False
+    ).run()

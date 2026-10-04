@@ -18,7 +18,7 @@ Installiere das Framework via pip:
 uv pip install cubie
 ```
 
-In deinem Code nutzt du das etablierte, zweistellige Shorthand für maximalen Flow ohne Boilerplate:
+In deinem Code nutzt du das zweistellige Shorthand für maximalen Flow ohne Boilerplate:
 
 ```python
 import cubie as qb
@@ -40,7 +40,7 @@ Cubie basiert auf fundamentaler Prädikatenlogik. Das Spektrum der Qualitätssic
 EBT ist das unbestechliche Fundament zur Definition deterministischer Realitäten ("Golden Masters"). Es basiert auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$. Die Zustände vor der Ausführung ($P$) und danach ($Q$) werden als passive `WorldState`-Objekte deklariert.
 
 **In-Memory API (Shorthands)**
-Für reine Funktionen ohne Seiteneffekte verzichtet Cubie auf Boilerplate. Primitive Datentypen, Tupel und Dictionaries werden automatisch als `args` oder `kwargs` inferiert.
+Für reine Funktionen ohne Seiteneffekte verzichtet Cubie in der zukunft auf Boilerplate. Primitive Datentypen, Tupel und Dictionaries werden zukünftig automatisch als `args` oder `kwargs` inferiert, sobald die ConventionMap realisiert und als Feature integriert wurde. Bis dahin gilt es die Tests als explizite WorldState-Deklarationen umzusetzen.
 
 ```python
 def test_math(): qb.EBT(target=my_func, pre=(1, 2), post=3).run()

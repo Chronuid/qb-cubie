@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 import textwrap
-from collections.abc import Iterable
-from typing import Any, Callable, Final, Optional
+from collections.abc import Callable, Iterable
+from typing import Any, Final
 
 from . import inspect as mi, to_builtins
 
@@ -15,7 +15,7 @@ _REF_TEMPLATE: Final = "#/$defs/{name}"
 def schema(
     type: Any,
     *,
-    schema_hook: Optional[Callable[[type], dict[str, Any]]] = None,
+    schema_hook: Callable[[type], dict[str, Any]] | None = None,
     ref_template: str = _REF_TEMPLATE,
 ) -> dict[str, Any]:
     """Generate a JSON Schema for a given type.
@@ -64,7 +64,7 @@ def schema(
 def schema_components(
     types: Iterable[Any],
     *,
-    schema_hook: Optional[Callable[[type], dict[str, Any]]] = None,
+    schema_hook: Callable[[type], dict[str, Any]] | None = None,
     ref_template: str = _REF_TEMPLATE,
 ) -> tuple[tuple[dict[str, Any], ...], dict[str, Any]]:
     """Generate JSON Schemas for one or more types.
@@ -142,7 +142,7 @@ def _collect_component_types(type_infos: Iterable[mi.Type]) -> dict[Any, mi.Type
         elif isinstance(t, mi.TupleType):
             for st in t.item_types:
                 collect(st)
-        elif isinstance(t, mi.DictType):
+        elif isinstance(t, (mi.DictType, mi.FrozenDictType)):
             collect(t.key_type)
             collect(t.value_type)
         elif isinstance(t, mi.UnionType):
@@ -217,7 +217,7 @@ class _SchemaGenerator:
     def __init__(
         self,
         name_map: dict[Any, str],
-        schema_hook: Optional[Callable[[type], dict[str, Any]]] = None,
+        schema_hook: Callable[[type], dict[str, Any]] | None = None,
         ref_template: str = "#/$defs/{name}",
     ):
         self.name_map = name_map
@@ -308,17 +308,16 @@ class _SchemaGenerator:
             if t.item_types:
                 schema["prefixItems"] = [self.to_schema(i) for i in t.item_types]
                 schema["items"] = False
-        elif isinstance(t, mi.DictType):
+        elif isinstance(t, (mi.DictType, mi.FrozenDictType)):
             schema["type"] = "object"
-            # If there are restrictions on the keys, specify them as propertyNames
-            if isinstance(key_type := t.key_type, mi.StrType):
-                property_names: dict[str, Any] = {}
-                if key_type.min_length is not None:
-                    property_names["minLength"] = key_type.min_length
-                if key_type.max_length is not None:
-                    property_names["maxLength"] = key_type.max_length
-                if key_type.pattern is not None:
-                    property_names["pattern"] = key_type.pattern
+            # If keys have schema metadata or constraints, include them as propertyNames
+            key_type = t.key_type
+            while isinstance(key_type, mi.Metadata):
+                key_type = key_type.type
+            if isinstance(key_type, mi.StrType):
+                property_names = self.to_schema(t.key_type)
+                # Object property names are always strings, so omit the redundant type
+                property_names.pop("type", None)
                 if property_names:
                     schema["propertyNames"] = property_names
             if not isinstance(t.value_type, mi.AnyType):
@@ -330,6 +329,7 @@ class _SchemaGenerator:
         elif isinstance(t, mi.UnionType):
             structs = {}
             other = []
+            none_member = None
             tag_field = None
             for subtype in t.types:
                 real_type = subtype
@@ -338,6 +338,8 @@ class _SchemaGenerator:
                 if isinstance(real_type, mi.StructType) and not real_type.array_like:
                     tag_field = real_type.tag_field
                     structs[real_type.tag] = real_type
+                elif isinstance(real_type, mi.NoneType):
+                    none_member = subtype
                 else:
                     other.append(subtype)
 
@@ -354,17 +356,29 @@ class _SchemaGenerator:
                 }
                 if options:
                     options.append(struct_schema)
+                    if none_member is not None:
+                        options.append(self.to_schema(none_member))
                     schema["anyOf"] = options
+                elif none_member is not None:
+                    schema["anyOf"] = [struct_schema, self.to_schema(none_member)]
                 else:
                     schema.update(struct_schema)
             elif len(structs) == 1:
                 _, subtype = structs.popitem()
                 options.append(self.to_schema(subtype))
+                if none_member is not None:
+                    options.append(self.to_schema(none_member))
                 schema["anyOf"] = options
             else:
+                if none_member is not None:
+                    options.append(self.to_schema(none_member))
                 schema["anyOf"] = options
         elif isinstance(t, mi.LiteralType):
-            schema["enum"] = sorted(t.values)
+            # `t.values` may mix types (e.g. `Literal[1, None]`), which a plain
+            # `sorted` can't order; reuse the same type-aware sort as
+            # `inspect.type_info` so the two entry points agree and neither
+            # crashes.
+            schema["enum"] = list(mi._sort_literal_args(t.values))
         elif isinstance(t, mi.EnumType):
             schema.setdefault("title", t.cls.__name__)
             if doc := _get_doc(t):
@@ -390,15 +404,18 @@ class _SchemaGenerator:
                 elif field.default is not mi.NODEFAULT:
                     field_schema["default"] = to_builtins(field.default, str_keys=True)
                 elif field.default_factory in (list, dict, set, bytearray):
-                    field_schema["default"] = field.default_factory()
+                    field_schema["default"] = to_builtins(
+                        field.default_factory(), str_keys=True
+                    )
                 names.append(field.encode_name)
                 fields.append(field_schema)
 
             if t.array_like:
                 n_trailing_defaults = 0
-                for n_trailing_defaults, f in enumerate(reversed(t.fields)):
+                for f in reversed(t.fields):
                     if f.required:
                         break
+                    n_trailing_defaults += 1
                 schema["type"] = "array"
                 schema["prefixItems"] = fields
                 schema["minItems"] = len(fields) - n_trailing_defaults

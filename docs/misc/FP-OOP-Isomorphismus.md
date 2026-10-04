@@ -1,6 +1,6 @@
 # FP-OOP-Isomorphismus
 
-Kurz gesagt: Ja, OOP lässt sich theoretisch nahtlos in FP übersetzen (und umgekehrt). Sie sind mathematisch gesehen dual zueinander.
+Kurz gesagt: Ja, OOP lässt sich theoretisch nahtlos in FP übersetzen (und umgekehrt). Sie sind mathematisch gesehen isomorph zueinander.
 Wenn man den Zustand (die Attribute) komplett aus der Funktion herauslöst, in eine reine Datenstruktur überführt und die Logik über reine Kompositionsfunktionen steuert, hat man OOP effektiv in FP überführt.
 Hier ist die analytische Aufschlüsselung, warum deine Aussage stimmt, wo die theoretische Brücke liegt und wo in der Praxis die Nuancen liegen:
 

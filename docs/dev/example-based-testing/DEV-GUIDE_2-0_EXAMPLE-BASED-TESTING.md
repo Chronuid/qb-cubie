@@ -119,4 +119,5 @@ Um die interne Funktionsweise und die architektonischen Details der einzelnen Ko
 * **[EBT Orchestration Engine (DEV-GUIDE_2-1)](DEV-GUIDE_2-1_EBT-Class.md):** Details zur Auto-Inferenz, Quantoren-Auflösung ($\forall$ und $\exists$) sowie den Kaskadierungs-Mechanismen der Arenen.
 * **[WorldState Deklarator (DEV-GUIDE_2-2)](DEV-GUIDE_2-2_WorldState-Class.md):** Spezifikation der Zustandsobjekte, der topologischen Dateisystem-Ebene (`fs`) und der kontextuellen Dualität zwischen Pre- und Post-Phasen.
 * **[Arenen & Sandbox-Protokolle (DEV-GUIDE_2-3)](DEV-GUIDE_2-3_Arenas.md):** Spezifikation des Arena-Protokolls, der `PyVenv` / `TempFS` Klassen sowie des dynamischen Provisionings durch den `ArenaBuilder`.
-* **[ConventionMap Registry (DEV-GUIDE_3-1)](../core/DEV-GUIDE_3-1_ConventionMap-Class.md):** Funktionsweise des Fluent Interfaces zur dynamischen Konfiguration von Typ-Mappings und Shorthands via Pytest-Fixtures.
+* **[Multiprocessors (DEV-GUIDE_2-4)](DEV-GUIDE_2-4_Multiprocessors.md):**
+Design des Multiprocessings und Handbuch zur Entwicklung und Integration eigener Multiprocessing-Verfahren.

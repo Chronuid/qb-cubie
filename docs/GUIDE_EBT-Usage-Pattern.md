@@ -6,7 +6,7 @@
 
 ### 1.1. In-Memory ohne Ballast
 
-Für reine Funktionen müssen wir überhaupt kein `WorldState`-Objekt definieren. Wenn `pre` ein `tuple` oder `dict` ist, interpretiert Cubie das konventionell automatisch als `args` bzw. `kwargs` eines WorldState-Objekts.
+Für reine Funktionen müssen wir in der Zukunft überhaupt kein `WorldState`-Objekt definieren. Wenn `pre` ein `tuple` oder `dict` ist, interpretiert Cubie das konventionell automatisch als `args` bzw. `kwargs` eines WorldState-Objekts, sobald wir die ConventionMap realisierten. Bis dahin gilt dieses Feature aber als noch nicht vorhanden und wir müssen uns vorerst auf explizite WorldState-Deklarationen verlassen.
 
 ```python
 # Shorthand für reine Funktionsaufrufe
