@@ -65,7 +65,6 @@ def _ensure_installed(tool_name: str, env_var: str) -> list[str]:
 def ruff(executable: Union[str, list[str], None] = None) -> LinterProfile:
     if executable: exe_cmd = [executable] if isinstance(executable, str) else executable
     else: exe_cmd = _ensure_installed("ruff", "CUBIE_RUFF_PATH")
-
     return LinterProfile(
         name="Ruff",
         base_cmd=exe_cmd + ["check", "--output-format=json"],

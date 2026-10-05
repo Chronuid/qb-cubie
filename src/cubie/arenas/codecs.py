@@ -1,6 +1,9 @@
 from typing import Any
 
+########################################################################################################################
 # ========== IPC-CODEC-IMPLEMENTATIONS =================================================================================
+########################################################################################################################
+
 
 # ===== PICKLE-CODEC ===================================================================================================
 
@@ -43,12 +46,10 @@ class PickleCodec:
                             t = mod
                             for part in qualname.split('.'): t = getattr(t, part)
                         res = t(*a, **k)   
-                with open({repr(out_path)}, 'wb') as f:
-                    pickle.dump(("SUCCESS", res), f)
+                with open({repr(out_path)}, 'wb') as f: pickle.dump(("SUCCESS", res), f)
             except Exception as e:
                 error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                with open({repr(out_path)}, 'wb') as f:
-                    pickle.dump(("ERROR", error_msg), f)
+                with open({repr(out_path)}, 'wb') as f: pickle.dump(("ERROR", error_msg), f)
         """)
 
 
@@ -70,13 +71,14 @@ class MSGspecCodec:
         try:
             with open(path, "wb") as f: f.write(msgspec.msgpack.encode(payload))
         except TypeError as e: raise TypeError(
-            "It is strongly recommended to use stateless static methods or classmethods. "
-            "Instance rehydration via IPC is experimental and may fail for complex objects.",
-            f"IPC Serialization Error: {str(e)}\n"
-            f"By default, the MSGspecCodec supports only primitive data types. "
-            f"Since the payload contains complex objects (e.g., in the target instance's __dict__ or as an argument), "
-            f"simplify the payload or explicitly assign a more capable codec to the arena for complex support:\n"
-            f"> PyVenv(codec=cubie.codecs.CloudpickleCodec())"
+            "**It is strongly recommended to use stateless static methods or classmethods.**\n"
+            "Instance rehydration via IPC is experimental and may fail for complex objects.\n\n",
+            f"IPC Serialization Error: {str(e)}\n\n"
+            f"By default, the MSGspecCodec supports only primitive data types.\n"
+            f"Since the payload contains complex objects (e.g., in the target instance's __dict__ or as an argument),\n"
+            f"**simplify the payload** or explicitly assign a more capable codec to the arena for complex support:\n"
+            f"> `PyVenv(codec=cubie.CloudpickleCodec()`\n"
+            f"> Note: CloudpickleCodec cant isolate the host dependencies from the arena yet.)"
             ) from None
 
     @staticmethod
@@ -93,13 +95,12 @@ class MSGspecCodec:
                 import importlib
                 import _cubie_phantom
                 try:
-                    # 1. Payload laden und splitten
-                    with open({repr(in_path)}, 'rb') as f:
-                        data = msgspec.msgpack.decode(f.read())
+                    # ----- 1. Load and split payload -----
+                    with open({repr(in_path)}, 'rb') as f: data = msgspec.msgpack.decode(f.read())
                     target_info = data["target"]
                     decontams = data.get("decontams", [])
-
-                    with _cubie_phantom.activate_hook(decontams): # 2. Hook aktivieren und Target in den Kontext laden.
+                    # ----- 2. Activate the hook and load the target into the context. -----
+                    with _cubie_phantom.activate_hook(decontams):
                         mod = importlib.import_module(target_info["module"])
                         parts = target_info["qualname"].split('.')
                         if target_info["type"] == "instance":
@@ -111,15 +112,12 @@ class MSGspecCodec:
                         else:
                             func = mod
                             for part in parts: func = getattr(func, part)
-
-                    # 3. Target ausführen und erfolgreiches Ergebnis zurückmelden
+                    # ----- 3. Execute target and report successful result -----
                     res = func(*data["args"], **data["kwargs"])
-                    with open({repr(out_path)}, 'wb') as f:
-                        f.write(msgspec.msgpack.encode(["SUCCESS", res]))
+                    with open({repr(out_path)}, 'wb') as f: f.write(msgspec.msgpack.encode(["SUCCESS", res]))
                 except Exception as e: # Exception abfangen und an den Host melden
                     error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                    with open({repr(out_path)}, 'wb') as f:
-                        f.write(msgspec.msgpack.encode(["ERROR", error_msg]))
+                    with open({repr(out_path)}, 'wb') as f: f.write(msgspec.msgpack.encode(["ERROR", error_msg]))
             """)
 
 
@@ -151,7 +149,6 @@ class MSGspecCodec:
             "Instance rehydration via IPC is experimental and may fail for complex objects.",
             UserWarning, stacklevel=2
         )
-
         return {
             "type": "instance",
             "module": target.__module__,
@@ -169,124 +166,91 @@ class MSGspecCodec:
         }
 
 
-
 # ===== CLOUDPICKLE-CODEC ==============================================================================================
-
-from typing import Any
-
 
 class CloudpickleCodec:
     file_suffix = ".cpkl"
     requirements = ["cloudpickle"]
-
     def __init__(self, isolation: int = 1):
         """
-        Initialisiert den Cloudpickle-Codec mit einem spezifischen Isolations-Grad.
-
+        Initializes the Cloudpickle codec with a specific level of isolation.
         :param isolation:
-            0 = Target physisch extrahieren, aber keine weiteren Schutzmechanismen für Dependencies.
-            1 = Standard. Host-Site-Packages strikt abkapseln (Platzhalter).
-        """
+            0 = Physically extract the target, but apply no further protection mechanisms for dependencies.
+            1 = Default. Strictly encapsulate host site-packages (placeholders).
+        """ # Isolation-Strategy not implementend yet. Still gotta have to figure out the solution for this problem.
         self.isolation = isolation
 
-    # ----- Services (Orchestrators) -----------------------------------------------------------------------------------
+    # ----- Services ---------------------------------------------------------------------------------------------------
 
     def dump(self, obj: Any, path: str) -> None:
         """Serializes the target, parameters, and decontams using surgical cloudpickle extraction."""
         import cloudpickle
         import sys
-
         target, args, kwargs, decontams = obj
-
-        # --- Surgical Pickling: Import-Referenzen kappen ---
         modules_to_unregister = set()
-
         def force_value_pickling(item):
             mod_name = getattr(item, "__module__", None)
             if mod_name and mod_name in sys.modules:
-                # Built-ins und Kern-Module in Ruhe lassen
                 if not mod_name.startswith(("builtins", "_", "cloudpickle")):
-                    mod = sys.modules[mod_name]
-                    cloudpickle.register_pickle_by_value(mod)
-                    modules_to_unregister.add(mod)
-
-        # Traversiere Target und Parameter, um deren Herkunfts-Module "by value" zu markieren
+                    module = sys.modules[str(mod_name)]
+                    cloudpickle.register_pickle_by_value(module)
+                    modules_to_unregister.add(module)
         force_value_pickling(target)
         for arg in args: force_value_pickling(arg)
         for val in kwargs.values(): force_value_pickling(val)
-
-        if self.isolation >= 1:
-            self._apply_dependency_isolation()
-
+        if self.isolation >= 1: self._apply_dependency_isolation()
         payload = {"target": target, "args": args, "kwargs": kwargs, "decontams": decontams}
-
         try:
-            with open(path, "wb") as f:
-                cloudpickle.dump(payload, f)
+            with open(path, "wb") as f: cloudpickle.dump(payload, f)
         finally:
-            # Cleanup: Den globalen State von cloudpickle wieder bereinigen
-            for mod in modules_to_unregister:
-                cloudpickle.unregister_pickle_by_value(mod)
+            for mod in modules_to_unregister: cloudpickle.unregister_pickle_by_value(mod)
 
-    def load(self, path: str) -> Any:
+    @staticmethod
+    def load(path: str) -> Any:
         """Reads and decodes the execution result from the specified path."""
         import cloudpickle
-        with open(path, "rb") as f:
-            return cloudpickle.load(f)
+        with open(path, "rb") as f: return cloudpickle.load(f)
 
-    def get_runner_snippet(self, in_path: str, out_path: str) -> str:
+    @staticmethod
+    def get_runner_snippet(in_path: str, out_path: str) -> str:
         """Generates the runner snippet executing the rehydrated payload natively."""
         import textwrap
         return textwrap.dedent(f"""
-            import cloudpickle
-            import importlib
-            import _cubie_phantom
-
+            import cloudpickle, importlib, _cubie_phantom
             try:
-                # 1. Payload komplett aus dem Bytestream rehydrieren
-                with open({repr(in_path)}, 'rb') as f:
-                    data = cloudpickle.load(f)
-
+                # ----- 1. Fully rehydrate the payload from the byte stream -----
+                with open({repr(in_path)}, 'rb') as f: data = cloudpickle.load(f)
                 target = data["target"]
                 decontams = data.get("decontams", [])
                 args = data.get("args", ())
                 kwargs = data.get("kwargs", {{}})
-
-                # 2. Hook aktivieren und Target im Arena-Vakuum vorbereiten
+                # ----- 2. Activate hook and prepare target in the arena vacuum -----
                 with _cubie_phantom.activate_hook(decontams):
-
-                    # --- Late-Binding String Targets auflösen ---
+                    # --- Resolve late-binding string targets ---
                     if isinstance(target, str):
-                        if ":" in target: 
-                            module_name, qualname = target.split(":", 1)
+                        if ":" in target: module_name, qualname = target.split(":", 1)
                         else:
                             parts = target.split(".")
                             module_name = ".".join(parts[:-1])
                             qualname = parts[-1]
-
                         target = importlib.import_module(module_name)
-                        for part in qualname.split('.'): 
-                            target = getattr(target, part)
-
-                    # 3. Ausführen
+                        for part in qualname.split('.'): target = getattr(target, part)
+                    # ----- 3. Execute -----
                     res = target(*args, **kwargs)
-
-                # 4. Erfolgreiches Ergebnis serialisieren
-                with open({repr(out_path)}, 'wb') as f:
-                    cloudpickle.dump(["SUCCESS", res], f)
-
+                # ----- 4. Serialize successful result -----
+                with open({repr(out_path)}, 'wb') as f: cloudpickle.dump(["SUCCESS", res], f)
             except Exception as e:
                 error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                with open({repr(out_path)}, 'wb') as f:
-                    cloudpickle.dump(["ERROR", error_msg], f)
+                with open({repr(out_path)}, 'wb') as f: cloudpickle.dump(["ERROR", error_msg], f)
         """)
 
     # ----- Utilities (Workers) ----------------------------------------------------------------------------------------
 
+
     def _apply_dependency_isolation(self):
         """
-        Platzhalter: Dependency-Isolation.
-        Hier stellen wir zukünftig sicher, dass externe Site-Packages (wie requests, pytest etc.)
-        aus dem Host strikt 'by reference' referenziert werden und nicht als Bytecode im Payload landen.
+        Placeholder: Dependency isolation.
+        Here, we will ensure in the future that external site-packages (such as requests, pytest, etc.)
+        from the host get isolated and do not end up as bytecode in the payload.
         """
         pass

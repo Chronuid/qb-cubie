@@ -67,6 +67,25 @@ Um das isolierte Environment vor ungewollten Import-Ästen des Host-Systems zu s
 * **`PyVenv._actual_returns`:** Zwischenspeicher für die funktionalen Rückgabewerte des Targets nach dem erfolgreichen Abschluss des Subprozesses.
 * **Interne Subprozess-Kontrolle:** Variablen wie `_python_exe`, `_env_vars`, `_in_path` (Input-Datei für IPC), `_out_path` (Output-Datei für IPC) und `_process` kapseln den genauen Zustand und die Interaktion mit dem Systemprozess.
 
+### Das IPCC-Protokoll & Codec-Design
+
+Da das Target in einem Subprozess läuft, können Eingaben (Args, Kwargs) und funktionale Ausgaben (Returns) nicht nativ übergeben werden. Die Arena nutzt das `IPCC`-Protokoll (Inter-Process Communication Codec), um Daten zustandslos und sicher zwischen dem Host-Prozess (Cubie) und der Sandbox zu serialisieren und zu rehydrieren. 
+
+Die Wahl des Codecs ist ein architektonischer Trade-off zwischen Performance, Feature-Unterstützung und Sandbox-Integrität:
+
+#### 1. `MSGspecCodec` (Strict Isolation & Performance)
+Der Standard-Codec der `PyVenv`-Arena. Er nutzt hochoptimierte MessagePack-Serialisierung.
+*   **Vorteile:** Rasend schnell und sichert die Host-Isolation, da nur primitive Werte übergeben werden.
+*   **Limitierungen:** Er ist physikalisch unfähig komplexe Instanz-Zustände zu verarbeiten. 
+*   **UX-Design:** Trifft der Codec auf ein nicht unterstütztes Objekt, wirft er keinen kryptischen Traceback, sondern fängt den Fehler ab und empfiehlt dem Entwickler über eine formattierte `TypeError`-Nachricht den Wechsel auf den `CloudpickleCodec` oder die Simplifizierung des Payloads.
+
+#### 2. `CloudpickleCodec` (Feature Parity & Complexity)
+Dieser Codec wird explizit genutzt, wenn erweiterte EBT-Patterns (wie Lambdas für dynamische Post-Conditions oder Instanzen mit komplexen `__dict__`-States) über die Prozessgrenze transferiert werden müssen.
+*   **Die Isolations-Herausforderung:** `cloudpickle` bricht prinzipbedingt die strikte Sandbox-Prämisse. Es arbeitet "greedy" (gierig) und serialisiert nicht nur das Target, sondern zieht oft Teile des Host-Scopes und der Import-Referenzen mit in den Stream. Wenn das referenzierte Callable im Host-Kontext beispielsweise ein Test-Framework wie `pytest` importiert hat, kollabiert der Subprozess beim Rehydrieren mit einem `ModuleNotFoundError`, da diese Host-Module in der restriktiven Sandbox absichtlich nicht existieren.
+*   **Isolations-Grade:** Der Codec besitzt einen `isolation`-Parameter im Konstruktor. 
+    *   `isolation=0`: Führt eine chirurgische Extraktion (Surgical Pickling) des Targets durch, wendet aber keine tieferen Schutzmechanismen gegen Dependency-Leaks an.
+    *   `isolation=1` (Default): Ein architektonischer Platzhalter für zukünftige Iterationen, in denen das Pickling-Verhalten so modifiziert werden soll, dass Host-Site-Packages strikt von der Arena ferngehalten werden.
+
 ### Der `ArenaBuilder` (Provisioning)
 
 Um Test-Code nicht mit Setup-Boilerplate zu überladen, stellt das Modul den `ArenaBuilder` bereit. Über ein Fluent Interface können Base-Environments deklarativ generiert werden (inklusive der Installation von Drittanbieter-Bibliotheken via `uv pip`).

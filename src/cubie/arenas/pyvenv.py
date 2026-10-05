@@ -19,7 +19,7 @@ class PyVenv:
             decontams: Optional[List] = None,
             custom_id: str | None = None
     ):
-        self.codec = codec or CloudpickleCodec()
+        self.codec = codec or MSGspecCodec()
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)

@@ -2,6 +2,7 @@
 import pytest
 from typing import Any
 
+import cubie
 # Cubie Imports (Pfade ggf. anpassen)
 from cubie import EBT
 from cubie.protocols import WorldState
@@ -50,7 +51,7 @@ class TestIPCCodecContract:
 
     @pytest.fixture
     def arena(self) -> PyVenv:
-        return PyVenv()
+        return PyVenv(codec=cubie.CloudpickleCodec())
 
     def test_pure_function_serialization(self, arena: PyVenv):
         """Ein Codec muss reine Funktionen übertragen können."""

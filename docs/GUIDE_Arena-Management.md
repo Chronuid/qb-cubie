@@ -57,6 +57,33 @@ def test_installation():
     ).run()
 
 ```
+### 2.4 IPC-Codecs und Payload-Serialisierung
+
+Da die `PyVenv`-Arena das Target und die Parameter in einem isolierten Subprozess ausführt, müssen diese Daten über die Prozessgrenze (Inter-Process Communication, kurz IPC) transportiert werden. Cubie nutzt dafür austauschbare Codecs, die du je nach Komplexität deiner Test-Daten anpassen kannst:
+
+*   **`MSGspecCodec` (Der Standard):** 
+    Dieser Codec ist standardmäßig aktiv. Er basiert auf C und ist extrem performant, versteht aber **ausschließlich primitive Datenstrukturen** (Strings, Listen, Dictionaries etc.). Wenn du versuchst, gebundene Methoden mit komplexem Zustand (`__dict__`) oder dynamische EBT-Prädikate (Lambdas) an die Arena zu übergeben, blockt dieser Codec die Serialisierung ab und wirft eine dedizierte Warnung mit dem Hinweis, die Payloads zu simplifizieren oder den Codec zu wechseln.
+    
+*   **`CloudpickleCodec` (Für komplexe Objekte):**
+    Wenn dein Test zwingend dynamische Callables (Lambdas in Post-Conditions) oder komplexe Mock-Instanzen benötigt, kannst du diesen Codec nutzen. Er serialisiert den kompletten Bytecode und Zustand.
+    *Achtung (Isolation Leak):* Cloudpickle arbeitet sehr "gierig" und zieht potenziell Host-Abhängigkeiten mit in den Bytestream. Er durchbricht damit teilweise die strikte Isolation der Arena. Nutze ihn daher nur, wenn komplexe Objekte unvermeidbar sind.
+
+**Konfiguration eines abweichenden Codecs:**
+Du kannst den Codec direkt bei der Instanziierung der Arena überschreiben:
+
+```python
+from cubie import EBT, WorldState, PyVenv, CloudpickleCodec
+
+def test_complex_callable():
+    EBT(
+        # Wir weisen der Arena explizit den fähigeren Codec zu
+        arena=PyVenv("tests/arenas/qa_env", codec=CloudpickleCodec()),
+        target=my_complex_func,
+        pre=WorldState(args=(1, 2)),
+        # Ein Lambda in der Post-Condition erfordert zwingend Cloudpickle
+        post=WorldState(returns=lambda actual: actual > 0)
+    ).run()
+```
 
 ### 2.2 Externe Arenen (Andere Projekte referenzieren)
 

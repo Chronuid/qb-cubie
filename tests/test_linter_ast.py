@@ -161,7 +161,7 @@ def test_astlinter_markdown_artifacts():
 
     EBT(
         target=AstLinter(linter=[ruff()]).check,
-        arena=PyVenv(ARENA_PATH),
+        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
         pre=WorldState(kwargs={"target": llm_output}),
         post=WorldState(
             returns=[]  # Fordert 0 Fehler -> Schlägt fehl, solange der Stripper fehlt!
@@ -195,7 +195,7 @@ def test_astlinter_cross_module_dependency(cross_module_fs: Path):
     """
     EBT(
         target=AstLinter(linter=[pylint()]).check,
-        arena=PyVenv(ARENA_PATH),
+        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("src")},
             fs={
@@ -236,7 +236,7 @@ def test_astlinter_ignores_venv_directory(venv_ignored_fs: Path):
     """
     EBT(
         target=AstLinter(linter=[ruff()]).check,
-        arena=PyVenv(ARENA_PATH),
+        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path(".")},  # Scannt den gesamten Workspace in der Arena
             fs={
