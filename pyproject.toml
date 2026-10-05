@@ -9,6 +9,10 @@ dependencies = [
     "path>=17.1.1",
     "loky==3.7.0",
     "cloudpickle",
+    "dataclasses>=0.8",
+    "ruff>=0.16.10",
+    "pylint>=4.1.2",
+    "libcst>=1.9.0",
 ]
 
 [project.optional-dependencies]

@@ -1,3 +1,5 @@
+import multiprocessing
+
 from src.cubie.ebt import *
 from src.cubie.protocols import WorldState
 from src.cubie.arenas.pyvenv import PyVenv
@@ -28,6 +30,24 @@ def test_arena_isolation_red():
         target=check_host_isolation,
         post=WorldState(returns=True),
         expect=False
+    ).run()
+
+
+def test_mp_arena_isolation_green():
+    EBT(
+        arena=PyVenv("tests/.arenas/empty_venv"),
+        target=check_host_isolation,
+        post=WorldState(returns=False),
+        multiprocessing=True
+    ).run()
+
+def test_mp_arena_isolation_red():
+    EBT(
+        arena=PyVenv("tests/.arenas/empty_venv"),
+        target=check_host_isolation,
+        post=WorldState(returns=True),
+        expect=False,
+        multiprocessing=True
     ).run()
 
 # ======================================================================================================================

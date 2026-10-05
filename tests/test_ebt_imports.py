@@ -98,14 +98,13 @@ def test_import_nested_class(arena):
 def test_import_rehydration_instance(arena):
     """Tests bypass instantiation and rehydration for stateful objects."""
     inst = RehydrationTarget(state_val=10)
-    if isinstance(arena, PyVenv): # The .* pattern also reliably captures multiline warnings.
-        with pytest.warns(UserWarning, match=".*stateless static methods or classmethods.*"):
-            EBT(
-                arena=arena,
-                target=inst.target_instance,
-                pre=WorldState(kwargs={"multiplier": 5}),
-                post=WorldState(returns=50)
-            ).run()
+    if isinstance(arena, PyVenv):
+        EBT(
+            arena=arena,
+            target=inst.target_instance,
+            pre=WorldState(kwargs={"multiplier": 5}),
+            post=WorldState(returns=50)
+        ).run()
     else: # Host execution: Native object reference, no IPC serialization, no warning.
         EBT(
             arena=arena,

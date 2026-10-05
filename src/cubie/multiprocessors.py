@@ -79,7 +79,6 @@ class LokyProcessor:
             warnings.warn(
                 "Loky is not installed, but lambdas/closures were found in the test states. "
                 "Native multiprocessing might fail. "
-                "Install the MP module via: uv pip install -e .[mp]"
             )
             return False
         return needs_loky and LOKY_AVAILABLE

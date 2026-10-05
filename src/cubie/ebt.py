@@ -29,7 +29,8 @@ class EBT:
             custom_id: Optional[str] = None,
             reporter: Reporter | None = PytestReporter(),
             multiprocessing: bool = False,
-            multiprocessors: Optional[List['Multiprocessor']] = None
+            multiprocessors: Optional[List['Multiprocessor']] = None,
+            tags = None
         ):
         self.target = target
         self.arena = arena
@@ -53,6 +54,7 @@ class EBT:
         self.MULTIPROCESSING = multiprocessing or False
         self.MULTIPROCESSORS: List['Multiprocessor'] = [PickleProcessor(), LokyProcessor()]
         if multiprocessors: self.MULTIPROCESSORS.extend(multiprocessors)
+        self.tags = tags
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
