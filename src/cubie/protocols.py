@@ -1,9 +1,7 @@
 import typing
-from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable, Union
+from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-import dataclasses
-
 
 # ========== REVIEWER-PROTOCOL | REVIEW-BASED-TESTING ==================================================================
 
@@ -149,31 +147,10 @@ class Multiprocessor(Protocol):
         """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
         ...
 
-# ========== ISOLATION-ARENA-PROTOCOLS =================================================================================
+# ========== VM-ARENA-PROTOCOLS ========================================================================================
 
 @dataclass
 class DeviceResources:
     ram_mb: Optional[int] = None
     cpu_cores: Optional[float] = None
     # Extensible in the future to include I/O limits, GPU allocations, etc.
-
-
-
-# ========== LINTER ====================================================================================================
-
-@dataclasses.dataclass
-class LinterDiagnostic:
-    linter_name: str  # Wichtig für EBT, um zu wissen, wer den Fehler gemeldet hat
-    rule_id: str
-    line: int
-    column: int
-    message: str
-    severity: str
-
-
-@dataclasses.dataclass
-class LinterProfile:
-    name: str
-    base_cmd: list[str]
-    stdin_args: List[str]
-    json_parser: Callable[[str, str], list[LinterDiagnostic]]
