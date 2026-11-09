@@ -36,7 +36,7 @@ class WorldState:
     arena: Optional[Any]  = None
     fs: Optional[Any]  = None
     returns: Optional[Any]  = None
-    expect: Optional[bool]  = True or False
+    expect: Optional[bool]  = True
 
 
 # ========== ARENA-PROTOCOL | EXAMPLE-BASED-TESTING ====================================================================

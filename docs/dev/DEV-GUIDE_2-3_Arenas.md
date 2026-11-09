@@ -101,7 +101,8 @@ Die `TempFS`-Arena ist die performante, leichtgewichtige Alternative für Progra
 
 ### Architektonische Eigenschaften
 
-* **Host-Prozess-Ausführung:** Im Gegensatz zu `PyVenv` startet `TempFS` keinen Subprozess und serialisiert keine Daten. Es manipuliert während der `execute`-Phase lediglich kurzzeitig das "Current Working Directory" (`CWD`) des Host-Prozesses, führt das Target nativ aus und springt danach sicher in den ursprünglichen Pfad zurück.
+* **Kindprozess mit Host-Interpreter:** `TempFS.execute()` startet für jeden Aufruf einen frischen Prozess über `sys.executable`. `subprocess.run(cwd=workspace_path)` setzt ausschließlich das CWD des Kindprozesses. Der Aufrufer führt kein `os.chdir()` aus; unabhängige Arena-Instanzen können aus mehreren Threads aufgerufen werden.
+* **IPC und Objektzustand:** Cloudpickle überträgt Target, Argumente, Rückgaben und Exceptions. Python-Objektmutationen werden nicht in den Aufrufer zurückgespiegelt; Rückgaben besitzen eine neue Identität. Die installierten Pakete des Host-Interpreters bleiben verfügbar. IPC-Dateien liegen in einem separaten temporären Verzeichnis, das auch bei Fehlern entfernt wird.
 * **Beschränkung auf die Dateisystem-Topologie:** Die Arena ist ausschließlich für das Mapping und Verifizieren der Festplattenstruktur (`WorldState.fs`) konzipiert.
 * **Schutz durch Warnungen:** Wenn ein Nutzer versucht, eine komplexe Umgebungssimulation über das Attribut `WorldState.arena` in eine `TempFS`-Instanz zu injizieren, wirft die Klasse eine dedizierte Laufzeitwarnung und verweist architektonisch auf die Nutzung von `PyVenv`.
 
@@ -112,11 +113,11 @@ Die `TempFS`-Arena ist die performante, leichtgewichtige Alternative für Progra
 
 #### Pfad- und Zustands-Attribute
 * **`TempFS.workspace_path`:** Der absolute Pfad (`Path`) zum temporären Ordner, in den die in `WorldState.fs` deklarierten Dateien der Topologie projiziert werden.
-* **`TempFS._original_cwd`:** Ein hochkritisches Sicherheits-Attribut. Es speichert den Pfad des ursprünglichen Host-Arbeitsverzeichnisses, um nach der Ausführung des Targets (oder im Fehlerfall) eine sichere Wiederherstellung via `os.chdir()` ins Host-System zu gewährleisten.
+* Das Host-CWD wird nicht gespeichert oder wiederhergestellt, da `TempFS` es nicht verändert. Für jeden gleichzeitig aktiven Lebenszyklus wird eine eigene Instanz benötigt.
 
 #### Prozessierungs-Attribute
 * **`TempFS._config_state`:** Referenziert den durch die EBT-Engine übergebenen initialen Pre-State.
-* **`TempFS._actual_returns`:** Fängt den direkten, unmodifizierten Rückgabewert des nativ im Host-Prozess ausgeführten Targets ab.
+* **`TempFS._actual_returns`:** Speichert den deserialisierten Rückgabewert des Targets. Übertragene Exceptions werden mit ihrem Typ und einem angehängten Remote-Traceback erneut ausgelöst; ein Prozessende ohne vollständiges Ergebnis wird als `RuntimeError` gemeldet.
 
 ---
 

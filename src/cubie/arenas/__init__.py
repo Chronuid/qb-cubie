@@ -6,7 +6,7 @@ Provides execution environments (sandboxing) for the temporary execution of targ
     Executes targets as arena runners within virtual environments utilizing IPC codecs and phantom import hooks.
 
 `TempFS`:
-    Executes targets within the host process while encapsulating file system operations in an ephemeral workspace.
+    Executes targets in fresh host-interpreter processes with ephemeral working directories and cloudpickle IPC.
 
 `ArenaBuilder`:
     Programmatically provisions base environments.

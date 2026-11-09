@@ -2,7 +2,7 @@
 
 Das Arena-Management in Cubie ermöglicht es, Tests in kontrollierten, reproduzierbaren Umgebungen auszuführen. Durch die strikte Trennung von Test-Logik und Ausführungskontext (Arena) bleibt der Code flexibel und robust. Aktuell bietet Cubie zwei native Arena-Typen an, die je nach Anwendungsfall unterschiedliche Schwerpunkte auf Performance und Isolation legen:
 
-* **`TempFS` (Speed & Filesystem):** Ein extrem leichtgewichtiger Runner, der den Overhead von Subprozessen, Inter-Process-Communication (IPC) und Venv-Duplikaten eliminiert. Führt das Target direkt im Host-Prozess aus, kapselt aber alle Dateisystem-Operationen in einem flüchtigen Workspace. Ideal für reine FS-Abgleiche und bei minimalen Datensätzen gut 3-mal schneller als eine prozessbasierte Virtualisierung.
+* **`TempFS` (Filesystem):** Führt das Target in einem frischen Kindprozess mit demselben Python-Interpreter und dessen installierten Paketen aus. Ein flüchtiger Workspace dient als Arbeitsverzeichnis; eine virtuelle Umgebung wird nicht kopiert.
 * **`PyVenv` (Isolation & Environment):** Der funktionale MVP für vollständige Prozess- und Dependency-Isolation. Kapselt den Lauf in einem echten Python-Subprozess innerhalb einer duplizierten virtuellen Umgebung. Ideal, um Paket-Installationen, Versionskonflikte oder externe Microservices zu testen.
 
 
@@ -14,7 +14,13 @@ Das Arena-Management in Cubie ermöglicht es, Tests in kontrollierten, reproduzi
 Die `TempFS`-Arena fungiert als Standard für alle Tests, die sich ausschließlich auf Input/Output-Operationen im Dateisystem konzentrieren (z.B. Datei-Generatoren, Parser oder klassisches Byte-Diffing) und keine spezifischen Python-Abhängigkeiten benötigen.
 
 **Wie es funktioniert:**
-Die Arena hydriert die deklarierten Dateien aus dem `WorldState` in einen temporären Ordner. Für den Moment der Funktionsausführung wird das Arbeitsverzeichnis des Betriebssystems für den Host-Prozess in diesen temporären Workspace verschoben. Das Target läuft als normaler Funktionsaufruf mit maximaler Performance, manipuliert aber unwissentlich den temporären Workspace, welcher danach durch EBT sauber via Byte-Diffing validiert und anschließend zerstört wird.
+Die Arena hydriert die deklarierten Dateien aus dem `WorldState` in einen temporären Ordner und startet das Target mit diesem Ordner als Arbeitsverzeichnis. Das CWD des aufrufenden Prozesses bleibt auch während paralleler Thread-Aufrufe unverändert. EBT validiert anschließend den Workspace und entfernt ihn nach der Auswertung. Jede gleichzeitig aktive Arena benötigt eine eigene `TempFS`-Instanz; `EBT(multiprocessing=True)` und pytest-xdist können die Ausführung zusätzlich auf Prozesse verteilen.
+
+**Prozessgrenze und Migration:** Targets, Argumente, Rückgaben und übertragene Exceptions müssen mit Cloudpickle serialisierbar sein. Lokale Funktionen und Lambdas werden unterstützt. Änderungen an übergebenen Python-Objekten oder globalen Variablen gelangen nicht zurück zum Aufrufer; Rückgaben sind deserialisierte Objekte mit eigener Identität. Prüfe solche Änderungen über Rückgabewerte oder den Dateisystemzustand. Für explizite Ausführung im aufrufenden Prozess kann EBT ohne Arena verwendet werden.
+
+Jeder Target-Aufruf benötigt einen Prozessstart und die Übertragung seiner Daten. Dadurch entsteht zusätzlicher Aufwand gegenüber der früheren direkten Ausführung, auch innerhalb eines EBT-Multiprocessing-Workers.
+
+Target-Exceptions einschließlich `KeyboardInterrupt` und `SystemExit` werden mit einem Hinweis auf den Traceback des Kindprozesses weitergegeben. Stirbt der Kindprozess ohne Ergebnis, etwa durch `os._exit`, meldet `TempFS` einen `RuntimeError`. Das Host-CWD bleibt erhalten; `run()` und EBT räumen den Workspace auch bei Fehlern auf. IPC-Dateien liegen außerhalb des Workspace und erscheinen nicht in FS-Postconditions.
 
 ---
 

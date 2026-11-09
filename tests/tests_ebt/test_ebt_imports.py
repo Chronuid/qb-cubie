@@ -11,7 +11,7 @@ from src.cubie.arenas.pyvenv import PyVenv
 # ======================================================================================================================
 
 # We parameterize the three execution environments to run each callable through all sandboxes.
-# None (host memory), TempFS (host CWD shift), PyVenv (IPC subprocess)
+# None (host memory), TempFS (host-interpreter child), PyVenv (venv child)
 @pytest.fixture(
     params=[
         None,
@@ -105,7 +105,7 @@ def test_import_rehydration_instance(arena):
             pre=WorldState(kwargs={"multiplier": 5}),
             post=WorldState(returns=50)
         ).run()
-    else: # Host execution: Native object reference, no IPC serialization, no warning.
+    else:  # Direct execution or TempFS cloudpickle IPC, without PyVenv's codec warning.
         EBT(
             arena=arena,
             target=inst.target_instance,

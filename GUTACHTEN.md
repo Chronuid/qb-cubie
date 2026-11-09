@@ -216,7 +216,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
 
 ### Priorität 2 (Architektur-Härtung)
 4. **Beseitigung von `os.chdir` in `TempFS`:**  
-   Arbeitsverzeichnisse dürfen nicht prozessweit umgebogen werden. Wenn Pfad-Isolation erforderlich ist, muss das Target entweder explizite Pfadparameter akzeptieren oder die Ausführung in einen Subprozess ausgelagert werden.
+   Arbeitsverzeichnisse sollten nicht prozessweit umgebogen werden, wenn Pfad-Isolation erforderlich ist.
 5. **Materialisierung von Mappings vor Kontext-Exit:**  (DONE)  
    In `MultiprocessRunner.execute()` muss der Generator konsumiert werden, bevor der `with`-Block schließt:
    ```python

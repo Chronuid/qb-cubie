@@ -47,7 +47,7 @@ Während die `EBT`-Klasse die formallogische Makro-Orchestrierung übernimmt und
 
 * **Trennung von Orchestrierung und Ausführung:** Die EBT-Engine delegiert die Erschaffung der Testumgebung, die Ausführung des Targets und das Einsammeln der Resultate vollständig an die Arena.
 * **State-Injection:** Die Arena empfängt über ihre `setup(state: WorldState)`-Methode den deklarierten Ausgangszustand, projiziert diesen in einen isolierten Workspace und liefert nach der Ausführung über `get_state() -> WorldState` die veränderte, ungeschönte Realität an die Engine zurück.
-* **Spezialisierung:** Cubie bietet standardmäßig `PyVenv` für vollständige Laufzeit-Isolation (via Subprozesse und `uv`) und `TempFS` als extrem leichtgewichtige In-Memory-Alternative für reine Dateioperationen.
+* **Spezialisierung:** Cubie bietet `PyVenv` für die Ausführung in einer kopierten virtuellen Umgebung und `TempFS` für Dateioperationen in einem Kindprozess mit dem Host-Interpreter. Beide lassen das Arbeitsverzeichnis des Aufrufers unverändert.
 
 ---
 

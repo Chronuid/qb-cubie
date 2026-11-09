@@ -1,12 +1,26 @@
-import os, tempfile, shutil, uuid, warnings
+import multiprocessing
+import pickle
+import shutil
+import subprocess
+import sys
+import tempfile
+import uuid
+import warnings
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+import cloudpickle
+
 from ..protocols import WorldState
 
 
 class TempFS:
     """
-    Executes targets directly within the host process and encapsulates file system operations in an ephemeral workspace.
+    Executes targets in a fresh host-interpreter process with an ephemeral workspace.
+
+    The caller's CWD is never changed. Targets, arguments and results must be
+    cloudpickle-serializable; target mutations of host Python objects are not
+    shared back. Use a separate arena instance for each active lifecycle.
     """
     def __init__(
             self,
@@ -14,9 +28,8 @@ class TempFS:
     ):
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
-        self.workspace_path: Optional[Path] = None
-        self._original_cwd: Optional[Path] = None
-        self._config_state: Optional[WorldState] = None
+        self.workspace_path: Path | None = None
+        self._config_state: WorldState | None = None
         self._actual_returns: Any = None
 
     # ----- Services ---------------------------------------------------------------------------------------------------
@@ -26,18 +39,22 @@ class TempFS:
             target: Any,
             args: tuple,
             kwargs: dict,
-            state: Optional[WorldState] = None
+            state: WorldState | None = None
     ) -> Any:
         """Encapsulates the entire lifecycle of the arena for standalone invocations."""
         __tracebackhide__ = True
-        self.setup(state or WorldState())
-        try: return self.execute(target, args, kwargs)
-        finally: self.teardown()
+        try:
+            self.setup(state or WorldState())
+            return self.execute(target, args, kwargs)
+        finally:
+            if self.workspace_path is not None:
+                self.teardown()
 
     def setup(self, state: WorldState) -> None:
         """Creates the temporary workspace and projects the declared host files into it."""
         __tracebackhide__ = True
         self._config_state = state
+        self._actual_returns = None
         if state.arena: warnings.warn(
             "TempFS is not intended for venv or side-package isolation; use PyVenv instead.")
         workspace_dir = tempfile.mkdtemp(prefix=f"{self.arena_id}_")
@@ -46,13 +63,40 @@ class TempFS:
         self._hydrate()
 
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
-        """Executes the target directly but precisely encapsulates the execution within the isolated workspace."""
+        """Runs the target in a child whose CWD is the workspace, preserving host CWD."""
         __tracebackhide__ = True
-        self._switch_cwd_to_workspace()
-        try:
-            self._actual_returns = target(*args, **kwargs)
-            return self._actual_returns
-        finally: self._restore_original_cwd()
+        if self.workspace_path is None:
+            raise RuntimeError("STATE-GUARD: 'workspace_path' is missing for target execution.")
+        self._actual_returns = None
+        # IPC files live outside the workspace so FS postconditions see only
+        # hydrated files and target output, including while evaluation runs.
+        with tempfile.TemporaryDirectory(prefix=f"{self.arena_id}_ipc_") as ipc_dir:
+            input_path = Path(ipc_dir) / "input.pkl"
+            output_path = Path(ipc_dir) / "output.pkl"
+            import_paths = [str(Path(entry).absolute()) for entry in sys.path]
+            with input_path.open("wb") as stream:
+                # Manager proxies passed as arguments authenticate using the
+                # calling process's key, including inside EBT process workers.
+                pickle.dump((import_paths, bytes(multiprocessing.current_process().authkey)), stream)
+                cloudpickle.dump((target, args, kwargs), stream)
+            runner = Path(__file__).with_name("_tempfs_runner.py").resolve()
+            process = subprocess.run(
+                [sys.executable, str(runner), str(input_path), str(output_path)],
+                cwd=self.workspace_path,
+                check=False,
+            )
+            if process.returncode != 0 or not output_path.is_file():
+                raise RuntimeError(
+                    f"TempFS target process exited with code {process.returncode} "
+                    "without a complete result."
+                )
+            with output_path.open("rb") as stream:
+                succeeded, result, remote_traceback = cloudpickle.load(stream)
+            if not succeeded:
+                result.add_note(f"TempFS child traceback:\n{remote_traceback}")
+                raise result
+            self._actual_returns = result
+            return result
 
     def get_state(self) -> WorldState:
         """Packages and returns the mutated environment reality as a complete WorldState."""
@@ -91,17 +135,3 @@ class TempFS:
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir(): shutil.copytree(source, target, symlinks=True, dirs_exist_ok=True)
             else: shutil.copy2(source, target)
-
-    def _switch_cwd_to_workspace(self) -> None:
-        """Saves the host's current working directory and switches to the temporary workspace."""
-        __tracebackhide__ = True
-        if self.workspace_path is None: raise RuntimeError("STATE-GUARD: 'workspace_path' is missing for CWD change.")
-        self._original_cwd = Path.cwd()
-        os.chdir(self.workspace_path)
-
-    def _restore_original_cwd(self) -> None:
-        """Switches back to the secured host working directory."""
-        __tracebackhide__ = True
-        if self._original_cwd is not None:
-            os.chdir(self._original_cwd)
-            self._original_cwd = None

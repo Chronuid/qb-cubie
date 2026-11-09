@@ -5,7 +5,10 @@
 ![Error while trying to load the image](docs/.assets/cubie-banner.png)
 
 **Cubie ist ein Framework für strukturierte Qualitätssicherung.**  
-*Es behandelt Code nicht als etwas, das geschrieben wird, sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ($\Sigma^*$) gefunden wird. Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so präzise abzustecken, dass du deine gesuchten Funktionen finden kannst!*
+Es behandelt Code nicht als etwas, das geschrieben wird,  
+sondern als etwas, das im unendlichen Suchraum aller Möglichkeiten ( $\Sigma^*$ ) gefunden wird!
+
+Cubie liefert die Werkzeuge, um diesen Lösungsraum durch explizite Code-Verträge und orthogonale Datenpunkte so präzise abzustecken, dass du deine gesuchten Funktionen finden kannst!*
 </center>
 
 ---
@@ -97,6 +100,7 @@ def test_dynamic_payload():
 Trennt funktionale Inputs strikt von topologischen Dateisystem-Zuständen ab und isoliert die Ausführung in deterministischen Arenen (wie `TempFS` oder vollständigen virtuellen Umgebungen).
 
 Verfügbar sind `TempFS` und `PyVenv`; beide bieten keine OS-Sicherheitsgrenze.
+`TempFS` startet Targets mit dem Host-Interpreter in einem eigenen Prozess und verändert das Host-Arbeitsverzeichnis nicht. Python-Objektmutationen werden nicht zurückgespiegelt; Rückgaben werden über Cloudpickle übertragen.
 `DockerArena` und `VmArena` sind noch nicht implementiert und gehören nicht zur öffentlichen API.
 Die eingefrorenen [Feature-Entwürfe zur Virtualisierung](docs/feature-drafts/virtualization/README.md) dokumentieren ausschließlich geplante Funktionen.
 
