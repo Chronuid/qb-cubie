@@ -39,7 +39,7 @@ diagnostics_file = linter.check(Path("src/main.py"))
 
 Ausschlussmuster begrenzen den Analyseumfang, aber keine Zugriffsrechte. `AstLinter` behandelt derzeit bereits die Existenz einer beliebigen `pyproject.toml` als native Konfiguration. Dadurch können `DEFAULT_EXCLUDES` auch ohne passende Backend-Konfiguration entfallen; das Ausschlussset des CST-Backends ist anfangs leer. Prüfe den tatsächlich analysierten Umfang und konfiguriere benötigte Ausschlüsse ausdrücklich. Pylints `--ignore-paths` ist ein Dateifilter und keine OS-Sicherheitsgrenze.
 
-Eine leere Diagnoseliste bedeutet nur, dass der Adapter keine Diagnosen zurückgegeben hat. Der MyPy-Adapter kann derzeit bestimmte Prozessabbrüche als leere Liste behandeln. Das [Gutachten](../GUTACHTEN.md) beschreibt diese offenen Fehler.
+Eine leere Diagnoseliste bedeutet nur, dass der Adapter keine Diagnosen zurückgegeben hat. Der MyPy-Adapter akzeptiert Exitcode 0 (erfolgreiche Analyse) und 1 (Diagnosen). Alle anderen Exitcodes, einschließlich negativer Signal-Codes und Exitcode 2 ohne Ausgabe, lösen einen `RuntimeError` mit Exitcode, Befehl sowie vollständigem stdout und stderr aus. Der Fehler propagiert auch durch `AstLinter` und EBT; er wird nicht als leere Diagnoseliste ausgewertet.
 
 ### 1.3 Analyse von In-Memory Strings (LLM-Outputs)
 

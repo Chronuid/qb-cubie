@@ -108,7 +108,7 @@ Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre ei
 ## Bekannte Abweichungen und praktische Folgen
 
 - Multiprocessing-Fallback kann nach Ausführungsfehlern die gesamte Aufgabenmenge erneut ausführen und Seiteneffekte wiederholen. Die Workerzahl richtet sich nach den gemeldeten CPUs; zusätzliche Arena-Prozesse und pytest-xdist können die Last vervielfachen.
-- Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Insbesondere kann der MyPy-Adapter einen Prozessabbruch als leere Liste behandeln; `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
+- Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Der MyPy-Adapter akzeptiert nur die Exitcodes 0 und 1; alle anderen Prozessrückgaben lösen einen `RuntimeError` mit Exitcode, Befehl und Prozessausgaben aus. `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 
 Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Handhabung begrenzt einzelne Fehlanwendungen, macht Cubie aber nicht zu einer allgemein verlässlichen Qualitätsinstanz.
 

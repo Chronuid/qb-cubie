@@ -74,9 +74,11 @@ class MyPy:
 
     @staticmethod
     def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:
-        if process.returncode == 2 and process.stderr.strip():
+        """Accept only successful analysis (0) or reported diagnostics (1)."""
+        if process.returncode not in (0, 1):
             raise RuntimeError(
-                f"Linter 'Mypy' crashed or is missing.\n"
+                f"Linter 'Mypy' failed with exit code {process.returncode}.\n"
                 f"Command: {' '.join(cmd)}\n"
-                f"Stderr: {process.stderr.strip()}"
+                f"Stdout: {process.stdout}\n"
+                f"Stderr: {process.stderr}"
             )
