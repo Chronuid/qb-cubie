@@ -1,5 +1,6 @@
 # test_ebt_ipc_contract.py
 import pytest
+from pathlib import Path
 from typing import Any
 
 import cubie
@@ -13,6 +14,12 @@ from cubie import PyVenv
 
 def pure_function(a: int, b: int) -> int:
     return a + b
+
+
+def is_native_path(value) -> bool:
+    # Import inside the arena so a copied module cannot mask a type mismatch.
+    from pathlib import Path
+    return isinstance(value, Path) and type(value) is type(Path("project"))
 
 
 class LinterProfile:
@@ -60,6 +67,18 @@ class TestIPCCodecContract:
             target=pure_function,
             pre=WorldState(args=(1, 2)),
             post=WorldState(returns=3)
+        ).run()
+
+    @pytest.mark.parametrize("argument_kind", ["args", "kwargs"])
+    def test_path_keeps_native_type(self, arena: PyVenv, argument_kind: str):
+        """Path arguments must retain the arena's native pathlib class identity."""
+        path = Path("project")
+        pre = WorldState(args=(path,)) if argument_kind == "args" else WorldState(kwargs={"value": path})
+        EBT(
+            arena=arena,
+            target=is_native_path,
+            pre=pre,
+            post=WorldState(returns=True)
         ).run()
 
     def test_static_and_class_method_serialization(self, arena: PyVenv):

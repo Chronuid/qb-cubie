@@ -165,7 +165,7 @@ def venv_ignored_fs(tmp_path: Path) -> Path:
     (venv / "bad_cache.py").write_text("def def def invalid_syntax!!!\n", encoding="utf-8")
     src = tmp_path / "src"
     src.mkdir()
-    (src / "clean.py").write_text("x = 1\n", encoding="utf-8")
+    (src / "clean.py").write_text('"""A clean module for exclusion checks."""\nVALUE = 1\n', encoding="utf-8")
     return tmp_path
 
 
@@ -176,13 +176,13 @@ def test_astlinter_ignores_venv_directory(venv_ignored_fs: Path):
     even if they contain syntactically completely broken code.
     """
     EBT(
-        target=AstLinter(Pylint(disable=["F0010"])).check,
+        target=AstLinter(Pylint()).check,
         arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
         pre=WorldState(
-            kwargs={"target": Path("..")},
+            kwargs={"target": Path("project")},
             fs={
-                ".venv/bad_cache.py": str(venv_ignored_fs / ".venv" / "bad_cache.py"),
-                "src/clean.py": str(venv_ignored_fs / "src" / "clean.py")
+                "project/.venv/bad_cache.py": str(venv_ignored_fs / ".venv" / "bad_cache.py"),
+                "project/src/clean.py": str(venv_ignored_fs / "src" / "clean.py")
             }
         ),
         post=WorldState(returns=[])
@@ -209,4 +209,24 @@ def test_astlinter_ignores_venv_directory_in_project(venv_ignored_fs: Path):
         ),
         # A predicate also exposes diagnostics with the current reporter's [] handling.
         post=WorldState(returns=lambda diagnostics: diagnostics == [])
+    ).run()
+
+
+def test_astlinter_reports_syntax_errors_outside_venv_directory(venv_ignored_fs: Path):
+    """Positive control: the same broken code must be checked outside .venv."""
+    EBT(
+        target=AstLinter(Pylint()).check,
+        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        pre=WorldState(
+            kwargs={"target": Path("project")},
+            fs={
+                "project/src/bad_cache.py": str(venv_ignored_fs / ".venv" / "bad_cache.py"),
+                "project/src/clean.py": str(venv_ignored_fs / "src" / "clean.py")
+            }
+        ),
+        post=WorldState(returns=lambda diagnostics: (
+            len(diagnostics) == 1
+            and diagnostics[0].rule_id == "E0001"
+            and Path(diagnostics[0].file_path).as_posix() == "project/src/bad_cache.py"
+        ))
     ).run()

@@ -191,6 +191,9 @@ class CloudpickleCodec:
         def force_value_pickling(item):
             mod_name = getattr(item, "__module__", None)
             if mod_name and mod_name in sys.modules:
+                # Keep stdlib classes canonical in the receiving interpreter.
+                # Copying pathlib._local, for example, breaks isinstance(path, Path).
+                if mod_name.partition(".")[0] in sys.stdlib_module_names: return
                 if not mod_name.startswith(("builtins", "_", "cloudpickle")):
                     module = sys.modules[str(mod_name)]
                     cloudpickle.register_pickle_by_value(module)
