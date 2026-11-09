@@ -217,7 +217,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
 ### Priorität 2 (Architektur-Härtung)
 4. **Beseitigung von `os.chdir` in `TempFS`:**  (DECLINED: We know, but that is TempFS. Use PyVenv if you want it better.)  
    Arbeitsverzeichnisse dürfen nicht prozessweit umgebogen werden. Wenn Pfad-Isolation erforderlich ist, muss das Target entweder explizite Pfadparameter akzeptieren oder die Ausführung in einen Subprozess ausgelagert werden.
-5. **Materialisierung von Mappings vor Kontext-Exit:**  
+5. **Materialisierung von Mappings vor Kontext-Exit:**  (DONE)  
    In `MultiprocessRunner.execute()` muss der Generator konsumiert werden, bevor der `with`-Block schließt:
    ```python
    with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
@@ -229,7 +229,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
 ### Priorität 3 (Bereinigung & Release-Fähigkeit)
 7. **Ehrlichkeit bei Virtualisierungs-Features:**  
    Die unfertigen Klassen `DockerArena` und `VmArena` sowie die 0-Byte-Dateien in `src/cubie/arenas/vm/` vorübergehend aus dem öffentlichen Interface entfernen und klar als experimentelle Entwürfe kennzeichnen.
-8. **Bereinigung von `pyproject.toml`:**  
+8. **Bereinigung von `pyproject.toml`:**  (DONE)  
    Entfernen der obsoleten `"dataclasses>=0.8"`-Abhängigkeit und Harmonisierung der Versions-Pins.
-9. **Deduplizierung von `ReviewData`:**  
+9. **Deduplizierung von `ReviewData`:**  (DONE)  
    Zusammenführung der doppelten Klassendefinitionen in `protocols.py` und Import in `rbt.py`.

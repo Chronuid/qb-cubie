@@ -1,7 +1,7 @@
 import dataclasses
-from typing import List, Dict
-from .ebt import RunTrace, EvaluationTrace
+from typing import Dict, List
 
+from .protocols import EvaluationTrace, ReviewData, RunTrace
 
 # ========== PYTEST REPORTER ===========================================================================================
 
@@ -11,7 +11,7 @@ class ReportContext:
     max_diff_items: int
 class PytestReporter:
     """
-    Consumes a RunTrace and delegates failures to Pytest via standard assertions.
+    Consumes EBT or RBT results and delegates failures via standard assertions.
     """
     def __init__(self, verbosity: int = 1, max_diff_items: int = 5):
         self.verbosity = verbosity
@@ -19,15 +19,25 @@ class PytestReporter:
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
-    def report(self, trace: RunTrace) -> None:
+    def report(self, trace: RunTrace | ReviewData) -> None:
         """Evaluates the final run status and raises an assertion with formatted trace details on failure."""
         __tracebackhide__ = True
+        if isinstance(trace, ReviewData):
+            assert trace.passed, self._generate_review_report(trace)
+            return
         if trace.evaluation is False:
             ctx = ReportContext(verbosity=self.verbosity, max_diff_items=self.max_diff_items)
             report_msg = self._generate_report(trace, ctx)
             assert False, report_msg
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def _generate_review_report(result: ReviewData) -> str:
+        """Formats review diagnostics for a failed run."""
+        lines = ["\n--- Report ---"]
+        lines.extend(f"- {key}: {value}" for key, value in result.report.items())
+        return "\n".join(lines)
 
     def _generate_report(
             self,

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Optional, List
 from .codecs import MSGspecCodec
 from ..protocols import IPCC, WorldState
+from ._requirements import _environment_python, _requirements_satisfied
 
 
 # ========== PYVENV-ARENA ==============================================================================================
@@ -108,9 +109,8 @@ class PyVenv:
         """Checks and injects the codec's side packages into the base arena."""
         requirements = getattr(self.codec, "requirements", [])
         if not requirements: return
-        bin_dir = base_env_path / "bin" if (base_env_path / "bin").exists() else base_env_path / "Scripts"
-        python_exe = bin_dir / "python"
-        import subprocess
+        python_exe = _environment_python(base_env_path)
+        if _requirements_satisfied(python_exe, requirements): return
         try:
             subprocess.run(
                 args= ["uv", "pip", "install", *requirements, "--python", str(python_exe)],
@@ -286,8 +286,8 @@ class ArenaBuilder:
     def _install_packages(self) -> None:
         """Installs the registered packages sequentially using the arena's isolated uv pip."""
         __tracebackhide__ = True
-        bin_dir = self.env_path / "bin" if (self.env_path / "bin").exists() else self.env_path / "Scripts"
-        python_exe = bin_dir / "python"
+        python_exe = _environment_python(self.env_path)
+        if _requirements_satisfied(python_exe, self._packages): return
         try:
             subprocess.run(
                 ["uv", "pip", "install", *self._packages, "--python", str(python_exe)],

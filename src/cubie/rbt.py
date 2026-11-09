@@ -1,17 +1,14 @@
-import json
 import tkinter as tk
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
-from .protocols import Reviewer
+from typing import Any, Optional
+
+from .protocols import Reporter, ReviewData, Reviewer
+from .reporter import PytestReporter
+
+_DEFAULT_REPORTER = PytestReporter()
 
 
 # ========== REVIEW-BASED-TESTING ======================================================================================
 
-@dataclass
-class ReviewData:
-    """Encapsulates the standardized result of an RBT test."""
-    passed: bool
-    report: Dict[str, Any] = field(default_factory=dict)
 class RBT:
     """
     Orchestrates the review-based test process.
@@ -21,15 +18,16 @@ class RBT:
             check: str,
             target: Optional[Any] = None,
             reviewer: Optional[Reviewer] = None,
-            tags: Optional[list[str]] = None
+            tags: Optional[list[str]] = None,
+            reporter: Reporter[ReviewData] | None = _DEFAULT_REPORTER,
     ):
         self.check = check
         self.target = target
         self.reviewer = reviewer or HumanReviewer()
+        self.reporter = reporter
         self.tags = tags or []
         self._target_string: Optional[str] = None
         self._result: Optional[ReviewData] = None
-        self._raw_json: Optional[str] = None
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
@@ -54,12 +52,11 @@ class RBT:
         )
 
     def _report(self) -> None:
-        """Passes the final test result, along with the payload, to the test framework."""
+        """Delegates the review result to the reporter, if present."""
         __tracebackhide__ = True
         if self._result is None: raise RuntimeError("RBT Pipeline Error: The review phase yielded no result.")
-        payload_data = {"reviewer_report": self._result.report}
-        payload = self._serialize(payload_data)
-        assert self._result.passed, payload
+        if self.reporter is not None:
+            self.reporter.report(self._result)
 
     # ----- Utilities --------------------------------------------------------------------------------------------------
 
@@ -68,12 +65,6 @@ class RBT:
         """Converts the passed target object into a string."""
         if obj is None or isinstance(obj, str):  return obj
         return getattr(obj, "__name__", str(obj))
-
-    def _serialize(self, data: Dict[str, Any]) -> str:
-        self._raw_json = json.dumps(data, ensure_ascii=False)
-        lines = ["\n--- RBT Report ---"]
-        for key, value in data.get("reviewer_report", {}).items(): lines.append(f"- {key}: {value}")
-        return "\n".join(lines)
 
 
 # ========== HUMAN-IN-THE-LOOP =========================================================================================
@@ -114,23 +105,18 @@ class HumanReviewer:
     def _build_widgets(self) -> None:
         """Constructs the visual UI elements for the window."""
         if self._root is None: raise RuntimeError("GUI Error: Root window is not initialized.")
-        if self._target:
-            tk.Label(self._root, text=f"Target: {self._target}", font=("Arial", 12, "bold")).pack(pady=10)
+        if self._target: tk.Label(self._root, text=f"Target: {self._target}", font=("Arial", 12, "bold")).pack(pady=10)
         tk.Label(self._root, text=f"Check: {self._check}", font=("Arial", 12)).pack(pady=5)
         self._text_widget = tk.Text(self._root, height=8, width=60)
-        self._text_widget.pack(pady=10, padx=20)
+        if self._text_widget: self._text_widget.pack(pady=10, padx=20)
         self._build_buttons()
 
     def _build_buttons(self) -> None:
         """Creates the confirmation buttons for the binary decision."""
         frame = tk.Frame(self._root)
         frame.pack(pady=10)
-        tk.Button(frame, text="Pass",
-            bg="green",  fg="white", command=self._on_pass
-        ).pack(side=tk.LEFT,padx=20)
-        tk.Button(frame, text="Fail",
-            bg="red", fg="white", command=self._on_fail
-        ).pack(side=tk.RIGHT, padx=20)
+        tk.Button(frame, text="Pass", bg="green",  fg="white", command=self._on_pass).pack(side=tk.LEFT,padx=20)
+        tk.Button(frame, text="Fail", bg="red", fg="white", command=self._on_fail).pack(side=tk.RIGHT, padx=20)
 
     # ----- Utilities --------------------------------------------------------------------------------------------------
 

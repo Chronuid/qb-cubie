@@ -27,7 +27,7 @@ class EBT:
             post: Union[WorldState, List[WorldState], None] = None,
             expect: bool = True,
             custom_id: Optional[str] = None,
-            reporter: Reporter | None = PytestReporter(),
+            reporter: Reporter[RunTrace] | None = PytestReporter(),
             multiprocessing: bool = False,
             multiprocessors: Optional[List['Multiprocessor']] = None,
             tags = None
@@ -148,7 +148,13 @@ class EBT:
                     pre_state=pre_state, post_state=post_state, outcome=outcome
                 )
                 traces.append(trace)
-        finally:
+        except BaseException as error:
+            if active_arena:
+                try: active_arena.teardown()
+                except Exception as cleanup_error:
+                    error.add_note(f"Arena teardown also failed: {cleanup_error}")
+            raise
+        else:
             if active_arena: active_arena.teardown()
         return outcome, traces
 

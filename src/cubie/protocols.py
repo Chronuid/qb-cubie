@@ -112,14 +112,14 @@ class IPCC(Protocol):
         ...
 
 
-# ========== REPORTER-PROTOCOL | EXAMPLE-BASED-TESTING =================================================================
+# ========== REPORTER-PROTOCOL ========================================================================================
 
-class Reporter(Protocol):
+class Reporter[ResultT](Protocol):
     """
-    Defines the contract for EBT result reporters.
+    Defines the contract for reporters consuming a test result.
     """
-    def report(self, trace: RunTrace) -> None:
-        """Processes and outputs the final execution run trace."""
+    def report(self, trace: ResultT, /) -> None:
+        """Processes and outputs the final test result."""
         ...
 
 
