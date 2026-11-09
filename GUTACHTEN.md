@@ -202,7 +202,7 @@ Im Test [`test_security_arena_codec.py`](file:///home/symphonie/PycharmProjects/
 Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Framework zu überführen, müssen folgende Schritte umgesetzt werden:
 
 ### Priorität 1 (Sofortige Stabilität & Hygiene)
-1. **Entfernung der „Smuggled Tools“:**  
+1. **Entfernung der „Smuggled Tools“:**  (DONE)
    Die Ordner `src/cubie/linters/libcst_tool` und `src/cubie/linters/pylint_tool` restlos aus dem Repository entfernen. Benötigte Werkzeuge ausschließlich über standardisierte Abhängigkeiten (`pyproject.toml`) deklarieren.
 2. **Pytest-Konfiguration absichern:**  
    In `pyproject.toml` eine feste Konfiguration hinterlegen:

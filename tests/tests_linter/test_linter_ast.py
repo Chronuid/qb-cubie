@@ -72,18 +72,11 @@ def test_astlinter_universal_clean_inputs(lint_host_fs: Path):
     ).run()
 
 
-# With Pylint via --target, the executable script is located in the 'bin' folder (or 'Scripts' on Windows).
-SMUGGLED_PYLINT_SCRIPT = Path("src/cubie/linters/pylint_tool/bin/pylint").resolve()
-
-
-
-def test_smuggled_pylint_payload():
+def test_custom_pylint_executable_command():
     """
-    Runs Pylint. Since it was bundled as a module, we invoke it
-    via the current sys.executable to avoid permission issues (chmod +x).
+    Runs Pylint with an explicit executable command list.
     """
-    assert SMUGGLED_PYLINT_SCRIPT.exists(), "Smuggled Pylint script missing!"
-    exe_cmd = [sys.executable, str(SMUGGLED_PYLINT_SCRIPT)]
+    exe_cmd = [sys.executable, "-m", "pylint"]
     EBT(
         target=AstLinter(Pylint(executable=exe_cmd)).check,
         pre=WorldState(kwargs={"target": "x = 1\n"}),

@@ -1,11 +1,15 @@
+from __future__ import annotations
 import os, shutil, sys, importlib.util
 from pathlib import Path
-_SMUGGLED_LIBCST = Path(__file__).parent / "linters" / "libcst_tool"
-if importlib.util.find_spec("libcst") is None:
-    if _SMUGGLED_LIBCST.exists(): sys.path.insert(0, str(_SMUGGLED_LIBCST.resolve()))
-import libcst as cst
-from libcst.metadata import PositionProvider
-from typing import Union, List, Optional, Protocol, Final
+try:
+    import libcst as cst
+    from libcst.metadata import PositionProvider
+    _CstVisitorBase = cst.CSTVisitor
+except ImportError:
+    cst = None
+    PositionProvider = None
+    _CstVisitorBase = object
+from typing import Union, List, Optional, Protocol, Final, Any
 import dataclasses
 
 def _ensure_installed(tool_name: str, env_var: str) -> list[str]:
@@ -105,14 +109,14 @@ class AstLinter:
 
 # ---------- CST-RULE --------------------------------------------------------------------------------------------------
 
-class CstRule(cst.CSTVisitor):
-    import libcst as cst
-    from libcst.metadata import PositionProvider
-    METADATA_DEPENDENCIES = (PositionProvider,)
+class CstRule(_CstVisitorBase):
+    METADATA_DEPENDENCIES = (PositionProvider,) if PositionProvider else ()
     def __init__(self):
+        if cst is None:
+            raise RuntimeError("libcst is required to use CstRule. Please ensure libcst is installed.")
         super().__init__()
         self.diagnostics: List['LinterDiagnostic'] = []
-        self._module: cst.Module | None = None
+        self._module: Optional[Any] = None
         self._current_file_path: str = "IN_MEMORY"
 
     def reset(self, file_path: str, module: cst.Module) -> None:
@@ -169,6 +173,8 @@ class CstLinter:
             rules: List[CstRule],
             excludes: Optional[List[str]] = None
     ) -> None:
+        if cst is None:
+            raise RuntimeError("libcst is required to use CstLinter. Please ensure libcst is installed.")
         self.rules = rules
         self._excludes = set(excludes) if excludes else set()
 
