@@ -101,7 +101,7 @@ wheels = [
 [[package]]
 name = "cubie"
 version = "0.0.3"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "cloudpickle" },
     { name = "fsspec" },

@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "cubie"
 version = "0.0.3"
@@ -21,7 +25,13 @@ dev = ["hypothesis==6.168.3", "pytest-xdist>=3.8,<4"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-include-package-data = true
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["cubie*"]
+exclude = ["cubie.arenas.arena_envs.*"]
+namespaces = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

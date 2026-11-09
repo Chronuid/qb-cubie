@@ -60,7 +60,29 @@ def test_tax():
 .venv/bin/python -m pytest -q test_tax.py
 ```
 
-Erst `.run()` führt den Test aus. Der Standardreporter lässt pytest bei einer negativen Auswertung fehlschlagen. Die Befehle zeigen den lokalen Einstieg; der paketierte Release und die Plattformunterstützung sind noch nicht umfassend abgesichert.
+Erst `.run()` führt den Test aus. Der Standardreporter lässt pytest bei einer negativen Auswertung fehlschlagen.
+
+## Wheel-Prüfung und CI
+
+Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
+
+| Prüfung | Python | Betriebssystem / GitHub-Runner |
+| --- | --- | --- |
+| Wheel bauen, installieren und prüfen | 3.13, 3.14 | Linux (`ubuntu-24.04`), macOS (`macos-15`), Windows (`windows-2022`) |
+| Vollständige Repository-Testsuite mit provisionierten Arena-Basen | 3.13, 3.14 | Linux (`ubuntu-24.04`) |
+
+Die Wheel-Jobs bauen zunächst eine Quelldistribution und daraus das Wheel. Lokale Arena-Basen werden aus beiden Distributionen ausgeschlossen. [check_wheel.py](./scripts/check_wheel.py) erzeugt eine neue virtuelle Umgebung ohne Zugriff auf die Hostpakete und installiert ausschließlich das Wheel mit seinen deklarierten Pflichtabhängigkeiten. `pip check` prüft die Abhängigkeiten. Die [Installationstests](./tests/wheel/smoke_installed.py) laufen anschließend außerhalb des Checkouts mit isoliertem Python, ohne die Repository-`conftest.py`, zusätzliche pytest-Plugins oder `PYTHONPATH=src`.
+
+Geprüft werden die Herkunft des installierten Pakets, alle Paketimporte, positive und negative EBT-/RBT-Auswertungen, ein TempFS-Dateiworkflow, PyVenv mit PickleCodec und der MyPy-Aufruf. Diese Installationsprüfungen ersetzen keine vollständige Plattformabnahme; insbesondere laufen die übrigen Repository-Tests bislang nur unter Linux. Weitere Python-Versionen sind durch diese Matrix nicht abgesichert.
+
+Lokal mit Python 3.13 oder 3.14 und `uv` im `PATH`:
+
+```bash
+uv build --clear --python python3.13
+python3.13 scripts/check_wheel.py dist
+```
+
+Unter Windows kann für beide Befehle `python` verwendet werden, wenn der gewünschte Interpreter im `PATH` steht. Der Build verwendet eine isolierte Build-Umgebung; die Wheel-Prüfung benötigt weder eine editierbare Installation noch provisionierte Arena-Basen. Build und Installation können Netzwerkzugriff benötigen. Die vollständige Repository-Testsuite verwendet dagegen die Versionen aus `uv.lock` und das Extra `dev` wie oben beschrieben.
 
 ---
 

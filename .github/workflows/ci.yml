@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wheel:
+    name: Wheel / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2022]
+        python: ['3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install build frontend
+        run: python -m pip install uv==0.11.3
+      - name: Build sdist and wheel from sdist
+        run: uv build --python python
+      - name: Install and test wheel in a clean environment
+        run: python scripts/check_wheel.py dist
+
+  tests:
+    name: Repository / Ubuntu / Python ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install uv
+        run: python -m pip install uv==0.11.3
+      - name: Install locked development dependencies
+        run: uv sync --locked --extra dev --python ${{ matrix.python }}
+      - name: Provision arena bases
+        run: uv run --no-sync python scripts/provision_test_arenas.py
+      - name: Run repository tests
+        run: uv run --no-sync python -m pytest -q
