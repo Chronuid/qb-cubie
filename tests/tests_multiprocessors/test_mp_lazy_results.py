@@ -84,8 +84,8 @@ def assert_complete_trace(run_trace, values):
     assert len({trace.step_id for trace in run_trace.traces}) == len(values)
 
 
-@pytest.mark.parametrize("values", [[], [" A "], [" A ", " B ", " C "]],
-                         ids=["empty", "single", "multiple"])
+@pytest.mark.parametrize("values", [[" A "], [" A ", " B ", " C "]],
+                         ids=["single", "multiple"])
 def test_ebt_consumes_lazy_results_before_mapper_exit(values):
     """Every result and iterator exhaustion belong to the mapper context."""
     processor = LazyResultProcessor()
@@ -105,6 +105,18 @@ def test_ebt_consumes_lazy_results_before_mapper_exit(values):
     assert processor.mapper.active is False
     assert processor.mapper.exit_error is None
     assert processor.priority == 100
+
+
+def test_ebt_rejects_empty_input_before_mapper_setup():
+    """An emptied input list fails before a processor allocates resources."""
+    processor = LazyResultProcessor()
+    engine = make_engine([processor], [" A "])
+    engine.pre.clear()
+    with pytest.raises(ValueError, match="pre"):
+        engine.run()
+    assert processor.task_counts == []
+    assert processor.mapper.events == []
+    assert engine.run_trace is None
 
 
 @pytest.mark.parametrize("fail_at", [0, 1], ids=["first-result", "after-partial-result"])

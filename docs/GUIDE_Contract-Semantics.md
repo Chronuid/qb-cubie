@@ -16,8 +16,8 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | --- | --- |
 | EBT-Vertrag | Endliche Menge konkreter Ausführungen mit gemeinsamen erlaubten/verbotenen Zielmustern. Kein Korrektheitsbeweis. |
 | `WorldState` | Veränderliche Dataclass mit `args`, `kwargs`, `arena`, `fs`, `returns`, `expect`. Kein allgemein bewiesenes Zustandsprädikat und keine eingefrorene Momentaufnahme. |
-| `pre` | Ein `WorldState` oder eine Liste davon. Für jeden Eintrag wird das Target einmal aufgerufen. `None` wird zu `[WorldState()]`; `[]` bleibt leer. |
-| `post` | Ein `WorldState` oder eine Liste gemeinsamer Zielmuster. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
+| `pre` | Ein `WorldState` oder eine nichtleere Liste davon. Für jeden Eintrag wird das Target einmal aufgerufen. `None` wird zu `[WorldState()]`; `[]` führt zu `ValueError`. Ungültige Typen und Listeneinträge führen zu `TypeError`. |
+| `post` | Ein `WorldState` oder eine nichtleere Liste gemeinsamer Zielmuster mit denselben Validierungsregeln wie `pre`. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
 | `args` | `None` ergibt keine Positionsargumente. Listen und Tupel werden in Positionsargumente entpackt; andere Objekte werden als ein Argument übergeben. `args=[1, 2]` ruft `f(1, 2)` auf; `args=([1, 2],)` ruft `f([1, 2])` auf; `args=(None,)` ruft `f(None)` auf. |
 | `kwargs` | Ein Dictionary mit Schlüsselwortargumenten; `None` wird zu `{}`. Andere Werte führen zu `TypeError`. |
 | `post.returns` | Erwarteter Rückgabewert oder Muster. Ausgelassen oder `cubie.UNSPECIFIED` bedeutet „nicht prüfen“; explizites `None` erwartet den Wert `None`. |
@@ -85,7 +85,9 @@ Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnis
 
 Leere Unterverzeichnisse werden beim rekursiven Vergleich nicht erfasst. Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft; ein vollständiger Vertrag über Verzeichnisstruktur, Metadaten, Rechte oder Symlink-Identität entsteht daraus nicht. `FS_IGNORES` filtert Pfadsegmente im rekursiven Dateiscan. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.
 
-Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Gleichnamige Quellen können sich überschreiben. Verwende für solche Fälle explizite, unterschiedliche Zielpfade. Arena-Zielpfade werden derzeit nicht auf den Workspace begrenzt: Absolute Pfade und `..` können außerhalb schreiben. Verwende kontrollierte relative Pfade ohne `..`.
+Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Unterschiedliche Quellen mit gleichem Basename führen vor Arena-Aufbau und Target-Ausführung zu `ValueError`. Die Meldung nennt Zustandsfeld, Index, Zielnamen und beide Quellen. Verwende für solche Fälle explizite, unterschiedliche Zielpfade, etwa `{"left/config.json": "a/config.json", "right/config.json": "b/config.json"}`. Wiederholungen desselben Pfads sind erlaubt; der Pfadvergleich erfolgt lexikalisch mit `pathlib.Path`, ohne Auflösung von Symlinks oder `..`.
+
+Arena-Zielpfade werden derzeit nicht auf den Workspace begrenzt: Absolute Pfade und `..` können außerhalb schreiben. Verwende kontrollierte relative Pfade ohne `..`.
 
 `TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation. Import-Phantome verändern Importbedingungen und können Fehler verdecken.
 
@@ -95,6 +97,8 @@ Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puff
 
 Jeder `.run()`-Aufruf beginnt mit einer neuen Lauf-ID, leeren Traces und Outcomes sowie zurückgesetzter Bewertung und Laufzeit. Eine Instanz kann nacheinander wiederverwendet werden. Nach einem Ausführungsabbruch bleibt `run_trace` leer; nach einer Reporter-Assertion ist das abgeschlossene, fehlgeschlagene Ergebnis verfügbar.
 
+Zustandslisten werden beim Aufbau der EBT-Instanz und vor jedem Lauf geprüft. FS-Kurzformen werden vor jedem Lauf auf Namenskollisionen geprüft. Damit werden auch nachträgliche Konfigurationsänderungen validiert. Konfigurationsfehler propagieren unabhängig von `expect=False` und `reporter=None`.
+
 Die Vorzustände werden vor der Target-Ausführung erfasst. Aufgezeichnete Zustände, verschachtelte Rückgabewerte, Diffs und die Arena-Metadaten werden mittels `deepcopy` von den gelieferten Objekten getrennt. Diese Objekte müssen tief kopierbar sein; Kopierfehler werden weitergegeben. Spätere Läufe und Änderungen an den ursprünglichen Daten verändern zurückgegebene Ergebnisse nicht. Die Ergebnis-Dataclasses sind weiterhin durch den Empfänger veränderbar. Workspace-Pfade sind keine archivierten Dateiinhalte.
 
 Proxies eines `multiprocessing.Manager`, etwa Events oder Barrieren in Argumenten, werden im Trace durch unveränderliche Referenzdaten (`resource_type`, `resource_id`) ersetzt. Das Target erhält weiterhin die lebenden Proxies. Der Trace dokumentiert deren Identität, nicht den veränderlichen Zustand des entfernten Objekts, und benötigt später keine Verbindung zum Manager.
@@ -103,7 +107,6 @@ Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre ei
 
 ## Bekannte Abweichungen und praktische Folgen
 
-- `pre=[]` führt kein Target aus; `post=[]` erzeugt keine Vergleiche. Beide können bei `expect=True` durch `all([])` erfolgreich erscheinen. Verwende nichtleere Zustandslisten und explizite Erwartungen.
 - Multiprocessing-Fallback kann nach Ausführungsfehlern die gesamte Aufgabenmenge erneut ausführen und Seiteneffekte wiederholen. Die Workerzahl richtet sich nach den gemeldeten CPUs; zusätzliche Arena-Prozesse und pytest-xdist können die Last vervielfachen.
 - Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Insbesondere kann der MyPy-Adapter einen Prozessabbruch als leere Liste behandeln; `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 

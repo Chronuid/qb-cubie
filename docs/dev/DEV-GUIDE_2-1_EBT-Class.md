@@ -14,7 +14,7 @@
 
 `EBT(target, arena=None, pre=None, post=None, expect=True, custom_id=None, reporter=PytestReporter(), multiprocessing=False, multiprocessors=None, tags=None)` ist das öffentliche Interface.
 
-`target` muss ohne Arena oder mit `TempFS` ein Callable sein; zusätzliche String-Referenzen werden durch den `PyVenv`-Codec aufgelöst. `pre` und `post` akzeptieren `WorldState`, Listen davon oder `None`. `_ensure_list(None)` erzeugt `[WorldState()]`; andere Einzelwerte werden lediglich in eine Liste verpackt. Eine `ConventionMap` oder Inferenz primitiver Werte in `args`, `kwargs` oder `returns` existiert nicht.
+`target` muss ohne Arena oder mit `TempFS` ein Callable sein; zusätzliche String-Referenzen werden durch den `PyVenv`-Codec aufgelöst. `pre` und `post` akzeptieren `WorldState`, nichtleere Listen davon oder `None`. `_ensure_list(None)` erzeugt `[WorldState()]`; leere Listen führen zu `ValueError`, andere Typen und ungültige Einträge zu `TypeError` mit Feldname und gegebenenfalls Index. Eine `ConventionMap` oder Inferenz primitiver Werte in `args`, `kwargs` oder `returns` existiert nicht.
 
 `arena` legt die ausführbare Umgebung fest. Ein `pre.arena`-Objekt mit `setup` hat Vorrang. Ein String in `pre.arena` erzeugt keine Arena, sondern überschreibt bei aktiver `PyVenv` den Basispfad. `post.arena` kann einen Vergleichspfad bereitstellen. Beide vorhandenen Arenen sind keine OS-Sicherheitsgrenzen.
 
@@ -26,7 +26,7 @@
 
 ## Pipeline
 
-1. `_arrange()` normalisiert `fs` in den übergebenen Zustandsobjekten. Diese Objekte werden dabei verändert. Es erfolgt keine umfassende Validierung aller Deklarationen.
+1. `_arrange()` prüft die Zustandslisten erneut und normalisiert `fs`. Unterschiedliche Quellen mit gleichem Basename in FS-Kurzformen führen zu `ValueError`; explizite Zielpfad-Mappings lösen die Mehrdeutigkeit auf. Erst nach erfolgreicher Normalisierung aller Zustände werden ihre `fs`-Felder verändert. Fehler verhindern Arena-Aufbau und Target-Ausführung.
 2. `_validate()` führt die Aufgaben sequenziell oder über das Multiprocessing-Modul aus. `_build_context()` bündelt Konfiguration in einem `EBTContext`. Obwohl dieser `frozen=True` ist, bleiben enthaltene Listen, Sets und Objekte veränderlich; es gibt keine tiefe Zustandsisolation.
 3. `_process_single_task()` wählt die aktive Arena und ruft `_execute_step()` auf. Ohne Arena wird das Target direkt aufgerufen. Mit Arena folgen `setup`, `execute` und `get_state`.
 4. `_evaluate_step()` vergleicht das eine Ergebnis gegen jeden `post`-Zustand und erzeugt je Vergleich einen `EvaluationTrace`. Der rohe Match berücksichtigt noch nicht, ob das Zielmuster verboten ist.
@@ -37,7 +37,7 @@
 
 Die Traces werden nach Eingangsschritt gruppiert. Pro Schritt muss mindestens ein positives Muster passen, sofern positive Muster existieren, und kein negatives darf passen. Danach werden die Schritte mit UND verknüpft. `EBT.expect=False` negiert dieses Endergebnis. Alle Eingänge teilen dieselbe Zielmenge; eine Zuordnung von `pre[i]` zu `post[i]` entsteht nicht.
 
-Leere Zustandslisten können derzeit ohne Vergleiche erfolgreich erscheinen. Wiederholte Läufe derselben Instanz sammeln alte `_outcome`- und `_traces`-Einträge weiter und können neue Fehler verdecken. Verwende eine frische EBT-Instanz je Ausführung. Die Listen in bereits zurückgegebenen `RunTrace`-Objekten sind keine stabilen historischen Momentaufnahmen.
+Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt Outcomes und Traces zurück und liefert unabhängige historische Momentaufnahmen; siehe [Vertragssemantik](../GUIDE_Contract-Semantics.md#Wiederholte-Läufe-und-historische-Ergebnisse).
 
 ## Vergleiche und Diagnosen
 

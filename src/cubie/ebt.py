@@ -76,9 +76,9 @@ class EBT:
         self.tags = tags
         self.target = target
         self.arena = arena
-        self.pre: List[WorldState] = self._ensure_list(pre)
+        self.pre: List[WorldState] = self._ensure_list(pre, "pre")
         self._outcome: List[WorldState] = []
-        self.post: List[WorldState] = self._ensure_list(post)
+        self.post: List[WorldState] = self._ensure_list(post, "post")
         self.expect = expect
         self.FS_IGNORES: Set[str] = {""}
         self.ARENA_IGNORES: Set[str] = {
@@ -124,7 +124,14 @@ class EBT:
     def _arrange(self) -> None:
         """Validates and normalizes the states passed to the pipeline."""
         __tracebackhide__ = True
-        for state in self.pre + self.post: state.fs = self._normalize_fs(state.fs)
+        self.pre = self._ensure_list(self.pre, "pre")
+        self.post = self._ensure_list(self.post, "post")
+        normalized = [
+            (state, self._normalize_fs(state.fs, f"{field}[{index}].fs"))
+            for field, states in (("pre", self.pre), ("post", self.post))
+            for index, state in enumerate(states)
+        ]
+        for state, fs in normalized: state.fs = fs
 
     def _validate(self) -> None:
         """Executes the pre-states (∀) and evaluates the outcome against all post-states (∃)."""
@@ -356,16 +363,25 @@ class EBT:
     # ↓ ========== _arrange() ========== ↓
 
     @staticmethod
-    def _ensure_list(raw_value: Union[WorldState, List[WorldState], None]) -> List[WorldState]:
-        """Ensures that inputs are uniformly converted into a list of WorldStates."""
+    def _ensure_list(raw_value: WorldState | list[WorldState] | None, field: str = "state") -> list[WorldState]:
+        """Normalizes and validates a nonempty list of WorldStates."""
         __tracebackhide__ = True
         if raw_value is None: return [WorldState()]
-        if isinstance(raw_value, list): return raw_value
-        return [raw_value]
+        if isinstance(raw_value, WorldState): return [raw_value]
+        if not isinstance(raw_value, list):
+            raise TypeError(
+                f"STATE-GUARD: {field} must be a WorldState, a list of WorldStates or None; "
+                f"received {type(raw_value).__name__}."
+            )
+        if not raw_value: raise ValueError(f"STATE-GUARD: {field} must not be an empty list.")
+        for index, state in enumerate(raw_value):
+            if not isinstance(state, WorldState):
+                raise TypeError(f"STATE-GUARD: {field}[{index}] must be a WorldState; received {type(state).__name__}.")
+        return raw_value
 
     @staticmethod
-    def _normalize_fs(fs_raw: Any) -> dict:
-        """Normalizes set conventions into explicit target-to-host dictionaries."""
+    def _normalize_fs(fs_raw: Any, field: str = "fs") -> dict:
+        """Normalizes filesystem shorthand while rejecting ambiguous basenames."""
         __tracebackhide__ = True
         if not fs_raw: return {}
         if isinstance(fs_raw, dict): return fs_raw
@@ -373,9 +389,14 @@ class EBT:
             normalized = {}
             for path_str in fs_raw:
                 p = Path(str(path_str).rstrip("/"))
-                normalized[p.name] = str(path_str)
+                if p.name in normalized and Path(normalized[p.name]) != p:
+                    raise ValueError(
+                        f"STATE-GUARD: {field}: ambiguous destination {p.name!r} for sources "
+                        f"{normalized[p.name]!r} and {str(path_str)!r}; use an explicit destination-to-source mapping."
+                    )
+                normalized.setdefault(p.name, str(path_str))
             return normalized
-        raise ValueError(f"Invalid type for fs: {type(fs_raw)}")
+        raise ValueError(f"Invalid type for {field}: {type(fs_raw)}")
 
     @staticmethod
     def _normalize_args(args_raw: Any) -> tuple:
