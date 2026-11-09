@@ -223,12 +223,12 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
    with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
        return list(mapper.map(self._task_func, self._indices, self._pre_states))
    ```
-6. **Entschärfung von RBT für CI/CD:**  
+6. **Entschärfung von RBT für CI/CD:**  (DONE)  
    Der `HumanReviewer` darf nicht der Default sein. RBT muss im Headless-Modus entweder auf interaktive CLI-Prompts zurückfallen oder bei fehlendem `DISPLAY` kontrolliert übersprungen werden (`pytest.skip()`).
 
 ### Priorität 3 (Bereinigung & Release-Fähigkeit)
 7. **Ehrlichkeit bei Virtualisierungs-Features:**  
-   Die unfertigen Klassen `DockerArena` und `VmArena` sowie die 0-Byte-Dateien in `src/cubie/arenas/vm/` vorübergehend aus dem öffentlichen Interface entfernen und klar als experimentelle Entwürfe kennzeichnen.
+   Die unfertigen Klassen `DockerArena` und `VmArena` sowie die 0-Byte-Dateien in `src/cubie/arenas/vm/` vorübergehend aus dem öffentlichen Interface entfernen und klar als noch auszuarbeitende Feature-Entwürfe kennzeichnen.
 8. **Bereinigung von `pyproject.toml`:**  (DONE)  
    Entfernen der obsoleten `"dataclasses>=0.8"`-Abhängigkeit und Harmonisierung der Versions-Pins.
 9. **Deduplizierung von `ReviewData`:**  (DONE)  

@@ -23,7 +23,7 @@ class RBT:
     ):
         self.check = check
         self.target = target
-        self.reviewer = reviewer or HumanReviewer()
+        self.reviewer = reviewer if reviewer is not None else HeadlessReviewer()
         self.reporter = reporter
         self.tags = tags or []
         self._target_string: Optional[str] = None
@@ -68,6 +68,39 @@ class RBT:
 
 
 # ========== HUMAN-IN-THE-LOOP =========================================================================================
+
+class HeadlessReviewer:
+    """Reviews through the terminal or returns a predefined boolean decision.
+
+    Pass ``answer=True`` or ``answer=False`` for unattended runs. With no answer,
+    each review asks for y/n and an optional report. Interactive pytest runs need
+    stdin capture disabled (``pytest -s``). Input errors propagate to the caller.
+    """
+
+    def __init__(self, answer: bool | None = None) -> None:
+        self.answer = answer
+
+    def review(self, target: str | None, check: str) -> ReviewData:
+        """Returns a fresh result without opening a GUI or retaining review state."""
+        if self.answer is not None:
+            return ReviewData(passed=self.answer)
+
+        if target is not None:
+            print(f"Target: {target}")
+        print(f"Check: {check}")
+
+        while True:
+            decision = input("Pass? [y/n]: ").strip().lower()
+            if decision in ("y", "n"):
+                break
+            print("Please enter y or n.")
+
+        text = input("Report (optional, Enter to skip): ").strip()
+        return ReviewData(
+            passed=decision == "y",
+            report={"text": text} if text else {},
+        )
+
 
 class HumanReviewer:
     """
