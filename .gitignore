@@ -1,0 +1,30 @@
+# Lokale Python-Umgebungen und generierte Arena-Basen
+.venv/
+venv/
+env/
+.env/
+.arenas/
+/src/cubie/arenas/arena_envs/empty_test_env/
+
+# Lokale IDE-Konfiguration
+.idea/
+
+# Python-Bytecode und Werkzeug-Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
+
+# Erzeugte Paket- und Build-Artefakte
+*.egg-info/
+.eggs/
+/build/
+/dist/
+
+# Coverage-Berichte
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml

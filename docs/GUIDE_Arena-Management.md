@@ -24,7 +24,7 @@ Target-Exceptions werden mit einem Hinweis auf den Kindprozess-Traceback weiterg
 
 `PyVenv(env_path)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
 
-Die Basis muss zur Maschine und zum Interpreter passen. Die mitgelieferte Basisumgebung ist kein portabler Standard für frische Checkouts. Verwende eine eigens provisionierte Umgebung und dokumentiere deren Paketversionen. Fehlende Codec-Anforderungen kann `setup()` per `uv pip install` in der **Basisumgebung** nachinstallieren; das kann schreiben, Netzwerkzugriff benötigen und bei parallelen Tests konkurrieren.
+Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. Verwende eine eigens provisionierte Umgebung und dokumentiere deren Paketversionen. Fehlende Codec-Anforderungen kann `setup()` per `uv pip install` in der **Basisumgebung** nachinstallieren; das kann schreiben, Netzwerkzugriff benötigen und bei parallelen Tests konkurrieren.
 
 Der vorhandene `ArenaBuilder` wird über `from cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build()` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt. Provisionierung sollte ein ausdrücklich geplanter Vorbereitungsschritt sein; sie ist kein rein lesender Testaufbau.
 

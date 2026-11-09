@@ -26,6 +26,8 @@ python3.13 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
+Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --extra dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
+
 Speichere dieses vollständige Beispiel als `test_tax.py`:
 
 ```python

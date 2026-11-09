@@ -36,7 +36,7 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` und kann Pakete installieren. `.build()` liefert eine `PyVenv`-Instanz. Die eingecheckte Standardbasis ist kein zugesicherter portabler Ersatz für diesen Vorbereitungsschritt.
+Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` und kann Pakete installieren. `.build()` liefert eine `PyVenv`-Instanz. Basisumgebungen sind durch die Root-`.gitignore` ausgeschlossen und werden lokal erzeugt. Das gilt auch für den Standardpfad `src/cubie/arenas/arena_envs/empty_test_env`; ein frischer Checkout enthält dort keine virtuelle Umgebung.
 
 ## IPCC und Codec-Auswahl
 
