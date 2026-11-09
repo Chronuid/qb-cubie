@@ -147,7 +147,6 @@ class MultiprocessManager:
         while state not in (F.SUCCESS, F.FAIL): state = dispatcher[state]()
         if state == F.SUCCESS: return self.ctx["result"]
         if state == F.FAIL: raise RuntimeError("STATE-GUARD: All Processors failed") from self.ctx["error"]
-        return None
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -274,10 +273,11 @@ class MultiprocessRunner:
         self._indices = list(range(self._n_tasks))
     def execute(self) -> Iterable:
         with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
-            return mapper.map(
+            # Consume results here so deferred errors reach the manager's fallback.
+            return list(mapper.map(
                 self._task_func,
                 self._indices,
                 self._pre_states
-            )
+            ))
 
 ########################################################################################################################
