@@ -1,6 +1,14 @@
-# Example-Based Testing: Beispiele und Aussagegrenzen
+<center>
+
+# Example-Based Testing
+
+![Cubie](.assets/cubie-logo-written.png)
 
 EBT führt konkrete Eingaben aus und vergleicht die beobachteten Ergebnisse mit deklarierten Mustern. Das unterstützt besonders wiederkehrende Akzeptanzszenarien mit Rückgaben und Dateien. Die genaue API definiert die [Vertragssemantik](GUIDE_Contract-Semantics.md); ausführbare Fälle stehen im [Nutzungshandbuch](GUIDE_EBT-Usage-Pattern.md).
+
+---
+
+</center>
 
 ## Ausgangsdaten und Zielmuster
 
@@ -27,3 +35,25 @@ Kuratierte Referenzdaten müssen konsistent und überprüfbar sein. Ergänze sie
 ## Grenzen des aktuellen Prüfkerns
 
 Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und explizite Erwartungen. `returns=None` prüft derzeit keinen Sollwert; nutze dafür ein Prädikat. Diese und weitere Fehler sind in der [Semantikreferenz](GUIDE_Contract-Semantics.md) und im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

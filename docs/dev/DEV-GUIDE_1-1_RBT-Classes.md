@@ -1,6 +1,14 @@
+<center>
+
 # RBT-Klassen
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `cubie.rbt`, die Daten- und Schnittstellenverträge zu `cubie.protocols`.
+
+---
+
+</center>
 
 ## RBT
 
@@ -27,3 +35,25 @@ Mit `answer=True` oder `False` liefert jeder Aufruf eine neue `ReviewData` mit d
 `HumanReviewer` öffnet eine Tkinter-GUI mit Target, Prüfregel, Entscheidungsschaltflächen und Textfeld. `review()` wartet synchron auf die Interaktion und konstruiert danach `ReviewData`. Die GUI benötigt eine verfügbare grafische Umgebung und ist kein Standard für unbeaufsichtigte CI-Läufe.
 
 `_run_gui()`, `_build_widgets()`, `_build_buttons()` und `_finalize()` kapseln Darstellung und Übernahme der Eingaben. Der Reviewer ist von pytest entkoppelt; die Assertion und Berichtsformatierung übernimmt der gewählte Reporter.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

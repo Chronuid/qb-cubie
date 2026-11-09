@@ -1,6 +1,14 @@
+<center>
+
 # Die EBT-Klasse
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 `EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung.
+
+---
+
+</center>
 
 ## Konstruktor und Konfiguration
 
@@ -38,3 +46,25 @@ Leere Zustandslisten können derzeit ohne Vergleiche erfolgreich erscheinen. Wie
 `_compare()` unterstützt `Any`, Unions, Typen, Regex, Callables und verschachtelte Container. Die exakten Regeln stehen in der Semantikreferenz. `EvaluationTrace.diffs` enthält Abweichungen für Rückgaben, Dateien und Arena-Vorlagen. Der Standardreporter kann Details falscher Rückgaben mit falschem Wahrheitswert auslassen, obwohl diese verglichen wurden.
 
 `FS_IGNORES` startet mit `{""}` und filtert Pfadsegmente im rekursiven Dateiscan. `ARENA_IGNORES` enthält unter anderem `bin`, `Scripts`, `pyvenv.cfg` und `__pycache__`; der Arena-Scan ignoriert zusätzlich `.pyc` und `.dist-info`. Diese Ausschlüsse verändern den Prüfbereich und garantieren weder Reproduzierbarkeit noch semantische Gleichheit. Leere Unterverzeichnisse werden im rekursiven Scan nicht erfasst.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

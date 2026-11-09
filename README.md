@@ -93,7 +93,7 @@ Der aktuelle Prüfkern kann falsche Erfolge melden: `returns=None` deaktiviert d
 
 <center>
 
-![Error while trying to load the image](./docs/.assets/cubie-small.png) 
+![Error while trying to load the image](./docs/.assets/cubie-small.png)
 
 ## Dokumentation
 

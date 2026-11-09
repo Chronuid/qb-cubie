@@ -1,6 +1,14 @@
+<center>
+
 # Arena-Management
 
+![Cubie](.assets/cubie-logo-written.png)
+
 Arenen trennen die EBT-Orchestrierung von Aufbau und Ausführung einer Testumgebung. `TempFS` und `PyVenv` verwenden temporäre Arbeitsverzeichnisse und Kindprozesse. **Beide besitzen die Rechte des aufrufenden Benutzers und bilden keine OS-Sicherheitsgrenze.** Sie sind für vertrauenswürdigen Code vorgesehen. Die [Semantikreferenz](GUIDE_Contract-Semantics.md) definiert den Vertrag und seine Grenzen.
+
+---
+
+</center>
 
 ## TempFS: temporärer Datei-Workspace
 
@@ -39,3 +47,25 @@ Targets können absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare N
 Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist; ein hängendes Target kann den Lauf blockieren. `PyVenv` puffert stdout und stderr vollständig. Zusätzliche Worker, pytest-xdist und Arena-Unterprozesse können die Ressourcenlast vervielfachen. Der Multiprocessing-Fallback kann Aufgaben nach Fehlern erneut ausführen und Seiteneffekte wiederholen.
 
 `DockerArena` und `VmArena` sind nicht implementiert und nicht Teil der öffentlichen API. Die [Virtualisierungsentwürfe](feature-drafts/virtualization/README.md) beschreiben geplante Funktionen. Aussagen daraus gelten nicht für die vorhandenen Arenen.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

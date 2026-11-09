@@ -1,6 +1,14 @@
+<center>
+
 # EBT: Entwicklerübersicht
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../GUIDE_Contract-Semantics.md).
+
+---
+
+</center>
 
 ## Komponenten
 
@@ -24,3 +32,25 @@ Bekannte Fehler betreffen unter anderem nicht geprüfte `None`-Rückgaben, leere
 - [WorldState](DEV-GUIDE_2-2_WorldState-Class.md)
 - [Arenen und Codecs](DEV-GUIDE_2-3_Arenas.md)
 - [Multiprocessing](DEV-GUIDE_2-4_Multiprocessors.md)
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

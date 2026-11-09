@@ -1,4 +1,14 @@
+<center>
+
 # Clean-Code Pragmatismus
+
+![Cubie](../.assets/cubie-logo-written.png)
+
+Dieser Essay diskutiert kontextabhängige Entwurfsentscheidungen und pragmatische Clean-Code-Prinzipien.
+
+---
+
+</center>
 
 > **WICHTIG:** Dieser Design-Guide ist keine Heuristik-Sammlung für finale Lösungen, sondern eine Pragmatismus-Sammlung, welche zum Denken anstupst. Es gibt nicht die eine "Eierlegende-Wollmilch-Sau"-Lösung, sondern es kommt immer stark auf den jeweiligen Kontext an. Das SRP alleine bringt nichts, wenn du es einfach nur als Zeilenbegrenzung siehst, anstatt als Grund um ein Design aufzusetzen, welches SRP, die Kohäsion, Logik und den natürlichen Schutz fördert. 
 
@@ -60,3 +70,25 @@ Genau hier zeigt sich die architektonische Überlegenheit des klassischen Ansatz
 Regeln wie "Nutze keine Attribute für Zwischenzustände" sind Stützräder. Wenn du das architektonische Verständnis hast um Variabeln durchdacht zu gestalten, das SRP sauber anzuwenden und Klassen klein und kohäsiv zu halten, brauchst du diese Stützräder nicht. Man muss nicht für jedes Datenpaket direkt eine formelle Datenstruktur erzwingen, wenn die Attribute im Kontext der Klasse bereits perfekt gekapselt sind und kein funktionaler Mehrwert durch eine Trennung entsteht. Wenn man dann aber doch die Design-Muster und Prinzipien benötigt, weil sie eine praktische Lösung wären, dann könnte man sie jederzeit als Werkzeug zur Hand nehmen.
 
 Wenn man Architektur nicht als Religion, sondern als Werkzeugkasten betrachtet, kommt man zu den entscheidenden Fragen, an denen sich dogmatisches "Whiteboard-Design" von exzellentem Software-Engineering unterscheidet.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

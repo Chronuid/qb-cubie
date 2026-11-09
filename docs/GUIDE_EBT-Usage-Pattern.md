@@ -1,6 +1,14 @@
+<center>
+
 # EBT-Nutzungsmuster
 
+![Cubie](.assets/cubie-logo-written.png)
+
 Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_Contract-Semantics.md) definiert alle Felder, Vergleichsregeln und bekannten Fehler. Verwende für jeden Lauf eine neue EBT-Instanz und explizite, nichtleere Verträge. Die folgenden Python-Blöcke sind vollständige pytest-Beispiele.
+
+---
+
+</center>
 
 ## Konkrete Ein-/Ausgabepaare
 
@@ -175,3 +183,25 @@ Das Prädikat erhält einen `Path` im noch bestehenden Workspace. Nach dem Vergl
 Für ein vorhandenes, eigens vorbereitetes Basis-Environment kann `arena=PyVenv("tests/.arenas/qa_env")` verwendet werden. Die Umgebung muss zur Maschine passen; die eingecheckte Basis ist kein portabler Installationsvertrag. `PyVenv` kann fehlende Codec-Abhängigkeiten in der Basis nachinstallieren.
 
 Eine erwartete Umgebungsänderung lässt sich über `post=WorldState(arena="tests/.arenas/expected_env")` gegen einen vorhandenen Vergleichspfad prüfen. Das ist ein gefilterter Dateivergleich, kein Beleg korrekter Paketauflösung. Näheres erläutert das [Arena-Handbuch](GUIDE_Arena-Management.md). Beide vorhandenen Arenen führen nur vertrauenswürdigen Code aus und bilden keine OS-Sicherheitsgrenze.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

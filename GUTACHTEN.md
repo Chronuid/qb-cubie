@@ -1,4 +1,14 @@
+<center>
+
 # Kritisches Gutachten zum Cubie-Projekt
+
+![Cubie](./docs/.assets/cubie-logo-written.png)
+
+Dieses Gutachten bewertet Implementierung, Aussagegrenzen und Entwicklungsbedarf des Cubie-Projekts.
+
+---
+
+</center>
 
 **Stand:** 9. November 2026  
 **Untersuchter Stand:** Arbeitsverzeichnis auf Basis von Commit `f3a7f17`, Projektversion `0.0.3`, Python `3.13.12`.
@@ -244,3 +254,25 @@ Vor weiteren Arena-Typen oder einer umfassenden Agentenplattform sollten zwei bi
 | Auslieferungs- und Betriebsreife | Experimentell; erheblicher Bedarf bei sauberer Installation, CI und Ressourcensteuerung |
 
 Cubie verdient eine fokussierte Weiterentwicklung. Voraussetzung ist eine nüchterne Produktdefinition: ein hilfreiches Testwerkzeug mit klaren, begrenzten Garantien. Entscheidend für seinen Erfolg werden verlässliche negative Testergebnisse, ein reibungsloser Einstieg und nachgewiesene Vorteile in konkreten Arbeitsabläufen sein.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](./docs/.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./docs/GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

@@ -1,6 +1,14 @@
+<center>
+
 # WorldState
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 `WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../GUIDE_Contract-Semantics.md).
+
+---
+
+</center>
 
 ```python
 from cubie import WorldState
@@ -20,3 +28,25 @@ post = WorldState(returns=lambda value: value is None)
 `expect` unterscheidet in `post` erlaubte (`True`) und verbotene (`False`) Muster. Es negiert nicht selbst den gesamten Lauf; dafür gibt es `EBT.expect`. Ein Wert in `pre.expect` wirkt sich nicht auf die EBT-Aggregation aus.
 
 Ein `WorldState` ist weder ein bewiesenes Zustandsprädikat noch eine vollständige Abbildung aller Seiteneffekte. Änderungen an enthaltenen Objekten bleiben möglich; auch ein eingefrorener `EBTContext`, der solche Objekte referenziert, verhindert das nicht.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

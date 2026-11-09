@@ -1,6 +1,14 @@
+<center>
+
 # Review-Based Testing
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abnahmen oder eigene automatisierte Reviewer nutzbar. Es führt das Target nicht aus und liefert keinen formalen Korrektheits- oder Sicherheitsnachweis. Die [Semantikreferenz](../GUIDE_Contract-Semantics.md) definiert die Grenzen; vollständige Beispiele stehen im [RBT-Nutzungshandbuch](../GUIDE_RBT-Usage-Pattern.md).
+
+---
+
+</center>
 
 `from cubie.rbt import RBT` ist der vorhandene Import. Die Klasse wird nicht als `cubie.RBT` exportiert.
 
@@ -21,3 +29,25 @@ Das `Reviewer`-Protokoll aus `cubie.protocols` verlangt `review(target: str | No
 Standard ist `HeadlessReviewer()`: Ohne vorgegebene Antwort fragt er am Terminal interaktiv nach Entscheidung und Bericht. pytest benötigt dafür `-s`. `HumanReviewer` ist die ausdrücklich wählbare Tkinter-GUI. Automatisierte Läufe benötigen einen nichtinteraktiven Reviewer; eine vorgegebene Antwort in `HeadlessReviewer` prüft selbst keine Anforderung.
 
 Reviewer- und Reporter-Exceptions propagieren. `RBT.run()` gibt nach regulärem Abschluss `None` zurück. Mit `reporter=None` findet der Review weiterhin statt, aber keine Reporter-Assertion.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

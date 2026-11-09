@@ -1,6 +1,14 @@
-# 📖 CUBIE-GUIDE: Linter
+<center>
+
+# Linter
+
+![Cubie](.assets/cubie-logo-written.png)
 
 Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
+
+---
+
+</center>
 
 Dieses Dokument erklärt die typischen Usage-Pattern, zeigt auf, wie das Framework mit Dateisystemen und LLM-Outputs interagiert, und bietet einen Deep-Dive in die Entwicklung eigener Code-Style-Regeln.
 
@@ -137,3 +145,25 @@ for d in diagnostics:
     print(f"[{d.rule_id}] {d.message} (Zeile: {d.line})")
     # Output: [CST002] Der Funktion 'helfer_funktion' fehlt die Return-Type-Annotation. (Zeile: 2)
 ```
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

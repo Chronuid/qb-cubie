@@ -1,7 +1,17 @@
+<center>
+
+# VmArena: Anforderungen an Betriebssystem-Szenarien und Routing
+
+![Cubie](../../.assets/cubie-logo-written.png)
+
+Dieser Entwurf beschreibt Anforderungen an Betriebssystem-Szenarien und Routing in einer geplanten VmArena.
+
+---
+
+</center>
+
 > **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
 > Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
-
- ## `VmArena` (OS-Szenarien & Routing)
 
 Diese Arena dient der Bereitstellung von Betriebssystem-Umgebungen zur Validierung von Routing- und Berechtigungs-Logiken.
 
@@ -105,3 +115,25 @@ Die Wahl von Libvirt und QEMU/KVM ist eine fundamentale Architekturentscheidung 
 * Definition der Nutzungsmuster und Variationen.
 * Verankern der Nutzungsmuster und Variationen als Test-Suites.
 * Entwicklung zur Erfüllung der Test-Suites.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

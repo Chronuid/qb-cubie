@@ -1,11 +1,16 @@
 <center>
 
-# `Linter` 
+# `Linter`
 
-![Error while trying to load the image](../.assets/cubie-logo-written.png)
+![Cubie](../.assets/cubie-logo-written.png)
+
+Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integration.
+
+---
+
+</center>
 
 Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (AST) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](../GUIDE_Contract-Semantics.md).
-</center>
 
 ---
 
@@ -70,3 +75,25 @@ Das Linter-Modul folgt strikt den architektonischen Richtlinien des Cubie-Projek
 ## Aussagegrenzen
 
 Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des jeweiligen Backends. Eine leere Liste beweist keine Fehlerfreiheit. Der MyPy-Adapter kann bestimmte Prozessabbrüche derzeit als leere Diagnoseliste behandeln; siehe [Gutachten, Abschnitt 5.2](../../GUTACHTEN.md). Weder ein Linter-Prozess noch seine Ausschlussmuster sind eine OS-Sicherheitsgrenze.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

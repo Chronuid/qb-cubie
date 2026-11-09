@@ -1,8 +1,17 @@
-> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
-> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+<center>
 
 # [Feature] Implementierung von `DockerArena` und `VmArena` für erweiterte OS- und FS-Isolation (Entwicklung bis auf Weiteres Eingefroren)
 
+![Cubie](../../.assets/cubie-logo-written.png)
+
+Dieser Entwurf sammelt Anforderungen an DockerArena und VmArena für erweiterte Testumgebungen.
+
+---
+
+</center>
+
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
 
 ## Kontext & Motivation
 Für die Entwicklung robuster Datei- und Pfad-Operationen (insbesondere für das komplexe Home-Routing und Eject-Muster der `devops`-Architektur) reicht die Ausführung in der Standard-Host-Umgebung nicht mehr aus. Da Pfadauflösungen, Symlinks und Berechtigungskonzepte zwischen verschiedenen Betriebssystemen stark abweichen, benötigt das Test-Framework dedizierte Arenen, die diese spezifischen Umgebungen simulieren und kapseln. 
@@ -30,3 +39,25 @@ Diese Arena dient der Bereitstellung vollwertiger oder leichtgewichtiger Betrieb
 - [ ] `VmArena`-Klasse ist entworfen und bietet eine deklarative Schnittstelle zur Auswahl des Ziel-OS.
 - [ ] Funktionalitäts-Nachweise für die `DockerArena` und die `VmArena`: Der Natur der Arenen entsprechend umfassende Test-Suites.
 - [ ] Dokumentation der neuen Arenen und deren Konfiguration (z. B. Anforderungen an den Host, wie installierter Docker-Daemon oder VM-Hypervisor).
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

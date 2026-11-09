@@ -1,11 +1,16 @@
 <center>
 
-# `Multiprocessors` 
+# `Multiprocessors`
 
-![Error while trying to load the image](../.assets/cubie-logo-written.png)
+![Cubie](../.assets/cubie-logo-written.png)
+
+Diese Entwicklerreferenz beschreibt Multiprozess-Ausführung und die zugehörigen Schnittstellen.
+
+---
+
+</center>
 
 Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skalierung von Cubie. Es entkoppelt die Auswertung konkreter EBT-Beispiele vollständig von den physischen Details der Prozess-Erstellung, Inter-Prozess-Kommunikation (IPC) und Serialisierung.
-</center>
 
 ---
 
@@ -172,13 +177,31 @@ Sollte ein absoluter Blackbox-Modus nötig sein, in dem die nativen Fallbacks ph
 
 ---
 
-<center>
 
-![Error while trying to load the image](../.assets/cubie-small.png)
-
-</center>
 
 ---
 ## Betriebsgrenzen
 
 Die Workerzahl richtet sich nach den gemeldeten CPUs und wird derzeit weder durch die Aufgabenzahl noch durch ein Benutzerlimit begrenzt. Zusammen mit pytest-xdist und Arena-Unterprozessen kann dies erhebliche Überbelegung verursachen. Fallback ist keine Exactly-once-Garantie: Die gesamte Aufgabenmenge kann erneut laufen, auch wenn zuvor einzelne Targets schon Seiteneffekte erzeugt haben. Die heuristische Backend-Auswahl garantiert weder Serialisierbarkeit aller Targets noch Ausführungsisolation. Siehe [Vertragssemantik](../GUIDE_Contract-Semantics.md).
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

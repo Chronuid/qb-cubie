@@ -1,6 +1,14 @@
+<center>
+
 # RBT-Nutzungsmuster
 
+![Cubie](.assets/cubie-logo-written.png)
+
 RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und übergibt dessen `ReviewData` an einen Reporter. Eine Entscheidung bleibt eine Beurteilung unter den jeweiligen Bedingungen. Die [Semantikreferenz](GUIDE_Contract-Semantics.md) grenzt sie von Ausführung und Beweis ab.
+
+---
+
+</center>
 
 ## Interaktives Review
 
@@ -55,3 +63,25 @@ Ein LLM-Reviewer wäre ebenfalls eine eigene Implementierung dieses Protokolls. 
 `ReviewData` enthält `passed: bool` und ein offenes `report`-Dictionary. Der Standardreporter formatiert den Bericht und löst bei `passed=False` eine Assertion aus. Ein anderer Reporter kann injiziert werden; `reporter=None` unterdrückt die Ausgabe und Assertion, aber nicht den Review-Aufruf oder dessen Exceptions.
 
 `RBT.run()` liefert derzeit `None`, nicht das `ReviewData`-Objekt. Ein eigener Reporter kann das Paket zur Weiterverarbeitung entgegennehmen. `tags` speichert Metadaten und erzeugt keine pytest-Marken. Das Report-Dictionary ist kein automatisch persistierter, revisionssicherer Bewertungsnachweis.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

@@ -1,6 +1,14 @@
+<center>
+
 # Qualitätssicherung mit Cubie
 
+![Cubie](.assets/cubie-logo-written.png)
+
 Cubie bündelt deklarative Akzeptanztests, Review-Aufträge und Linter-Diagnosen. Sein praktischer Nutzen liegt in wiederverwendbaren Konventionen für Eingaben, Rückgaben und Dateien sowie in einer gemeinsamen Orchestrierung. Die [Vertragssemantik](GUIDE_Contract-Semantics.md) ist die zentrale Referenz für das vorhandene Verhalten und bekannte Fehler.
+
+---
+
+</center>
 
 ## Beobachtung, Abdeckung und Beweis
 
@@ -48,3 +56,25 @@ Für Datei-Workflows können deklarierte Vorlagen wiederholte Einrichtung und Ve
 | 7.2: Widersprüchliche Detailbeschreibungen | Zentrale Semantikreferenz eingeführt und mit Nutzungs- und Entwicklerhandbüchern verknüpft; implementiertes Verhalten von Entwürfen getrennt. |
 
 Die Änderungen betreffen Dokumentation und beschreibende Docstrings. Die im Gutachten priorisierten Reparaturen des Prüfkerns, der Installation und der Betriebsgrenzen bleiben eigenständige Implementierungsaufgaben.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

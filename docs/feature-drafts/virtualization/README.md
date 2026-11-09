@@ -1,9 +1,17 @@
+<center>
+
 # Virtualisierung: eingefrorene Feature-Entwürfe
+
+![Cubie](../../.assets/cubie-logo-written.png)
 
 **Status: nicht implementiert; noch auszuarbeiten.** `DockerArena` und `VmArena`
 gehören derzeit nicht zur öffentlichen API von Cubie. Es gibt keine ausführbare
 Docker- oder VM-Arena und keine zugesicherte Container-, Netzwerk-, Ressourcen-
 oder Betriebssystem-Isolation durch diese Entwürfe.
+
+---
+
+</center>
 
 Die bisherigen Klassen enthielten ausschließlich Konfigurationsfelder und keine
 Implementierung des Arena-Protokolls. Sie liegen hier als Textdateien außerhalb
@@ -25,3 +33,25 @@ Verfügbar bleiben `TempFS` und `PyVenv`. Beide bieten keine OS-Sicherheitsgrenz
 Vor einer erneuten Veröffentlichung müssen die Entwürfe überarbeitet, das
 Arena-Protokoll implementiert und die tatsächlichen Isolationsgarantien durch
 ausführbare Tests nachgewiesen werden.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

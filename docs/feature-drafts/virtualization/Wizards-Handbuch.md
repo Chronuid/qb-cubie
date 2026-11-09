@@ -1,8 +1,17 @@
-> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
-> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+<center>
 
 # Wizards-Handbuch
 
+![Cubie](../../.assets/cubie-logo-written.png)
+
+Dieses Handbuch beschreibt die geplanten Wizards zur Einrichtung virtueller Testumgebungen.
+
+---
+
+</center>
+
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
 
 ---
 
@@ -106,3 +115,25 @@ Die Wizards bilden eine hierarchische State-Machine. Sie agieren als modulare Zu
 * **Zustand:** `ArenaProvisioning`
 * **Aktion:** Der Checkpoint ist passiert. Der Guard übergibt die Kontrolle an den eigentlichen Test-Runner.
 * **Verantwortlichkeit:** Die `VmArena` übernimmt das deklarierte und vom `AssetWizard` validierte QCOW2-Image, generiert über Libvirt das flüchtige Copy-on-Write-Overlay und injiziert den EBT-Payload via VirtIO-Serial in den Gast.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

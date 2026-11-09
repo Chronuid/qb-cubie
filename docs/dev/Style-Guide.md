@@ -1,4 +1,14 @@
+<center>
+
 # Styleguide
+
+![Cubie](../.assets/cubie-logo-written.png)
+
+Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes.
+
+---
+
+</center>
 
 Um einen einheitlichen, testbaren und pflegbaren Code im gesamten Projekt zu haben, gelten folgende Styleguide-Richtlinien: 
 
@@ -58,3 +68,25 @@ Nutze `GROSSBUCHSTABEN` und `typing.Final` für Dinge, die du als "statisch" bet
 
 ### Pure Worker & Stateful Orchestrators: 
 Operative Kernfunktionen (Worker) konsumieren ihren Kontext ausschließlich über Parameter und kommunizieren Ergebnisse strikt über return. Die Mutation von Klassenattributen (Zustand) obliegt den steuernden Haupt- oder Kompositionsfunktionen, welche die Ergebnisse der Worker aggregieren. Dies ermöglicht Thread-Sicherheit und maximale Testbarkeit, während die Kohäsion der Hauptklasse und deren Funktionen gefördert wird.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

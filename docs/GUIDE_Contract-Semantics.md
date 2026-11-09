@@ -1,6 +1,14 @@
+<center>
+
 # Verbindliche Vertragssemantik
 
+![Cubie](.assets/cubie-logo-written.png)
+
 Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgeglichen mit `src/cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern. Änderungen an der Dokumentation beheben diese Fehler nicht. Die Befunde stammen aus dem [Gutachten vom 9. November 2026](../GUTACHTEN.md), insbesondere Abschnitte 3, 5–7.
+
+---
+
+</center>
 
 ## Begriffe und Felder
 
@@ -88,3 +96,25 @@ Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puff
 - Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Insbesondere kann der MyPy-Adapter einen Prozessabbruch als leere Liste behandeln; `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 
 Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Handhabung begrenzt einzelne Fehlanwendungen, macht Cubie aber nicht zu einer allgemein verlässlichen Qualitätsinstanz.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>

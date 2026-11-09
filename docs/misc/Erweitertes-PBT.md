@@ -1,6 +1,14 @@
+<center>
+
 # Erweitertes Property-Based Testing: konzeptionelle Einordnung
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 **Status: konzeptioneller Vorschlag, keine implementierte Cubie-API.** Die frühere Bezeichnung „ePBT“ fasste unterschiedliche Qualitätssicherungsverfahren zusammen. Sie bezeichnet hier keinen etablierten Beweiskalkül und keine automatisch nachgewiesenen universellen Eigenschaften. Die vorhandene Cubie-Semantik steht in der [Vertragsreferenz](../GUIDE_Contract-Semantics.md).
+
+---
+
+</center>
 
 ## Verfahren sinnvoll verbinden
 
@@ -21,3 +29,25 @@ Typprüfer untersuchen Verträge innerhalb ihres Typmodells und ihrer Konfigurat
 Ein generativ gefundenes Gegenbeispiel kann nach fachlicher Prüfung als reproduzierbarer Regressionstest übernommen werden. Ein kuratiertes Beispiel besitzt aber nicht automatisch höhere Autorität als eine Property. Bei einem Widerspruch müssen Eingabe, Sollwert, Eigenschaft, Generator und Implementierung geprüft werden.
 
 Cubie implementiert keinen eigenen allgemeinen PBT-Generator und keine Rangordnung zwischen „absoluten Fakten“ und „Hypothesen“. Eine Verbindung mit externen Generatoren ist eine mögliche Integration. Für jedes Ergebnis müssen Prüfumfang, Bedingungen und offene Einschränkungen sichtbar bleiben.
+
+---
+
+---
+
+<center>
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+## Dokumentation
+
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</center>
