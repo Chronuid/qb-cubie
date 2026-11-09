@@ -95,6 +95,22 @@ def test_logging_review():
 
 Die Datei muss vom Reviewer selbst geöffnet und beurteilt werden. Ein positives Review bleibt eine Beurteilung unter den jeweiligen Bedingungen. Eigene automatisierte Reviewer lassen sich injizieren; ein fertiger LLM-Adapter wird nicht mitgeliefert.
 
+Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebener Terminaleingabe:
+
+```bash
+.venv/bin/python -m pytest -q -s test_logging_review.py
+```
+
+Antworte nach der Prüfung mit `y` oder `n` und gib optional einen Bericht ein. Eine Ablehnung lässt den Test fehlschlagen.
+
+Die Python-Beispiele dieser README werden direkt aus den Codeblöcken gelesen und mit pytest ausgeführt. Die Prüfung benötigt keine Arena-Basen und lässt sich separat starten:
+
+```bash
+.venv/bin/python -m pytest -q tests/test_readme_examples.py
+```
+
+Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit einer fehlerhaften Steuerberechnung und einem abgelehnten Review müssen fehlschlagen; so wird auch abgesichert, dass die Beispiele tatsächlich `.run()` ausführen und Fehler an pytest melden.
+
 ## Bekannte Einschränkungen
 
 Der aktuelle Prüfkern kann falsche Erfolge melden: Leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `WorldState(returns=None)` erwartet explizit `None`; ohne `returns` oder mit `returns=cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
