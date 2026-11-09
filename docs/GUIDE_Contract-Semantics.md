@@ -81,6 +81,24 @@ Ein `EvaluationTrace.evaluation` beschreibt den rohen Match auch für ein verbot
 
 ## Dateisystem und Arenen
 
+`EvaluationTrace.diffs["fs"]` gliedert Abweichungen nach dem Zielpfad des Mappings.
+Die Listen `missing`, `unexpected` und `modified` enthalten Pfade relativ zum
+jeweiligen Vergleichsobjekt. Bei einer einzeln gemappten Datei bezeichnet `"."`
+die Datei selbst, beispielsweise
+`{"out/report.csv": {"modified": ["."]}}`. Zuvor stand hier der Basename der
+Host-Referenz; Verbraucher strukturierter Einzeldatei-Diffs müssen diese Änderung
+berücksichtigen. Verzeichnis-Diffs enthalten weiterhin die relativen Dateipfade.
+Nicht ausführbare Vergleiche besitzen einen `error`-Eintrag mit dem Fehlergrund.
+
+Der Pytest-Reporter führt FS-Abweichungen zu Workspace-Pfaden zusammen und zählt
+gleiche Pfade innerhalb einer Kategorie nur einmal, auch bei überlappenden
+Mappings. Die Pfade werden innerhalb der Kategorien sortiert. `max_diff_items`
+begrenzt die ausgegebene Dateiliste; die Gesamtzahlen bleiben vollständig.
+Vergleichsfehler erscheinen mit Zielpfad und Grund unabhängig von dieser Grenze
+und von der Verbosity. Ein ausschließlich fehlgeschlagener Vergleich liefert
+keine irreführende Zusammenfassung mit null Abweichungen. Die Formatierung greift
+nicht erneut auf die Vergleichsdateien zu und funktioniert auch nach deren Löschung.
+
 Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnissen vergleicht EBT rekursiv die relativen Dateipfade und Dateiinhalte; fehlende, zusätzliche und geänderte Dateien zählen als Abweichung. Dateien außerhalb der angegebenen Vergleichspfade bleiben ungeprüft. `fs={".": "fixtures/post"}` vergleicht die Dateien des gesamten Workspace gegen die Vorlage.
 
 Leere Unterverzeichnisse werden beim rekursiven Vergleich nicht erfasst. Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft; ein vollständiger Vertrag über Verzeichnisstruktur, Metadaten, Rechte oder Symlink-Identität entsteht daraus nicht. `FS_IGNORES` filtert Pfadsegmente im rekursiven Dateiscan. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.

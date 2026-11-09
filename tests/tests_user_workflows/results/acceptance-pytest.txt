@@ -1,0 +1,42 @@
+$ /home/symphonie/PycharmProjects/cubie/.venv/bin/python -m pytest -q --tb=short /home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/examples/acceptance_cases.py
+.FFFF                                                                    [100%]
+=================================== FAILURES ===================================
+____________________________ test_unexpected_count _____________________________
+tests/tests_user_workflows/examples/acceptance_cases.py:33: in test_unexpected_count
+    export_case(tmp_path, "return-count").run()
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3eb87b5a861740b2b9fb62884edec39d_0':
+E   Target: functools.partial(<function export_orders at 0x79582e8300e0>, 'return-count')
+E     [Q-State 0] Validation: Mismatch
+E       - Returns: Expected None | Actual 0 (Mismatch)
+E       - FS: Match
+__________________________ test_unpaid_order_exported __________________________
+tests/tests_user_workflows/examples/acceptance_cases.py:37: in test_unpaid_order_exported
+    export_case(tmp_path, "include-unpaid").run()
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_1d8f82b441244d87bbb028f91931310c_0':
+E   Target: functools.partial(<function export_orders at 0x79582e8300e0>, 'include-unpaid')
+E     [Q-State 0] Validation: Mismatch
+E       - Returns: Expected None | Actual None (Match)
+E       - FS: Mismatch
+E         Details: -0 Missing | +0 Unexpected | ~0 Modified
+_________________________ test_wrong_empty_stock_count _________________________
+tests/tests_user_workflows/examples/acceptance_cases.py:41: in test_wrong_empty_stock_count
+    EBT(target=partial(availability, "count", True), post=WorldState(returns=0)).run()
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_25b303658b664fac8cda68d8730bca9c_0':
+E   Target: functools.partial(<function availability at 0x79582e830180>, 'count', True)
+E     [Q-State 0] Validation: Mismatch
+E       - Returns: Expected 0 | Actual 1 (Mismatch)
+___________________________ test_stale_stock_success ___________________________
+tests/tests_user_workflows/examples/acceptance_cases.py:47: in test_stale_stock_success
+    case.run()
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a472637fe993408dbdeb3e5fcfc3e285_0':
+E   Target: reserve
+E     [Q-State 0] Validation: Mismatch
+E       - Returns: Expected {'remaining': [1]} | Actual {'remaining': [0]} (Mismatch)
+=========================== short test summary info ============================
+FAILED tests/tests_user_workflows/examples/acceptance_cases.py::test_unexpected_count
+FAILED tests/tests_user_workflows/examples/acceptance_cases.py::test_unpaid_order_exported
+FAILED tests/tests_user_workflows/examples/acceptance_cases.py::test_wrong_empty_stock_count
+FAILED tests/tests_user_workflows/examples/acceptance_cases.py::test_stale_stock_success
+4 failed, 1 passed in 0.33s
+
+Exit code: 1

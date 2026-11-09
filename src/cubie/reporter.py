@@ -1,4 +1,5 @@
 import dataclasses
+import os
 from typing import Dict, List
 
 from .protocols import EvaluationTrace, ReviewData, RunTrace, UNSPECIFIED
@@ -133,12 +134,31 @@ class PytestReporter:
         if diff_key not in diffs: return [f"    - {label}: Match"]
         lines = [f"    - {label}: Mismatch"]
         section_diff = diffs[diff_key]
-        if isinstance(section_diff, dict) and "error" in section_diff:
+        if isinstance(section_diff, dict) and isinstance(section_diff.get("error"), str):
             return lines + [f"      Error: {section_diff['error']}"]
+        if diff_key == "fs" and isinstance(section_diff, dict):
+            section_diff, errors = PytestReporter._summarize_fs_diffs(section_diff)
+            lines.extend(errors)
+            # A failed comparison does not establish zero file differences.
+            if not any(section_diff.values()):
+                return lines
         if ctx.verbosity >= 1 and isinstance(section_diff, dict):
             lines.extend(PytestReporter._format_aggregate(section_diff))
             lines.extend(PytestReporter._format_items(section_diff, ctx))
         return lines
+
+    @staticmethod
+    def _summarize_fs_diffs(scoped_diffs: dict) -> tuple[dict[str, list[str]], list[str]]:
+        """Aggregate scoped records without accessing expired workspace/reference paths."""
+        changes = {category: set() for category in ("missing", "unexpected", "modified")}
+        errors = []
+        for scope, diff in sorted(scoped_diffs.items(), key=lambda item: str(item[0])):
+            if "error" in diff:
+                errors.append(f"      Error: {os.path.normpath(str(scope))}: {diff['error']}")
+            for category, paths in changes.items():
+                paths.update(os.path.normpath(os.path.join(str(scope), str(name)))
+                             for name in diff.get(category, []))
+        return {category: sorted(paths) for category, paths in changes.items()}, errors
 
     @staticmethod
     def _format_aggregate(section_diff: dict) -> List[str]:

@@ -1,0 +1,28 @@
+$ .venv/bin/python -m pytest -q --tb=short --junitxml=/tmp/cubie-user-workflows-full.xml
+
+Final console summary:
+746 passed, 11 skipped, 6 warnings in 178.69s (0:02:58)
+Exit code: 0
+
+Independent count from the generated JUnit XML:
+Test cases: 757
+Failures: 0
+Errors: 0
+Skipped: 11
+New user-workflow test cases included: 59
+
+Warnings: five existing TempFS arena-selection warnings and one existing
+PyVenv instance-rehydration warning. No warning from tests_user_workflows.
+
+Skipped test cases:
+tests.test_rbt_demo::test_humanreviewer
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_fs_adapter-<lambda>0-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_fs_adapter-<lambda>1-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_fs_adapter-<lambda>2-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_venv-<lambda>0-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_venv-<lambda>1-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_multiprocess_with_types[target_mutate_venv-<lambda>2-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_custom_processor_injections[target_mutate_fs_adapter-<lambda>0-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_custom_processor_injections[target_mutate_fs_adapter-<lambda>1-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_custom_processor_injections[target_mutate_venv-<lambda>0-<lambda>0]
+tests.tests_multiprocessors.test_multiprocess::test_custom_processor_injections[target_mutate_venv-<lambda>1-<lambda>0]

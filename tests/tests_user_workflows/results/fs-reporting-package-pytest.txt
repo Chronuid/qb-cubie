@@ -1,0 +1,360 @@
+$ /home/symphonie/PycharmProjects/cubie/.venv/bin/python -m pytest -q --tb=line --junitxml=/tmp/cubie-fs-reporting-package.xml tests/tests_user_workflows
+....................FFFFFFFFFFF.FF...FFFFFFFFFFF.FFF.FF................. [ 63%]
+..........................................                               [100%]
+=================================== FAILURES ===================================
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_180ac678c2c14ccd8119bd02e2a1cada_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,999\n'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_180ac678c2c14ccd8119bd02e2a1cada_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_fe04097945014977a13aa0b419f98fb0_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,250\n'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_fe04097945014977a13aa0b419f98fb0_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3e1ca706a63d4578bf7bd205f7ebcd9d_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b''})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3e1ca706a63d4578bf7bd205f7ebcd9d_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_b8fbe7e695344ddda07356c746b8223d_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'payload.bin': b'\x00\xfe\x01'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_b8fbe7e695344ddda07356c746b8223d_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3a718ac94c004ac49d25ee2a23e26296_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('1', '0', '0')]
+      
+      At index 0 diff: ('0', '0', '0') != ('1', '0', '0')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3a718ac94c004ac49d25ee2a23e26296_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_21fbd71e8779422ea6054a0c77b3e06f_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,250\n', 'debug.txt': b'debug'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '1', '0')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '1', '0')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_21fbd71e8779422ea6054a0c77b3e06f_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_ee2dd3db06614d51808eb80c88d2bf50_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,999\n', 'debug.txt': b'debug', 'keep.txt': b'same'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('1', '1', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('1', '1', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_ee2dd3db06614d51808eb80c88d2bf50_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_dc59c631f58d4bef98e81bc9c7388912_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/2026/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_dc59c631f58d4bef98e81bc9c7388912_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f0e18052ae874adc9f15efe821dc5821_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'shop/settings.json': b'USD', 'shipping/settings.json': b'US'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '2')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '2')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f0e18052ae874adc9f15efe821dc5821_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_8b9e89c2da284f1d9eccef1adc57a242_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'new.csv': b'250'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('1', '1', '0')]
+      
+      At index 0 diff: ('0', '0', '0') != ('1', '1', '0')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_8b9e89c2da284f1d9eccef1adc57a242_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4615e4c3a1744ea5a7b2ba11ad9f121d_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4615e4c3a1744ea5a7b2ba11ad9f121d_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3a44add048e8497f91078b186ed5ffda_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('0', '0', '1')]
+      
+      At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_3a44add048e8497f91078b186ed5ffda_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_cb68864aae3b40c794581e2646dcd65a_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'added-a': b'a', 'added-b': b'b', 'changed-a': b'new', 'changed-b': b'new'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [('0', '0', '0')] == [('2', '2', '2')]
+      
+      At index 0 diff: ('0', '0', '0') != ('2', '2', '2')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:176: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_cb68864aae3b40c794581e2646dcd65a_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f9dd43e04f3c4f71839a00af2072ba32_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,999\n'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'report.csv')})
+     +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b'A,999\n'}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f9dd43e04f3c4f71839a00af2072ba32_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_9b7c5b82edaf44e288c2ac44e09356df_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,250\n'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'report.csv')})
+     +    and   20 = Publication(expected={'report.csv': b''}, actual={'report.csv': b'A,250\n'}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_9b7c5b82edaf44e288c2ac44e09356df_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_b5d5ba05e26d43d991096462f7700e2f_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b''})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'report.csv')})
+     +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b''}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_b5d5ba05e26d43d991096462f7700e2f_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_5e15a5477e7f4e0f8c63715103265c11_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'payload.bin': b'\x00\xfe\x01'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'payload.bin')})
+     +    and   20 = Publication(expected={'payload.bin': b'\x00\xff\x01'}, actual={'payload.bin': b'\x00\xfe\x01'}, changes={'modified': {'payload.bin'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_5e15a5477e7f4e0f8c63715103265c11_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_1cd61985c4c448bcb9c2b5d1550a78c6_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('-', 'report.csv')})
+     +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={}, changes={'missing': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_1cd61985c4c448bcb9c2b5d1550a78c6_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a1d3e892a84e4d0299612cc7b055602c_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,250\n', 'debug.txt': b'debug'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('+', 'debug.txt')})
+     +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b'A,250\n', 'debug.txt': b'debug'}, changes={'unexpected': {'debug.txt'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a1d3e892a84e4d0299612cc7b055602c_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_76168c45251045b7a1246481c5f11f05_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv': b'A,999\n', 'debug.txt': b'debug', 'keep.txt': b'same'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 3
+     +  where 0 = len([])
+     +  and   3 = min(3, 20)
+     +    where 3 = len({('+', 'debug.txt'), ('-', 'receipt.txt'), ('~', 'report.csv')})
+     +    and   20 = Publication(expected={'report.csv': b'A,250\n', 'receipt.txt': b'paid', 'keep.txt': b'same'}, actual={'report.csv': b'...ssing': {'receipt.txt'}, 'unexpected': {'debug.txt'}, 'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_76168c45251045b7a1246481c5f11f05_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_61a2c73216ee4dd6b66c306ad1406b87_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/2026/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'out/2026/report.csv')})
+     +    and   20 = Publication(expected={'out/2026/report.csv': b'250'}, actual={'out/2026/report.csv': b'999'}, changes={'modified': {'out/2026/report.csv'}}, scopes=('out',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_61a2c73216ee4dd6b66c306ad1406b87_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a99ecc83cfc3410db76744fad03e1c6e_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'shop/settings.json': b'USD', 'shipping/settings.json': b'US'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 2
+     +  where 0 = len([])
+     +  and   2 = min(2, 20)
+     +    where 2 = len({('~', 'shipping/settings.json'), ('~', 'shop/settings.json')})
+     +    and   20 = Publication(expected={'shop/settings.json': b'EUR', 'shipping/settings.json': b'EU'}, actual={'shop/settings.json': b'...nges={'modified': {'shop/settings.json', 'shipping/settings.json'}}, scopes=('shop', 'shipping'), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a99ecc83cfc3410db76744fad03e1c6e_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_ad7bab8d878345e1903b6115f9f3db47_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'new.csv': b'250'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 2
+     +  where 0 = len([])
+     +  and   2 = min(2, 20)
+     +    where 2 = len({('+', 'new.csv'), ('-', 'old.csv')})
+     +    and   20 = Publication(expected={'old.csv': b'250'}, actual={'new.csv': b'250'}, changes={'missing': {'old.csv'}, 'unexpected': {'new.csv'}}, scopes=('.',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_ad7bab8d878345e1903b6115f9f3db47_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4b1a4d412efb459181b57a352b5481f7_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'out/report.csv')})
+     +    and   20 = Publication(expected={'out/report.csv': b'250'}, actual={'out/report.csv': b'999'}, changes={'modified': {'out/report.csv'}}, scopes=('out/report.csv',), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4b1a4d412efb459181b57a352b5481f7_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_cc823e8015ca417185be40590b5acd82_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 1
+     +  where 0 = len([])
+     +  and   1 = min(1, 20)
+     +    where 1 = len({('~', 'out/report.csv')})
+     +    and   20 = Publication(expected={'out/report.csv': b'250'}, actual={'out/report.csv': b'999'}, changes={'modified': {'out/report.csv'}}, scopes=('.', 'out'), initial={}, limit=20).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_cc823e8015ca417185be40590b5acd82_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_55055f1759e14e908846653f3c561ddd_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'added-a': b'a', 'added-b': b'b', 'changed-a': b'new', 'changed-b': b'new'})
+        [Q-State 0] Validation: Mismatch
+          - Returns: Expected None | Actual None (Match)
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 0 == 2
+     +  where 0 = len([])
+     +  and   2 = min(6, 2)
+     +    where 6 = len({('+', 'added-a'), ('+', 'added-b'), ('-', 'missing-a'), ('-', 'missing-b'), ('~', 'changed-a'), ('~', 'changed-b')})
+     +    and   2 = Publication(expected={'missing-a': b'a', 'missing-b': b'b', 'changed-a': b'old', 'changed-b': b'old'}, actual={'added-...a'}, 'unexpected': {'added-b', 'added-a'}, 'modified': {'changed-a', 'changed-b'}}, scopes=('.',), initial={}, limit=2).limit
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:186: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_55055f1759e14e908846653f3c561ddd_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f903868a8fd14165800b69e0b5012592_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'out/report.csv': b'999'})
+        [Q-State 0] Validation: Mismatch
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert [] == [('~', 'out/report.csv')]
+      
+      Right contains one more item: ('~', 'out/report.csv')
+      Use -v to get more diff
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:205: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f903868a8fd14165800b69e0b5012592_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_5f9d399c0efa449184a42755819f0329_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {})
+        [Q-State 0] Validation: Mismatch
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 'Error:' in "EBT-Assert failed for step 'cubie_run_ebt_5f9d399c0efa449184a42755819f0329_0':\nTarget: functools.partial(<function w..., {})\n  [Q-State 0] Validation: Mismatch\n    - FS: Mismatch\n      Details: -0 Missing | +0 Unexpected | ~0 Modified"
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:234: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_5f9d399c0efa449184a42755819f0329_0':
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4b12f1ce00614f5b854abd139d291ec6_0':
+      Target: functools.partial(<function write_publication at 0x73cdf64fd620>, {'report.csv/child.txt': b'250'})
+        [Q-State 0] Validation: Mismatch
+          - FS: Mismatch
+            Details: -0 Missing | +0 Unexpected | ~0 Modified
+    assert 'Error:' in "EBT-Assert failed for step 'cubie_run_ebt_4b12f1ce00614f5b854abd139d291ec6_0':\nTarget: functools.partial(<function w...50'})\n  [Q-State 0] Validation: Mismatch\n    - FS: Mismatch\n      Details: -0 Missing | +0 Unexpected | ~0 Modified"
+/home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows/test_fs_reporting.py:234: AssertionError: EBT-Assert failed for step 'cubie_run_ebt_4b12f1ce00614f5b854abd139d291ec6_0':
+=========================== short test summary info ============================
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-size-content-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[empty-to-nonempty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[nonempty-to-empty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-size-binary-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[missing-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[unexpected-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mixed-categories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mapped-directory-with-nested-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-basename-in-separate-directories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[rename-is-missing-plus-unexpected]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mapped-single-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[overlapping-scopes-count-file-once]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[truncated-details-keep-complete-counts]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-size-content-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[empty-to-nonempty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[nonempty-to-empty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-size-binary-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[missing-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[unexpected-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mixed-categories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mapped-directory-with-nested-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-basename-in-separate-directories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[rename-is-missing-plus-unexpected]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mapped-single-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[overlapping-scopes-count-file-once]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[truncated-details-keep-complete-counts]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_modified_path_names_workspace_target_instead_of_reference_fixture
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_comparison_errors_are_explained_instead_of_reporting_zero_changes[missing-target]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_comparison_errors_are_explained_instead_of_reporting_zero_changes[file-replaced-by-directory]
+29 failed, 85 passed in 19.22s
+
+Exit code: 1

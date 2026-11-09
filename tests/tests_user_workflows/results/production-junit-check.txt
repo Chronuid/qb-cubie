@@ -1,0 +1,2 @@
+User package: 123 passed, 0 skipped, no failures or errors; all 64 FS cases passed.
+Full suite: 810 passed, 11 skipped, no failures or errors; all 64 FS cases passed.

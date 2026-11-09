@@ -1,0 +1,444 @@
+$ /home/symphonie/PycharmProjects/cubie/.venv/bin/python -m pytest -q -rA --tb=short --junitxml=/tmp/cubie-fs-reporting.xml tests/tests_user_workflows/test_fs_reporting.py
+....................FFFFFFFFFFF.FF...FFFFFFFFFFF.FFF.FF                  [100%]
+=================================== FAILURES ===================================
+______ test_report_counts_agree_with_reference[same-size-content-change] _______
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_eaae8d0952664b61a0baf229aa82e6e0_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,999\n'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+__________ test_report_counts_agree_with_reference[empty-to-nonempty] __________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_de36101c96c34b548fc2f8e934cdb808_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,250\n'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+__________ test_report_counts_agree_with_reference[nonempty-to-empty] __________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_2f39049c8ba1480d8f1c596ea657e0da_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b''})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+_______ test_report_counts_agree_with_reference[same-size-binary-change] _______
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_9fbbf8d3395a4b02aac4b6f121f70a3e_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'payload.bin': b'\x00\xfe\x01'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+____________ test_report_counts_agree_with_reference[missing-file] _____________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_1295d7987ee547a981fc748e1b53da1c_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('1', '0', '0')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('1', '0', '0')
+E     Use -v to get more diff
+___________ test_report_counts_agree_with_reference[unexpected-file] ___________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_45bd41d825b245a5aad321e232ad2afe_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,250\n', 'debug.txt': b'debug'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '1', '0')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '1', '0')
+E     Use -v to get more diff
+__________ test_report_counts_agree_with_reference[mixed-categories] ___________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_2b97d0bdc01f496d8fd363a97fe2575c_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,999\n', 'debug.txt': b'debug', 'keep.txt': b'same'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('1', '1', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('1', '1', '1')
+E     Use -v to get more diff
+_ test_report_counts_agree_with_reference[mapped-directory-with-nested-change] _
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_6aa07ab00c8148448590589d5ceeb19f_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/2026/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+_ test_report_counts_agree_with_reference[same-basename-in-separate-directories] _
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a2c1cbeb18e84d5f919e86009d4c6d00_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'shop/settings.json': b'USD', 'shipping/settings.json': b'US'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '2')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '2')
+E     Use -v to get more diff
+__ test_report_counts_agree_with_reference[rename-is-missing-plus-unexpected] __
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_e877ac2f43b44107b934312a8f8201c2_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'new.csv': b'250'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('1', '1', '0')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('1', '1', '0')
+E     Use -v to get more diff
+_________ test_report_counts_agree_with_reference[mapped-single-file] __________
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a764b83642ab47aa9961c14f4690113a_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+_ test_report_counts_agree_with_reference[overlapping-scopes-count-file-once] __
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_6eaf5d7d6cef4b97a9e6f6e41a18d030_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('0', '0', '1')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('0', '0', '1')
+E     Use -v to get more diff
+_ test_report_counts_agree_with_reference[truncated-details-keep-complete-counts] _
+tests/tests_user_workflows/test_fs_reporting.py:176: in test_report_counts_agree_with_reference
+    assert summaries == [tuple(map(str, expected_counts))], message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_2773a20dd8a84fa7861e1f12881bfd50_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'added-a': b'a', 'added-b': b'b', 'changed-a': b'new', 'changed-b': b'new'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [('0', '0', '0')] == [('2', '2', '2')]
+E     
+E     At index 0 diff: ('0', '0', '0') != ('2', '2', '2')
+E     Use -v to get more diff
+_ test_report_paths_and_truncation_agree_with_reference[same-size-content-change] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_d41751fe093e495dbab3a0a430335897_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,999\n'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'report.csv')})
+E    +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b'A,999\n'}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+___ test_report_paths_and_truncation_agree_with_reference[empty-to-nonempty] ___
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_25f985454d74463db923660908b9ba23_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,250\n'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'report.csv')})
+E    +    and   20 = Publication(expected={'report.csv': b''}, actual={'report.csv': b'A,250\n'}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+___ test_report_paths_and_truncation_agree_with_reference[nonempty-to-empty] ___
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a1f4be60f5b34596b7d805cbac987c65_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b''})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'report.csv')})
+E    +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b''}, changes={'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[same-size-binary-change] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f752ebe6b15447ef9c90e2e827c7a6ba_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'payload.bin': b'\x00\xfe\x01'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'payload.bin')})
+E    +    and   20 = Publication(expected={'payload.bin': b'\x00\xff\x01'}, actual={'payload.bin': b'\x00\xfe\x01'}, changes={'modified': {'payload.bin'}}, scopes=('.',), initial={}, limit=20).limit
+_____ test_report_paths_and_truncation_agree_with_reference[missing-file] ______
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_f04848bb06254b0ba51921e60d448915_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('-', 'report.csv')})
+E    +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={}, changes={'missing': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+____ test_report_paths_and_truncation_agree_with_reference[unexpected-file] ____
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_448fc63d520e48d99ca6cfc94a912fe1_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,250\n', 'debug.txt': b'debug'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('+', 'debug.txt')})
+E    +    and   20 = Publication(expected={'report.csv': b'A,250\n'}, actual={'report.csv': b'A,250\n', 'debug.txt': b'debug'}, changes={'unexpected': {'debug.txt'}}, scopes=('.',), initial={}, limit=20).limit
+___ test_report_paths_and_truncation_agree_with_reference[mixed-categories] ____
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_974471ee48914fe2ad24652fe1ebe483_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv': b'A,999\n', 'debug.txt': b'debug', 'keep.txt': b'same'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 3
+E    +  where 0 = len([])
+E    +  and   3 = min(3, 20)
+E    +    where 3 = len({('+', 'debug.txt'), ('-', 'receipt.txt'), ('~', 'report.csv')})
+E    +    and   20 = Publication(expected={'report.csv': b'A,250\n', 'receipt.txt': b'paid', 'keep.txt': b'same'}, actual={'report.csv': b'...ssing': {'receipt.txt'}, 'unexpected': {'debug.txt'}, 'modified': {'report.csv'}}, scopes=('.',), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[mapped-directory-with-nested-change] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_36efbad860e446f598e47202ea3f91ad_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/2026/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'out/2026/report.csv')})
+E    +    and   20 = Publication(expected={'out/2026/report.csv': b'250'}, actual={'out/2026/report.csv': b'999'}, changes={'modified': {'out/2026/report.csv'}}, scopes=('out',), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[same-basename-in-separate-directories] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_a4566e9ebcec41c392a1b93f1e9e3a3c_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'shop/settings.json': b'USD', 'shipping/settings.json': b'US'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 2
+E    +  where 0 = len([])
+E    +  and   2 = min(2, 20)
+E    +    where 2 = len({('~', 'shipping/settings.json'), ('~', 'shop/settings.json')})
+E    +    and   20 = Publication(expected={'shop/settings.json': b'EUR', 'shipping/settings.json': b'EU'}, actual={'shop/settings.json': b'...nges={'modified': {'shop/settings.json', 'shipping/settings.json'}}, scopes=('shop', 'shipping'), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[rename-is-missing-plus-unexpected] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_d574698c166242c69a9df113dd16f608_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'new.csv': b'250'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 2
+E    +  where 0 = len([])
+E    +  and   2 = min(2, 20)
+E    +    where 2 = len({('+', 'new.csv'), ('-', 'old.csv')})
+E    +    and   20 = Publication(expected={'old.csv': b'250'}, actual={'new.csv': b'250'}, changes={'missing': {'old.csv'}, 'unexpected': {'new.csv'}}, scopes=('.',), initial={}, limit=20).limit
+__ test_report_paths_and_truncation_agree_with_reference[mapped-single-file] ___
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_0ed2d29a34b9442c8d7ac45fe7fe8bf1_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'out/report.csv')})
+E    +    and   20 = Publication(expected={'out/report.csv': b'250'}, actual={'out/report.csv': b'999'}, changes={'modified': {'out/report.csv'}}, scopes=('out/report.csv',), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[overlapping-scopes-count-file-once] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_0f2ddcd54a9a4f53b9601df0c9a9048e_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +  and   1 = min(1, 20)
+E    +    where 1 = len({('~', 'out/report.csv')})
+E    +    and   20 = Publication(expected={'out/report.csv': b'250'}, actual={'out/report.csv': b'999'}, changes={'modified': {'out/report.csv'}}, scopes=('.', 'out'), initial={}, limit=20).limit
+_ test_report_paths_and_truncation_agree_with_reference[truncated-details-keep-complete-counts] _
+tests/tests_user_workflows/test_fs_reporting.py:186: in test_report_paths_and_truncation_agree_with_reference
+    assert len(listed) == min(len(wanted), publication.limit), message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_6821cd41f7f24dddb5f037e5a7d98c9f_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'added-a': b'a', 'added-b': b'b', 'changed-a': b'new', 'changed-b': b'new'})
+E       [Q-State 0] Validation: Mismatch
+E         - Returns: Expected None | Actual None (Match)
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 0 == 2
+E    +  where 0 = len([])
+E    +  and   2 = min(6, 2)
+E    +    where 6 = len({('+', 'added-a'), ('+', 'added-b'), ('-', 'missing-a'), ('-', 'missing-b'), ('~', 'changed-a'), ('~', 'changed-b')})
+E    +    and   2 = Publication(expected={'missing-a': b'a', 'missing-b': b'b', 'changed-a': b'old', 'changed-b': b'old'}, actual={'added-...a'}, 'unexpected': {'added-a', 'added-b'}, 'modified': {'changed-a', 'changed-b'}}, scopes=('.',), initial={}, limit=2).limit
+____ test_modified_path_names_workspace_target_instead_of_reference_fixture ____
+tests/tests_user_workflows/test_fs_reporting.py:205: in test_modified_path_names_workspace_target_instead_of_reference_fixture
+    assert listed == [("~", "out/report.csv")], str(error.value)
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_47c83dafe15c4b92b783179de3a42009_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'out/report.csv': b'999'})
+E       [Q-State 0] Validation: Mismatch
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert [] == [('~', 'out/report.csv')]
+E     
+E     Right contains one more item: ('~', 'out/report.csv')
+E     Use -v to get more diff
+_ test_comparison_errors_are_explained_instead_of_reporting_zero_changes[missing-target] _
+tests/tests_user_workflows/test_fs_reporting.py:234: in test_comparison_errors_are_explained_instead_of_reporting_zero_changes
+    assert "Error:" in message, message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_d20c9631bb484f5595dceed3a8149782_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {})
+E       [Q-State 0] Validation: Mismatch
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 'Error:' in "EBT-Assert failed for step 'cubie_run_ebt_d20c9631bb484f5595dceed3a8149782_0':\nTarget: functools.partial(<function w..., {})\n  [Q-State 0] Validation: Mismatch\n    - FS: Mismatch\n      Details: -0 Missing | +0 Unexpected | ~0 Modified"
+_ test_comparison_errors_are_explained_instead_of_reporting_zero_changes[file-replaced-by-directory] _
+tests/tests_user_workflows/test_fs_reporting.py:234: in test_comparison_errors_are_explained_instead_of_reporting_zero_changes
+    assert "Error:" in message, message
+E   AssertionError: EBT-Assert failed for step 'cubie_run_ebt_9752e378e9cc46738f6179a368377e9a_0':
+E     Target: functools.partial(<function write_publication at 0x72e3f012c900>, {'report.csv/child.txt': b'250'})
+E       [Q-State 0] Validation: Mismatch
+E         - FS: Mismatch
+E           Details: -0 Missing | +0 Unexpected | ~0 Modified
+E   assert 'Error:' in "EBT-Assert failed for step 'cubie_run_ebt_9752e378e9cc46738f6179a368377e9a_0':\nTarget: functools.partial(<function w...50'})\n  [Q-State 0] Validation: Mismatch\n    - FS: Mismatch\n      Details: -0 Missing | +0 Unexpected | ~0 Modified"
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[unchanged]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[rewrite-identical-bytes]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[intended-transformation-matches-post]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[same-size-content-change]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[empty-to-nonempty]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[nonempty-to-empty]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[same-size-binary-change]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[missing-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[unexpected-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[mixed-categories]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[mapped-directory-with-nested-change]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[same-basename-in-separate-directories]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[rename-is-missing-plus-unexpected]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[mapped-single-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[outside-mapping-is-not-an-unexpected-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[overlapping-scopes-count-file-once]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_verdict_and_recorded_changes_agree_with_reference[truncated-details-keep-complete-counts]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[unchanged]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[rewrite-identical-bytes]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[intended-transformation-matches-post]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[outside-mapping-is-not-an-unexpected-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[unchanged]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[rewrite-identical-bytes]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[intended-transformation-matches-post]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[outside-mapping-is-not-an-unexpected-file]
+PASSED tests/tests_user_workflows/test_fs_reporting.py::test_fs_match_is_reported_when_only_the_return_is_wrong
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-size-content-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[empty-to-nonempty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[nonempty-to-empty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-size-binary-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[missing-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[unexpected-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mixed-categories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mapped-directory-with-nested-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[same-basename-in-separate-directories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[rename-is-missing-plus-unexpected]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[mapped-single-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[overlapping-scopes-count-file-once]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_counts_agree_with_reference[truncated-details-keep-complete-counts]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-size-content-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[empty-to-nonempty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[nonempty-to-empty]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-size-binary-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[missing-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[unexpected-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mixed-categories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mapped-directory-with-nested-change]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[same-basename-in-separate-directories]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[rename-is-missing-plus-unexpected]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[mapped-single-file]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[overlapping-scopes-count-file-once]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_report_paths_and_truncation_agree_with_reference[truncated-details-keep-complete-counts]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_modified_path_names_workspace_target_instead_of_reference_fixture
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_comparison_errors_are_explained_instead_of_reporting_zero_changes[missing-target]
+FAILED tests/tests_user_workflows/test_fs_reporting.py::test_comparison_errors_are_explained_instead_of_reporting_zero_changes[file-replaced-by-directory]
+29 failed, 26 passed in 13.16s
+
+Exit code: 1

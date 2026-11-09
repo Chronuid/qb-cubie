@@ -336,7 +336,9 @@ class EBT:
                 EBT._collect_topology(arena_path, fs_ignores)
             )
         if host_path.is_file() and arena_path.is_file():
-            if not filecmp.cmp(arena_path, host_path, shallow=False): return {"modified": [str(host_path.name)]}
+            # Diff entries are relative to the compared object. A single file
+            # denotes itself, independently of its host reference's basename.
+            if not filecmp.cmp(arena_path, host_path, shallow=False): return {"modified": ["."]}
             return None
         return {"error": "Topology mismatch (file vs dir)."}
 

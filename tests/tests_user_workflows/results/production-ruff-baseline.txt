@@ -1,0 +1,4 @@
+Ruff comparison with HEAD, using identical configuration and stdin filenames:
+
+src/cubie/ebt.py: 31 existing findings; no added or changed rule/message findings.
+src/cubie/reporter.py: 15 existing findings; no added or changed rule/message findings.

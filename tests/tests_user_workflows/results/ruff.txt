@@ -1,0 +1,4 @@
+$ /home/symphonie/PycharmProjects/cubie/.venv/bin/python -m ruff check /home/symphonie/PycharmProjects/cubie/tests/tests_user_workflows
+All checks passed!
+
+Exit code: 0

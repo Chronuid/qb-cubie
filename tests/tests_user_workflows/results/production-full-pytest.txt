@@ -1,0 +1,30 @@
+$ /home/symphonie/PycharmProjects/cubie/.venv/bin/python -m pytest -q --tb=short --junitxml=/tmp/cubie-fs-production-full.xml
+.........................................................s.............. [  8%]
+........................................................................ [ 17%]
+........................................................................ [ 26%]
+........................................................................ [ 35%]
+........................................................................ [ 43%]
+........................................................................ [ 52%]
+........................................................................ [ 61%]
+........................................s..s..s..s..s..s................ [ 70%]
+........................................................................ [ 78%]
+................s..s..s..s.............................................. [ 87%]
+........................................................................ [ 96%]
+.............................                                            [100%]
+=============================== warnings summary ===============================
+tests/tests_ebt/test_ebt_ignores.py::test_standard_fs_critical_red
+tests/tests_ebt/test_ebt_ignores.py::test_custom_fs_ignores_green
+tests/tests_ebt/test_ebt_ignores.py::test_fs_ignore_deep_directory_green
+tests/tests_ebt/test_ebt_ignores.py::test_fs_ignores_with_forall_green
+tests/tests_ebt/test_ebt_ignores.py::test_fs_ignores_with_expect_false_red
+  /home/symphonie/PycharmProjects/cubie/src/cubie/arenas/tempfs.py:58: UserWarning: TempFS is not intended for venv or side-package isolation; use PyVenv instead.
+    if state.arena: warnings.warn(
+
+tests/tests_ebt/test_ebt_imports.py::test_import_rehydration_instance[PyVenv]
+  /home/symphonie/PycharmProjects/cubie/src/cubie/arenas/codecs.py:131: UserWarning: It is strongly recommended to use stateless static methods or classmethods. Instance rehydration via IPC is experimental and may fail for complex objects.
+    return cls._extract_instance(target)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+810 passed, 11 skipped, 6 warnings in 191.66s (0:03:11)
+
+Exit code: 0

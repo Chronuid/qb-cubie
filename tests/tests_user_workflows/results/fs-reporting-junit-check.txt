@@ -1,0 +1,3 @@
+New FS cases: 26 passed, 29 failed; no errors or skips.
+User package: 85 passed, 29 failed; no errors or skips.
+All failures belong to the four intended FS reporting contracts.
