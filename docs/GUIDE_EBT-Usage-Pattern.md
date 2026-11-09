@@ -16,7 +16,7 @@ Zusammengehörige Wertepaare werden durch getrennte Verträge geprüft. `pytest.
 
 ```python
 import pytest
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def double(value):
@@ -37,7 +37,7 @@ def test_double(value, expected):
 ## Mehrere Eingänge, ein gemeinsames Muster
 
 ```python
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def normalize(text):
@@ -61,7 +61,7 @@ Jeder dieser drei Eingänge wird einmal ausgeführt. Ohne Arena laufen die Aufru
 ## Erlaubte und verbotene Ergebnisse
 
 ```python
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def choose_status():
@@ -92,7 +92,7 @@ Das gleiche Prinzip kann einen beobachteten Würfelwert auf den Bereich `1` bis 
 ```python
 import re
 from typing import Any
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def payload():
@@ -118,13 +118,13 @@ def test_none_return():
     ).run()
 ```
 
-Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. `returns=None` erwartet explizit `None`, wie im zweiten Beispiel. Ausgelassenes `returns` oder `returns=cubie.UNSPECIFIED` deaktiviert die Rückgabeprüfung. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
+Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. `returns=None` erwartet explizit `None`, wie im zweiten Beispiel. Ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` deaktiviert die Rückgabeprüfung. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
 
 ## Dateitransformation mit expliziter Arena
 
 ```python
 from pathlib import Path
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 
 def uppercase_file():
@@ -155,7 +155,7 @@ Alternativ sind Sammlungen wie `fs={"fixtures/input.txt"}` erlaubt; sie kopieren
 ```python
 import json
 from pathlib import Path
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 
 def create_report():

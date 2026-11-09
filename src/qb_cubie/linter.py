@@ -23,7 +23,7 @@ def _ensure_installed(tool_name: str, env_var: str) -> list[str]:
     if importlib.util.find_spec(tool_name): return [sys.executable, "-m", tool_name]
     raise RuntimeError(
         f"Linter check failed: '{tool_name}' was not found in the environment.\n"
-        f"-> Please ensure that the package is installed.\n"
+        f"-> Install the optional tools with: python -m pip install 'qb-cubie[linters]'\n"
         f"-> Tip: Run 'uv add {tool_name}' (for the project) or 'uv pip install {tool_name}' (temporarily).\n"
         f"-> Alternatively, you can set the path via the environment variable {env_var}."
     )
@@ -113,7 +113,7 @@ class CstRule(_CstVisitorBase):
     METADATA_DEPENDENCIES = (PositionProvider,) if PositionProvider else ()
     def __init__(self):
         if cst is None:
-            raise RuntimeError("libcst is required to use CstRule. Please ensure libcst is installed.")
+            raise RuntimeError("libcst is required to use CstRule. Install it with: python -m pip install 'qb-cubie[linters]'")
         super().__init__()
         self.diagnostics: List['LinterDiagnostic'] = []
         self._module: Optional[Any] = None
@@ -174,7 +174,7 @@ class CstLinter:
             excludes: Optional[List[str]] = None
     ) -> None:
         if cst is None:
-            raise RuntimeError("libcst is required to use CstLinter. Please ensure libcst is installed.")
+            raise RuntimeError("libcst is required to use CstLinter. Install it with: python -m pip install 'qb-cubie[linters]'")
         self.rules = rules
         self._excludes = set(excludes) if excludes else set()
 

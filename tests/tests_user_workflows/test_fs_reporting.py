@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, TempFS, WorldState
-from cubie.reporter import PytestReporter
+from qb_cubie import EBT, TempFS, WorldState
+from qb_cubie.reporter import PytestReporter
 
 
 @dataclass

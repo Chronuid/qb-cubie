@@ -1,8 +1,8 @@
 import pytest
 from hypothesis import given, strategies as st
-from src.cubie.ebt import EBT
-from src.cubie.protocols import WorldState
-from src.cubie.multiprocessors import StateInspector
+from src.qb_cubie.ebt import EBT
+from src.qb_cubie.protocols import WorldState
+from src.qb_cubie.multiprocessors import StateInspector
 
 
 ########################################################################################################################
@@ -165,7 +165,7 @@ def test_state_inspector_metamorphic_ebt(data_and_oracle):
 ########## -------------------------------------------------------------------------------------------------- ##########
 
 from hypothesis import given, settings, strategies as st
-from src.cubie import WorldState
+from src.qb_cubie import WorldState
 
 # ==========  HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION  ========================================================
 @st.composite

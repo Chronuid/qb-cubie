@@ -1,6 +1,6 @@
 """Explicitly provision the local bases required by the repository's tests.
 
-Run with the project interpreter after `uv sync --locked --extra dev`:
+Run with the project interpreter after `uv sync --locked --group dev`:
     .venv/bin/python scripts/provision_test_arenas.py
 This is an installation step and may access the network. Pytest never calls it.
 """
@@ -11,7 +11,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cubie.arenas.pyvenv import CURRENT_DIR, ArenaBuilder
+from qb_cubie.arenas.pyvenv import CURRENT_DIR, ArenaBuilder
 
 # Keep codec versions aligned with uv.lock. All bases support both codecs
 # without needing another provisioning step when a test switches codecs.

@@ -12,7 +12,7 @@ Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beid
 
 ## Arena-Protokoll und Lebenszyklus
 
-`cubie.protocols.Arena` verlangt:
+`qb_cubie.protocols.Arena` verlangt:
 
 - `workspace_path`: Pfad des vorbereiteten Workspace, vorher gegebenenfalls `None`.
 - `setup(state)`: Erstellt die Umgebung und kopiert deklarierte Dateiquellen.
@@ -36,7 +36,7 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter. `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Basisumgebungen sind durch die Root-`.gitignore` ausgeschlossen. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch den `PyVenv()`-Standardpfad. Pytest selbst provisioniert keine gemeinsamen Basen.
+Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter. `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Basisumgebungen sind durch die Root-`.gitignore` ausgeschlossen. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch den `PyVenv()`-Standardpfad. Pytest selbst provisioniert keine gemeinsamen Basen.
 
 ## IPCC und Codec-Auswahl
 

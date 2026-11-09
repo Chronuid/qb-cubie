@@ -3,8 +3,8 @@ import platform
 
 import pytest
 
-import cubie as qb
-from cubie import VmArena, WorldState
+import qb_cubie as qb
+from qb_cubie import VmArena, WorldState
 
 # Physische Realitäten: Funktionierende, bootfähige Images/Snapshots
 WIN_IMAGE = "my_portable_win_universe"

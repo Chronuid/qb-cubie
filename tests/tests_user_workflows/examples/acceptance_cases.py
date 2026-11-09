@@ -10,7 +10,7 @@ from functools import partial
 
 from tests_user_workflows.targets import Stock, availability, export_orders
 
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 
 def export_case(tmp_path, fault=None):

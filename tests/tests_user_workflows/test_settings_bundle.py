@@ -5,7 +5,7 @@ from functools import partial
 
 import pytest
 
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 from .targets import build_settings
 

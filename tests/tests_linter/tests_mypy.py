@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from cubie import PyVenv, EBT, WorldState, AstLinter, MyPy, CloudpickleCodec
+from qb_cubie import PyVenv, EBT, WorldState, AstLinter, MyPy, CloudpickleCodec
 
 # --- 1. In-Memory String Parsing ---
 

@@ -24,13 +24,13 @@ Target-Exceptions werden mit einem Hinweis auf den Kindprozess-Traceback weiterg
 
 `PyVenv(env_path)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
 
-Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
+Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/qb_cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
 
-Der `ArenaBuilder` wird über `from cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
+Der `ArenaBuilder` wird über `from qb_cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
 
 ```python
-from cubie import CloudpickleCodec
-from cubie.arenas.pyvenv import ArenaBuilder
+from qb_cubie import CloudpickleCodec
+from qb_cubie.arenas.pyvenv import ArenaBuilder
 
 # Einmaliger Installationsschritt vor den Tests:
 arena = ArenaBuilder(".arenas/my_env").with_packages([
@@ -42,7 +42,7 @@ Bei späteren Läufen genügt `PyVenv(".arenas/my_env", codec=CloudpickleCodec()
 
 ### Provisionierung der Testbasen
 
-Nach `uv sync --locked --extra dev` im Repository ausführen:
+Nach `uv sync --locked --group dev` im Repository ausführen:
 
 ```bash
 .venv/bin/python scripts/provision_test_arenas.py
@@ -53,7 +53,7 @@ Unter Windows den Projektinterpreter `.venv\Scripts\python.exe` verwenden. Das S
 
 | Basis | Pakete zusätzlich zur Python-Standardbibliothek |
 | --- | --- |
-| `src/cubie/arenas/arena_envs/empty_test_env` (`PyVenv()`-Standard) | `msgspec==0.22.0`, `cloudpickle==3.1.2` |
+| `src/qb_cubie/arenas/arena_envs/empty_test_env` (`PyVenv()`-Standard) | `msgspec==0.22.0`, `cloudpickle==3.1.2` |
 | `tests/.arenas/empty_venv` | dieselben Codec-Pakete |
 | `tests/.arenas/cowsay_env` | Codec-Pakete und `cowsay==6.1` |
 | `tests/.arenas/linter_env` | Codec-Pakete und `pylint==4.1.3` samt Abhängigkeiten |

@@ -99,48 +99,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cubie"
-version = "0.0.3"
-source = { editable = "." }
-dependencies = [
-    { name = "cloudpickle" },
-    { name = "fsspec" },
-    { name = "libcst" },
-    { name = "loky" },
-    { name = "msgspec" },
-    { name = "mypy" },
-    { name = "packaging" },
-    { name = "path" },
-    { name = "pylint" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "hypothesis" },
-    { name = "pytest-xdist" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "cloudpickle" },
-    { name = "fsspec", specifier = "==2026.9.0" },
-    { name = "hypothesis", marker = "extra == 'dev'", specifier = "==6.168.3" },
-    { name = "libcst", specifier = ">=1.9.0" },
-    { name = "loky", specifier = "==3.7.0" },
-    { name = "msgspec", specifier = ">=0.22.0" },
-    { name = "mypy", specifier = "==2.4.1" },
-    { name = "packaging", specifier = "==26.3" },
-    { name = "path", specifier = ">=17.1.1" },
-    { name = "pylint", specifier = "==4.1.3" },
-    { name = "pytest", specifier = "==9.2.0" },
-    { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.8,<4" },
-    { name = "ruff", specifier = "==0.17.4" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "dill"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -156,15 +114,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bf/89/780e11f9588d9e7128a3f87788354c7946a9cbb1401ad38a48c4db9a4f07/execnet-2.1.2.tar.gz", hash = "sha256:63d83bfdd9a23e35b9c6a3261412324f964c2ec8dcd8d3c6916ee9373e0befcd", size = 166622, upload-time = "2025-11-12T09:56:37.75Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl", hash = "sha256:67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec", size = 40708, upload-time = "2025-11-12T09:56:36.333Z" },
-]
-
-[[package]]
-name = "fsspec"
-version = "2026.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/77/cd/9be253869fc42e764de7f3dedd6969af7d44ff9c3375214a3442a6f3fc08/fsspec-2026.9.0.tar.gz", hash = "sha256:0f08147951c8cb31d844c3547d631053b127863b60be04cf06e121333ee0e2fe", size = 333545, upload-time = "2026-09-18T17:50:42.825Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/c0/a98505f18594f1bce828bb159cec0fcf9860562f1a2c85913409fc8f3d9e/fsspec-2026.9.0-py3-none-any.whl", hash = "sha256:8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f", size = 221738, upload-time = "2026-09-18T17:50:41.341Z" },
 ]
 
 [[package]]
@@ -560,15 +509,6 @@ wheels = [
 ]
 
 [[package]]
-name = "path"
-version = "17.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/dd/52/a7bdd5ef8488977d354b7915d1e75009bebbd04f73eff14e52372d5e9435/path-17.1.1.tar.gz", hash = "sha256:2dfcbfec8b4d960f3469c52acf133113c2a8bf12ac7b98d629fa91af87248d42", size = 50528, upload-time = "2025-07-27T20:40:23.79Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/50/11c9ee1ede64b45d687fd36eb8768dafc57afc78b4d83396920cfd69ed30/path-17.1.1-py3-none-any.whl", hash = "sha256:ec7e136df29172e5030dd07e037d55f676bdb29d15bfa09b80da29d07d3b9303", size = 23936, upload-time = "2025-07-27T20:40:22.453Z" },
-]
-
-[[package]]
 name = "pathspec"
 version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -709,6 +649,58 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/05/10/f42c48fa5153204f42eaa945e8d1fd7c10d6296841dcb2447bf7da1be5c4/pyyaml_ft-8.0.0-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:052561b89d5b2a8e1289f326d060e794c21fa068aa11255fe71d65baf18a632e", size = 810403, upload-time = "2025-06-10T15:32:11.051Z" },
     { url = "https://files.pythonhosted.org/packages/d5/d2/e369064aa51009eb9245399fd8ad2c562bd0bcd392a00be44b2a824ded7c/pyyaml_ft-8.0.0-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:3bb4b927929b0cb162fb1605392a321e3333e48ce616cdcfa04a839271373255", size = 835581, upload-time = "2025-06-10T15:32:12.897Z" },
     { url = "https://files.pythonhosted.org/packages/c0/28/26534bed77109632a956977f60d8519049f545abc39215d086e33a61f1f2/pyyaml_ft-8.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:de04cfe9439565e32f178106c51dd6ca61afaa2907d143835d501d84703d3793", size = 171579, upload-time = "2025-06-10T15:32:14.34Z" },
+]
+
+[[package]]
+name = "qb-cubie"
+version = "0.0.3"
+source = { editable = "." }
+dependencies = [
+    { name = "cloudpickle" },
+    { name = "loky" },
+    { name = "msgspec" },
+    { name = "packaging" },
+]
+
+[package.optional-dependencies]
+linters = [
+    { name = "libcst" },
+    { name = "mypy" },
+    { name = "pylint" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "hypothesis" },
+    { name = "libcst" },
+    { name = "mypy" },
+    { name = "pylint" },
+    { name = "pytest" },
+    { name = "pytest-xdist" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cloudpickle", specifier = ">=3.1.2,<4" },
+    { name = "libcst", marker = "extra == 'linters'", specifier = ">=1.9,<2" },
+    { name = "loky", specifier = ">=3.7,<4" },
+    { name = "msgspec", specifier = ">=0.22,<0.23" },
+    { name = "mypy", marker = "extra == 'linters'", specifier = ">=2.4.1,<3" },
+    { name = "packaging", specifier = ">=26.3,<27" },
+    { name = "pylint", marker = "extra == 'linters'", specifier = ">=4.1.3,<5" },
+]
+provides-extras = ["linters"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "hypothesis", specifier = "==6.168.3" },
+    { name = "libcst", specifier = "==1.9.0" },
+    { name = "mypy", specifier = "==2.4.1" },
+    { name = "pylint", specifier = "==4.1.3" },
+    { name = "pytest", specifier = "==9.2.0" },
+    { name = "pytest-xdist", specifier = ">=3.8,<4" },
+    { name = "ruff", specifier = "==0.17.4" },
 ]
 
 [[package]]

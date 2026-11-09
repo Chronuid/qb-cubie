@@ -154,7 +154,7 @@ class RayProcessor:
 Die Injection erfolgt direkt im Konstruktor der `EBT`-Engine.
 
 ```python
-import cubie as qb
+import qb_cubie as qb
 
 my_ray_proc = RayProcessor()
 my_ray_proc.priority = 150 # Mutability zur Laufzeit

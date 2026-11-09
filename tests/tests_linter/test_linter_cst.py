@@ -1,8 +1,8 @@
 import libcst as cst
 import libcst.matchers as m
-from cubie.linter import CstLinter, CstRule
-from cubie.protocols import WorldState
-from cubie.ebt import EBT
+from qb_cubie.linter import CstLinter, CstRule
+from qb_cubie.protocols import WorldState
+from qb_cubie.ebt import EBT
 
 
 # --- 1. Definition of Custom Rules ---

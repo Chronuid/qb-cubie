@@ -62,7 +62,7 @@ class MyPy:
     def _resolve_executable(self) -> List[str]:
         if isinstance(self._executable, list): return self._executable
         if isinstance(self._executable, str): return [self._executable]
-        return _ensure_installed("mypy", "CUBIE_MYPY_PATH")
+        return _ensure_installed("mypy", "QB_CUBIE_MYPY_PATH")
 
     @staticmethod
     def _execute_subprocess(cmd: List[str], target: Union[str, Path]) -> subprocess.CompletedProcess:

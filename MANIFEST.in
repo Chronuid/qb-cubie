@@ -1,4 +1,4 @@
-prune src/cubie/arenas/arena_envs
-include src/cubie/arenas/arena_envs/__init__.py
+prune src/qb_cubie/arenas/arena_envs
+include src/qb_cubie/arenas/arena_envs/__init__.py
 include scripts/check_wheel.py
 include tests/wheel/smoke_installed.py

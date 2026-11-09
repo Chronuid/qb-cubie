@@ -1,4 +1,4 @@
-from src.cubie.rbt import RBT
+from src.qb_cubie.rbt import RBT
 import pytest
 
 @pytest.mark.skip

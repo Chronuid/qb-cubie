@@ -146,11 +146,11 @@ def test_core_feature_requires_no_install_or_network(
 
 def exercise(feature, base):
     """Execute real public APIs under the audit hook, without backend mocks."""
-    import cubie
-    from cubie import EBT, WorldState
+    import qb_cubie
+    from qb_cubie import EBT, WorldState
 
     if feature == "imports":
-        assert all(hasattr(cubie, name) for name in cubie.__all__)
+        assert all(hasattr(qb_cubie, name) for name in qb_cubie.__all__)
     elif feature == "prepared-environment":
         subprocess.run(
             [str(Path(base) / "bin" / "python"), "-c",
@@ -184,7 +184,7 @@ def exercise(feature, base):
     elif feature == "tempfs":
         source = Path("seed.txt")
         source.write_text("offline", encoding="utf-8")
-        arena = cubie.TempFS()
+        arena = qb_cubie.TempFS()
 
         def edit_file():
             content = Path("input.txt").read_text(encoding="utf-8")
@@ -198,7 +198,7 @@ def exercise(feature, base):
             })).run()
         assert arena.workspace_path is None
     elif feature in {"pickle-processes", "loky-processes"}:
-        from cubie import multiprocessors
+        from qb_cubie import multiprocessors
 
         # Bound worker count; both real execution backends remain enabled.
         multiprocessors.os.cpu_count = lambda: 2
@@ -215,8 +215,8 @@ def exercise(feature, base):
         assert trace.evaluation is True and len(trace.traces) == 2
         assert all(t.outcome.returns != worker_pid for t in trace.traces)
     elif feature == "rbt":
-        from cubie.protocols import ReviewData
-        from cubie.rbt import RBT
+        from qb_cubie.protocols import ReviewData
+        from qb_cubie.rbt import RBT
 
         class Reviewer:
             def review(self, target, check):
@@ -236,20 +236,20 @@ def exercise(feature, base):
     elif feature == "cst":
         import libcst as cst
 
-        class ForbidEval(cubie.CstRule):
+        class ForbidEval(qb_cubie.CstRule):
             def visit_Call(self, node):
                 if isinstance(node.func, cst.Name) and node.func.value == "eval":
                     self.add_diagnostic(node, "OFF001", "eval is forbidden")
 
-        diagnostics = cubie.CstLinter([ForbidEval()]).check("eval('1')")
+        diagnostics = qb_cubie.CstLinter([ForbidEval()]).check("eval('1')")
         assert len(diagnostics) == 1 and diagnostics[0].rule_id == "OFF001"
     elif feature in {"pylint", "mypy", "linter-aggregation"}:
         backends = {
-            "pylint": [cubie.Pylint()],
-            "mypy": [cubie.MyPy()],
-            "linter-aggregation": [cubie.Pylint(), cubie.MyPy()],
+            "pylint": [qb_cubie.Pylint()],
+            "mypy": [qb_cubie.MyPy()],
+            "linter-aggregation": [qb_cubie.Pylint(), qb_cubie.MyPy()],
         }[feature]
-        diagnostics = cubie.AstLinter(*backends).check("value: int = 'wrong'\n")
+        diagnostics = qb_cubie.AstLinter(*backends).check("value: int = 'wrong'\n")
         assert diagnostics
         if feature != "pylint":
             assert any(d.rule_id == "assignment" for d in diagnostics)
@@ -262,7 +262,7 @@ def exercise(feature, base):
         (project / ".venv" / "ignored.py").write_text(
             "value: int = 'wrong'\n", encoding="utf-8",
         )
-        assert cubie.AstLinter(cubie.MyPy()).check(project) == []
+        assert qb_cubie.AstLinter(qb_cubie.MyPy()).check(project) == []
     elif feature.startswith("pyvenv-"):
         # Prove the required codecs are already installed before testing reuse.
         subprocess.run(
@@ -272,17 +272,17 @@ def exercise(feature, base):
         )
         codecs = {
             "pyvenv-default": None,
-            "pyvenv-pickle": cubie.PickleCodec(),
-            "pyvenv-msgspec": cubie.MSGspecCodec(),
-            "pyvenv-cloudpickle": cubie.CloudpickleCodec(),
+            "pyvenv-pickle": qb_cubie.PickleCodec(),
+            "pyvenv-msgspec": qb_cubie.MSGspecCodec(),
+            "pyvenv-cloudpickle": qb_cubie.CloudpickleCodec(),
         }
-        arena = cubie.PyVenv(env_path=base, codec=codecs[feature])
+        arena = qb_cubie.PyVenv(env_path=base, codec=codecs[feature])
         EBT(target="builtins:sum", arena=arena,
             pre=WorldState(args=([1, 2, 3],)),
             post=WorldState(returns=6)).run()
         assert arena.workspace_path is None
     elif feature.startswith("builder-reuse"):
-        from cubie.arenas.pyvenv import ArenaBuilder
+        from qb_cubie.arenas.pyvenv import ArenaBuilder
 
         builder = ArenaBuilder(base)
         if feature == "builder-reuse-packages":
@@ -292,10 +292,10 @@ def exercise(feature, base):
         import importlib.util
 
         for name in ("DockerArena", "VmArena"):
-            assert name not in cubie.__all__
-            assert not hasattr(cubie, name)
+            assert name not in qb_cubie.__all__
+            assert not hasattr(qb_cubie, name)
         for module in ("dockerarena", "vmarena", "vm"):
-            assert importlib.util.find_spec("cubie.arenas." + module) is None
+            assert importlib.util.find_spec("qb_cubie.arenas." + module) is None
     else:
         raise AssertionError(f"Unknown offline scenario: {feature}")
 

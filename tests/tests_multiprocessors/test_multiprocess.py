@@ -1,10 +1,10 @@
 import pytest, hashlib
-from src.cubie.ebt import *
+from src.qb_cubie.ebt import *
 from typing import List, Any, Callable, Iterable
-from src.cubie.protocols import WorldState, Mapper
-from src.cubie.arenas.tempfs import TempFS
-from src.cubie.arenas.pyvenv import PyVenv
-from src.cubie.multiprocessors import PickleProcessor, LokyProcessor
+from src.qb_cubie.protocols import WorldState, Mapper
+from src.qb_cubie.arenas.tempfs import TempFS
+from src.qb_cubie.arenas.pyvenv import PyVenv
+from src.qb_cubie.multiprocessors import PickleProcessor, LokyProcessor
 class MockTriggeredSignal(BaseException): pass
 
 # ========== TARGETS ===================================================================================================
@@ -65,7 +65,7 @@ def target_heavy_computation_and_io(item_id: int) -> str:
 
 def pre_state_heavy_factory(scale: int) -> list:
     """Generates N tasks for the heavy workload."""
-    from src.cubie.ebt import WorldState
+    from src.qb_cubie.ebt import WorldState
     return [WorldState(args=(i,)) for i in range(scale)]
 
 

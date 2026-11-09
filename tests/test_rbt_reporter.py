@@ -5,9 +5,9 @@ Injected reporters consume the ReviewData returned by the reviewer.
 
 import pytest
 
-from src.cubie.ebt import EBT
-from src.cubie.protocols import ReviewData, WorldState
-from src.cubie.rbt import RBT
+from src.qb_cubie.ebt import EBT
+from src.qb_cubie.protocols import ReviewData, WorldState
+from src.qb_cubie.rbt import RBT
 
 
 class StubReviewer:

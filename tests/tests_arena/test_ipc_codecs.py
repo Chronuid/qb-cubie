@@ -3,11 +3,11 @@ import pytest
 from pathlib import Path
 from typing import Any
 
-import cubie
+import qb_cubie
 # Cubie Imports (Pfade ggf. anpassen)
-from cubie import EBT
-from cubie.protocols import WorldState
-from cubie import PyVenv
+from qb_cubie import EBT
+from qb_cubie.protocols import WorldState
+from qb_cubie import PyVenv
 
 
 # ===== DUMMY TARGETS ==================================================================================================
@@ -58,7 +58,7 @@ class TestIPCCodecContract:
 
     @pytest.fixture
     def arena(self) -> PyVenv:
-        return PyVenv(codec=cubie.CloudpickleCodec())
+        return PyVenv(codec=qb_cubie.CloudpickleCodec())
 
     def test_pure_function_serialization(self, arena: PyVenv):
         """Ein Codec muss reine Funktionen übertragen können."""

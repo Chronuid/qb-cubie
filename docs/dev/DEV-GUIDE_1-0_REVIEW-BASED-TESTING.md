@@ -10,7 +10,7 @@ RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abn
 
 </center>
 
-`from cubie.rbt import RBT` ist der vorhandene Import. Die Klasse wird nicht als `cubie.RBT` exportiert.
+`from qb_cubie.rbt import RBT` ist der vorhandene Import. Die Klasse wird nicht als `qb_cubie.RBT` exportiert.
 
 ## Ablauf
 
@@ -24,7 +24,7 @@ Ohne Target wird `None` übergeben. Der Reviewer kann dies nach einer eigenen Ko
 
 `ReviewData` ist eine veränderliche Dataclass mit `passed: bool` und `report: dict`, standardmäßig leer. Das offene Dictionary kann Kriterien, Begründungen und Metadaten enthalten. Seine Struktur und dauerhafte Speicherung müssen Integrationen selbst festlegen.
 
-Das `Reviewer`-Protokoll aus `cubie.protocols` verlangt `review(target: str | None, check: str) -> ReviewData`. Es beschreibt eine Schnittstelle, keinen fertigen LLM-Adapter und keine Validierung der fachlichen Qualität einer Entscheidung.
+Das `Reviewer`-Protokoll aus `qb_cubie.protocols` verlangt `review(target: str | None, check: str) -> ReviewData`. Es beschreibt eine Schnittstelle, keinen fertigen LLM-Adapter und keine Validierung der fachlichen Qualität einer Entscheidung.
 
 Standard ist `HeadlessReviewer()`: Ohne vorgegebene Antwort fragt er am Terminal interaktiv nach Entscheidung und Bericht. pytest benötigt dafür `-s`. `HumanReviewer` ist die ausdrücklich wählbare Tkinter-GUI. Automatisierte Läufe benötigen einen nichtinteraktiven Reviewer; eine vorgegebene Antwort in `HeadlessReviewer` prüft selbst keine Anforderung.
 

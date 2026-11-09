@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, CloudpickleCodec, PickleCodec, PyVenv, WorldState
-from cubie.arenas._requirements import _environment_python, _requirements_satisfied
-from cubie.arenas.pyvenv import ArenaBuilder
+from qb_cubie import EBT, CloudpickleCodec, PickleCodec, PyVenv, WorldState
+from qb_cubie.arenas._requirements import _environment_python, _requirements_satisfied
+from qb_cubie.arenas.pyvenv import ArenaBuilder
 
 
 @pytest.fixture

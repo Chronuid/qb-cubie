@@ -1,5 +1,5 @@
 from pathlib import Path
-from cubie import EBT, WorldState, TempFS, PyVenv, AstLinter, Pylint, LinterDiagnostic, CloudpickleCodec
+from qb_cubie import EBT, WorldState, TempFS, PyVenv, AstLinter, Pylint, LinterDiagnostic, CloudpickleCodec
 
 
 def test_linter_aggregation():

@@ -6,8 +6,8 @@ false positive in EBT cannot conceal a missing return comparison.
 
 import pytest
 
-from cubie import EBT, WorldState
-from cubie.reporter import PytestReporter
+from qb_cubie import EBT, WorldState
+from qb_cubie.reporter import PytestReporter
 
 
 def echo(value):

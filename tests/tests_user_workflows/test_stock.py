@@ -5,7 +5,7 @@ from functools import partial
 
 import pytest
 
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 from .targets import Stock, availability
 

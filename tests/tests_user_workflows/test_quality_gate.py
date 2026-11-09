@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, MyPy, WorldState
+from qb_cubie import EBT, MyPy, WorldState
 
 
 @pytest.mark.parametrize("faulty", [False, True], ids=["clean-module", "type-error"])

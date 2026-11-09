@@ -10,8 +10,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from cubie import EBT, WorldState
-from cubie.arenas.tempfs import TempFS
+from qb_cubie import EBT, WorldState
+from qb_cubie.arenas.tempfs import TempFS
 
 
 def mark_execution(marker):
@@ -75,7 +75,7 @@ def test_equal_contents_do_not_resolve_ambiguous_sources(tmp_path, field):
 @pytest.mark.parametrize("field", ["pre", "post"])
 @pytest.mark.parametrize("multiprocessing", [False, True], ids=["singleprocess", "multiprocess"])
 def test_global_negation_does_not_accept_collisions(tmp_path, monkeypatch, field, multiprocessing):
-    monkeypatch.setattr("cubie.multiprocessors.os.cpu_count", lambda: 2)
+    monkeypatch.setattr("qb_cubie.multiprocessors.os.cpu_count", lambda: 2)
     marker = tmp_path / "called"
     with pytest.raises(ValueError, match="shared"):
         EBT(target=partial(mark_execution, marker), expect=False, reporter=None,

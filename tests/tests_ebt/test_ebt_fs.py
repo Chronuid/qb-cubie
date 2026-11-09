@@ -1,5 +1,5 @@
-from src.cubie.ebt import *
-from src.cubie.arenas.tempfs import *
+from src.qb_cubie.ebt import *
+from src.qb_cubie.arenas.tempfs import *
 
 # ======================================================================================================================
 

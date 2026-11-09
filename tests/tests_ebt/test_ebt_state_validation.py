@@ -8,7 +8,7 @@ from functools import partial
 
 import pytest
 
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def record_call(marker):
@@ -19,7 +19,7 @@ def record_call(marker):
 
 @pytest.fixture(params=[False, True], ids=["singleprocess", "multiprocess"])
 def execution_mode(request, monkeypatch):
-    monkeypatch.setattr("cubie.multiprocessors.os.cpu_count", lambda: 2)
+    monkeypatch.setattr("qb_cubie.multiprocessors.os.cpu_count", lambda: 2)
     return request.param
 
 

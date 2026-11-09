@@ -1,8 +1,8 @@
 # FEATURE-ENTWURF: nicht implementiert, keine öffentliche API und kein Funktionsnachweis.
 import pytest
 
-import cubie as qb
-from cubie import WorldState, VmArena, DeviceResources
+import qb_cubie as qb
+from qb_cubie import WorldState, VmArena, DeviceResources
 import time, concurrent.futures
 
 # Physische Realitäten: Funktionierende, bootfähige Images/Snapshots

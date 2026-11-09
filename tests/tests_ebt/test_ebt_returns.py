@@ -10,8 +10,8 @@ import pickle
 import cloudpickle
 import pytest
 
-from cubie import EBT, UNSPECIFIED, WorldState
-from cubie.arenas.tempfs import TempFS
+from qb_cubie import EBT, UNSPECIFIED, WorldState
+from qb_cubie.arenas.tempfs import TempFS
 
 
 def echo(value):

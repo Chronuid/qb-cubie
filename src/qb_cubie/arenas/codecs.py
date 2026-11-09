@@ -77,7 +77,7 @@ class MSGspecCodec:
             f"By default, the MSGspecCodec supports only primitive data types.\n"
             f"Since the payload contains complex objects (e.g., in the target instance's __dict__ or as an argument),\n"
             f"**simplify the payload** or explicitly assign a more capable codec to the arena for complex support:\n"
-            f"> `PyVenv(codec=cubie.CloudpickleCodec()`\n"
+            f"> `PyVenv(codec=qb_cubie.CloudpickleCodec()`\n"
             f"> Note: CloudpickleCodec cant isolate the host dependencies from the arena yet.)"
             ) from None
 

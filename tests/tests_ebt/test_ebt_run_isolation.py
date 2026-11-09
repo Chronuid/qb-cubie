@@ -11,7 +11,7 @@ from multiprocessing import Manager
 
 import pytest
 
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def echo(value):
@@ -21,7 +21,7 @@ def echo(value):
 @pytest.fixture(params=[False, True], ids=["singleprocess", "multiprocess"])
 def execution_mode(request, monkeypatch):
     # Exercise the real process path while bounding its worker count.
-    monkeypatch.setattr("cubie.multiprocessors.os.cpu_count", lambda: 2)
+    monkeypatch.setattr("qb_cubie.multiprocessors.os.cpu_count", lambda: 2)
     return request.param
 
 

@@ -6,6 +6,8 @@
 
 Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
 
+Die Analysewerkzeuge sind optional: `python -m pip install 'qb-cubie[linters]'` installiert LibCST, MyPy und Pylint. Der Paketimport funktioniert auch ohne dieses Extra; beim Aufruf eines fehlenden Werkzeugs erscheint ein Installationshinweis. Eigene ausführbare Dateien lassen sich über `QB_CUBIE_MYPY_PATH` und `QB_CUBIE_PYLINT_PATH` angeben. Für die Repository-Entwicklung installiert `uv sync --locked --group dev` die Werkzeuge aus der Lockdatei.
+
 ---
 
 </center>
@@ -24,7 +26,7 @@ Das API-Interface agiert agnostisch und akzeptiert nahtlos Objekte vom Typ `Unio
 
 ```python
 from pathlib import Path
-from cubie import AstLinter, Pylint
+from qb_cubie import AstLinter, Pylint
 
 # 1. Analyse eines gesamten Repositories (Auto-Discovery)
 linter = AstLinter(Pylint())
@@ -109,7 +111,7 @@ Hier ist ein komplettes Beispiel für eine Regel, die Type-Hints für alle Funkt
 ```python
 import libcst as cst
 import libcst.matchers as m
-from cubie import CstRule, CstLinter
+from qb_cubie import CstRule, CstLinter
 
 class RequireReturnTypeRule(CstRule):
     """

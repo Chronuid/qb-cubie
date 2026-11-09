@@ -1,5 +1,5 @@
-from src.cubie.ebt import EBT
-from src.cubie.protocols import WorldState
+from src.qb_cubie.ebt import EBT
+from src.qb_cubie.protocols import WorldState
 import pytest
 
 # ========== TARGETS ===================================================================================================

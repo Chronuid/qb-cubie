@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from src.cubie import EBT, TempFS, WorldState, multiprocessors
+from src.qb_cubie import EBT, TempFS, WorldState, multiprocessors
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CHILD_TEST = """

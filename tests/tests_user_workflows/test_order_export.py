@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 from .targets import export_orders
 

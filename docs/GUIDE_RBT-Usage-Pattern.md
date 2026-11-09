@@ -13,7 +13,7 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 ## Interaktives Review
 
 ```python
-from cubie.rbt import RBT
+from qb_cubie.rbt import RBT
 
 
 def test_logging_review():
@@ -23,7 +23,7 @@ def test_logging_review():
     ).run()
 ```
 
-Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `cubie.rbt` ausdrücklich injiziert werden.
+Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `qb_cubie.rbt` ausdrücklich injiziert werden.
 
 Ein String-Target wird unverändert weitergereicht; andere Objekte werden über `__name__` beziehungsweise `str()` bezeichnet. RBT ruft das Target nicht auf, importiert keine Zielmodule und lädt keinen Quelltext. Ohne Target erhält der Reviewer `None`; eine automatische Untersuchung des gesamten Projekts findet nicht statt.
 
@@ -33,8 +33,8 @@ Dieses vollständige Beispiel prüft eine bewusst eng begrenzte Dateiregel. Es z
 
 ```python
 from pathlib import Path
-from cubie.protocols import ReviewData
-from cubie.rbt import RBT
+from qb_cubie.protocols import ReviewData
+from qb_cubie.rbt import RBT
 
 
 class NonEmptyFileReviewer:

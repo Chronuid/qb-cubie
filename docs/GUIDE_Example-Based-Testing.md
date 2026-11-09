@@ -34,7 +34,7 @@ Kuratierte Referenzdaten müssen konsistent und überprüfbar sein. Ergänze sie
 
 ## Grenzen des aktuellen Prüfkerns
 
-Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und explizite Erwartungen. `returns=None` erwartet explizit `None`; ausgelassenes `returns` oder `returns=cubie.UNSPECIFIED` lässt den Rückgabewert offen. Die verbleibenden Fehler sind in der [Semantikreferenz](GUIDE_Contract-Semantics.md) und im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
+Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und explizite Erwartungen. `returns=None` erwartet explizit `None`; ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` lässt den Rückgabewert offen. Die verbleibenden Fehler sind in der [Semantikreferenz](GUIDE_Contract-Semantics.md) und im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
 
 ---
 

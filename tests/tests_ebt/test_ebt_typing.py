@@ -1,10 +1,10 @@
 import json, re
 from pathlib import Path
 from typing import Union, Any
-from src.cubie.ebt import EBT
-from src.cubie.protocols import WorldState
+from src.qb_cubie.ebt import EBT
+from src.qb_cubie.protocols import WorldState
 from dataclasses import dataclass
-from src.cubie.arenas.tempfs import TempFS
+from src.qb_cubie.arenas.tempfs import TempFS
 
 # ========== TARGETS ===================================================================================================
 

@@ -66,7 +66,7 @@ class Pylint:
         """Resolves the Pylint executable command."""
         if isinstance(self._executable, list): return self._executable
         if isinstance(self._executable, str): return [self._executable]
-        return _ensure_installed("pylint", "CUBIE_PYLINT_PATH")
+        return _ensure_installed("pylint", "QB_CUBIE_PYLINT_PATH")
 
     @staticmethod
     def _execute_subprocess(cmd: List[str], target: Union[str, Path]) -> subprocess.CompletedProcess:

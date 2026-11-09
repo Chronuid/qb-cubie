@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, TempFS, WorldState
+from qb_cubie import EBT, TempFS, WorldState
 
 
 @pytest.fixture(autouse=True)
@@ -293,7 +293,7 @@ def test_unserializable_input_cleans_workspace(restore_host_cwd, tmp_path, monke
 def test_process_start_failure_cleans_workspace_and_ipc(tmp_path, monkeypatch, restore_host_cwd):
     import tempfile
 
-    from cubie.arenas import tempfs
+    from qb_cubie.arenas import tempfs
 
     monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
 

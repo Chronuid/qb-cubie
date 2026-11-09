@@ -1,7 +1,7 @@
 # FEATURE-ENTWURF: nicht implementiert, keine öffentliche API und kein Funktionsnachweis.
 import pytest
-import cubie as qb
-from cubie import WorldState, PyVenv
+import qb_cubie as qb
+from qb_cubie import WorldState, PyVenv
 
 
 # ======================================================================================================================
@@ -15,7 +15,7 @@ def target_embedded_wizard_flow(user_input: str) -> str:
     """
     import os
     import builtins
-    from cubie import VmArena, WorldState
+    from qb_cubie import VmArena, WorldState
     os.environ["PATH"] = "/usr/local/bin:/usr/bin:/bin" # 1. Versteckt Hypervisoren (VirtualBox, libvirt, etc.)
     builtins.input = lambda prompt: user_input # 2. Den interaktiven Wizard-Prompt (y/n) innerhalb der Arena abfangen
     try: # Triggert den Lebenszyklus. Da der Hypervisor im PATH fehlt, muss setup() den Wizard starten.

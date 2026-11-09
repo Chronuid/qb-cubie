@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from src.cubie import EBT, TempFS, WorldState, multiprocessors
+from src.qb_cubie import EBT, TempFS, WorldState, multiprocessors
 
 
 @pytest.fixture(params=["pickle", "loky"])

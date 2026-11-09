@@ -3,25 +3,34 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cubie"
+name = "qb-cubie"
 version = "0.0.3"
+description = "Declarative acceptance tests, reviews, and static code analysis for Python"
+readme = "README.md"
+authors = [{name = "Dominick Wirzba"}]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.13"
 dependencies = [
-    "pytest==9.2.0",
-    "msgspec>=0.22.0",
-    "fsspec==2026.9.0",
-    "path>=17.1.1",
-    "loky==3.7.0",
-    "cloudpickle",
-    "packaging==26.3",
-    "ruff==0.17.4",
-    "pylint==4.1.3",
-    "libcst>=1.9.0",
-    "mypy==2.4.1",
+    "msgspec>=0.22,<0.23",
+    "loky>=3.7,<4",
+    "cloudpickle>=3.1.2,<4",
+    "packaging>=26.3,<27",
 ]
 
 [project.optional-dependencies]
-dev = ["hypothesis==6.168.3", "pytest-xdist>=3.8,<4"]
+linters = ["libcst>=1.9,<2", "mypy>=2.4.1,<3", "pylint>=4.1.3,<5"]
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+    "hypothesis==6.168.3",
+    "pytest-xdist>=3.8,<4",
+    "ruff==0.17.4",
+    "libcst==1.9.0",
+    "mypy==2.4.1",
+    "pylint==4.1.3",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -29,8 +38,8 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["cubie*"]
-exclude = ["cubie.arenas.arena_envs.*"]
+include = ["qb_cubie", "qb_cubie.*"]
+exclude = ["qb_cubie.arenas.arena_envs.*"]
 namespaces = false
 
 [tool.pytest.ini_options]

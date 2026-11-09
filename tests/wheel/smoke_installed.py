@@ -15,23 +15,29 @@ from pathlib import Path
 
 import pytest
 
-import cubie
-from cubie import EBT, TempFS, WorldState
-from cubie.protocols import ReviewData
-from cubie.rbt import RBT
+import qb_cubie
+from qb_cubie import EBT, TempFS, WorldState
+from qb_cubie.protocols import ReviewData
+from qb_cubie.rbt import RBT
 
 
 def test_imports_and_distribution():
     assert sys.prefix != sys.base_prefix
-    package = Path(cubie.__file__).resolve()
+    package = Path(qb_cubie.__file__).resolve()
     assert package.is_relative_to(Path(sys.prefix).resolve())
-    distribution = importlib.metadata.distribution("cubie")
-    assert package == Path(distribution.locate_file("cubie/__init__.py")).resolve()
+    distribution = importlib.metadata.distribution("qb-cubie")
+    assert distribution.metadata["Name"] == "qb-cubie"
+    assert distribution.metadata["License-Expression"] == "MIT"
+    assert distribution.metadata["Author"] == "Dominick Wirzba"
+    assert distribution.metadata.get_all("License-File") == ["LICENSE"]
+    assert "Copyright (c) 2026 Dominick Wirzba" in distribution.read_text("licenses/LICENSE")
+    assert importlib.util.find_spec("cubie") is None
+    assert package == Path(distribution.locate_file("qb_cubie/__init__.py")).resolve()
     direct_url = json.loads(distribution.read_text("direct_url.json"))
     assert direct_url["url"].endswith(".whl")
     assert not direct_url.get("dir_info", {}).get("editable", False)
-    assert all(hasattr(cubie, name) for name in cubie.__all__)
-    for module in pkgutil.walk_packages(cubie.__path__, "cubie."):
+    assert all(hasattr(qb_cubie, name) for name in qb_cubie.__all__)
+    for module in pkgutil.walk_packages(qb_cubie.__path__, "qb_cubie."):
         importlib.import_module(module.name)
     assert not list((package.parent / "arenas/arena_envs").glob("*/pyvenv.cfg"))
 
@@ -87,7 +93,7 @@ def test_tempfs_runner_and_files(tmp_path):
 def test_pyvenv_runner_and_packaged_phantom_hook(tmp_path):
     base = tmp_path / "base"
     venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
-    arena = cubie.PyVenv(env_path=str(base), codec=cubie.PickleCodec())
+    arena = qb_cubie.PyVenv(env_path=str(base), codec=qb_cubie.PickleCodec())
     trace = EBT(target="builtins:sum", arena=arena,
                 pre=WorldState(args=([1, 2, 3],)),
                 post=WorldState(returns=6)).run()
@@ -96,5 +102,18 @@ def test_pyvenv_runner_and_packaged_phantom_hook(tmp_path):
 
 
 def test_linter_runtime_dependencies():
-    diagnostics = cubie.AstLinter(cubie.MyPy()).check("value: int = 'wrong'\n")
+    if os.environ["QB_CUBIE_WHEEL_PROFILE"] == "core":
+        for name in ("libcst", "mypy", "pylint"):
+            assert importlib.util.find_spec(name) is None
+        with pytest.raises(RuntimeError, match="qb-cubie\\[linters\\]"):
+            qb_cubie.CstLinter([])
+        with pytest.raises(RuntimeError, match="qb-cubie\\[linters\\]"):
+            qb_cubie.MyPy().check("value: int = 'wrong'\n")
+        return
+    for name in ("libcst", "mypy", "pylint"):
+        assert importlib.util.find_spec(name) is not None
+    diagnostics = qb_cubie.AstLinter(qb_cubie.MyPy()).check("value: int = 'wrong'\n")
     assert any(diagnostic.rule_id == "assignment" for diagnostic in diagnostics)
+    assert qb_cubie.CstLinter([]).check("value = 1\n") == []
+    diagnostics = qb_cubie.AstLinter(qb_cubie.Pylint()).check("print(undefined_wheel_name)\n")
+    assert any(diagnostic.rule_id == "E0602" for diagnostic in diagnostics)

@@ -1,16 +1,16 @@
 <center>
 
-# Cubie: Quality-Bench
+# qb-cubie: Quality-Bench
 
-![Cubie](./docs/.assets/cubie-banner.png)
+![qb-cubie](./docs/.assets/cubie-banner.png)
 
-**Cubie bietet deklarative Akzeptanztests für Python-Funktionen und Datei-Workflows auf Basis von pytest.**  
+**qb-cubie bietet deklarative Akzeptanztests für Python-Funktionen und Datei-Workflows auf Basis von pytest.**  
 Eingaben, Rückgabemuster und erwartete Dateien werden gemeinsam beschrieben.  
 Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.  
 
 ---
 
-Cubie ist experimentell. Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
+qb-cubie ist experimentell. Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.
 Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 
 ---
@@ -19,19 +19,21 @@ Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 
 ## Einstieg
 
-Voraussetzung ist Python ≥ 3.13. Im Projektverzeichnis:
+Voraussetzung ist Python ≥ 3.13. Der öffentliche Distributionsname lautet `qb-cubie`, der Python-Importname `qb_cubie`. In den internen Handbüchern wird weiterhin „cubie“ verwendet. Frühere Importe aus `cubie` müssen auf `qb_cubie` umgestellt werden.
+
+Im Projektverzeichnis:
 
 ```bash
 python3.13 -m venv .venv
-.venv/bin/python -m pip install -e .
+.venv/bin/python -m pip install -e . pytest
 ```
 
-Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --extra dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
+Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --group dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
 
 Die Repository-Tests benötigen zusätzlich lokal provisionierte Arena-Basen und `uv` im `PATH`:
 
 ```bash
-uv sync --locked --extra dev
+uv sync --locked --group dev
 .venv/bin/python scripts/provision_test_arenas.py
 .venv/bin/python -m pytest -q
 ```
@@ -41,7 +43,7 @@ Die Provisionierung ist ein eigener Installationsschritt und kann Netzwerkzugrif
 Speichere dieses vollständige Beispiel als `test_tax.py`:
 
 ```python
-from cubie import EBT, WorldState
+from qb_cubie import EBT, WorldState
 
 
 def calculate_tax(net, rate):
@@ -62,6 +64,24 @@ def test_tax():
 
 Erst `.run()` führt den Test aus. Der Standardreporter lässt pytest bei einer negativen Auswertung fehlschlagen.
 
+## Lizenz und Abhängigkeiten
+
+qb-cubie steht unter der [MIT-Lizenz](./LICENSE), Copyright © 2026 Dominick Wirzba. Lizenztext, SPDX-Kennung `MIT` und Autor werden in Quelldistribution und Wheel mitgeliefert.
+
+Der Laufzeitkern benötigt `cloudpickle` für TempFS und Serialisierung, `msgspec` für den Standardcodec von PyVenv, `loky` für parallele Auswertungen mit dynamischen Prädikaten und `packaging` für Anforderungsprüfungen. Die ungenutzten Pakete `fsspec` und `path` gehören nicht zu den Abhängigkeiten. pytest wird vom aufrufenden Testprojekt bereitgestellt; der Paketimport und direkte `.run()`-Aufrufe benötigen es nicht.
+
+Die Analysewerkzeuge LibCST, MyPy und Pylint sind über das Extra `linters` erhältlich. Für eine lokale Installation mit diesen Werkzeugen:
+
+```bash
+.venv/bin/python -m pip install -e '.[linters]' pytest
+```
+
+Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.3-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
+
+Veröffentlichte Abhängigkeiten haben Mindestversionen und eine Obergrenze vor der nächsten Hauptversion; bei dem noch mit `0.x` versionierten `msgspec` liegt sie vor der nächsten Nebenversion. Diese Grenzen bilden den vorgesehenen Kompatibilitätsrahmen, keine Zusage, dass jede Kombination geprüft wurde. Die Entwicklungsgruppe `dev` enthält pytest, Hypothesis, pytest-xdist, Ruff und festgelegte Analysewerkzeuge. Sie wird nicht als Paket-Extra veröffentlicht. `uv.lock` hält die genauen direkten und transitiven Versionen für Entwicklung und Repository-CI fest; konsumierende Projekte lösen innerhalb der veröffentlichten Bereiche selbst auf.
+
+Nach Änderungen an Anforderungen wird `uv lock` ausgeführt und die Änderung an `uv.lock` gemeinsam geprüft. `uv sync --locked --group dev` installiert die festgehaltene Entwicklungsumgebung. Releases werden mit isoliertem Setuptools-Build (`setuptools>=77` für SPDX-Lizenzmetadaten) und den folgenden Installationsprüfungen validiert. Die Konfiguration folgt der [Setuptools-Dokumentation](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html) und der [uv-Trennung von Abhängigkeiten, Extras und Entwicklungsgruppen](https://docs.astral.sh/uv/concepts/projects/dependencies/). Für den grafischen Reviewer wird zusätzlich eine Python-Installation mit Tk benötigt.
+
 ## Wheel-Prüfung und CI
 
 Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
@@ -71,9 +91,9 @@ Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kan
 | Wheel bauen, installieren und prüfen | 3.13, 3.14 | Linux (`ubuntu-24.04`), macOS (`macos-15`), Windows (`windows-2022`) |
 | Vollständige Repository-Testsuite mit provisionierten Arena-Basen | 3.13, 3.14 | Linux (`ubuntu-24.04`) |
 
-Die Wheel-Jobs bauen zunächst eine Quelldistribution und daraus das Wheel. Lokale Arena-Basen werden aus beiden Distributionen ausgeschlossen. [check_wheel.py](./scripts/check_wheel.py) erzeugt eine neue virtuelle Umgebung ohne Zugriff auf die Hostpakete und installiert ausschließlich das Wheel mit seinen deklarierten Pflichtabhängigkeiten. `pip check` prüft die Abhängigkeiten. Die [Installationstests](./tests/wheel/smoke_installed.py) laufen anschließend außerhalb des Checkouts mit isoliertem Python, ohne die Repository-`conftest.py`, zusätzliche pytest-Plugins oder `PYTHONPATH=src`.
+Die Wheel-Jobs bauen zunächst eine Quelldistribution und daraus das Wheel. Lokale Arena-Basen werden aus beiden Distributionen ausgeschlossen. [check_wheel.py](./scripts/check_wheel.py) erzeugt eine neue virtuelle Umgebung ohne Zugriff auf die Hostpakete und prüft zunächst Paketimport und EBT nur mit den deklarierten Pflichtabhängigkeiten, ohne pytest oder Analysewerkzeuge. Anschließend wird pytest ausdrücklich als Testtreiber installiert und die Kerninstallation geprüft. Danach wird dasselbe Wheel mit dem Extra `linters` installiert und erneut geprüft. `pip check` prüft die Abhängigkeiten. Die [Installationstests](./tests/wheel/smoke_installed.py) laufen außerhalb des Checkouts mit isoliertem Python, ohne die Repository-`conftest.py`, zusätzliche pytest-Plugins oder `PYTHONPATH=src`.
 
-Geprüft werden die Herkunft des installierten Pakets, alle Paketimporte, positive und negative EBT-/RBT-Auswertungen, ein TempFS-Dateiworkflow, PyVenv mit PickleCodec und der MyPy-Aufruf. Diese Installationsprüfungen ersetzen keine vollständige Plattformabnahme; insbesondere laufen die übrigen Repository-Tests bislang nur unter Linux. Weitere Python-Versionen sind durch diese Matrix nicht abgesichert.
+Geprüft werden Paketname, Lizenzmetadaten und Lizenztext, die Herkunft des installierten Pakets, alle Paketimporte, positive und negative EBT-/RBT-Auswertungen, ein TempFS-Dateiworkflow, PyVenv mit PickleCodec sowie fehlende und installierte Analysewerkzeuge (LibCST, MyPy, Pylint). Diese Installationsprüfungen ersetzen keine vollständige Plattformabnahme; insbesondere laufen die übrigen Repository-Tests bislang nur unter Linux. Weitere Python-Versionen sind durch diese Matrix nicht abgesichert.
 
 Lokal mit Python 3.13 oder 3.14 und `uv` im `PATH`:
 
@@ -105,7 +125,7 @@ Ein vollständiges Beispiel für eine Dateitransformation steht im [EBT-Nutzungs
 RBT übergibt eine Zielbezeichnung und eine Prüfregel an einen Reviewer. Es führt das Target nicht aus und liest eine als String übergebene Quelldatei nicht automatisch ein. Standardmäßig wartet `HeadlessReviewer` am Terminal auf eine Entscheidung; interaktive pytest-Läufe benötigen `-s`.
 
 ```python
-from cubie.rbt import RBT
+from qb_cubie.rbt import RBT
 
 
 def test_logging_review():
@@ -135,7 +155,7 @@ Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit
 
 ## Bekannte Einschränkungen
 
-Der aktuelle Prüfkern kann falsche Erfolge melden: Leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `WorldState(returns=None)` erwartet explizit `None`; ohne `returns` oder mit `returns=cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
+Der aktuelle Prüfkern kann falsche Erfolge melden: Leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `WorldState(returns=None)` erwartet explizit `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
 
 ---
 

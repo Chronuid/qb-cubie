@@ -1,9 +1,9 @@
-import cubie
+import qb_cubie
 import pytest, sys
 from pathlib import Path
-from cubie.protocols import WorldState
-from cubie.ebt import EBT
-from cubie import TempFS, PyVenv, AstLinter, Pylint
+from qb_cubie.protocols import WorldState
+from qb_cubie.ebt import EBT
+from qb_cubie import TempFS, PyVenv, AstLinter, Pylint
 
 def test_astlinter_clean_memory_string():
     EBT(
@@ -111,7 +111,7 @@ def test_astlinter_markdown_artifacts():
     llm_output = "Here is the solution: \n```python\na = 42\nb = 12\n```\n"
     EBT(
         target=AstLinter(Pylint(disable=["E0001"])).check,
-        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        arena=PyVenv(ARENA_PATH, codec=qb_cubie.CloudpickleCodec()),
         pre=WorldState(kwargs={"target": llm_output}),
         post=WorldState(returns=[])
     ).run()
@@ -140,7 +140,7 @@ def test_astlinter_cross_module_dependency(cross_module_fs: Path):
     """
     EBT(
         target=AstLinter(Pylint(disable=["C0114", "C0116"])).check,
-        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        arena=PyVenv(ARENA_PATH, codec=qb_cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("src")},
             fs={
@@ -175,7 +175,7 @@ def test_astlinter_ignores_venv_directory(venv_ignored_fs: Path):
     """
     EBT(
         target=AstLinter(Pylint()).check,
-        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        arena=PyVenv(ARENA_PATH, codec=qb_cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("project")},
             fs={
@@ -197,7 +197,7 @@ def test_astlinter_ignores_venv_directory_in_project(venv_ignored_fs: Path):
     """
     EBT(
         target=AstLinter(Pylint(disable=["C0114", "C0103"])).check,
-        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        arena=PyVenv(ARENA_PATH, codec=qb_cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("project")},
             fs={
@@ -214,7 +214,7 @@ def test_astlinter_reports_syntax_errors_outside_venv_directory(venv_ignored_fs:
     """Positive control: the same broken code must be checked outside .venv."""
     EBT(
         target=AstLinter(Pylint()).check,
-        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        arena=PyVenv(ARENA_PATH, codec=qb_cubie.CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("project")},
             fs={

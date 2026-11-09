@@ -1,5 +1,5 @@
 import os
-from cubie import EBT, WorldState, PyVenv
+from qb_cubie import EBT, WorldState, PyVenv
 from pathlib import Path
 
 # ======================================================================================================================

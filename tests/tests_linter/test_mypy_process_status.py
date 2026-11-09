@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from cubie import EBT, AstLinter, LinterDiagnostic, MyPy, WorldState
+from qb_cubie import EBT, AstLinter, LinterDiagnostic, MyPy, WorldState
 
 SOURCE = "answer: int = 42"
 DIAGNOSTIC = '<string>:1:7: error: Incompatible types in assignment [assignment]\n'
@@ -29,7 +29,7 @@ def simulated_process(monkeypatch):
             calls.append(list(cmd))
             return subprocess.CompletedProcess(cmd, returncode, stdout, stderr)
 
-        monkeypatch.setattr("cubie.linters.mypy.subprocess.run", run)
+        monkeypatch.setattr("qb_cubie.linters.mypy.subprocess.run", run)
         return calls
 
     return configure

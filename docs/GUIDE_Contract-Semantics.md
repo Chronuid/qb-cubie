@@ -4,7 +4,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgeglichen mit `src/cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern. Änderungen an der Dokumentation beheben diese Fehler nicht. Die Befunde stammen aus dem [Gutachten vom 9. November 2026](../GUTACHTEN.md), insbesondere Abschnitte 3, 5–7.
+Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern. Änderungen an der Dokumentation beheben diese Fehler nicht. Die Befunde stammen aus dem [Gutachten vom 9. November 2026](../GUTACHTEN.md), insbesondere Abschnitte 3, 5–7.
 
 ---
 
@@ -20,7 +20,7 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | `post` | Ein `WorldState` oder eine nichtleere Liste gemeinsamer Zielmuster mit denselben Validierungsregeln wie `pre`. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
 | `args` | `None` ergibt keine Positionsargumente. Listen und Tupel werden in Positionsargumente entpackt; andere Objekte werden als ein Argument übergeben. `args=[1, 2]` ruft `f(1, 2)` auf; `args=([1, 2],)` ruft `f([1, 2])` auf; `args=(None,)` ruft `f(None)` auf. |
 | `kwargs` | Ein Dictionary mit Schlüsselwortargumenten; `None` wird zu `{}`. Andere Werte führen zu `TypeError`. |
-| `post.returns` | Erwarteter Rückgabewert oder Muster. Ausgelassen oder `cubie.UNSPECIFIED` bedeutet „nicht prüfen“; explizites `None` erwartet den Wert `None`. |
+| `post.returns` | Erwarteter Rückgabewert oder Muster. Ausgelassen oder `qb_cubie.UNSPECIFIED` bedeutet „nicht prüfen“; explizites `None` erwartet den Wert `None`. |
 | `post.expect=True` | Erlaubtes Zielmuster. Alle in diesem Zustand aktivierten Prüfungen müssen passen. |
 | `post.expect=False` | Verbotenes Zielmuster. Kein solches Muster darf vollständig passen. `pre.expect` steuert die EBT-Auswertung nicht. |
 | `EBT(expect=False)` | Negiert das aggregierte Ergebnis aller Eingangsschritte. Erwartet weder eine Exception noch das Scheitern jedes einzelnen Schritts. |
@@ -59,14 +59,14 @@ Die Quantoren beziehen sich nur auf die endlichen Listen und die jeweils beobach
 ## Rückgabevergleich
 
 `WorldState()` lässt den Rückgabewert offen, `WorldState(returns=None)` fordert dagegen `None`.
-Wer bisher `returns=None` zum Überspringen der Prüfung verwendet hat, muss das Argument weglassen oder `UNSPECIFIED` aus `cubie` importieren und setzen.
+Wer bisher `returns=None` zum Überspringen der Prüfung verwendet hat, muss das Argument weglassen oder `UNSPECIFIED` aus `qb_cubie` importieren und setzen.
 Der Sentinel deaktiviert nur als oberster `returns`-Wert die Prüfung; er ist kein rekursives Wildcard-Muster.
 
 Die Reihenfolge der Mustererkennung ist relevant:
 
 | Muster in `returns` | Vergleich |
 | --- | --- |
-| Ausgelassen / oberstes `cubie.UNSPECIFIED` | Deaktiviert die Rückgabeprüfung. |
+| Ausgelassen / oberstes `qb_cubie.UNSPECIFIED` | Deaktiviert die Rückgabeprüfung. |
 | `None` | Erwartet den Rückgabewert `None`. |
 | `typing.Any` | Akzeptiert jeden Wert. Ein Dictionary-Schlüssel muss trotzdem vorhanden sein. |
 | Union (`Union[...]` oder `A \| B`) | Mindestens eine Alternative muss passen. Enthaltenes `None` wird rekursiv als Wert verglichen. |
