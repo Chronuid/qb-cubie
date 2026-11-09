@@ -1,235 +1,246 @@
-# Gutachten: Analyse und Bewertung des Projekts „Cubie: Quality-Bench“
+# Kritisches Gutachten zum Cubie-Projekt
 
-**Dokument-Typ:** Unabhängiges Fachgutachten (Softwarearchitektur, Testmethodik, Systemsicherheit)  
-**Projekt:** Cubie (`cubie`) – Version: 0.0.3  
-**Zielsystem:** Python >= 3.13  
-**Datum:** 9. November 2026  
+**Stand:** 9. November 2026  
+**Untersuchter Stand:** Arbeitsverzeichnis auf Basis von Commit `f3a7f17`, Projektversion `0.0.3`, Python `3.13.12`.
 
----
+## 1. Gesamturteil
 
-## Inhaltsverzeichnis
+Cubie ist ein interessantes, bereits substanziell implementiertes Werkzeug für deklarative Qualitätssicherung. Sein überzeugendster Nutzen liegt in der gemeinsamen Beschreibung von Eingaben, erwarteten Rückgaben und Dateisystemzuständen. Gerade für Datei-Transformationen und wiederkehrende Akzeptanzszenarien kann das die Testdefinition vereinfachen. Die austauschbaren Arenen, Reviewer und Reporter ergeben eine nachvollziehbare Erweiterungsarchitektur.
 
-1. [Executive Summary](#executive-summary)
-2. [Idee & Philosophische Fundierung](#1-idee--philosophische-fundierung)
-   - 2.1 [Der Lösungsraum $\Sigma^*$ und die Bibliothek von Babel](#21-der-lösungsraum-\sigma-und-die-bibliothek-von-babel)
-   - 2.2 [Die zwei Säulen: EBT und RBT](#22-die-zwei-säulen-ebt-und-rbt)
-   - 2.3 [Kritische Würdigung der Kernidee](#23-kritische-würdigung-der-kernidee)
-3. [Nützlichkeit & Praxistauglichkeit](#3-nützlichkeit--praxistauglichkeit)
-   - 3.1 [Echte Stärken und primäre Einsatzszenarien](#31-echte-stärken-und-primäre-einsatzszenarien)
-   - 3.2 [Grenzen und Reibungsverluste im Entwicklungsalltag](#32-grenzen-und-reibungsverluste-im-entwicklungsalltag)
-   - 3.3 [Das RBT/Tkinter-Paradoxon (CI/CD-Inkompatibilität)](#33-das-rbttkinter-paradoxon-cicd-inkompatibilität)
-4. [Detaillierte Analyse der technischen Umsetzung](#4-detaillierte-analyse-der-technischen-umsetzung)
-   - 4.1 [Architektur & Entwurfsmuster (Die Habenseite)](#41-architektur--entwurfsmuster-die-habenseite)
-   - 4.2 [Gravierende Mängel, Anti-Patterns und Risiken](#42-gravierende-mängel-anti-patterns-und-risiken)
-     - 4.2.1 [„Smuggled Tools“: Entpackte Wheels & C-Binaries im Quellcode](#421-smuggled-tools-entpackte-wheels--c-binaries-im-quellcode)
-     - 4.2.2 [Fataler Pfad-Bug & fehlschlagender Test (`test_astlinter_ignores_venv_directory`)](#422-fataler-pfad-bug--fehlschlagender-test-test_astlinter_ignores_venv_directory)
-     - 4.2.3 [Schein-Architektur („Vaporware“) in den Virtualisierungs-Arenen](#423-schein-architektur-vaporware-in-den-virtualisierungs-arenen)
-     - 4.2.4 [Prozessweite Seiteneffekte in `TempFS` (Bruch der Thread-Sicherheit)](#424-prozessweite-seiteneffekte-in-tempfs-bruch-der-thread-sicherheit)
-     - 4.2.5 [Generator- und Lifecycle-Leak in `MultiprocessRunner`](#425-generator--und-lifecycle-leak-in-multiprocessrunner)
-     - 4.2.6 [Sicherheitsrisiken bei IPC-Deserialisierung (RCE-Gefahr)](#426-sicherheitsrisiken-bei-ipc-deserialisierung-rce-gefahr)
-     - 4.2.7 [Packaging- und Code-Hygienemängel](#427-packaging--und-code-hygienemängel)
-5. [Reifegrad-Matrix](#5-reifegrad-matrix)
-6. [Priorisierter Maßnahmenkatalog](#6-priorisierter-maßnahmenkatalog)
+Dem stehen erhebliche Schwächen gegenüber: Der theoretische Anspruch übersteigt die tatsächlich nachgewiesenen Garantien. Mehrere reproduzierbare Fehler können Tests unbeabsichtigt bestehen lassen. Die Ausführungsumgebungen sind keine Sicherheitsgrenzen, die Installation und Repository-Struktur sind noch nicht ausreichend auf fremde Rechner ausgerichtet. Der praktische Mehrwert gegenüber gewöhnlichen pytest-Tests ist für einfache Funktionen gering; für komplexere Szenarien muss er durch belastbare Anwendungsbeispiele erst belegt werden.
 
----
+**Empfehlung:** Als experimentelles Werkzeug für vertrauenswürdigen Code weiterentwickeln und gezielt pilotieren. Als allgemeine, verlässliche Qualitätsinstanz oder Ausführungsplattform für nicht vertrauenswürdigen generierten Code derzeit nicht freigeben. Vor einer Verbreiterung des Funktionsumfangs muss die Korrektheit des Prüfkerns Vorrang erhalten.
 
-## Executive Summary
+## 2. Auftrag, Methode und Aussagegrenzen
 
-> [!NOTE]
-> **Gesamtfazit:**  
-> **Cubie** ist ein intellektuell faszinierendes, theoretisch hochentwickeltes Projekt mit einer poetisch-mathematischen Vision: Code wird nicht als Artefakt verstanden, das geschrieben wird, sondern als Punkt im unendlichen Suchraum $\Sigma^*$ (in Anlehnung an Jorge Luis Borges’ *Bibliothek von Babel*), der über formale Hoare-Tripel $\{P\} S \{Q\}$ und orthogonale Datenfilter determiniert wird.
->
-> Insbesondere im Kontext von **autonomer KI-Codegenerierung (Agentic Coding)** bietet der Ansatz, funktionale Signaturen, topologische Dateisystemzustände und isolierte Ausführungsumgebungen in deklarativen Verträgen (`WorldState`) zu bündeln, echtes Innovationspotenzial.
->
-> Dem steht jedoch eine **erhebliche Diskrepanz zwischen theoretischem Anspruch und tatsächlicher Implementierungsreife** gegenüber:
-> 1. Eingeschmuggelte Third-Party-Wheels und binäre `.so`-Dateien im Quelltextordner führen zum sofortigen Absturz naiver `pytest`-Aufrufe (50 Collection Errors).
-> 2. Schein-Implementierungen („Vaporware“): `DockerArena` und `VmArena` sind reine 15-Zeilen-Dummies ohne Ausführungslogik; in `src/cubie/arenas/vm/` liegen 0-Byte-Dateien neben umfangreichen Markdown-Handbüchern.
-> 3. Gefährliche globale Seiteneffekte (`os.chdir` in `TempFS`) zerstören jede Thread-Sicherheit.
-> 4. Ein fehlschlagender Linter-Test scannt versehentlich das gesamte `/tmp`-Verzeichnis des Betriebssystems und erzeugt einen 6,8 MB großen Fehler-Dump.
->
-> **Urteil:** Konzeptionell visionär (Note 1-2), in der gegenwärtigen technischen Umsetzung jedoch unausgereift, fehlerbehaftet und in Teilen unfertig (Note 4-5).
+Untersucht wurden README, Projektkonfiguration, öffentliche Exporte, EBT- und RBT-Kern, Protokolle, Reporter, beide ausführbaren Arenen, IPC-Codecs, Multiprocessing, Linter-Anbindungen sowie ausgewählte Entwickler- und Nutzungshandbücher. Zusätzlich wurden die vorhandene Testsuite und kleine, vom Projekt unabhängige Reproduktionsskripte ausgeführt. Die unten beschriebenen Stichproben verwenden die vorhandenen APIs; am Implementierungscode wurden keine Reparaturen vorgenommen.
 
----
+Das Gutachten bewertet den vorhandenen lokalen Stand. Es enthält keine Marktstudie, keine vollständige Sicherheitsprüfung, keinen Test einer veröffentlichten Distribution und keine Messung realer Produktivitätsgewinne. Aussagen zum Nutzen und zur Positionierung sind gutachterliche Einschätzungen, keine empirischen Kundenbefunde. Die Versionsnummer allein bestimmt nicht die Reife.
 
-## 1. Idee & Philosophische Fundierung
+Im Arbeitsverzeichnis bestanden bereits Änderungen an `pyproject.toml`, `uv.lock` und der versionierten `.venv`; außerdem war eine frühere `GUTACHTEN.md` zur Löschung vorgemerkt. Bewertet wird der tatsächlich vorgefundene Code, nicht ausschließlich der letzte Commit. Das hier geschriebene Gutachten wird nicht automatisch gestagt oder committet.
 
-### 2.1 Der Lösungsraum $\Sigma^*$ und die Bibliothek von Babel
-Cubie verlässt die traditionelle Softwaretest-Perspektive („Hat der Entwickler die geforderte Funktion korrekt implementiert?“). Stattdessen bedient sich das Projekt der theoretischen Informatik und Borges’ Gleichnis der *Bibliothek von Babel*:
-* $\Sigma^*$ stellt die unendliche Menge aller möglichen Programme und Zeichenfolgen dar. Jede korrekte Implementierung, aber auch jedes destruktive oder triviale Programm existiert dort bereits.
-* Ein Testfall ist keine bloße Prüfung, sondern eine **Suchanfrage / ein Filter**.
-* Das klassische Problem unzureichender Tests wird als **Unterspezifikation** begriffen: Wer für `calculate_tax(100, 19)` lediglich einen Testfall `119` definiert, erhält als Treffermenge auch triviale Scheinlösungen wie `def calculate_tax(*args): return 119`.
-* Erst durch **orthogonale Randfälle** und zusätzliche Bedingungen ($C$ für Constraints wie Linting, Laufzeit, Security) schrumpft die Treffermenge $\mathcal{S}_{\text{summ}} \cap C$ auf die gesuchte korrekte Lösung zusammen.
+## 3. Idee und konzeptionelle Tragfähigkeit
 
-### 2.2 Die zwei Säulen: EBT und RBT
-Das Framework teilt die Qualitätssicherung in zwei orthogonale Disziplinen:
+### 3.1 Das tragfähige Zentrum
 
-1. **Example-Based Testing (EBT):**
-   - Formalisierung über das Hoare-Tripel $\{P\} S \{Q\}$.
-   - Vorbedingungen ($P$) und Nachbedingungen ($Q$) werden als passive `WorldState`-Objekte deklariert.
-   - **Mengenlehre & Quantoren:** 
-     - Eine Liste in `pre` repräsentiert den **beschränkten Allquantor ($\forall$)**: Jede definierte Eingabe muss deterministisch die Nachbedingung erfüllen (N:1-Mapping).
-     - Eine Liste in `post` repräsentiert den **beschränkten Existenzquantor ($\exists$)**: Das Resultat muss mindestens eine der erlaubten Ausprägungen matchen (1:N-Mapping).
+Cubie behandelt Tests als explizite Verträge zwischen Ausgangs- und Zielzuständen. `WorldState` bündelt Funktionsparameter, Rückgabemuster und Dateisystemabbildungen. EBT führt die Zieloperation aus und vergleicht deren Ergebnis mit einem oder mehreren erlaubten beziehungsweise verbotenen Zielzuständen. Reviewer ergänzen Prüfungen, deren Kriterien eine menschliche oder externe Beurteilung benötigen.
 
-2. **Review-Based Testing (RBT):**
-   - Deckt qualitative und subjektive Aspekte ab, die sich harten mathematischen Assertions entziehen (Design, UI-Stil, ethische Leitplanken, Security-Audits).
-   - Ausführung stoppt synchron und übergibt die Verifikation an einen Prüfer (Human-in-the-Loop oder LLM-Agent).
+Diese Verbindung ist sinnvoll: Ein Dokumentkonverter lässt sich beispielsweise über Eingabedateien, einen Rückgabevertrag und erwartete Ausgabedateien beschreiben. Das kann übersichtlicher sein als wiederholt eigene Fixture-Kopien, temporäre Verzeichnisse und Vergleichslogik zu programmieren. Die standardisierten Diagnosedaten der Linter und die injizierbaren Reporter bieten zusätzliche Integrationsmöglichkeiten.
 
-### 2.3 Kritische Würdigung der Kernidee
-* **Stärken:** Die mathematische Präzisierung und die Abbildung von Quantoren direkt über Python-Listen ist elegant und konsistent durchgezogen. Es zwingt den Entwickler (oder die steuernde KI), in Ein- und Ausgangsräumen statt in sequentiellen Einzelschritten zu denken.
-* **Schwächen:** Die Ausarbeitung neigt streckenweise zu akademischem Elitarismus. Viele der im Projekt zelebrierten Konzepte (wie „FP-OOP-Isomorphismus“ oder „Connascence of Execution“) sind im Wesentlichen gängige Entwurfsmuster (Value Objects, Strategy Pattern, State Verification), die hier mit einem theoretischen Vokabular aufgeladen werden, das die Einstiegshürde unnötig erhöht.
+Der wesentliche Wert liegt damit in **Konventionen, Wiederverwendung und einheitlicher Orchestrierung**. Der Code implementiert keine Suche im Raum aller Programme und keinen Codegenerator. Die Suchraum-Metapher beschreibt eine Motivation; sie ist keine implementierte Produkteigenschaft.
 
----
+### 3.2 Formale Sprache schafft keine formale Verifikation
 
-## 3. Nützlichkeit & Praxistauglichkeit
+README und `docs/GUIDE_Quality-Assurance.md` beziehen sich stark auf Hoare-Logik, Quantoren und verifizierte Lösungsmengen. Die Analogie zur Anordnung „Ausgangszustand – Operation – Zielzustand“ ist didaktisch brauchbar. Sie trägt jedoch keine Behauptung allgemeiner Korrektheit:
 
-### 3.1 Echte Stärken und primäre Einsatzszenarien
-1. **Autonome KI-Codegenerierung (Agentic Coding):**  
-   Genau hier liegt die größte Stärke von Cubie. Wenn ein LLM-Agent Programmcode erzeugt, genügen herkömmliche Unit-Tests oft nicht, da LLMs häufig Mocks korrumpieren oder unerwünschte Dateisystem-Mutationen verursachen. Cubies `WorldState` mit Dateisystem-Hydrierung (`fs`) und Ausführungsisolation (`PyVenv`, `TempFS`) ermöglicht es, Code in einer kontrollierten Quarantäne auszuführen und sowohl Rückgabewerte als auch Datei-Diffs millimetergenau abzugleichen.
-2. **Dateisystem- und Code-Transformationen:**  
-   Für die Entwicklung von Lintern, Formatierern, Transpilern, Migrations-Skripten oder Build-Pipelines ist das deklarative `WorldState(fs={"input.py": "fixtures/input.py"})` und das anschließende Diffing von Ordnerstrukturen signifikant sauberer als handgeschriebene Pytest-`tmp_path`-Konstrukte.
-3. **Agnostic Typing & Predicates:**  
-   Die Fähigkeit, in `returns` direkt reguläre Ausdrücke (`re.compile`), native Typen (`int`, `str`), Unions (`Union[str, None]`) oder Prädikat-Lambdas (`lambda x: x > 0`) zu übergeben, reduziert redundante Assertions und erhöht die Ausdruckskraft der Tests erheblich.
+- Ein `WorldState` ist ein konkreter Datensatz beziehungsweise ein Ergebnismuster, kein allgemein bewiesenes Zustandsprädikat.
+- EBT prüft endlich viele Ausführungen. Es gibt weder einen Beweiskalkül noch eine vollständige Exploration aller zulässigen Eingaben.
+- Das Vorhandensein mehrerer unterschiedlicher Beispiele belegt keine „Orthogonalität“. Dafür fehlen ein definiertes Merkmalsmodell und ein Nachweis unabhängiger Dimensionen.
+- Ein erfolgreicher Review ist eine Beurteilung unter bestimmten Bedingungen. Er wird durch ein boolesches Ergebnis nicht zum mathematischen Beweis.
 
-### 3.2 Grenzen und Reibungsverluste im Entwicklungsalltag
-* **Enormer Overhead für klassische Unit-Tests:**  
-  Für gewöhnliche Anwendungslogik (z. B. Berechnungen, Datenmanipulation im Speicher) ist Cubie unpraktisch. Das Erzeugen von `WorldState`-Objekten, UUID-Generierung, Tracing und Reporter-Aufrufen erzeugt signifikanten Laufzeit- und Syntax-Overhead. Ein simples `assert func(a) == b` ist in diesen Fällen überlegen.
-* **I/O- und Performance-Falle:**  
-  Das Konzept hinter `PyVenv` basiert darauf, eine bestehende virtuelle Umgebung via `shutil.copytree` physisch in ein temporäres Verzeichnis zu kopieren. Bei hunderten Testfällen summiert sich dieser I/O-Aufwand zu massiven Verzögerungen. Die interne Testsuite (ca. 300 Tests) benötigte im Testlauf über 3 Minuten.
+Die Dokumentation sollte ausdrücklich zwischen beobachteter Konformität, Testabdeckung und bewiesenen Eigenschaften unterscheiden. Besonders Aussagen, fehlerhafter Code könne dem aufgespannten Raum nicht mehr entkommen, vermitteln eine nicht gedeckte Sicherheit.
 
-### 3.3 Das RBT/Tkinter-Paradoxon (CI/CD-Inkompatibilität)
-In [`src/cubie/rbt.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/rbt.py#L28) ist als Standard-Prüfer der `HumanReviewer` hinterlegt:
+### 3.3 Was die Quantoren tatsächlich bedeuten
+
+Für jeden ausgeführten Eingang prüft EBT, ob mindestens ein positiver Zielzustand passt und kein negativer passt. Danach müssen alle Eingangsschritte erfolgreich sein. Vereinfacht:
+
+`für jeden Eingang: (mindestens ein erlaubtes Ergebnis) UND (kein verbotenes Ergebnis)`.
+
+Diese endliche Mengenlogik ist nützlich, aber ihre Grenzen sollten sichtbar bleiben. Bei mehreren Ein- und Ausgängen entsteht keine automatische paarweise Zuordnung. Für `f(1)=2` und `f(2)=4` erlaubt eine gemeinsame Zielmenge `{2, 4}` auch eine vertauschte Implementierung. Korrelierte Fälle benötigen getrennte Verträge oder eine explizite Paarstruktur.
+
+Das Würfelbeispiel prüft nur, ob eine einzelne beobachtete Ausgabe in der erlaubten Menge liegt. Eine Funktion, die immer `1` liefert, besteht ebenfalls. Vollständigkeit des Ergebnisraums, Zufälligkeit und Verteilung werden damit nicht getestet. EBT ersetzt weder generative Tests noch statistische Prüfungen.
+
+## 4. Praktischer Nutzen und Einsatzgrenzen
+
+| Einsatzfall | Einschätzung | Voraussetzung oder Grenze |
+| --- | --- | --- |
+| Datei- und Verzeichnistransformationen | Größtes erkennbares Potenzial | Klare Vergleichssemantik und robuste Fixtures |
+| Wiederholte strukturierte Ergebnisprüfungen | Nützlich | Team akzeptiert die zusätzliche Muster-Sprache |
+| Einfache reine Funktionen | Begrenzter Zusatznutzen | Ein gewöhnlicher Assertion-Test ist oft kürzer |
+| Strukturierte manuelle Abnahme | Sinnvoll für Experimente | Reviewer-Entscheidung bleibt subjektiv |
+| CI mit RBT | Nur mit explizitem automatisiertem Reviewer | Standardreviewer fragt synchron nach Eingaben |
+| Bewertung generierten Codes | Als Teil einer Prüfkette denkbar | Unabhängige Testdaten und echte Ausführungsisolation nötig |
+| Ausführung fremden, potenziell schädlichen Codes | Derzeit ungeeignet | TempFS und PyVenv begrenzen keine OS-Rechte |
+
+Eine produktive Positionierung wäre: **„Deklarative Akzeptanztests für Python-Funktionen und Datei-Workflows auf Basis von pytest“**. Das ist konkret, prüfbar und näher am vorhandenen Produkt als die umfassende Suchraum- und Verifikationsrhetorik.
+
+Ein Reviewer-Protokoll ist noch keine fertige LLM-Integration. Im untersuchten Kern existieren Terminal- und Tkinter-Reviewer, aber kein integrierter Modelladapter mit Quellenübergabe, Modellversionierung, Wiederholungsstrategie und Bewertungsnachweisen. RBT führt das Target nicht aus und lädt auch nicht automatisch eine übergebene Quelldatei; `_evaluate()` reicht einen String beziehungsweise Namen weiter. Diese Arbeit muss der Reviewer leisten.
+
+## 5. Technische Umsetzung
+
+### 5.1 Stärken
+
+- **Klare Erweiterungspunkte:** `Arena`, `Reviewer`, `Reporter`, `IPCC` und `Multiprocessor` beschreiben wesentliche Schnittstellen. Konkrete Implementierungen lassen sich injizieren.
+- **Nachvollziehbare Ausführungsspuren:** `EvaluationTrace` und `RunTrace` erfassen erwartete und beobachtete Zustände, Ergebnisse und Laufzeiten. Das ist eine brauchbare Grundlage für bessere Berichte.
+- **Breite Ergebnismuster:** Werte, Typen, Unions, reguläre Ausdrücke, Prädikate und verschachtelte Strukturen unterstützen viele praktische Prüfungen.
+- **Aufräumen auch bei Fehlern:** EBT versucht Arena-Ressourcen bei Ausnahmen freizugeben und ergänzt Aufräumfehler als Notiz zur ursprünglichen Ausnahme.
+- **TempFS schützt den Host-CWD vor Nebenwirkungen:** Das Target läuft in einem eigenen Prozess mit temporärem Arbeitsverzeichnis. Der Elternprozess muss seinen Arbeitsordner nicht wechseln.
+- **Substanzielle Regressionstests:** Es gibt reale Subprozess- und Offline-Szenarien sowie Tests für verzögert auftretende Multiprocessing-Fehler. Die Offline-Tests prüfen auch ihren eigenen Schutzmechanismus.
+- **Ehrliche Abgrenzung geplanter Virtualisierung:** Docker- und VM-Entwürfe liegen außerhalb der öffentlichen API und sind ausdrücklich als nicht implementiert dokumentiert.
+
+### 5.2 Reproduzierte Korrektheitsprobleme
+
+| Priorität | Befund und Fundstelle | Auswirkung | Empfehlung |
+| --- | --- | --- | --- |
+| P0 | `EBT._calculate_diffs()` prüft Rückgaben nur bei `post.returns is not None` | `WorldState(returns=None)` akzeptiert auch `42` | Eigenen Sentinel für „nicht angegeben“ verwenden |
+| P0 | `EBT.run()` setzt `_traces` und `_outcome` nicht zurück; Schritt-IDs bleiben identisch | Ein früherer Erfolg kann einen späteren Fehler desselben Objekts über die ODER-Logik verdecken | Pro Lauf frischen Zustand und unabhängige Traces erzeugen oder Wiederverwendung ausdrücklich ablehnen |
+| P1 | `pre=[]` und `post=[]` erzeugen keine Vergleichsspuren; `all([])` wird wahr | Grün ohne Target-Ausführung beziehungsweise ohne Ergebnisprüfung | Leere Listen ablehnen oder explizit als ungeprüft ausweisen |
+| P1 | `MyPy._guard_process_success()` lehnt nur Exitcode 2 mit stderr ab | Ein abgebrochener Prozess mit Returncode `-9` und leerer Ausgabe wird als leere Diagnoseliste behandelt | Bekannte Erfolg-/Diagnosecodes erlauben, alle übrigen als Werkzeugfehler melden |
+| P1 | `AstLinter._has_native_config()` wertet bereits die Existenz einer beliebigen `pyproject.toml` als native Konfiguration | Standardausschlüsse entfallen auch ohne Linter-Konfiguration; beim CST-Backend bleibt das Ausschlussset leer | Backend-Konfiguration gezielt prüfen und Schutz-Ausschlüsse separat behandeln |
+| P2 | `PytestReporter._format_trace_details()` nutzt Wahrheitswerte der Rückgaben | Bei erwarteten `0`, `False`, `[]` oder `""` fehlen die entscheidenden Rückgabedetails im Fehlerbericht | Angegebene Werte statt Truthiness prüfen |
+| P2 | `EBT._collect_topology()` erfasst ausschließlich Dateien | Fehlende leere Verzeichnisse bleiben unbemerkt | Verzeichnissemantik ausdrücklich definieren und gegebenenfalls mitvergleichen |
+
+P0 bezeichnet hier Fehler im zentralen Vertrauensversprechen des Testwerkzeugs, keine Aussage über eine ausnutzbare Sicherheitslücke.
+
+Der Wiederholungsfehler ist besonders schwerwiegend: Nach zwei Läufen wuchs auch die Trace-Liste des bereits zurückgegebenen ersten `RunTrace` mit. Die Ergebnisse sind damit keine stabilen historischen Momentaufnahmen.
+
+### 5.3 Reproduktionsbeispiele
+
+Mit `PYTHONPATH=src .venv/bin/python` lassen sich die wichtigsten Befunde ohne Arena oder Netzverbindung zeigen:
+
 ```python
-self.reviewer = reviewer or HumanReviewer()
-```
-Wird dieser aufgerufen, initialisiert er ein grafisches Tkinter-Fenster und ruft `self._root.wait_window()` auf.
-* **Folge:** In Headless-CI/CD-Pipelines (z. B. GitHub Actions, GitLab CI, Linux-Server ohne X11/Wayland-Display) führt das Ausführen eines RBT-Tests ohne expliziten Mock-Reviewer zum sofortigen Crash (`TclError: no display name and no $DISPLAY environment variable`) oder zum Deadlock, weil das System auf eine menschliche Schaltflächen-Betätigung wartet.
-* **Bewertung:** Ein Test-Framework, das im Standardverhalten ein Desktop-GUI-Fenster öffnet, bricht mit den fundamentalen Prinzipien automatisierter Build-Pipelines.
+from cubie import EBT, WorldState
 
----
+# Erwartetes None wird nicht geprüft.
+assert EBT(
+    target=lambda: 42,
+    post=WorldState(returns=None), reporter=None,
+).run().evaluation is True
 
-## 4. Detaillierte Analyse der technischen Umsetzung
+# Kein Eingang, keine Ausführung, dennoch Erfolg.
+assert EBT(
+    target=lambda: 42, pre=[],
+    post=WorldState(returns=99), reporter=None,
+).run().evaluation is True
 
-### 4.1 Architektur & Entwurfsmuster (Die Habenseite)
-* **Protokoll-Entkopplung (`protocols.py`):** Die Definition von `typing.Protocol`-Schnittstellen für `Arena`, `IPCC` (IPC-Codecs), `Reporter` und `Multiprocessor` ist vorbildlich. Sie erlaubt den modularen Austausch von Ausführungsumgebungen und Berichterstattern.
-* **Entkopplung von Engine und Reporting:** `EBT` erzeugt reine Wertobjekte (`RunTrace`, `EvaluationTrace`). Die Entscheidung über den Abbruch via Pytest-Assertion ist vollständig in den `PytestReporter` ausgelagert.
-* **Heuristischer Multiprocessing-Dispatcher:** Der `StateInspector` scannt Pre- und Post-Zustände auf unpickelbare Callables (wie dynamische Lambdas oder Closures). Ist alles Standard-Pickle-kompatibel, wird der schnelle `PickleProcessor` gewählt; andernfalls schaltet die Engine nahtlos auf `LokyProcessor` (mit `cloudpickle`-Serialisierung) um.
-
----
-
-### 4.2 Gravierende Mängel, Anti-Patterns und Risiken
-
-#### 4.2.1 „Smuggled Tools“: Entpackte Wheels & C-Binaries im Quellcode
-Im Verzeichnis [`src/cubie/linters/`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/linters/) befinden sich vollständige, entpackte Drittanbieter-Pakete:
-* `src/cubie/linters/libcst_tool/`
-* `src/cubie/linters/pylint_tool/`
-
-Darin enthalten sind nicht nur fremde Quelltexte, sondern vollständige `.dist-info`-Ordner sowie vorkompilierte binäre C-Erweiterungen:
-`src/cubie/linters/pylint_tool/24eba0d76380778f559b__mypyc.cpython-312-x86_64-linux-gnu.so` (kompiliert für Python 3.12, während das Projekt Python 3.13 deklariert!).
-
-In [`src/cubie/linter.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/linter.py#L3-L5) wird dies explizit als „geschmuggelt“ deklariert:
-```python
-_SMUGGLED_LIBCST = Path(__file__).parent / "linters" / "libcst_tool"
-if importlib.util.find_spec("libcst") is None:
-    if _SMUGGLED_LIBCST.exists(): sys.path.insert(0, str(_SMUGGLED_LIBCST.resolve()))
+# Zweiter Lauf liefert 2 statt 1 und bleibt trotzdem erfolgreich.
+values = iter([1, 2])
+test = EBT(
+    target=lambda: next(values),
+    post=WorldState(returns=1), reporter=None,
+)
+assert test.run().evaluation is True
+assert test.run().evaluation is True
 ```
 
-* **Die Konsequenz:** Führt man im Projekt-Root schlicht `pytest` aus, versucht Pytest die Test-Dateien der entpackten Bibliotheken (`libcst/_nodes/tests/...`, `dill/tests/...`) auszuführen. Die Test-Collection bricht mit **50 Fehlern** ab. Das Einchecken entpackter Distributions-Pakete und Binärdateien in das `src/`-Verzeichnis widerspricht sämtlichen Standards des Python-Packaging.
+Dass `reporter=None` keinen Assertion-Fehler auslöst, ist vorgesehen. Problematisch sind hier die falschen positiven `evaluation`-Werte, die auch der Standardreporter als Erfolg behandelt.
 
-#### 4.2.2 Fataler Pfad-Bug & fehlschlagender Test (`test_astlinter_ignores_venv_directory`)
-Die Ausführung der Testsuite (`pytest tests`) bricht mit einem harten Failure ab:
-```
-FAILED tests/tests_linter/test_linter_ast.py::test_astlinter_ignores_venv_directory
-```
-* **Analyse:** In Zeile 189 von `test_linter_ast.py` wird als Ziel `kwargs={"target": Path("..")}` übergeben.
-* Innerhalb der `PyVenv`-Arena operiert der Prozess in einem temporären Verzeichnis `/tmp/cubie_arena_...`. Die Angabe von `..` verweist somit auf das globale Systemverzeichnis `/tmp` des Hosts.
-* **Auswirkung:** Pylint begann, das gesamte Host-Verzeichnis `/tmp` rekursiv zu analysieren (inklusive temporärer Dateien fremder Applikationen wie LibreOffice). Es erzeugte einen Fehler-Dump von **6,8 Megabyte**, blockierte die CPU für über 90 Sekunden und scheiterte schließlich, da fremde Fehler diagnosiziert wurden. Dies zeigt eine gefährliche Lücke bei der Kapselung und Validierung von Zielpfaden auf.
+### 5.4 API und Modellierung
 
-#### 4.2.3 Schein-Architektur („Vaporware“) in den Virtualisierungs-Arenen
-Das Projekt dokumentiert und bewirbt Virtualisierungs-Arenen für Container und virtuelle Maschinen. Ein Blick in den Quellcode offenbart jedoch:
-* [`DockerArena`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/arenas/dockerarena.py): Besteht aus exakt 16 Zeilen und besitzt nur ein `__init__`. Die Methoden `setup()`, `execute()`, `get_state()` und `teardown()` existieren nicht. Die Klasse implementiert das deklarierte `Arena`-Protokoll in keiner Weise, wird aber in `__all__` exportiert.
-* [`VmArena`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/arenas/vmarena.py): Identischer 15-Zeilen-Dummy ohne Funktion.
-* [`src/cubie/arenas/vm/`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/arenas/vm/): Enthält 5 Python-Dateien (`__init__.py`, `libvirt_handles.py`, `wizards.py`, `wizard_cli.py`, `wizard_gui.py`), die **vollständig leer (0 Bytes)** sind. Dem gegenüber stehen über 33 KB Markdown-Handbücher („Libvirt-Handbuch.md“).
-* Sämtliche 24 Tests in `tests/tests_arena/tests_vm_arena/` sind mit `@pytest.mark.skip()` markiert.
+`WorldState` ist klein, aber durch zahlreiche `Any`-Felder schwach spezifiziert. `arena` bezeichnet je nach Kontext eine ausführbare Arena oder einen Vergleichspfad. `fs` kann mehrere Darstellungen annehmen und wird bei der Normalisierung im übergebenen Objekt verändert. Das erleichtert Kurzformen, erschwert aber Validierung, Wiederverwendung und Fehlermeldungen.
 
-#### 4.2.4 Prozessweite Seiteneffekte in `TempFS` (Bruch der Thread-Sicherheit)
-In [`src/cubie/arenas/tempfs.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/arenas/tempfs.py#L95-L100) findet sich folgende Methode:
-```python
-def _switch_cwd_to_workspace(self) -> None:
-    self._original_cwd = Path.cwd()
-    os.chdir(self.workspace_path)
-```
-* **Kritik:** In Python ist `os.chdir()` eine prozessweite Operation. Es gibt kein thread-lokales Arbeitsverzeichnis. Werden Tests mit Threading oder parallelen Werkzeugen ausgeführt, mutiert ein `TempFS`-Test das Arbeitsverzeichnis für alle anderen parallel laufenden Komponenten. Das führt zu nicht-deterministischen Fehlern und Race Conditions.
+Weitere relevante Grenzen:
 
-#### 4.2.5 Generator- und Lifecycle-Leak in `MultiprocessRunner`
-In [`src/cubie/multiprocessors.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/multiprocessors.py#L275-L282):
-```python
-def execute(self) -> Iterable:
-    with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
-        return mapper.map(
-            self._task_func,
-            self._indices,
-            self._pre_states
-        )
-```
-* **Kritik:** `mapper.map()` liefert einen lazy Iterator zurück. Beim Verlassen des `with`-Blocks wird jedoch die `__exit__`-Methode des Kontextmanagers aufgerufen (was bei `LokyMapper` z. B. `executor.shutdown(wait=True)` aufruft). Der Kontextmanager wird somit geschlossen, **bevor** der Konsument die Ergebnisse tatsächlich abgefragt hat.
+- `args=[1, 2]` bedeutet zwei Positionsargumente; eine Liste als einzelnes Argument muss als `args=([1, 2],)` verpackt werden. Das benötigt klare Beispiele.
+- Die Zusammenführung von Dateiquellen nach Basename kann gleichnamige Quellen überschreiben. Kollisionen sollten nicht stillschweigend verschwinden.
+- Erwartete Exceptions besitzen kein eigenes Feld. Target-Ausnahmen propagieren; ein negativer Vertrag ist kein Ersatz für eine präzise Ausnahmeerwartung.
+- Listen und Tupel gelten beim rekursiven Vergleich als austauschbar; Regex-Prüfungen verwenden `match()` auf `str(actual)`. Das sind legitime Entscheidungen, sofern sie als Vertragssemantik dokumentiert sind.
+- Der eingefrorene `EBTContext` enthält weiterhin veränderliche Listen, Sets und Objekte. Er ist keine tiefe Zustandsisolation.
 
-#### 4.2.6 Sicherheitsrisiken bei IPC-Deserialisierung (RCE-Gefahr)
-Im Test [`test_security_arena_codec.py`](file:///home/symphonie/PycharmProjects/cubie/tests/tests_arena/test_security_arena_codec.py#L87-L93) demonstriert der Autor selbst, dass der `PickleCodec` anfällig für Remote Code Execution (RCE) via `__reduce__` ist. Dennoch greift der `LokyProcessor` und der empfohlene Fallback für komplexe Typen auf `CloudpickleCodec` zurück.  
-* **Risiko:** Wenn Cubie als Test-Harness für nicht-vertrauenswürdigen, KI-generierten Code eingesetzt wird, bietet das Sandboxing trügerische Sicherheit: Schreibt das isolierte Script manipulierte Bytecode-Objekte in die IPC-Datei, übernimmt es bei der Deserialisierung sofort die Kontrolle über den Host-Prozess.
+## 6. Arenen, Sicherheit und Reproduzierbarkeit
 
-#### 4.2.7 Packaging- und Code-Hygienemängel
-* **`pyproject.toml`:** Es wird `"dataclasses>=0.8"` als Abhängigkeit gelistet. `dataclasses` ist seit Python 3.7 Kern der Standardbibliothek. Das externe PyPI-Paket war ein Backport für Python 3.6 und hat in einem modernen Python 3.13+-Projekt nichts zu suchen.
-* **Redundante Klassendefinitionen:** Die Datenklasse `ReviewData` ist identisch sowohl in [`protocols.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/protocols.py#L8-L14) als auch in [`rbt.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/rbt.py#L10-L15) definiert.
-* **Fragwürdige Konstrukte:** Zuweisungen wie `expect: Optional[bool] = True or False` in [`protocols.py`](file:///home/symphonie/PycharmProjects/cubie/src/cubie/protocols.py#L39) (was zur Laufzeit schlicht `True` ergibt) oder exzessive Einzeiler (`if cond: do_something()`) untergraben den eigenen, ausführlich dokumentierten Styleguide.
+### 6.1 Sicherheitsgrenzen
 
----
+Die README benennt korrekt, dass TempFS und PyVenv keine OS-Sicherheitsgrenze bieten. Andere Formulierungen im Code, etwa „sandbox at the OS level“ in `_activate_arena_env()`, widersprechen dem: `PATH` und `VIRTUAL_ENV` verändern die Umgebung, entziehen aber keine Zugriffsrechte.
 
-## 5. Reifegrad-Matrix
+Beide Arenen starten Prozesse mit den Rechten des aufrufenden Benutzers. Targets können grundsätzlich absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare Netzwerkzugänge nutzen. Die FS-Hydrierung begrenzt Zielpfade nicht auf das temporäre Verzeichnis; absolute Pfade und `..` sind nicht ausgeschlossen. Das ist eine zusätzliche Konfigurationsgefahr, auch bei versehentlichen Fehlangaben.
 
-| Bewertungsbereich | Schulnote | Urteil & Begründung |
-| :--- | :---: | :--- |
-| **Konzept & Vision** | **1- (Sehr Gut)** | Hervorragende formallogische Konzeption; exzellente theoretische Eignung für autonome KI-Agenten und Programm-Synthese. |
-| **Architektur-Entwurf** | **2 (Gut)** | Durchdachte Protokolle, saubere Trennung von Tracing, Reporting und Ausführung; gelungener Multiprocessing-Dispatcher. |
-| **Code-Qualität & Stil** | **3- (Befriedigend)** | Teilweise Verstoß gegen den eigenen Styleguide (Einzeiler, Redundanzen, kryptische Hilfsvariablen). |
-| **Funktionalität & Stabilität** | **4- (Ausreichend)** | Native Pytest-Ausführung scheitert; 1 harter Testabbruch; fehlerhafte relative Pfadauflösung auf das Host-System. |
-| **Vollständigkeit** | **5 (Mangelhaft)** | Wesentliche beworbene Komponenten (`DockerArena`, `VmArena`, VM-Wizards) sind leere Dummies oder 0-Byte-Dateien. |
-| **Packaging & Repository-Hygiene** | **6 (Ungenügend)** | Entpackte Third-Party-Wheels und fremde `.so`-C-Bibliotheken im Quellbaum eingecheckt; obsolete Abhängigkeiten. |
+Pickle und Cloudpickle deserialisieren ausführbare Objektbeschreibungen im Host. Deshalb ist die Rückübertragung aus einer nicht vertrauenswürdigen Ausführung selbst Teil des Sicherheitsproblems. MessagePack reduziert diesen konkreten Deserialisierungsangriff, schützt aber weder das Host-Dateisystem noch vor gefälschten Ergebnissen eines bösartigen Targets.
 
----
+Die Import-„Dekontamination“ erzeugt Scheinmodule über `PhantomFinder`. Das kann bestimmte Importabhängigkeiten überbrücken, ist aber keine Isolation und kann Fehler verschlucken oder Testbedingungen verändern. Bei `CloudpickleCodec` ist `_apply_dependency_isolation()` ausdrücklich ein leerer Platzhalter. Der Parameter `isolation=1` suggeriert deshalb mehr implementiertes Verhalten, als vorhanden ist.
 
-## 6. Priorisierter Maßnahmenkatalog
+### 6.2 Betrieb und Ressourcen
 
-Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Framework zu überführen, müssen folgende Schritte umgesetzt werden:
+Die Arena-Subprozesse haben keine konfigurierbare Ausführungsfrist. Ein hängendes Target kann den Testlauf unbegrenzt blockieren. PyVenv puffert außerdem stdout und stderr vollständig. Für zuverlässige CI-Nutzung fehlen Grenzen für Laufzeit und Ausgabe sowie kontrolliertes Beenden von Prozessbäumen.
 
-### Priorität 1 (Sofortige Stabilität & Hygiene)
-1. **Entfernung der „Smuggled Tools“:**  (DONE)  
-   Die Ordner `src/cubie/linters/libcst_tool` und `src/cubie/linters/pylint_tool` restlos aus dem Repository entfernen. Benötigte Werkzeuge ausschließlich über standardisierte Abhängigkeiten (`pyproject.toml`) deklarieren.
-2. **Pytest-Konfiguration absichern:** (DONE)  
-   In `pyproject.toml` eine feste Konfiguration hinterlegen:
-   ```toml
-   [tool.pytest.ini_options]
-   testpaths = ["tests"]
-   ```
-   Dies verhindert, dass Pytest fremde Modultests einsammelt.
-3. **Behebung des Pfad-Bugs in `test_astlinter_ignores_venv_directory`:** (DONE)  
-   Das Linter-Target darf niemals unvalidiert auf übergeordnete Verzeichnisse (`..`) außerhalb der Arena zugreifen. Pfade müssen strikt an den Workspace der Arena gebunden werden.
+PyVenv kopiert eine vorhandene virtuelle Umgebung und kann bei fehlenden Codec-Abhängigkeiten die Basisumgebung durch `uv pip install` verändern. Das verursacht versteckte Schreiboperationen, mögliche Netzabhängigkeit und bei paralleler Nutzung Konkurrenz auf einer gemeinsamen Basis. Die neuen Anforderungsprüfungen reduzieren unnötige Installationen und sind positiv zu bewerten; reproduzierbares Provisionieren ersetzen sie nicht.
 
-### Priorität 2 (Architektur-Härtung)
-4. **Beseitigung von `os.chdir` in `TempFS`:**  
-   Arbeitsverzeichnisse sollten nicht prozessweit umgebogen werden, wenn Pfad-Isolation erforderlich ist.
-5. **Materialisierung von Mappings vor Kontext-Exit:**  (DONE)  
-   In `MultiprocessRunner.execute()` muss der Generator konsumiert werden, bevor der `with`-Block schließt:
-   ```python
-   with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
-       return list(mapper.map(self._task_func, self._indices, self._pre_states))
-   ```
-6. **Entschärfung von RBT für CI/CD:**  (DONE)  
-   Der `HumanReviewer` darf nicht der Default sein. RBT muss im Headless-Modus entweder auf interaktive CLI-Prompts zurückfallen oder bei fehlendem `DISPLAY` kontrolliert übersprungen werden (`pytest.skip()`).
+Das mitgelieferte Basisverzeichnis enthält eine konkrete Python-3.13-Umgebung, aber Git führt dort kein `bin/python`. Ein transportabler Standardpfad lässt sich daraus für einen frischen Checkout nicht ableiten. Die Windows-Auflösung ist ebenfalls uneinheitlich: `_environment_python()` sucht `python.exe`, `_get_python_exe()` dagegen `python` im Scripts-Verzeichnis. Plattformunterstützung benötigt echte Installationstests.
 
-### Priorität 3 (Bereinigung & Release-Fähigkeit)
-7. **Ehrlichkeit bei Virtualisierungs-Features:**  (DONE)  
-   Die unfertigen Klassen `DockerArena` und `VmArena` sowie die 0-Byte-Dateien in `src/cubie/arenas/vm/` vorübergehend aus dem öffentlichen Interface entfernen und klar als noch auszuarbeitende Feature-Entwürfe kennzeichnen.
-8. **Bereinigung von `pyproject.toml`:**  (DONE)  
-   Entfernen der obsoleten `"dataclasses>=0.8"`-Abhängigkeit und Harmonisierung der Versions-Pins.
-9. **Deduplizierung von `ReviewData`:**  (DONE)  
-   Zusammenführung der doppelten Klassendefinitionen in `protocols.py` und Import in `rbt.py`.
+### 6.3 Multiprocessing
+
+Die austauschbaren Backends und Tests für spät auftretende Iteratorfehler sind sinnvoll. Allerdings richtet sich die Workerzahl nach allen gemeldeten CPUs, statt nach Aufgabenzahl oder Benutzerlimit. Zusammen mit pytest-xdist und Arena-Unterprozessen droht eine erhebliche Überbelegung.
+
+Der automatische Backend-Fallback fängt Ausführungsfehler allgemein ab und kann die gesamte Aufgabenmenge erneut ausführen. Dadurch können fachliche Target-Fehler wie Backend-Probleme wirken; bereits ausgeführte Seiteneffekte können wiederholt werden. Die Wiederholungssemantik sollte explizit sein und Infrastrukturfehler von Target-Ausnahmen unterscheiden. Für reine Funktionen ist das weniger kritisch als für Datei-, Netzwerk- oder Datenbankoperationen.
+
+## 7. Tests, Dokumentation und Auslieferung
+
+### 7.1 Qualität der Nachweise
+
+Die Testsuite ist deutlich umfangreicher als ein reiner Demonstrator: Die Sammlung ergab **432 Tests**. Positiv sind insbesondere `tests/test_offline_core.py`, gezielte TempFS-Isolationstests und die Prüfung verzögerter Multiprocessing-Ergebnisse.
+
+**Ausgeführte Prüfung:** `.venv/bin/python -m pytest -q --tb=short` lieferte innerhalb der eingeschränkten Sandbox zunächst **411 bestanden, 10 fehlgeschlagen, 11 übersprungen**, bei 6 Warnungen und 159,35 Sekunden Laufzeit. Acht Fehlschläge betrafen `uv pip install/uninstall` in Arena-Mutationstests; zwei betrafen einen durch Berechtigungen blockierten Multiprocessing-Manager. Die gezielte Wiederholung der zehn fehlgeschlagenen Tests außerhalb der Sandbox mit `.venv/bin/python -m pytest --lf -q --tb=short` ergab **10 bestanden** in 3,10 Sekunden (zusätzlich 1 deselected). Damit bestanden über beide Läufe alle 421 ausgeführten Tests; 11 blieben übersprungen. Es wurde kein weiterer vollständiger Lauf ohne Sandbox durchgeführt.
+
+Die anfänglichen zehn Fehlschläge werden deshalb **nicht als bestätigte Implementierungsfehler gewertet**. Die in Abschnitt 5.2 dokumentierten Fehler stammen aus zusätzlichen gezielten Stichproben und bestehen unabhängig davon. Gerade diese Kombination – grüne vorhandene Tests und falsche Erfolge in einfachen Gegenproben – zeigt die Lücken der bisherigen Absicherung. Ausführungsprotokolle dieser Untersuchung liegen lokal unter `/tmp/cubie-gutachten-pytest.log` und `/tmp/cubie-gutachten-recheck.log`; diese temporären Dateien sind kein dauerhafter Projektbestandteil.
+
+Die Aussagekraft ist dennoch begrenzt:
+
+- Viele Tests prüfen EBT mit EBT. Das ist für Integration legitim, kann aber gemeinsame Bewertungsfehler verdecken. Der Prüfkern benötigt unabhängige Assertions und bewusst fehlerhafte Implementierungen als Gegenproben.
+- `tests/tests_arena/test_security_arena_codec.py` verschluckt alle normalen Ausnahmen. Ein nicht ausführbarer Aufbau kann beim erwarteten „nicht kompromittiert“-Ergebnis bereits zum Bestehen führen. Die erfolgreiche Target-Ausführung muss vor der Sicherheitsbewertung nachgewiesen werden.
+- Tests erwarten lokale Umgebungen wie `tests/.arenas/cowsay_env` und `tests/.arenas/empty_venv`. Deren Bereitstellung ist nicht durchgängig als reproduzierbarer Fixture-Lebenszyklus gekapselt.
+- `tests/tests_multiprocessors/mp_hypothesis.py` entspricht nicht dem Standard-Dateimuster von pytest und wird beim normalen Lauf nicht gesammelt. Die vorhandene generative Testidee wirkt deshalb nicht automatisch als Regressionstor.
+- `tests/conftest.py` verändert global den Arbeitsordner und erweitert `sys.path`. Das erleichtert lokale Ausführung, weist aber keine korrekte Installation des Pakets nach.
+
+### 7.2 Einstieg und öffentliche API
+
+Der README-Quickstart ist in der gezeigten Form nicht funktionsfähig: `WorldState` ist nicht importiert, und der EBT-Konstruktion fehlt `.run()`. Nach Ergänzung des Imports würde dieser Test nur ein Objekt anlegen und ohne Ausführung grün bleiben. Das ist bei einem Testframework ein besonders unglücklicher Einstiegsfehler.
+
+Auch das RBT-Beispiel verwendet `qb.RBT`, obwohl `cubie.__init__` die Klasse nicht exportiert. Der vorhandene Zugriff lautet `from cubie.rbt import RBT`. Ausführbare Dokumentationsbeispiele sollten Teil der Tests sein.
+
+Die Dokumentation ist engagiert und erklärt viele innere Strukturen. Sie verwendet jedoch viel mathematische und bildhafte Sprache, bevor der Anwender Installation, einfache Verträge, typische Fehler und Garantien klar erfährt. Eine kürzere Anleitung mit lauffähigen Fällen und einer einzigen verbindlichen Semantiktabelle wäre hilfreicher. Historische oder geplante Aussagen sollten durchgängig als solche markiert werden.
+
+### 7.3 Repository und Paketierung
+
+`git ls-files .venv` ergab **889 versionierte Dateien**; das lokale Verzeichnis umfasst ungefähr 129 MiB. Zusätzlich liegen 48 versionierte Dateien unter `src/cubie/arenas/arena_envs`. Diese Zahlen beschreiben den vorgefundenen Stand, keine Größe einer gebauten Distribution.
+
+Versionierte Entwicklungsumgebungen bringen maschinen- und interpreterabhängige Artefakte, fremde Metadaten und unnötiges Änderungsrauschen mit. Eine Root-`.gitignore` fehlt. Umgebungsvorlagen sollten über deklarative Anforderungen reproduziert werden, nicht über eingecheckte installierte Pakete.
+
+Die `pyproject.toml` führt pytest, mehrere Analysewerkzeuge und Prozess-/Serialisierungsbibliotheken als Pflichtabhängigkeiten. Harte Versionsbindungen bei zahlreichen Werkzeugen vergrößern das Konfliktpotenzial in konsumierenden Projekten. Sinnvoll wären ein kleiner Kern und optionale Extras für Linter und Entwicklungswerkzeuge. Python ≥3.13 kann eine bewusste Entscheidung sein, begrenzt aber den Einsatz in älteren Projekten.
+
+Eine explizite `[build-system]`-Sektion fehlt. Das beweist für sich genommen keinen Buildfehler, lässt den vorgesehenen Build-Vertrag aber unnötig offen. Eine saubere Wheel-Erzeugung und Installation in einer leeren Umgebung sollten als Releaseprüfung festgelegt werden.
+
+Im untersuchten Repository fehlen eine eigene Projektlizenz und eine versionierte CI-Konfiguration. Lizenzen mitgelieferter Fremdpakete ersetzen keine Lizenz für Cubie. Vor breiter externer Nutzung sollten Nutzungsbedingungen, automatisierte Prüfungen und eine kleine unterstützte Plattformmatrix geklärt sein.
+
+## 8. Priorisierte Weiterentwicklung
+
+### Priorität 1: Der Prüfkern muss verlässlich entscheiden
+
+1. Sentinel für nicht spezifizierte Rückgaben einführen; `None` als echten erwarteten Wert unterstützen.
+2. Jeden Lauf mit frischem Zustand ausführen und unveränderliche historische Ergebnisse sicherstellen.
+3. Leere und ungültige Zustandslisten sowie FS-Namenskollisionen ausdrücklich behandeln.
+4. Werkzeugabbrüche von leeren Diagnoselisten unterscheiden; falsche Rückgaben vollständig berichten.
+5. Unabhängige Regressionstests für diese Fälle schreiben. Gezielt fehlerhafte Targets müssen zuverlässig scheitern.
+
+### Priorität 2: Einen frischen Checkout zuverlässig ausführbar machen
+
+1. Entwicklungsumgebungen aus der Versionsverwaltung entfernen und eine Root-`.gitignore` pflegen.
+2. Arena-Basen in Fixtures oder einem dokumentierten Provisionierungsschritt erzeugen; Laufzeit und Installation trennen.
+3. README-Beispiele reparieren und automatisiert ausführen.
+4. Wheel in einer leeren Umgebung testen; eine CI mit klarer Python-/OS-Matrix einrichten.
+5. Eigene Lizenz, Build-Konfiguration und Abhängigkeitsstrategie vervollständigen.
+
+### Priorität 3: Betriebsverhalten und Vertrag schärfen
+
+1. Timeouts, begrenzte Ausgabe und Prozessbaum-Abbruch ergänzen.
+2. Workerzahl konfigurierbar machen und an die Aufgabenzahl anpassen.
+3. Backend-Fallback auf geeignete Infrastrukturfehler begrenzen und Wiederholungen dokumentieren.
+4. Pfadgrenzen für Hydrierung prüfen; vertrauenswürdige und nicht vertrauenswürdige Nutzung deutlich abgrenzen.
+5. Rückgaben, Ausnahmeerwartungen, FS-Topologie und persistente Berichte eindeutig modellieren.
+
+### Priorität 4: Den Nutzen nachweisen
+
+Vor weiteren Arena-Typen oder einer umfassenden Agentenplattform sollten zwei bis drei reale Datei- und Akzeptanzworkflows umgesetzt werden. Jeweils dieselben Anforderungen einmal mit gewöhnlichem pytest und einmal mit Cubie prüfen. Vergleichskriterien: Einrichtungsaufwand, Lesbarkeit, Fehlersuche, Laufzeit und Wartung nach einer Anforderungsänderung. Erst daraus lässt sich belastbar entscheiden, wo Cubie eine eigene Abstraktion rechtfertigt.
+
+## 9. Abschließende Bewertung
+
+| Dimension | Urteil |
+| --- | --- |
+| Problemrelevanz | Hoch: nachvollziehbare Verträge und reproduzierbare Prüfungen sind praktisch wichtig |
+| Konzeptionelle Eigenständigkeit | Eher in der Kombination und Bedienung als in einem neuen Prüfverfahren |
+| Nachgewiesener praktischer Mehrwert | Plausibel für Datei-Workflows, bislang nicht quantitativ belegt |
+| Architektur | Gut erweiterbar, stellenweise unnötig dynamisch und zustandsreich |
+| Korrektheit des Prüfkerns | Wegen reproduzierter falscher Erfolge derzeit unzureichend abgesichert |
+| Sicherheitsisolation | Keine OS-Sicherheitsgrenze vorhanden |
+| Auslieferungs- und Betriebsreife | Experimentell; erheblicher Bedarf bei sauberer Installation, CI und Ressourcensteuerung |
+
+Cubie verdient eine fokussierte Weiterentwicklung. Voraussetzung ist eine nüchterne Produktdefinition: ein hilfreiches Testwerkzeug mit klaren, begrenzten Garantien. Entscheidend für seinen Erfolg werden verlässliche negative Testergebnisse, ein reibungsloser Einstieg und nachgewiesene Vorteile in konkreten Arbeitsabläufen sein.
