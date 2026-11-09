@@ -12,21 +12,17 @@
 
 ## 🚀 Quickstart
 
-Installiere das Framework via pip:
-
-```bash
-uv pip install cubie
-```
-
-In deinem Code nutzt du das zweistellige Shorthand für maximalen Flow ohne Boilerplate:
-
 ```python
 import cubie as qb
 from my_module import calculate_tax
 
 # Ein simpler EBT-Vertrag
-def test_01(): qb.EBT(target=calculate_tax, pre=(100, 19), post=119).run()
-
+def test_01(): 
+    qb.EBT(
+        target=calculate_tax, 
+        pre=WorldState(args=(100, 19)), 
+        post=WorldState(returns=119)
+    )
 ```
 
 ---
@@ -38,15 +34,6 @@ Cubie basiert auf fundamentaler Prädikatenlogik. Das Spektrum der Qualitätssic
 ### 1. Example-Based Testing (EBT)
 
 EBT ist das unbestechliche Fundament zur Definition deterministischer Realitäten ("Golden Masters"). Es basiert auf dem klassischen Hoare-Tripel $\{P\}S\{Q\}$. Die Zustände vor der Ausführung ($P$) und danach ($Q$) werden als passive `WorldState`-Objekte deklariert.
-
-**In-Memory API (Shorthands)**
-Für reine Funktionen ohne Seiteneffekte verzichtet Cubie in der zukunft auf Boilerplate. Primitive Datentypen, Tupel und Dictionaries werden zukünftig automatisch als `args` oder `kwargs` inferiert, sobald die ConventionMap realisiert und als Feature integriert wurde. Bis dahin gilt es die Tests als explizite WorldState-Deklarationen umzusetzen.
-
-```python
-def test_math(): qb.EBT(target=my_func, pre=(1, 2), post=3).run()
-def test_dict(): qb.EBT(target=my_func, pre={"x": 1, "y": 2}, post=3).run()
-
-```
 
 **Mengen-Mappings (Quantoren)**
 Cubie nutzt Python-Listen in den Zustands-Deklarationen, um formallogische Quantoren aufzulösen und Lösungsräume abzustecken:
@@ -82,7 +69,6 @@ def test_exists():
             WorldState(returns=6)
         ]
     ).run()
-
 ```
 
 **Dynamic Typing & Prädikate (Agnostic Typing)**
@@ -105,7 +91,6 @@ def test_dynamic_payload():
             }
         )
     ).run()
-
 ```
 
 **Filesystem & Arena API**
@@ -124,7 +109,6 @@ def test_cleaner():
             fs={"fixtures/post/kalkuel.md"}
         )
     ).run()
-
 ```
 
 ### 2. Review-Based Testing (RBT)
@@ -143,7 +127,6 @@ qb.RBT(
     target="auth_module.py",
     check="Wird das Passwort niemals im Klartext geloggt?"
 ).run()
-
 ```
 
 ---
@@ -164,4 +147,4 @@ Um die internen Mechanismen und komplexen Patterns tiefgehend zu verstehen, kons
 </center>
 
 * **[EBT Usage-Patterns](docs/GUIDE_EBT-Usage-Pattern.md):** Ausführliche Beispiele für $\forall$- und $\exists$-Mappings, Dictionary-Patterns, Agnostic Typing und Umgebungs-Mutationen.
-* **[EBT Orchestration Engine](docs/dev/example-based-testing/DEV-GUIDE_2-1_EBT-Class.md):** Architektur der Makro-/Mikro-Pipelines, Shorthand-Inferenz und das dynamische Evaluierungs-Routing.
+* **[EBT Orchestration Engine](docs/dev/DEV-GUIDE_2-1_EBT-Class.md):** Architektur der Makro-/Mikro-Pipelines, Shorthand-Inferenz und das dynamische Evaluierungs-Routing.

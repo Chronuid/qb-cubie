@@ -5,8 +5,11 @@ from .arenas.vmarena import VmArena
 from .arenas.codecs import CloudpickleCodec, MSGspecCodec, PickleCodec
 from .arenas.dockerarena import DockerArena
 from .protocols import WorldState, DeviceResources
-from .linter import Linter, LinterDiagnostic, Pylint, AstLinter, CstRule, CstLinter
+from .linter import Linter, LinterDiagnostic, AstLinter, CstRule, CstLinter
 from .ebt import EBT
+from .linters.mypy import MyPy
+from .linters.pylint import Pylint
+
 __all__ = [
     "WorldState",
     "PickleCodec",
@@ -25,8 +28,9 @@ __all__ = [
     "reporter",
     "Linter",
     "LinterDiagnostic",
-    "Pylint",
     "AstLinter",
     "CstRule",
-    "CstLinter"
+    "CstLinter",
+    "Pylint",
+    "MyPy"
 ]

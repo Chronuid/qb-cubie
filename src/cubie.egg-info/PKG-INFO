@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: cubie
+Version: 0.0.3
+Requires-Python: >=3.13
+Requires-Dist: pytest>=9.0.3
+Requires-Dist: msgspec>=0.22.0
+Requires-Dist: fsspec==2026.9.0
+Requires-Dist: path>=17.1.1
+Requires-Dist: loky==3.7.0
+Requires-Dist: cloudpickle
+Requires-Dist: dataclasses>=0.8
+Requires-Dist: ruff==0.17.0
+Requires-Dist: pylint==4.1.3
+Requires-Dist: libcst>=1.9.0
+Requires-Dist: mypy>=2.4.0
+Provides-Extra: dev
+Requires-Dist: hypothesis==6.168.3; extra == "dev"

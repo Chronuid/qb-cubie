@@ -1,12 +1,11 @@
-import subprocess, json, os, shutil, sys, importlib.util
+import os, shutil, sys, importlib.util
 from pathlib import Path
 _SMUGGLED_LIBCST = Path(__file__).parent / "linters" / "libcst_tool"
 if importlib.util.find_spec("libcst") is None:
     if _SMUGGLED_LIBCST.exists(): sys.path.insert(0, str(_SMUGGLED_LIBCST.resolve()))
-
 import libcst as cst
 from libcst.metadata import PositionProvider
-from typing import Union, List, Callable, Optional, Protocol, Final
+from typing import Union, List, Optional, Protocol, Final
 import dataclasses
 
 def _ensure_installed(tool_name: str, env_var: str) -> list[str]:
@@ -38,14 +37,7 @@ class LinterDiagnostic:
     severity: str
     node_type: str = ""
     node_name: str = ""
-
-
-@dataclasses.dataclass
-class LinterProfile:
-    name: str
-    base_cmd: list[str]
-    stdin_args: List[str]
-    json_parser: Callable[[str, str], list[LinterDiagnostic]]
+    suggestions: List[str] | str | None = None
 
 
 class Linter(Protocol):
@@ -68,93 +60,8 @@ class Linter(Protocol):
 
 DEFAULT_EXCLUDES: Final = [".venv", "__pycache__", ".git"]
 
-# ------- PYLINT -------------------------------------------------------------------------------------------------------
 
-class Pylint:
-    """
-    Implements the Linter protocol to execute Pylint and parse its output.
-    """
-
-    def __init__(
-            self,
-            executable: Optional[Union[str, List[str]]] = None,
-            excludes: Optional[List[str]] = None,
-            disable: Optional[List[str]] = None
-    ) -> None:
-        self._executable = executable
-        self._excludes = set(excludes) if excludes else set()
-        self._disable = disable if disable else []
-
-    @property
-    def name(self) -> str:
-        """Provides the display name of the integrated linter."""
-        return "Pylint"
-
-    def register_excludes(self, excludes: List[str]) -> None:
-        """Merges new directory patterns into the internal exclusion registry."""
-        self._excludes.update(excludes)
-
-    def check(self, target: Union[str, Path]) -> List[LinterDiagnostic]:
-        """Executes the analysis on the given target and returns structured diagnostics."""
-        cmd = self._build_command(target)
-        process = self._execute_subprocess(cmd, target)
-        self._guard_process_success(process, cmd)
-        return self._parse_json(process.stdout)
-
-    def _build_command(self, target: Union[str, Path]) -> List[str]:
-        """Constructs the CLI command with robust regex exclusion paths and rule disables."""
-        exe_cmd = self._resolve_executable()
-        cmd = exe_cmd + ["-f", "json"]
-        if self._disable: cmd.append(f"--disable={','.join(self._disable)}")
-        if self._excludes and isinstance(target, Path):
-            patterns = [f".*{excl}.*" for excl in self._excludes]
-            cmd.append(f"--ignore-paths={','.join(patterns)}")
-        return cmd
-
-    def _parse_json(self, stdout: str) -> List[LinterDiagnostic]:
-        """Parses the Pylint JSON output into uniform diagnostic objects with path and scope mapping."""
-        diagnostics = []
-        if not stdout.strip(): return diagnostics
-        for error in json.loads(stdout):
-            diagnostics.append(LinterDiagnostic(
-                file_path=error.get("path", "UNKNOWN"),
-                linter_name=self.name,
-                rule_id=error.get("message-id", "UNKNOWN"),
-                line=error.get("line", 0),
-                column=error.get("column", 0),
-                message=error.get("message", ""),
-                severity=error.get("type", "error"),
-                node_name=error.get("obj", "")
-            ))
-        return diagnostics
-
-    def _resolve_executable(self) -> List[str]:
-        """Resolves the Pylint executable command."""
-        if isinstance(self._executable, list): return self._executable
-        if isinstance(self._executable, str): return [self._executable]
-        return _ensure_installed("pylint", "CUBIE_PYLINT_PATH")
-
-    @staticmethod
-    def _execute_subprocess(cmd: List[str], target: Union[str, Path]) -> subprocess.CompletedProcess:
-        """Executes the Pylint process either against a file path or via stdin."""
-        if isinstance(target, str):
-            cmd.extend(["--from-stdin", "mock_module"])
-            return subprocess.run(cmd, input=target, text=True, capture_output=True)
-        cmd.append(str(target))
-        return subprocess.run(cmd, text=True, capture_output=True)
-
-    @staticmethod
-    def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:
-        """Guards against silent failures or hard crashes of the linter."""
-        if process.returncode != 0 and not process.stdout.strip() and process.stderr.strip():
-            raise RuntimeError(
-                f"Linter 'Pylint' crashed or is missing.\n"
-                f"Command: {' '.join(cmd)}\n"
-                f"Stderr: {process.stderr.strip()}"
-            )
-
-
-# ========== AST-LINTER ================================================================================================
+# ========== ABSTRACT-SYNTAX-TREE ======================================================================================
 
 class AstLinter:
     """
@@ -194,7 +101,9 @@ class AstLinter:
         return (target.parent / "pyproject.toml").exists()
 
 
-# ========== CST-LINTER ================================================================================================
+# ========== CONCRETE-SYNTAX-TREE ======================================================================================
+
+# ---------- CST-RULE --------------------------------------------------------------------------------------------------
 
 class CstRule(cst.CSTVisitor):
     import libcst as cst
@@ -202,13 +111,15 @@ class CstRule(cst.CSTVisitor):
     METADATA_DEPENDENCIES = (PositionProvider,)
     def __init__(self):
         super().__init__()
-        self.diagnostics: List[LinterDiagnostic] = []
+        self.diagnostics: List['LinterDiagnostic'] = []
+        self._module: cst.Module | None = None
         self._current_file_path: str = "IN_MEMORY"
 
-    def reset(self, file_path: str) -> None:
+    def reset(self, file_path: str, module: cst.Module) -> None:
         """Resets the diagnostic state and sets the context for a new file visit."""
         self.diagnostics = []
         self._current_file_path = file_path
+        self._module = module
 
     def add_diagnostic(
             self,
@@ -216,10 +127,12 @@ class CstRule(cst.CSTVisitor):
             rule_id: str,
             message: str,
             severity: str = "error",
-            node_name: str = ""
+            node_name: str = "",
+            replacement_node: Union[cst.CSTNode, List[cst.CSTNode], None] = None
     ) -> None:
         """Extracts node coordinates and metadata to generate a rich diagnostic."""
         pos = self.get_metadata(PositionProvider, node).start
+        suggestions = self.route_suggestions(self._module, replacement_node)
         self.diagnostics.append(LinterDiagnostic(
             file_path=self._current_file_path,
             linter_name=self.__class__.__name__,
@@ -229,9 +142,23 @@ class CstRule(cst.CSTVisitor):
             message=message,
             severity=severity,
             node_type=type(node).__name__,
-            node_name=node_name
+            node_name=node_name,
+            suggestions=suggestions
         ))
 
+    @staticmethod
+    def route_suggestions(
+            module: cst.Module | None,
+            replacement: cst.CSTNode | list[cst.CSTNode] | None
+    ) -> None | list[str] | str:
+        suggest = None
+        if replacement is not None and module is not None:
+            if isinstance(replacement, list): suggest = [module.code_for_node(n) for n in replacement]
+            else: suggest = module.code_for_node(replacement)
+        return suggest
+
+
+# ---------- CST-LINTER ------------------------------------------------------------------------------------------------
 
 class CstLinter:
     """
@@ -257,8 +184,10 @@ class CstLinter:
     def check(self, target: Union[str, Path]) -> List[LinterDiagnostic]:
         """Executes CST rules on a file, in-memory string, or recursively on a directory."""
         all_diagnostics = []
-        if isinstance(target, str): all_diagnostics.extend(self._analyze_source(target, "IN_MEMORY"))
-        elif target.is_file(): all_diagnostics.extend(self._analyze_source(target.read_text(encoding="utf-8"), str(target)))
+        if isinstance(target, str):
+            all_diagnostics.extend(self._analyze_source(target, "IN_MEMORY"))
+        elif target.is_file():
+            all_diagnostics.extend(self._analyze_source(target.read_text(encoding="utf-8"), str(target)))
         elif target.is_dir():
             for file_path in self._crawl_directory(target):
                 source = file_path.read_text(encoding="utf-8")
@@ -272,7 +201,7 @@ class CstLinter:
             if not any(excluded in path.parts for excluded in self._excludes): py_files.append(path)
         return py_files
 
-    def _analyze_source(self, source_code: str, file_path: str) -> List[LinterDiagnostic]:
+    def _analyze_source(self, source_code: str, file_path: str) -> List['LinterDiagnostic']:
         """Parses the source and runs all registered rules against the syntax tree."""
         try:
             tree = cst.parse_module(source_code)
@@ -280,7 +209,7 @@ class CstLinter:
         except cst.ParserSyntaxError as error: return [self._create_syntax_error(file_path, error)]
         diagnostics = []
         for rule in self.rules:
-            rule.reset(file_path)
+            rule.reset(file_path, tree)
             wrapper.visit(rule)
             diagnostics.extend(rule.diagnostics)
         return diagnostics

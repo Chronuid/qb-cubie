@@ -1,20 +1,10 @@
-# EBT Usage-Patterns
+# 📖 CUBIE-GUIDE: EBT Usage-Patterns
 
 ---
 
 ## 1. Einfache Nutzungs-Muster und eindeutige Beispiele
 
 ### 1.1. In-Memory ohne Ballast
-
-Für reine Funktionen müssen wir in der Zukunft überhaupt kein `WorldState`-Objekt definieren. Wenn `pre` ein `tuple` oder `dict` ist, interpretiert Cubie das konventionell automatisch als `args` bzw. `kwargs` eines WorldState-Objekts, sobald wir die ConventionMap realisierten. Bis dahin gilt dieses Feature aber als noch nicht vorhanden und wir müssen uns vorerst auf explizite WorldState-Deklarationen verlassen.
-
-```python
-# Shorthand für reine Funktionsaufrufe
-def test_1(): EBT(target=my_func, pre=(1, 2), post=3).run()
-def test_2(): EBT(target=my_func, pre={"x": 1, "y": 2}, post=3).run()
-def test_2_red(): EBT(target=my_func, pre={"x": 1, "y": 2}, post=4, expect=False).run()
-def test_3(): EBT(target=my_func, pre={"x": 6}, post=31, arena="envs/custom_env_1").run()
-```
 
 
 ```python
@@ -52,8 +42,6 @@ def test_3():
 
 ### 1.2. Datei-Transformationen & Seiteneffekte
 
-Hier kommt die Definition von `WorldState` ins Spiel, um **Funktions-Inputs** von **Dateisystem-Zuständen** sauber zu trennen:
-
 ```python
 def test_4(): 
     EBT(
@@ -90,7 +78,7 @@ def test_5():
 
 #### 1.4. Das Dictionary-Pattern
 
-Der bisher veranschaulichte Ansatz mit den `pre`- und `post`-Ordnern ist ein reiner Konventions-Ansatz (*Convention over Configuration*). Das ist extrem schlank, entwicklerfreundlich und reduziert Boilerplate-Code enorm.
+Der bisher veranschaulichte Ansatz mit den `pre`- und `post`-Ordnern ist ein reiner Konventions-Ansatz (*Convention over Configuration*). 
 
 Das Dictionary-Pattern hingegen ist ein reiner Konfigurations-Ansatz (IoC) und gibt dir die absolute Kontrolle über die Dateisystem-Topologie.
 
@@ -275,10 +263,7 @@ def test_11():
 
 Das Attribut **`arena`** definiert den isolierten Ausführungsraum (die Sandbox), in dem das Target ($S$) operiert.
 
-Die wichtigste Grundregel für den Lebenszyklus einer Arena lautet: **Der Raum bleibt konstant.** Wenn im `WorldState` der `pre`-Condition eine Arena definiert wird, gilt diese implizit und zwingend auch für die `post`-Condition. Das Framework testet schließlich die Mutation *innerhalb* dieser einen Welt ($P \to Q$).
-
-* *Wann definiert man die Arena im `WorldState`?:* Man überschreibt die Arena auf lokaler State-Ebene **nicht**, um es bestimmten Eingaben (Edge-Cases) leichter zu machen. Das würde den Test verfälschen.
-Die lokale Arena-Definition wird ausschließlich dann genutzt, wenn das Target ($S$) die explizite Aufgabe hat, mit der Umgebung selbst zu interagieren – beispielsweise bei System-Skripten, Installationen oder dem Bootstrapping von Projekten.
+Die wichtigste Grundregel für den Lebenszyklus einer Arena lautet: **Der Raum bleibt konstant.** Wenn im `WorldState` der `pre`-Condition eine Arena definiert wird, gilt diese implizit und zwingend auch für die `post`-Condition. Das Framework testet schließlich die Mutation *innerhalb* dieser einen Welt ($P \to Q$). Um eine Veränderung an der Arena zu validieren, muss die veränderte Arena als post-Zustand deklariert werden.
 
 ### Validierung einer aktiven Umgebungs-Mutation
 
@@ -320,8 +305,8 @@ Anstatt feste Strings oder Dictionaries zu fordern, kannst du die erwartete Stru
 import re
 from typing import Union, Any
 from dataclasses import dataclass
-from ebt import EBT
-from protocols import WorldState
+from cubie import EBT
+from cubie import WorldState
 
 @dataclass
 class User:
@@ -366,7 +351,7 @@ Standardmäßig gleicht das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_
 ```python
 import json
 from pathlib import Path
-from arenas.tempfs import TempFS
+from cubie import TempFS
 
 
 def validate_json_schema(p: Path) -> bool:

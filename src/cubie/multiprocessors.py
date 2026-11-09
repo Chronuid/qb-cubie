@@ -3,7 +3,6 @@ from enum import Enum, auto
 from concurrent.futures import ProcessPoolExecutor
 from typing import Callable, Iterable, List, Any
 from .protocols import Mapper, Multiprocessor
-
 try:
     from loky import get_reusable_executor
     LOKY_AVAILABLE = True
@@ -19,7 +18,7 @@ except ImportError:  LOKY_AVAILABLE = False
 
 class PickleMapper:
     """
-    The pickle-specific mapper that acts up with lambdas and locals but is otherwise pretty fast.
+    The pickle-specific mapper - acts up with lambdas and locals but is otherwise pretty fast.
     """
     def __init__(self, n_tasks: int):
         self.n_worker = os.cpu_count() or 1
@@ -50,7 +49,7 @@ class PickleProcessor:
 
 class LokyMapper:
     """
-    The Loky-specific mapper, which uses cloudpickle serialization for dynamic predicates (lambdas and locals).
+    The Loky-specific mapper - uses cloudpickle serialization for dynamic predicates (lambdas and locals).
     """
     def __init__(self, n_tasks: int):
         self.n_worker = os.cpu_count() or 1
@@ -185,18 +184,21 @@ class MultiprocessManager:
             return S.INITIAL
 
     # ----- Helper -----
+
     def _resolve_handler(self):
         return MultiprocessResolver.resolve(
             self._pre_states,
             self._post_states,
             self._processors
         )
+
     def _setup_runner(self, processor):
         return MultiprocessRunner(
             handler=processor,
             pre_states=self._pre_states,
             task_func=self._task_func
         )
+
     def _degrade_and_warn(self, processor, phase: str, error: Exception):
         for p in self._processors:
             if p is processor:
@@ -277,6 +279,5 @@ class MultiprocessRunner:
                 self._indices,
                 self._pre_states
             )
-
 
 ########################################################################################################################

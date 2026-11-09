@@ -1,8 +1,4 @@
-Hier ist der fertige Leitfaden für dein Framework. Er deckt die Kernfunktionen ab, zeigt die Architektur der Protokolle und bietet den gewünschten Deep-Dive für die Entwicklung eigener baumbasierter Regeln.
-
----
-
-# `GUIDE_Linter.md`
+# 📖 CUBIE-GUIDE: Linter
 
 Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um deterministische und Sandbox-sichere Auswertungen zu garantieren.
 

@@ -1,10 +1,9 @@
 import pytest, sys
 from pathlib import Path
 import cubie.arenas.pyvenv
-from cubie.linter import AstLinter, Pylint
 from cubie.protocols import WorldState
 from cubie.ebt import EBT
-from cubie import TempFS, PyVenv
+from cubie import TempFS, PyVenv, AstLinter, Pylint
 
 def test_astlinter_clean_memory_string():
     EBT(

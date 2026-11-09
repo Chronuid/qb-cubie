@@ -1,4 +1,4 @@
-# 📖 GUIDE: Arena-Management in Cubie
+# 📖 CUBIE-GUIDE: Arena-Management in Cubie
 
 Das Arena-Management in Cubie ermöglicht es, Tests in kontrollierten, reproduzierbaren Umgebungen auszuführen. Durch die strikte Trennung von Test-Logik und Ausführungskontext (Arena) bleibt der Code flexibel und robust. Aktuell bietet Cubie zwei native Arena-Typen an, die je nach Anwendungsfall unterschiedliche Schwerpunkte auf Performance und Isolation legen:
 

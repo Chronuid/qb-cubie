@@ -1,7 +1,7 @@
 import os, subprocess, sys, tempfile, shutil, uuid
 from pathlib import Path
 from typing import Any, Optional, List
-from ..arenas.codecs import MSGspecCodec, CloudpickleCodec
+from .codecs import MSGspecCodec
 from ..protocols import IPCC, WorldState
 
 
@@ -23,8 +23,6 @@ class PyVenv:
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)
-        self._decontams = ["pytest", "_pytest", "loky"]
-        if decontams: self._decontams.extend(decontams)
         self.workspace_path: Optional[Path] = None
         self.virtual_path: Optional[Path] = None
         self._config_state: Optional[WorldState] = None
@@ -34,6 +32,8 @@ class PyVenv:
         self._in_path: Optional[str] = None
         self._out_path: Optional[str] = None
         self._process: Optional[subprocess.CompletedProcess] = None
+        self._decontams = ["pytest", "_pytest", "loky"]
+        if decontams: self._decontams.extend(decontams)
 
     # ----- Services ---------------------------------------------------------------------------------------------------
 
@@ -82,8 +82,8 @@ class PyVenv:
     def teardown(self) -> None:
         """Completely destroys the ephemeral clone and restores the original state."""
         __tracebackhide__ = True
-        if self.workspace_path is None: raise RuntimeError(
-            "STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
+        if self.workspace_path is None:
+            raise RuntimeError("STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
         if self.workspace_path.exists(): shutil.rmtree(self.workspace_path)
         self.workspace_path = None
         self.virtual_path = None
@@ -117,8 +117,8 @@ class PyVenv:
                 check=True,
                 capture_output=True
             )
-        except subprocess.CalledProcessError as e: raise RuntimeError(
-            f"Could not install codec requirements {requirements}: {e.stderr.decode()}")
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Could not install codec requirements {requirements}: {e.stderr.decode()}")
 
     def _get_python_exe(self) -> None:
         __tracebackhide__ = True
@@ -139,8 +139,8 @@ class PyVenv:
     def _run_in_subprocess(self, target: Any, args: tuple, kwargs: dict) -> Any:
         """Wraps the callable, executes it in the arena, and unwraps the result."""
         __tracebackhide__ = True
-        if self._python_exe is None or self._env_vars is None: raise RuntimeError(
-            "STATE-GUARD: Python executable or environment is missing.")
+        if self._python_exe is None or self._env_vars is None:
+            raise RuntimeError("STATE-GUARD: Python executable or environment is missing.")
         self._setup_ipc_files()
         try:
             self._serialize_inputs(target, args, kwargs)
@@ -169,8 +169,8 @@ class PyVenv:
     def _activate_arena_env(self) -> None:
         """Overrides PATH and VIRTUAL_ENV to enforce the sandbox at the OS level."""
         __tracebackhide__ = True
-        if self._env_vars is None or self.virtual_path is None: raise RuntimeError(
-            "STATE-GUARD: '_env_vars' or 'virtual_path' was not initialized.")
+        if self._env_vars is None or self.virtual_path is None:
+            raise RuntimeError("STATE-GUARD: '_env_vars' or 'virtual_path' was not initialized.")
         self._env_vars["VIRTUAL_ENV"] = str(self.virtual_path.absolute())
         bin_dir = self.virtual_path / "bin" if (self.virtual_path / "bin").exists() else self.virtual_path / "Scripts"
         self._env_vars["PATH"] = f"{bin_dir.absolute()}{os.pathsep}{self._env_vars.get('PATH', '')}"
@@ -216,15 +216,15 @@ class PyVenv:
     def _generate_runner_script(self) -> str:
         """Generates the Python source code for the isolated execution wrapper."""
         __tracebackhide__ = True
-        if self._in_path is None or self._out_path is None: raise RuntimeError(
-            "STATE-GUARD: In/out paths for script generation are missing.")
+        if self._in_path is None or self._out_path is None:
+            raise RuntimeError("STATE-GUARD: In/out paths for script generation are missing.")
         return self.codec.get_runner_snippet(self._in_path, self._out_path)
 
     def _execute_runner_script(self, script: str) -> None:
         """Starts the subprocess with the generated script and catches system errors."""
         __tracebackhide__ = True
-        if self._python_exe is None or self._env_vars is None or self.workspace_path is None: raise RuntimeError(
-            "STATE-GUARD: Python executable, environment, or workspace is missing.")
+        if self._python_exe is None or self._env_vars is None or self.workspace_path is None:
+            raise RuntimeError("STATE-GUARD: Python executable, environment, or workspace is missing.")
         cmd_args = [str(self._python_exe), "-c", script]
         self._process = subprocess.run(
             cmd_args,
@@ -280,8 +280,8 @@ class ArenaBuilder:
         if self.env_path.exists(): return
         self.env_path.parent.mkdir(parents=True, exist_ok=True)
         try: subprocess.run(["uv", "venv", str(self.env_path), "--seed"], check=True, capture_output=True)
-        except subprocess.CalledProcessError as e: raise RuntimeError(
-            f"ArenaBuilder failed to create venv:\n{e.stderr.decode()}")
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"ArenaBuilder failed to create venv:\n{e.stderr.decode()}")
 
     def _install_packages(self) -> None:
         """Installs the registered packages sequentially using the arena's isolated uv pip."""
@@ -294,5 +294,5 @@ class ArenaBuilder:
                 check=True,
                 capture_output=True
             )
-        except subprocess.CalledProcessError as e: raise RuntimeError(
-            f"ArenaBuilder failed to install packages {self._packages}:\n{e.stderr.decode()}")
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"ArenaBuilder failed to install packages {self._packages}:\n{e.stderr.decode()}")

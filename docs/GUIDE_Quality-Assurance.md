@@ -1,7 +1,7 @@
-# CUBIE: Quality Assurance Guide
+# 📖 CUBIE-GUIDE: Quality Assurance
 
 
-**CUBIE ist nicht einfach nur deine "Q-Bench".**  → *Unter der Haube ist es dein **CUBE of QUANTS**.*
+**CUBIE ist nicht einfach nur deine "Quailtäts-Benchmark".**  → *Unter der Haube ist es dein **CUBE of QUANTS**.*
 
 * **QUANTS (Die Quantoren):** Die wahre Macht liegt nicht im isolierten Testfall, sondern in der iterativen Orchestrierung von Mengen-Mappings über formallogische Quantoren ( $\forall$ und $\exists$ ).
 
@@ -70,21 +70,6 @@ $$\mathcal{S}_{\text{summ}} \cap C = \{ S \in \Sigma^* \mid S: P \to Q \} \cap C
 
 ---
 
-### Test-Utilities: Form und Funktion
-
-Um jede Art von Test schnell definieren zu können, empfiehlt es sich Utils zur Verfügung zu stellen, die einfach und zuverlässig wiederverwendbar sind.
-
-* **Form:** Definiert die Regeln und Muster für die "Form" vom Code mit dem konkreten Syntax-Baum:  
-  **→ Kontext** *(Decorators u.Ä.)*  
-  **→ Input-Interface** *(Konstruktor)*  
-  **→ Objekt-Körper** *("Funktions"-Body)*  
-  **→ Output-Interface** *("Return"-Body)*
-
-* **Func:** Definiert das Verhalten, die Funktionen und die Fähigkeiten der Code-Ausführung mit dem abstrakten Syntax-Baum:  
-  **→ Objekt-Ausführung**  
-
----
-
 ### Test-Rollen: Golden und Synthetisch  
 
 Die atomare Validierungs-Logik ist für "Golden Datasets" und "Synthetische Datasets" zwar gleich, weswegen es im "Kern" der QA keine spezielle Differenzierung benötigt, aber für die Orchestrierung und die Anbindung an externe Systeme und auch für die Weiterentwicklung komplexerer Algorithmen, kann man diese "Test-Rollen" einfach mittels Tags im Test markieren.
@@ -95,12 +80,6 @@ Die atomare Validierungs-Logik ist für "Golden Datasets" und "Synthetische Data
 
 Ob hierbei "golden"/"synthetic" oder ein f"auth-lvl_{x}" für die tags verwendet wird, steht noch nicht fest und wird später auf dem Kern aufbauend dazu entwickelt. 
 
----
-
-### Test-Typen: Beispiele, Regeln und abstrakte Formeln
-* **RBT:** Review-Based-Testing
-* **EBT:** Example-Based-Testing
-* **PBT:** Property-Based-Testing
 
 ---
 
@@ -121,11 +100,6 @@ In der Logik und Informatik sind die Prädikatenlogik erster Stufe (FOL) und die
 * **Möglichkeiten:** Man kann über Prädikate quantifizieren (z. B. „für alle Eigenschaften P gilt: Wenn P für 0 zutrifft...“). 
 * **Vorteile:** Sie bietet eine weitaus größere Ausdrucksstärke. Komplexe mathematische Theorien (wie etwa die der reellen Zahlen oder die Mengenlehre) lassen sich direkt formulieren, ohne dass komplizierte Metasprachen erforderlich sind. Allerdings geht bei Verwendung der Standardsemantik die Vollständigkeit verloren, und die Automatisierung gestaltet sich schwieriger.
 
----
-
-* EBT: FOL
-* PBT: (HOL → EBT)
-* RBT: Any$\cap$Prüfverfahren #bzw. Reviewer
 
 ---
 
@@ -172,40 +146,10 @@ Betrachte deine Test-Datensätze als eine Sammlung von Eingaben und Ausgaben, al
 
 <details> 
 
-#### EBT: FOL (bzw. Propositional / Ground Terms)
+#### EBT:
 
-* **Einordnung:** EBT entspricht First-Order Logic (FOL), da Variablen hier konkrete, individuelle Objekte sind.
-* **Interpretation & Schärfung:** FOL nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). Einzelne EBT-Tests basieren zwar komplett quantorenfrei auf der reinen Aussagenlogik (sogenannten "Ground Terms"), werden aber durch die Test-Strukturen und die iterierte Menge der Test-Datensätze in ihrer Mächtigkeit und Handhabung mit FOL-Definitionen gleichgesetzt. Ein isolierter Test sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$".  
+* **Interpretation & Schärfung:** EBT nutzt Quantoren (wie den Allquantor $\forall$ oder Existenzquantor $\exists$). Einzelne EBT-Tests basieren zwar komplett quantorenfrei auf der reinen Aussagenlogik (sogenannten "Ground Terms"), werden aber durch die Test-Strukturen und die iterierte Menge der Test-Datensätze in ihrer Mächtigkeit und Handhabung mit FOL-Definitionen gleichgesetzt. Ein isolierter Test sagt nicht "Für alle $x$...", sondern prüft lediglich absolute Fakten: "Für exakt diese isolierten Objekte $P$ gilt die Transformation nach $Q$".  
 **Dennoch:** Da der Scope von EBT auf festen, individuellen Datenpunkten (Objekten) liegt und durch diese Mengen ein ganzer Raum orthogonal aufgespannt werden kann, fügt sich EBT als das unbestechliche Fundament perfekt in diese Skala ein.
-
----
-
-</details>
-
----
-
-### Property-Based-Testing (PBT)
-
-Genug von der Erstellung einzelner Beispiele? Dann definiere die Bereiche und stecke die Landschaften ab! Während ein empirisches Beispiel nur einen einzigen Pfad validiert, flutet die Stochastik das System mit tausenden automatisierten, adversariellen Variationen, um die unsichtbaren Sollbruchstellen (Thresholds) deines Codes aufzuspüren!:
-
-- Definiere den Suchraum (Domain).
-- Lass die Maschine die Grenzen kollabieren.
-
-#### Beispiel: Nehme deine Dokumenten-Funktion und...
- - ... Sage Cubie, dass der Input *prinzipiell* jede beliebige PDF-Datei sein darf.
- - ... Cubie generiert autonom tausende Dokumente: extrem riesige, leere, strukturell beschädigte oder negativ formatierte Files.
- - ... Sobald der Code bricht, schrumpft (shrinckt) Cubie das gigantische Fehler-Dokument vollautomatisch auf das exakte, minimale Byte zurück, das den Absturz verursacht hat.
-
-***... Done!*** (Du erhältst den rauschfreien, mathematisch präzisen Edge Case.)
-
-(**Wichtig:** Hier gilt Karl Poppers Falsifikation. Dieser Generator wäre selbst eine Funktion, eine Hypothese, die es zu testen gilt. PBT synthetisiert unter der Haube Annahmen darüber, wie du deine EBT-Tests aufsetzen würdest, aber ob diese Annahme korrekt sind, ist nicht garantiert. Wenn ein PBT-Test einen Fehler findet, heißt das nicht direkt, dass der Code fehlerhaft ist, denn vielleicht ist deine PBT-Definition zu scharf gestellt oder fehlerhaft. Es wird strengstens empohlen die PBT-Ausgaben als Vorschläge für weitere EBT-Cases zu interpretieren, die es zu prüfen gilt. Erst wenn man sich sicher ist, dass die PBT-Definition zuverlässig funktioniert und korrekt ist, sollte man sie "unsupervised" einsetzen, wobei man stets bedenken sollte, dass der PBT-Test selbst auch nur eine Hypothese darüber bleibt, was richtig und was falsch wäre.)
-
-<details> 
-
-#### PBT: (HOL → EBT) bzw. ($\forall$ → EBT)
-
-* **Einordnung:** PBT als Pfeil, der aus einer höheren Logik konkrete EBTs generiert.
-* **Interpretation & Schärfung:** Wenn du eine Eigenschaft (Property) definierst (z. B. "Für alle validen Markdown-Dateien gilt..."), bedienst du dich eines Allquantors ($\forall$) über eine gesamte Domäne. Du definierst das Gesetz auf einer Meta-Ebene (FOL/HOL), aber die Ausführung (der Pfeil $\to$) kompiliert dieses Gesetz gnadenlos in zehntausende, deterministische EBT-Paare hinunter, um das System empirisch zu fluten. Das ist reine, angewandte Falsifikation.
 
 ---
 

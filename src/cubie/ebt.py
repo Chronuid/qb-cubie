@@ -25,13 +25,14 @@ class EBT:
             arena: Optional[Arena] = None,
             pre: Union[WorldState, List[WorldState], None] = None,
             post: Union[WorldState, List[WorldState], None] = None,
-            expect: bool = True or False,
+            expect: bool = True,
             custom_id: Optional[str] = None,
             reporter: Reporter | None = PytestReporter(),
             multiprocessing: bool = False,
             multiprocessors: Optional[List['Multiprocessor']] = None,
             tags = None
         ):
+        self.tags = tags
         self.target = target
         self.arena = arena
         self.pre: List[WorldState] = self._ensure_list(pre)
@@ -54,7 +55,6 @@ class EBT:
         self.MULTIPROCESSING = multiprocessing or False
         self.MULTIPROCESSORS: List['Multiprocessor'] = [PickleProcessor(), LokyProcessor()]
         if multiprocessors: self.MULTIPROCESSORS.extend(multiprocessors)
-        self.tags = tags
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
@@ -144,8 +144,8 @@ class EBT:
             outcome = EBT._execute_step(pre_state, ctx.target, active_arena)
             for post_state in ctx.post_states:
                 trace = EBT._evaluate_step(
-                    pre_idx=pre_idx, t_step_start=t_step_start,
-                    pre_state=pre_state, post_state=post_state, outcome=outcome, ctx=ctx
+                    pre_idx=pre_idx, t_step_start=t_step_start,ctx=ctx,
+                    pre_state=pre_state, post_state=post_state, outcome=outcome
                 )
                 traces.append(trace)
         finally:
@@ -310,7 +310,9 @@ class EBT:
         if isinstance(fs_raw, dict): return fs_raw
         if isinstance(fs_raw, (set, list, tuple)):
             normalized = {}
-            for path_str in fs_raw: p = Path(str(path_str).rstrip("/")); normalized[p.name] = str(path_str)
+            for path_str in fs_raw:
+                p = Path(str(path_str).rstrip("/"))
+                normalized[p.name] = str(path_str)
             return normalized
         raise ValueError(f"Invalid type for fs: {type(fs_raw)}")
 
