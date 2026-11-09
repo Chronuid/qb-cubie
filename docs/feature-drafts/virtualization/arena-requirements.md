@@ -1,3 +1,6 @@
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+
 # [Feature] Implementierung von `DockerArena` und `VmArena` für erweiterte OS- und FS-Isolation (Entwicklung bis auf Weiteres Eingefroren)
 
 

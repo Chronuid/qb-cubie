@@ -1,3 +1,6 @@
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+
 # **Libvirt, QEMU/KVM und Python**
 
 # Handbuch zur Architektur und Implementierung der VmArena

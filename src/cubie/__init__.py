@@ -8,7 +8,7 @@ Framework for structured quality assurance via formal program verification and s
 `RBT` (Review-Based Testing):
     Orchestrates review pipelines bridging automated targets with human or machine reviewers.
 
-`arenas` (`PyVenv`, `TempFS`, `DockerArena`, `VmArena`):
+`arenas` (`PyVenv`, `TempFS`):
     Provides sandboxing and isolated execution environments for temporary target runs.
 
 `linters` (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`):
@@ -20,9 +20,7 @@ Framework for structured quality assurance via formal program verification and s
 from . import ebt, multiprocessors, protocols, rbt, reporter
 from .arenas.tempfs import TempFS
 from .arenas.pyvenv import PyVenv
-from .arenas.vmarena import VmArena
 from .arenas.codecs import CloudpickleCodec, MSGspecCodec, PickleCodec
-from .arenas.dockerarena import DockerArena
 from .protocols import WorldState, DeviceResources
 from .linter import Linter, LinterDiagnostic, AstLinter, CstRule, CstLinter
 from .ebt import EBT
@@ -37,8 +35,6 @@ __all__ = [
     "TempFS",
     "PyVenv",
     "DeviceResources",
-    "VmArena",
-    "DockerArena",
     "ebt",
     "EBT",
     "multiprocessors",

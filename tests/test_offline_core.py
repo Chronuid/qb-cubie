@@ -4,7 +4,7 @@ Each scenario runs in a fresh interpreter. A sitecustomize audit hook also guard
 Python children, including PyVenv runners and multiprocessing workers. Attempts
 are logged before raising, so catching an exception cannot hide a violation.
 This is a regression harness for Python execution paths, not an OS sandbox for
-arbitrary native code. DockerArena/VmArena currently expose configuration only.
+arbitrary native code. DockerArena/VmArena are unavailable feature drafts.
 """
 
 import os
@@ -123,7 +123,7 @@ FEATURES = [
     "rbt", "cst", "pylint", "mypy", "linter-aggregation",
     "linter-discovery",
     "pyvenv-default", "pyvenv-pickle", "pyvenv-msgspec", "pyvenv-cloudpickle",
-    "builder-reuse", "builder-reuse-packages", "arena-configuration",
+    "builder-reuse", "builder-reuse-packages", "virtualization-unavailable",
 ]
 
 
@@ -288,10 +288,14 @@ def exercise(feature, base):
         if feature == "builder-reuse-packages":
             builder.with_packages(["msgspec", "cloudpickle"])
         assert builder.build().env_path == Path(base)
-    elif feature == "arena-configuration":
-        for arena_type in (cubie.DockerArena, cubie.VmArena):
-            arena = arena_type(os="linux", env_path=base)
-            assert arena.network is False and arena.env_path == base
+    elif feature == "virtualization-unavailable":
+        import importlib.util
+
+        for name in ("DockerArena", "VmArena"):
+            assert name not in cubie.__all__
+            assert not hasattr(cubie, name)
+        for module in ("dockerarena", "vmarena", "vm"):
+            assert importlib.util.find_spec("cubie.arenas." + module) is None
     else:
         raise AssertionError(f"Unknown offline scenario: {feature}")
 

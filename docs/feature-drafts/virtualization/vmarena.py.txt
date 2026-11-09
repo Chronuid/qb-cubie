@@ -1,3 +1,4 @@
+# FEATURE-ENTWURF: nicht implementiert, keine öffentliche API und kein Funktionsnachweis.
 from ..protocols import DeviceResources
 from typing import Optional
 

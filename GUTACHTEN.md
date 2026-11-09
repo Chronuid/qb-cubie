@@ -215,7 +215,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
    Das Linter-Target darf niemals unvalidiert auf übergeordnete Verzeichnisse (`..`) außerhalb der Arena zugreifen. Pfade müssen strikt an den Workspace der Arena gebunden werden.
 
 ### Priorität 2 (Architektur-Härtung)
-4. **Beseitigung von `os.chdir` in `TempFS`:**  (DECLINED: We know, but that is TempFS. Use PyVenv if you want it better.)  
+4. **Beseitigung von `os.chdir` in `TempFS`:**  
    Arbeitsverzeichnisse dürfen nicht prozessweit umgebogen werden. Wenn Pfad-Isolation erforderlich ist, muss das Target entweder explizite Pfadparameter akzeptieren oder die Ausführung in einen Subprozess ausgelagert werden.
 5. **Materialisierung von Mappings vor Kontext-Exit:**  (DONE)  
    In `MultiprocessRunner.execute()` muss der Generator konsumiert werden, bevor der `with`-Block schließt:
@@ -227,7 +227,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
    Der `HumanReviewer` darf nicht der Default sein. RBT muss im Headless-Modus entweder auf interaktive CLI-Prompts zurückfallen oder bei fehlendem `DISPLAY` kontrolliert übersprungen werden (`pytest.skip()`).
 
 ### Priorität 3 (Bereinigung & Release-Fähigkeit)
-7. **Ehrlichkeit bei Virtualisierungs-Features:**  
+7. **Ehrlichkeit bei Virtualisierungs-Features:**  (DONE)  
    Die unfertigen Klassen `DockerArena` und `VmArena` sowie die 0-Byte-Dateien in `src/cubie/arenas/vm/` vorübergehend aus dem öffentlichen Interface entfernen und klar als noch auszuarbeitende Feature-Entwürfe kennzeichnen.
 8. **Bereinigung von `pyproject.toml`:**  (DONE)  
    Entfernen der obsoleten `"dataclasses>=0.8"`-Abhängigkeit und Harmonisierung der Versions-Pins.

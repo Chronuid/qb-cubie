@@ -128,7 +128,7 @@ Die mitgelieferte `PyVenv`-Klasse repräsentiert den funktionalen MVP für das A
 
 **Wichtig:** Diese Arena bietet keine tiefgreifende OS-Level-Isolation! Wir können nicht garantieren, dass ein stoischer, chaotischer Fuzzer durch unvorhersehbare Mutationen nicht doch einen "Jail-Break" hinlegt und aus der Sandbox ausbricht. Der Subprozess läuft weiterhin mit den Rechten des Host-Systems.
 
-Für sicherheitskritische Anwendungen, die Ausführung von absolutem Fremdcode oder bei exzessiven, unüberwachten Fuzzing-Mutationen sollte zwingend auf stabilere Virtualisierungs-Technologien zurückgegriffen werden (z. B. durch die Implementierung einer dedizierten `DockerArena` oder MicroVMs), welche diese Sicherheit auf Kernel-Ebene garantieren können.
+Für sicherheitskritische Anwendungen, die Ausführung von Fremdcode oder unüberwachte Fuzzing-Mutationen ist eine separat eingerichtete, geeignete Container- oder VM-Isolation erforderlich. Cubie stellt derzeit keine solche Arena bereit: `DockerArena` und `VmArena` sind nicht implementiert und nicht Teil der öffentlichen API. Die eingefrorenen [Feature-Entwürfe](feature-drafts/virtualization/README.md) beschreiben ausschließlich geplante Funktionen und keine bestehenden Sicherheitsgarantien.
 
 ### Flakiness-Protection im Byte-Diffing
 

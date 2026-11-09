@@ -1,3 +1,6 @@
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+
  ## `VmArena` (OS-Szenarien & Routing)
 
 Diese Arena dient der Bereitstellung von Betriebssystem-Umgebungen zur Validierung von Routing- und Berechtigungs-Logiken.

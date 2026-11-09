@@ -1,3 +1,6 @@
+> **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
+> Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
+
 # Wizards-Handbuch
 
 

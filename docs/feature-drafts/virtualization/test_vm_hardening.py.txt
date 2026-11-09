@@ -1,3 +1,4 @@
+# FEATURE-ENTWURF: nicht implementiert, keine öffentliche API und kein Funktionsnachweis.
 import pytest
 
 import cubie as qb

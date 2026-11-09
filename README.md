@@ -96,6 +96,10 @@ def test_dynamic_payload():
 **Filesystem & Arena API**
 Trennt funktionale Inputs strikt von topologischen Dateisystem-Zuständen ab und isoliert die Ausführung in deterministischen Arenen (wie `TempFS` oder vollständigen virtuellen Umgebungen).
 
+Verfügbar sind `TempFS` und `PyVenv`; beide bieten keine OS-Sicherheitsgrenze.
+`DockerArena` und `VmArena` sind noch nicht implementiert und gehören nicht zur öffentlichen API.
+Die eingefrorenen [Feature-Entwürfe zur Virtualisierung](docs/feature-drafts/virtualization/README.md) dokumentieren ausschließlich geplante Funktionen.
+
 ```python
 def test_cleaner(): 
     qb.EBT(
