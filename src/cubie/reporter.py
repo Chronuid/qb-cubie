@@ -88,12 +88,26 @@ class PytestReporter:
         __tracebackhide__ = True
         lines = [f"  [Q-State {idx}] Validation: {'Matched' if t.evaluation else 'Mismatch'}"]
         diffs = t.diffs or {}
-        if t.post.returns is not None:
+        if t.post.returns and t.outcome.returns:
             match = "Mismatch" if "returns" in diffs else "Match"
-            lines.append(f"    - Returns: Expected {t.post.returns} | Actual {t.outcome.returns} ({match})")
+            returns_str = PytestReporter._format_returns(t.post.returns, t.outcome.returns, ctx)
+            lines.append(f"    - Returns: {returns_str} ({match})")
         if t.post.fs: lines.extend(PytestReporter._build_diff_section("FS", "fs", diffs, ctx))
         if t.post.arena: lines.extend(PytestReporter._build_diff_section("Arena", "arena", diffs, ctx))
         return lines
+
+    @staticmethod
+    def _format_returns(expected, actual, ctx: ReportContext) -> str:
+        """Formats expected and actual returns, truncating large lists based on max_diff_items."""
+        __tracebackhide__ = True
+
+        def format_val(val):
+            if isinstance(val, (list, tuple)) and len(val) > ctx.max_diff_items:
+                head = list(val[:ctx.max_diff_items])
+                return f"{head} ... [and {len(val) - ctx.max_diff_items} more items]"
+            return str(val)
+
+        return f"Expected {format_val(expected)} | Actual {format_val(actual)}"
 
     # ---------- DIFF FORMATTING ---------------------------------------------------------------------------------------
 

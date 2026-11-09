@@ -172,7 +172,7 @@ def venv_ignored_fs(tmp_path: Path) -> Path:
 def test_astlinter_ignores_venv_directory(venv_ignored_fs: Path):
     """
     Scenario: The linter is run on a project's root directory.
-    Expectation: Standard exclusion directories such as `.venv/` are ignored by Ruff,
+    Expectation: Standard exclusion directories such as `.venv/` are ignored,
     even if they contain syntactically completely broken code.
     """
     EBT(
@@ -186,4 +186,27 @@ def test_astlinter_ignores_venv_directory(venv_ignored_fs: Path):
             }
         ),
         post=WorldState(returns=[])
+    ).run()
+
+
+def test_astlinter_ignores_venv_directory_in_project(venv_ignored_fs: Path):
+    """
+    Mirror the exclusion check with an explicit project directory.
+
+    Unlike '..', this target avoids PyCharm's empty-module-name resolution
+    and keeps arena middleware and unrelated temporary files out of the scan.
+    Broken code in .venv must be ignored in both IDE and terminal runs.
+    """
+    EBT(
+        target=AstLinter(Pylint(disable=["C0114", "C0103"])).check,
+        arena=PyVenv(ARENA_PATH, codec=cubie.CloudpickleCodec()),
+        pre=WorldState(
+            kwargs={"target": Path("project")},
+            fs={
+                "project/.venv/bad_cache.py": str(venv_ignored_fs / ".venv" / "bad_cache.py"),
+                "project/src/clean.py": str(venv_ignored_fs / "src" / "clean.py")
+            }
+        ),
+        # A predicate also exposes diagnostics with the current reporter's [] handling.
+        post=WorldState(returns=lambda diagnostics: diagnostics == [])
     ).run()

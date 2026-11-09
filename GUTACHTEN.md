@@ -202,9 +202,9 @@ Im Test [`test_security_arena_codec.py`](file:///home/symphonie/PycharmProjects/
 Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Framework zu überführen, müssen folgende Schritte umgesetzt werden:
 
 ### Priorität 1 (Sofortige Stabilität & Hygiene)
-1. **Entfernung der „Smuggled Tools“:**  (DONE)
+1. **Entfernung der „Smuggled Tools“:**  (DONE)  
    Die Ordner `src/cubie/linters/libcst_tool` und `src/cubie/linters/pylint_tool` restlos aus dem Repository entfernen. Benötigte Werkzeuge ausschließlich über standardisierte Abhängigkeiten (`pyproject.toml`) deklarieren.
-2. **Pytest-Konfiguration absichern:**  
+2. **Pytest-Konfiguration absichern:** (DONE)  
    In `pyproject.toml` eine feste Konfiguration hinterlegen:
    ```toml
    [tool.pytest.ini_options]
@@ -215,7 +215,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
    Das Linter-Target darf niemals unvalidiert auf übergeordnete Verzeichnisse (`..`) außerhalb der Arena zugreifen. Pfade müssen strikt an den Workspace der Arena gebunden werden.
 
 ### Priorität 2 (Architektur-Härtung)
-4. **Beseitigung von `os.chdir` in `TempFS`:**  
+4. **Beseitigung von `os.chdir` in `TempFS`:**  (DECLINED: We know, but that is TempFS. Use PyVenv if you want it better.)  
    Arbeitsverzeichnisse dürfen nicht prozessweit umgebogen werden. Wenn Pfad-Isolation erforderlich ist, muss das Target entweder explizite Pfadparameter akzeptieren oder die Ausführung in einen Subprozess ausgelagert werden.
 5. **Materialisierung von Mappings vor Kontext-Exit:**  
    In `MultiprocessRunner.execute()` muss der Generator konsumiert werden, bevor der `with`-Block schließt:
