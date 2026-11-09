@@ -4,7 +4,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_Contract-Semantics.md) definiert alle Felder, Vergleichsregeln und bekannten Fehler. Verwende für jeden Lauf eine neue EBT-Instanz und explizite, nichtleere Verträge. Die folgenden Python-Blöcke sind vollständige pytest-Beispiele.
+Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_Contract-Semantics.md) definiert alle Felder, Vergleichsregeln und bekannten Fehler. Verwende explizite, nichtleere Verträge. Eine EBT-Instanz kann nacheinander mehrfach ausgeführt werden; jeder Lauf erzeugt eine eigene Ergebnis-Momentaufnahme. Die folgenden Python-Blöcke sind vollständige pytest-Beispiele.
 
 ---
 

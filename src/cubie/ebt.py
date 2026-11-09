@@ -1,4 +1,6 @@
 import dataclasses, filecmp, uuid, time, re, types, functools
+from copy import deepcopy
+from multiprocessing.managers import BaseProxy
 from pathlib import Path
 from typing import Union, Set, get_origin, get_args, Optional
 from .multiprocessors import *
@@ -6,6 +8,45 @@ from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, M
 from .reporter import PytestReporter
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
+
+@dataclasses.dataclass(frozen=True)
+class _ProcessResourceReference:
+    """Historical identity of a process resource, without a live connection."""
+    resource_type: str
+    resource_id: str
+
+
+def _snapshot(value: Any) -> Any:
+    """Deep-copy data; record manager resources without dereferencing them.
+
+    A manager proxy's deepcopy fetches the remote object. Synchronization
+    objects such as barriers cannot be fetched or copied in this way.
+    """
+    memo = {}
+    visited = set()
+
+    def collect(item: Any) -> None:
+        if id(item) in visited:
+            return
+        visited.add(id(item))
+        if isinstance(item, BaseProxy):
+            memo[id(item)] = _ProcessResourceReference(item._token.typeid, item._token.id)
+        elif isinstance(item, dict):
+            for key, val in item.items():
+                collect(key)
+                collect(val)
+        elif isinstance(item, (list, tuple, set, frozenset)):
+            for val in item:
+                collect(val)
+        elif dataclasses.is_dataclass(item) and not isinstance(item, type):
+            for field in dataclasses.fields(item):
+                collect(getattr(item, field.name))
+        elif not isinstance(item, (type, types.FunctionType, types.MethodType)) and hasattr(item, "__dict__"):
+            collect(vars(item))
+
+    collect(value)
+    return deepcopy(value, memo)
+
 
 @dataclasses.dataclass(frozen=True)
 class EBTContext:
@@ -59,8 +100,18 @@ class EBT:
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
     def run(self) -> RunTrace | None:
-        """Executes the test pipeline, consisting of preparation, execution, and evaluation."""
+        """Execute a fresh run and return a detached historical snapshot.
+
+        Recorded state must support deepcopy. Target and arena execution still
+        use the supplied objects; snapshots do not undo their side effects.
+        """
         __tracebackhide__ = True
+        self._run_id = f"cubie_run_{self.custom_id}_{uuid.uuid4().hex}"
+        self._traces = []
+        self._outcome = []
+        self.run_trace = None
+        self._run_evaluation = None
+        self._run_duration = None
         self._t_run_start = time.perf_counter()
         self._arrange()
         self._validate()
@@ -141,13 +192,17 @@ class EBT:
         active_arena = pre_state.arena if hasattr(pre_state.arena, "setup") else ctx.arena
         traces = []
         try:
+            # Capture the declared states before target code can mutate them.
+            recorded_pre, recorded_posts = _snapshot((pre_state, ctx.post_states))
             outcome = EBT._execute_step(pre_state, ctx.target, active_arena)
-            for post_state in ctx.post_states:
+            for post_state, recorded_post in zip(ctx.post_states, recorded_posts):
                 trace = EBT._evaluate_step(
                     pre_idx=pre_idx, t_step_start=t_step_start,ctx=ctx,
-                    pre_state=pre_state, post_state=post_state, outcome=outcome
+                    pre_state=recorded_pre, post_state=post_state, outcome=outcome
                 )
+                trace.post = recorded_post
                 traces.append(trace)
+            outcome, traces = _snapshot((outcome, traces))
         except BaseException as error:
             if active_arena:
                 try: active_arena.teardown()
@@ -167,9 +222,9 @@ class EBT:
         step_successes = {sid: self._evaluate_step_logic(traces) for sid, traces in steps.items()}
         self._run_evaluation = all(step_successes.values()) if self.expect else not all(step_successes.values())
         self.run_trace = RunTrace(
-            run_id=self._run_id, arena=self.arena,
+            run_id=self._run_id, arena=_snapshot(self.arena),
             target=getattr(self.target, '__name__', str(self.target)),
-            expect=self.expect, traces=self._traces, evaluation=self._run_evaluation,
+            expect=self.expect, traces=_snapshot(self._traces), evaluation=self._run_evaluation,
             duration=self._run_duration
         )
 

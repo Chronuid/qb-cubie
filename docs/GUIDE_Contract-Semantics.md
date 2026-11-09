@@ -34,7 +34,7 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | Exceptions | Target-Fehler propagieren. Es gibt kein eigenes Feld für erwartete Exceptions; `expect=False` fängt sie nicht ab. |
 | `stdout` / `stderr` | Keine `WorldState`-Felder und keine EBT-Rückgabemuster. `returns` bezeichnet ausschließlich den Python-Rückgabewert. |
 | Reporter | Standardmäßig wertet `PytestReporter` das Ergebnis per Assertion aus. `reporter=None` unterdrückt diese Assertion; Target-, Aufbau- und Vergleichsfehler können weiterhin Exceptions auslösen. |
-| Traces | Veränderliche Dataclasses für Vergleiche (`EvaluationTrace`) und Gesamtergebnis (`RunTrace`). Workspace-Pfade können nach dem Aufräumen nicht mehr existieren. |
+| Traces | Unabhängige Momentaufnahmen für Vergleiche (`EvaluationTrace`) und Gesamtergebnis (`RunTrace`). Die Dataclasses bleiben durch den Empfänger veränderbar. Workspace-Pfade können nach dem Aufräumen nicht mehr existieren. |
 | RBT | Synchrone Übergabe von Zielbezeichnung und Prüfregel an `reviewer.review(...)`; keine automatische Target-Ausführung, Quellenbeschaffung oder Beweisführung. |
 
 ## Endliche Auswertungsregel
@@ -91,10 +91,19 @@ Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Gleichnamige Qu
 
 Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puffert stdout/stderr vollständig und kann fehlende Codec-Pakete in der Basisumgebung nachinstallieren. Damit sind Netz- und Schreiboperationen während des Setups möglich.
 
+## Wiederholte Läufe und historische Ergebnisse
+
+Jeder `.run()`-Aufruf beginnt mit einer neuen Lauf-ID, leeren Traces und Outcomes sowie zurückgesetzter Bewertung und Laufzeit. Eine Instanz kann nacheinander wiederverwendet werden. Nach einem Ausführungsabbruch bleibt `run_trace` leer; nach einer Reporter-Assertion ist das abgeschlossene, fehlgeschlagene Ergebnis verfügbar.
+
+Die Vorzustände werden vor der Target-Ausführung erfasst. Aufgezeichnete Zustände, verschachtelte Rückgabewerte, Diffs und die Arena-Metadaten werden mittels `deepcopy` von den gelieferten Objekten getrennt. Diese Objekte müssen tief kopierbar sein; Kopierfehler werden weitergegeben. Spätere Läufe und Änderungen an den ursprünglichen Daten verändern zurückgegebene Ergebnisse nicht. Die Ergebnis-Dataclasses sind weiterhin durch den Empfänger veränderbar. Workspace-Pfade sind keine archivierten Dateiinhalte.
+
+Proxies eines `multiprocessing.Manager`, etwa Events oder Barrieren in Argumenten, werden im Trace durch unveränderliche Referenzdaten (`resource_type`, `resource_id`) ersetzt. Das Target erhält weiterhin die lebenden Proxies. Der Trace dokumentiert deren Identität, nicht den veränderlichen Zustand des entfernten Objekts, und benötigt später keine Verbindung zum Manager.
+
+Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre eigenen Seiteneffekte, externe Ressourcen und bereits mutierte Target-Argumente werden zwischen Läufen nicht zurückgesetzt. Gleichzeitige `.run()`-Aufrufe auf derselben Instanz werden nicht unterstützt.
+
 ## Bekannte Abweichungen und praktische Folgen
 
 - `pre=[]` führt kein Target aus; `post=[]` erzeugt keine Vergleiche. Beide können bei `expect=True` durch `all([])` erfolgreich erscheinen. Verwende nichtleere Zustandslisten und explizite Erwartungen.
-- `.run()` setzt `_outcome` und `_traces` nicht zurück. Frühere Erfolge können spätere Fehler derselben Instanz verdecken; frühere `RunTrace.traces` wachsen mit. Erzeuge pro Lauf eine neue EBT-Instanz. Ein `RunTrace` ist keine unveränderliche historische Momentaufnahme.
 - Multiprocessing-Fallback kann nach Ausführungsfehlern die gesamte Aufgabenmenge erneut ausführen und Seiteneffekte wiederholen. Die Workerzahl richtet sich nach den gemeldeten CPUs; zusätzliche Arena-Prozesse und pytest-xdist können die Last vervielfachen.
 - Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Insbesondere kann der MyPy-Adapter einen Prozessabbruch als leere Liste behandeln; `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 

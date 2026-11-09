@@ -10,7 +10,7 @@ import pickle
 import cloudpickle
 import pytest
 
-from cubie import EBT, WorldState, UNSPECIFIED
+from cubie import EBT, UNSPECIFIED, WorldState
 from cubie.arenas.tempfs import TempFS
 
 
@@ -56,14 +56,15 @@ def test_explicit_none_matches_only_none(actual):
 
     assert len(result.traces) == 1
     trace = result.traces[0]
-    assert trace.outcome.returns is actual
+    assert type(trace.outcome.returns) is type(actual)
+    assert trace.outcome.returns == actual
     assert trace.evaluation is (actual is None)
     assert result.evaluation is (actual is None)
     if actual is None:
         assert not trace.diffs
     else:
         assert "returns" in trace.diffs
-        assert trace.diffs["returns"]["actual"] is actual
+        assert trace.diffs["returns"]["actual"] == actual
 
 
 @pytest.mark.parametrize("actual", [None, 42, 0, False, "", [], {}])
@@ -76,7 +77,8 @@ def test_omitted_return_expectation_accepts_any_actual_value(actual):
     ).run()
 
     assert len(result.traces) == 1
-    assert result.traces[0].outcome.returns is actual
+    assert type(result.traces[0].outcome.returns) is type(actual)
+    assert result.traces[0].outcome.returns == actual
     assert result.traces[0].evaluation is True
     assert not result.traces[0].diffs
     assert result.evaluation is True
