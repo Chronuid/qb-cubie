@@ -1,7 +1,5 @@
 <center>
 
-
-
 # Cubie: Quality-Bench
 
 ![Cubie](./docs/.assets/cubie-banner.png)
@@ -91,20 +89,22 @@ Der aktuelle Prüfkern kann falsche Erfolge melden: `returns=None` deaktiviert d
 
 ---
 
+---
+
 <center>
 
 ![Error while trying to load the image](./docs/.assets/cubie-small.png) 
 
 ## Dokumentation
 
+[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./docs/GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
 
+[↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-[→ Qualitätssicherung: Begriffe und Aussagegrenzen](./docs/GUIDE_Quality-Assurance.md)  
-[→ Vertragssemantik: zentrale Referenz](./docs/GUIDE_Contract-Semantics.md)  
-[→ EBT: Auswahl von Beispielen](./docs/GUIDE_Example-Based-Testing.md)  
-[→ EBT: ausführbare Nutzungsmuster](./docs/GUIDE_EBT-Usage-Pattern.md)  
-[→ RBT: Reviewer und Nutzung](./docs/GUIDE_RBT-Usage-Pattern.md)  
-[→ Arena-Management](./docs/GUIDE_Arena-Management.md)  
-[→ Linter](./docs/GUIDE_Linter.md)  
-[→ Entwicklerübersicht EBT](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 </center>
