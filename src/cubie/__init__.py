@@ -21,7 +21,7 @@ from . import ebt, multiprocessors, protocols, rbt, reporter
 from .arenas.tempfs import TempFS
 from .arenas.pyvenv import PyVenv
 from .arenas.codecs import CloudpickleCodec, MSGspecCodec, PickleCodec
-from .protocols import WorldState, DeviceResources
+from .protocols import WorldState, DeviceResources, UNSPECIFIED
 from .linter import Linter, LinterDiagnostic, AstLinter, CstRule, CstLinter
 from .ebt import EBT
 from .linters.mypy import MyPy
@@ -29,6 +29,7 @@ from .linters.pylint import Pylint
 
 __all__ = [
     "WorldState",
+    "UNSPECIFIED",
     "PickleCodec",
     "CloudpickleCodec",
     "MSGspecCodec",

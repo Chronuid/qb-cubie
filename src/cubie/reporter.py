@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Dict, List
 
-from .protocols import EvaluationTrace, ReviewData, RunTrace
+from .protocols import EvaluationTrace, ReviewData, RunTrace, UNSPECIFIED
 
 # ========== PYTEST REPORTER ===========================================================================================
 
@@ -98,7 +98,7 @@ class PytestReporter:
         __tracebackhide__ = True
         lines = [f"  [Q-State {idx}] Validation: {'Matched' if t.evaluation else 'Mismatch'}"]
         diffs = t.diffs or {}
-        if t.post.returns and t.outcome.returns:
+        if t.post.returns is not UNSPECIFIED:
             match = "Mismatch" if "returns" in diffs else "Match"
             returns_str = PytestReporter._format_returns(t.post.returns, t.outcome.returns, ctx)
             lines.append(f"    - Returns: {returns_str} ({match})")

@@ -14,12 +14,12 @@
 from cubie import WorldState
 
 pre = WorldState(args=([1, 2],), kwargs={"strict": True})
-post = WorldState(returns=lambda value: value is None)
+post = WorldState(returns=None)
 ```
 
 `args` hält Positionsargumente. Eine äußere Liste oder ein Tupel wird entpackt; deshalb wird eine Liste als einzelnes Argument in ein zusätzliches Tupel verpackt. `kwargs` muss ein Dictionary sein oder `None`. Es gibt keine automatische Inferenz eines primitiven `pre`-Werts in diese Felder.
 
-`returns` enthält im Ergebnis den Python-Rückgabewert und in `post` dessen Sollwert oder Muster. Es erfasst keine Konsolenausgaben. Ein oberstes `returns=None` deaktiviert derzeit die Prüfung. Das Beispiel verwendet ein Prädikat, um wirklich `None` zu fordern. `stdout`, `stderr` und ein Feld für erwartete Exceptions existieren nicht.
+`returns` enthält im Ergebnis den Python-Rückgabewert und in `post` dessen Sollwert oder Muster. Es erfasst keine Konsolenausgaben. `returns=None` erwartet explizit `None`. Ausgelassenes `returns` verwendet den Sentinel `cubie.UNSPECIFIED` und deaktiviert die Rückgabeprüfung. Der Sentinel kann auch ausdrücklich gesetzt werden. `stdout`, `stderr` und ein Feld für erwartete Exceptions existieren nicht.
 
 `fs` nimmt ein Dictionary `{Zielpfad: Hostquelle}` oder eine Sammlung von Hostpfaden auf. EBT normalisiert Sammlungen nach Basename; einzelne Pfadstrings werden nicht unterstützt. In `pre` kopiert die aktive Arena die Vorlagen, in `post` vergleicht EBT die benannten Pfade oder ruft ein Pfad-Prädikat auf. Eine Arena muss ausdrücklich gewählt werden. Die Normalisierung verändert den Zustand; gleichnamige Quellen können sich überschreiben.
 

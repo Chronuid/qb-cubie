@@ -2,7 +2,7 @@ import dataclasses, filecmp, uuid, time, re, types, functools
 from pathlib import Path
 from typing import Union, Set, get_origin, get_args, Optional
 from .multiprocessors import *
-from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor
+from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED
 from .reporter import PytestReporter
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
@@ -209,7 +209,7 @@ class EBT:
         """Isolates the formal-logical diff calculation and delegates to the type guard."""
         __tracebackhide__ = True
         diffs = {}
-        if post.returns is not None: EBT._append_diff(diffs, "returns", EBT._evaluate_func(post, outcome))
+        if post.returns is not UNSPECIFIED: EBT._append_diff(diffs, "returns", EBT._evaluate_func(post, outcome))
         if post.arena:
             EBT._append_diff(
                 diffs,

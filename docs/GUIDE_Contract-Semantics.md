@@ -20,7 +20,7 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | `post` | Ein `WorldState` oder eine Liste gemeinsamer Zielmuster. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
 | `args` | `None` ergibt keine Positionsargumente. Listen und Tupel werden in Positionsargumente entpackt; andere Objekte werden als ein Argument übergeben. `args=[1, 2]` ruft `f(1, 2)` auf; `args=([1, 2],)` ruft `f([1, 2])` auf; `args=(None,)` ruft `f(None)` auf. |
 | `kwargs` | Ein Dictionary mit Schlüsselwortargumenten; `None` wird zu `{}`. Andere Werte führen zu `TypeError`. |
-| `post.returns` | Erwarteter Rückgabewert oder Muster. Aktuell bedeutet ein oberstes `None` „nicht prüfen“, auch wenn `None` ausdrücklich angegeben wurde. |
+| `post.returns` | Erwarteter Rückgabewert oder Muster. Ausgelassen oder `cubie.UNSPECIFIED` bedeutet „nicht prüfen“; explizites `None` erwartet den Wert `None`. |
 | `post.expect=True` | Erlaubtes Zielmuster. Alle in diesem Zustand aktivierten Prüfungen müssen passen. |
 | `post.expect=False` | Verbotenes Zielmuster. Kein solches Muster darf vollständig passen. `pre.expect` steuert die EBT-Auswertung nicht. |
 | `EBT(expect=False)` | Negiert das aggregierte Ergebnis aller Eingangsschritte. Erwartet weder eine Exception noch das Scheitern jedes einzelnen Schritts. |
@@ -58,11 +58,16 @@ Die Quantoren beziehen sich nur auf die endlichen Listen und die jeweils beobach
 
 ## Rückgabevergleich
 
+`WorldState()` lässt den Rückgabewert offen, `WorldState(returns=None)` fordert dagegen `None`.
+Wer bisher `returns=None` zum Überspringen der Prüfung verwendet hat, muss das Argument weglassen oder `UNSPECIFIED` aus `cubie` importieren und setzen.
+Der Sentinel deaktiviert nur als oberster `returns`-Wert die Prüfung; er ist kein rekursives Wildcard-Muster.
+
 Die Reihenfolge der Mustererkennung ist relevant:
 
 | Muster in `returns` | Vergleich |
 | --- | --- |
-| Oberstes `None` | Deaktiviert derzeit die gesamte Rückgabeprüfung. Für einen echten `None`-Sollwert: `lambda value: value is None`. |
+| Ausgelassen / oberstes `cubie.UNSPECIFIED` | Deaktiviert die Rückgabeprüfung. |
+| `None` | Erwartet den Rückgabewert `None`. |
 | `typing.Any` | Akzeptiert jeden Wert. Ein Dictionary-Schlüssel muss trotzdem vorhanden sein. |
 | Union (`Union[...]` oder `A \| B`) | Mindestens eine Alternative muss passen. Enthaltenes `None` wird rekursiv als Wert verglichen. |
 | Klasse / Typ | `isinstance(actual, expected)`, einschließlich der Python-Unterklassenbeziehungen. |
@@ -88,10 +93,8 @@ Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puff
 
 ## Bekannte Abweichungen und praktische Folgen
 
-- `returns=None` wird übersprungen. Ein grüner Test prüft diesen Sollwert nicht; nutze das oben genannte Prädikat.
 - `pre=[]` führt kein Target aus; `post=[]` erzeugt keine Vergleiche. Beide können bei `expect=True` durch `all([])` erfolgreich erscheinen. Verwende nichtleere Zustandslisten und explizite Erwartungen.
 - `.run()` setzt `_outcome` und `_traces` nicht zurück. Frühere Erfolge können spätere Fehler derselben Instanz verdecken; frühere `RunTrace.traces` wachsen mit. Erzeuge pro Lauf eine neue EBT-Instanz. Ein `RunTrace` ist keine unveränderliche historische Momentaufnahme.
-- Der Standardreporter kann Rückgabedetails für `0`, `False`, `[]` und `""` auslassen. Der Vergleich dieser Werte findet statt; die Fehlerdarstellung kann unvollständig sein.
 - Multiprocessing-Fallback kann nach Ausführungsfehlern die gesamte Aufgabenmenge erneut ausführen und Seiteneffekte wiederholen. Die Workerzahl richtet sich nach den gemeldeten CPUs; zusätzliche Arena-Prozesse und pytest-xdist können die Last vervielfachen.
 - Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Insbesondere kann der MyPy-Adapter einen Prozessabbruch als leere Liste behandeln; `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 

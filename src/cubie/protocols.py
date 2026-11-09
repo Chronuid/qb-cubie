@@ -2,6 +2,7 @@ import typing
 from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from enum import Enum
 
 # ========== REVIEWER-PROTOCOL | REVIEW-BASED-TESTING ==================================================================
 
@@ -26,16 +27,30 @@ class Reviewer(Protocol):
 
 # ========== WORLDSTATE-DATACLASS | EXAMPLE-BASED-TESTING ==============================================================
 
+class _UnspecifiedReturn(Enum):
+    """Keep the sentinel's identity stable through copying and process serialization."""
+    VALUE = "UNSPECIFIED"
+
+    def __repr__(self) -> str:
+        return "UNSPECIFIED"
+
+
+UNSPECIFIED = _UnspecifiedReturn.VALUE
+
+
 @dataclass
 class WorldState:
     """
     Declares execution environments, file system states, and functional parameters of a test world.
+
+    Omit returns (or use UNSPECIFIED) to leave the return value unrestricted.
+    Explicit returns=None requires the target to return None.
     """
     args: Optional[Any] = None
     kwargs: Optional[Any]  = None
     arena: Optional[Any]  = None
     fs: Optional[Any]  = None
-    returns: Optional[Any]  = None
+    returns: Any = UNSPECIFIED
     expect: Optional[bool]  = True
 
 

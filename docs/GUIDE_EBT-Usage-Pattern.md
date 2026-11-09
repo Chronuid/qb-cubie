@@ -114,11 +114,11 @@ def test_payload():
 def test_none_return():
     EBT(
         target=lambda: None,
-        post=WorldState(returns=lambda actual: actual is None),
+        post=WorldState(returns=None),
     ).run()
 ```
 
-Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. Ein oberstes `returns=None` aktiviert derzeit keine Prüfung; deshalb verwendet das zweite Beispiel ein Prädikat. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
+Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. `returns=None` erwartet explizit `None`, wie im zweiten Beispiel. Ausgelassenes `returns` oder `returns=cubie.UNSPECIFIED` deaktiviert die Rückgabeprüfung. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
 
 ## Dateitransformation mit expliziter Arena
 

@@ -85,7 +85,7 @@ Die Datei muss vom Reviewer selbst geöffnet und beurteilt werden. Ein positives
 
 ## Bekannte Einschränkungen
 
-Der aktuelle Prüfkern kann falsche Erfolge melden: `returns=None` deaktiviert die Rückgabeprüfung, leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `None` lässt sich derzeit über `returns=lambda value: value is None` prüfen. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
+Der aktuelle Prüfkern kann falsche Erfolge melden: Leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `WorldState(returns=None)` erwartet explizit `None`; ohne `returns` oder mit `returns=cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
 
 ---
 

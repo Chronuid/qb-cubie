@@ -41,7 +41,7 @@ Leere Zustandslisten können derzeit ohne Vergleiche erfolgreich erscheinen. Wie
 
 ## Vergleiche und Diagnosen
 
-`_calculate_diffs()` aktiviert Rückgabevergleiche derzeit nur für `post.returns is not None`. Für einen echten `None`-Sollwert ist ein Prädikat nötig. `arena` und `fs` werden nur bei wahrheitswertig gesetzten Feldern verglichen. Ein leerer Zustand prüft damit keine Ergebnismerkmale.
+`_calculate_diffs()` aktiviert Rückgabevergleiche für `post.returns is not UNSPECIFIED`. Der Sentinel ist ein Enum-Mitglied und behält seine Identität beim Kopieren sowie bei Pickle-/Cloudpickle-Serialisierung für Multiprocessing. Explizites `None` wird als Sollwert verglichen. `arena` und `fs` werden nur bei wahrheitswertig gesetzten Feldern verglichen. Ein leerer Zustand prüft damit keine Ergebnismerkmale.
 
 `_compare()` unterstützt `Any`, Unions, Typen, Regex, Callables und verschachtelte Container. Die exakten Regeln stehen in der Semantikreferenz. `EvaluationTrace.diffs` enthält Abweichungen für Rückgaben, Dateien und Arena-Vorlagen. Der Standardreporter kann Details falscher Rückgaben mit falschem Wahrheitswert auslassen, obwohl diese verglichen wurden.
 
