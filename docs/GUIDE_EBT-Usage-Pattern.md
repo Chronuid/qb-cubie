@@ -180,7 +180,7 @@ Das Prädikat erhält einen `Path` im noch bestehenden Workspace. Nach dem Vergl
 
 ## Virtuelle Umgebungen
 
-Für ein vorhandenes, eigens vorbereitetes Basis-Environment kann `arena=PyVenv("tests/.arenas/qa_env")` verwendet werden. Die Umgebung muss zur Maschine passen; die eingecheckte Basis ist kein portabler Installationsvertrag. `PyVenv` kann fehlende Codec-Abhängigkeiten in der Basis nachinstallieren.
+Für ein vorhandenes, eigens vorbereitetes Basis-Environment kann `arena=PyVenv("tests/.arenas/qa_env")` verwendet werden. Die Umgebung muss zur Maschine passen und wird lokal provisioniert. `PyVenv` prüft die Codec-Abhängigkeiten ohne Installation; fehlende Pakete müssen vorher ausdrücklich mit dem `ArenaBuilder` installiert werden. Das [Arena-Handbuch](GUIDE_Arena-Management.md#provisionierung-der-testbasen) beschreibt den Vorbereitungsschritt für die Repository-Tests.
 
 Eine erwartete Umgebungsänderung lässt sich über `post=WorldState(arena="tests/.arenas/expected_env")` gegen einen vorhandenen Vergleichspfad prüfen. Das ist ein gefilterter Dateivergleich, kein Beleg korrekter Paketauflösung. Näheres erläutert das [Arena-Handbuch](GUIDE_Arena-Management.md). Beide vorhandenen Arenen führen nur vertrauenswürdigen Code aus und bilden keine OS-Sicherheitsgrenze.
 

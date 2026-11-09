@@ -30,13 +30,13 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 ## PyVenv
 
-`PyVenv(env_path=..., codec=None, decontams=None, custom_id=None)` verwendet standardmäßig `MSGspecCodec`. `setup()` wählt den Basispfad aus `pre.arena`, wenn dort ein String steht, sonst aus `env_path`. Fehlende Codec-Abhängigkeiten können vor dem Kopieren in der Basis nachinstalliert werden. Die Basis ist somit nicht zwingend unveränderlich.
+`PyVenv(env_path=..., codec=None, decontams=None, custom_id=None)` verwendet standardmäßig `MSGspecCodec`. `setup()` wählt den Basispfad aus `pre.arena`, wenn dort ein String steht, sonst aus `env_path`. Es prüft Codec-Abhängigkeiten ausschließlich lesend und meldet fehlende Anforderungen vor dem Kopieren. Installation und Änderungen an der Basis gehören zum ausdrücklichen Provisionierungsschritt.
 
 `workspace_path` bezeichnet den temporären Arbeitsordner und `virtual_path` dessen kopierte `.venv`. Das Target läuft mit dem Interpreter dieser Kopie. `get_state()` liefert den Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` und kann Pakete installieren. `.build()` liefert eine `PyVenv`-Instanz. Basisumgebungen sind durch die Root-`.gitignore` ausgeschlossen und werden lokal erzeugt. Das gilt auch für den Standardpfad `src/cubie/arenas/arena_envs/empty_test_env`; ein frischer Checkout enthält dort keine virtuelle Umgebung.
+Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter. `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Basisumgebungen sind durch die Root-`.gitignore` ausgeschlossen. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch den `PyVenv()`-Standardpfad. Pytest selbst provisioniert keine gemeinsamen Basen.
 
 ## IPCC und Codec-Auswahl
 

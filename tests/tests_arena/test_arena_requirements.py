@@ -1,4 +1,4 @@
-"""Provisioning reuses complete environments and still repairs missing packages."""
+"""Only explicit provisioning installs packages; arena setup validates its base."""
 
 import subprocess
 import sysconfig
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from cubie import EBT, PyVenv, WorldState
+from cubie import EBT, CloudpickleCodec, PickleCodec, PyVenv, WorldState
 from cubie.arenas._requirements import _environment_python, _requirements_satisfied
 from cubie.arenas.pyvenv import ArenaBuilder
 
@@ -108,38 +108,69 @@ def installer_calls(monkeypatch):
 def test_builder_checks_new_packages_and_changed_versions(base_env, installer_calls):
     add_distribution(base_env)
     builder = ArenaBuilder(str(base_env)).with_packages(["demo>=1"])
-    builder.build()
+    builder.build(codec=PickleCodec())
     assert installer_calls == []
     builder.with_packages(["missing"])
-    builder.build()
+    builder.build(codec=PickleCodec())
     assert installer_calls[-1][3:5] == ["demo>=1", "missing"]
-    ArenaBuilder(str(base_env)).with_packages(["demo>=2"]).build()
+    ArenaBuilder(str(base_env)).with_packages(["demo>=2"]).build(codec=PickleCodec())
     assert installer_calls[-1][3] == "demo>=2"
 
 
 @pytest.mark.parametrize(("requirement", "version"), [
     ("msgspec", None), ("msgspec>=2", "1.0"), ("msgspec>=1", "1.0"),
 ])
-def test_codec_provisioning_retains_install_fallback(
+def test_setup_validates_codec_without_installing(
     base_env, installer_calls, requirement, version,
 ):
     if version:
         add_distribution(base_env, name="msgspec", version=version)
     arena = PyVenv(env_path=str(base_env))
     arena.codec.requirements = [requirement]
-    arena._ensure_codec_requirements(base_env)
+    before = {p.relative_to(base_env): p.read_bytes()
+              for p in base_env.rglob("*") if p.is_file()}
     if requirement == "msgspec>=1":
-        assert installer_calls == []
+        try:
+            arena.setup(WorldState())
+            assert arena.virtual_path.is_dir()
+        finally:
+            arena.teardown()
     else:
+        with pytest.raises(RuntimeError, match=r"ArenaBuilder.*build\(codec=codec\)"):
+            arena.setup(WorldState())
+        assert arena.workspace_path is None
+    assert installer_calls == []
+    assert before == {p.relative_to(base_env): p.read_bytes()
+                      for p in base_env.rglob("*") if p.is_file()}
+
+
+@pytest.mark.parametrize("codec", [None, CloudpickleCodec(), PickleCodec()])
+def test_builder_provisions_selected_codec(base_env, installer_calls, codec):
+    arena = ArenaBuilder(str(base_env)).build(codec=codec)
+    if codec is not None:
+        assert arena.codec is codec
+    requirements = arena.codec.requirements
+    if requirements:
         assert installer_calls == [[
-            "uv", "pip", "install", requirement, "--python",
+            "uv", "pip", "install", *requirements, "--python",
             str(_environment_python(base_env)),
         ]]
+    else:
+        assert installer_calls == []
+
+
+def test_setup_checks_overridden_base_before_creating_workspace(base_env, installer_calls):
+    # The configured path must not hide an incomplete pre.arena override.
+    arena = PyVenv(env_path="unused-configured-base")
+    with pytest.raises(RuntimeError, match="Arena codec requirements are not satisfied"):
+        arena.setup(WorldState(arena=str(base_env)))
+    assert installer_calls == []
+    assert arena.workspace_path is None
 
 
 def test_installer_arguments_are_delegated_unchanged(base_env, installer_calls):
     packages = ["-r", "requirements.txt"]
-    ArenaBuilder(str(base_env)).with_packages(packages).build()
+    ArenaBuilder(str(base_env)).with_packages(packages).build(codec=PickleCodec())
     assert installer_calls[0][3:5] == packages
 
 

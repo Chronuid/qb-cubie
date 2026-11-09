@@ -50,7 +50,11 @@ class PyVenv:
         __tracebackhide__ = True
         self._config_state = state
         base_env = Path(state.arena) if isinstance(state.arena, str) else self.env_path
-        if not base_env.exists(): raise RuntimeError(f"STATE-GUARD: Base arena not found: {base_env}")
+        if not base_env.exists():
+            raise RuntimeError(
+                f"STATE-GUARD: Base arena not found: {base_env}. "
+                "Provision it explicitly with ArenaBuilder(path).build() before running PyVenv."
+            )
         self._ensure_codec_requirements(base_env)
         self.workspace_path = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_"))
         if self.workspace_path is None: raise RuntimeError("STATE-GUARD: Missing virtual environment.")
@@ -106,26 +110,22 @@ class PyVenv:
             else: shutil.copy2(source, target)
 
     def _ensure_codec_requirements(self, base_env_path: Path) -> None:
-        """Checks and injects the codec's side packages into the base arena."""
+        """Validates codec dependencies without installing or modifying the base."""
         requirements = getattr(self.codec, "requirements", [])
         if not requirements: return
         python_exe = _environment_python(base_env_path)
         if _requirements_satisfied(python_exe, requirements): return
-        try:
-            subprocess.run(
-                args= ["uv", "pip", "install", *requirements, "--python", str(python_exe)],
-                check=True,
-                capture_output=True
-            )
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Could not install codec requirements {requirements}: {e.stderr.decode()}")
+        raise RuntimeError(
+            f"Arena codec requirements are not satisfied in {base_env_path}: {requirements}. "
+            "Provision the base explicitly with "
+            "ArenaBuilder(path).build(codec=codec) before running PyVenv. "
+            "PyVenv.setup() does not install packages."
+        )
 
     def _get_python_exe(self) -> None:
         __tracebackhide__ = True
         if self.virtual_path is None: raise RuntimeError("STATE-GUARD: 'virtual_path' was not initialized.")
-        if (self.virtual_path / "bin").exists():  bin_dir = self.virtual_path / "bin"
-        else: bin_dir = self.virtual_path / "Scripts"
-        exe = bin_dir / "python"
+        exe = _environment_python(self.virtual_path)
         if not exe.exists(): raise RuntimeError(f"Python Arena missing: {exe}")
         self._python_exe = exe
 
@@ -265,12 +265,14 @@ class ArenaBuilder:
         self._packages.extend(packages)
         return self
 
-    def build(self) -> PyVenv:
-        """Constructs the physical environment if necessary and returns a ready-to-use PyVenv instance."""
+    def build(self, codec: Optional[IPCC] = None) -> PyVenv:
+        """Explicitly provisions packages and codec dependencies, then returns the arena."""
         __tracebackhide__ = True
+        arena = PyVenv(env_path=str(self.env_path), codec=codec)
         self._ensure_venv_exists()
-        if self._packages: self._install_packages()
-        return PyVenv(env_path=str(self.env_path))
+        packages = list(dict.fromkeys([*self._packages, *getattr(arena.codec, "requirements", [])]))
+        if packages: self._install_packages(packages)
+        return arena
 
     # ----- Utilities --------------------------------------------------------------------------------------------------
 
@@ -279,20 +281,24 @@ class ArenaBuilder:
         __tracebackhide__ = True
         if self.env_path.exists(): return
         self.env_path.parent.mkdir(parents=True, exist_ok=True)
-        try: subprocess.run(["uv", "venv", str(self.env_path), "--seed"], check=True, capture_output=True)
+        try:
+            subprocess.run(
+                ["uv", "venv", str(self.env_path), "--python", sys.executable],
+                check=True, capture_output=True,
+            )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"ArenaBuilder failed to create venv:\n{e.stderr.decode()}")
 
-    def _install_packages(self) -> None:
-        """Installs the registered packages sequentially using the arena's isolated uv pip."""
+    def _install_packages(self, packages: list[str]) -> None:
+        """Installs the requested packages and codec dependencies in the base."""
         __tracebackhide__ = True
         python_exe = _environment_python(self.env_path)
-        if _requirements_satisfied(python_exe, self._packages): return
+        if _requirements_satisfied(python_exe, packages): return
         try:
             subprocess.run(
-                ["uv", "pip", "install", *self._packages, "--python", str(python_exe)],
+                ["uv", "pip", "install", *packages, "--python", str(python_exe)],
                 check=True,
                 capture_output=True
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"ArenaBuilder failed to install packages {self._packages}:\n{e.stderr.decode()}")
+            raise RuntimeError(f"ArenaBuilder failed to install packages {packages}:\n{e.stderr.decode()}")

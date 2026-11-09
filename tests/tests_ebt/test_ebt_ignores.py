@@ -81,7 +81,7 @@ def test_empty_arena_ignores_red():
     """Verifies: Wiping ARENA_IGNORES strictly forces PyVenv to evaluate all volatile environment metadata."""
     ebt_run = EBT(
         target=install_package,
-        pre=WorldState(args="cowsay", arena=PyVenv(BASE_ARENA)),
+        pre=WorldState(args="cowsay==6.1", arena=PyVenv(BASE_ARENA)),
         post=WorldState(
             returns=True,
             arena=PyVenv(COWSAY_ARENA) # Asserting against the Arena explicitly

@@ -24,9 +24,43 @@ Target-Exceptions werden mit einem Hinweis auf den Kindprozess-Traceback weiterg
 
 `PyVenv(env_path)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
 
-Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. Verwende eine eigens provisionierte Umgebung und dokumentiere deren Paketversionen. Fehlende Codec-Anforderungen kann `setup()` per `uv pip install` in der **Basisumgebung** nachinstallieren; das kann schreiben, Netzwerkzugriff benötigen und bei parallelen Tests konkurrieren.
+Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
 
-Der vorhandene `ArenaBuilder` wird über `from cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build()` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt. Provisionierung sollte ein ausdrücklich geplanter Vorbereitungsschritt sein; sie ist kein rein lesender Testaufbau.
+Der `ArenaBuilder` wird über `from cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
+
+```python
+from cubie import CloudpickleCodec
+from cubie.arenas.pyvenv import ArenaBuilder
+
+# Einmaliger Installationsschritt vor den Tests:
+arena = ArenaBuilder(".arenas/my_env").with_packages([
+    "cloudpickle==3.1.2",
+]).build(codec=CloudpickleCodec())
+```
+
+Bei späteren Läufen genügt `PyVenv(".arenas/my_env", codec=CloudpickleCodec())`. Ein Wechsel des Codecs kann erneute ausdrückliche Provisionierung erfordern. Auch ein Basispfad aus `pre.arena` muss bereits vollständig vorbereitet sein.
+
+### Provisionierung der Testbasen
+
+Nach `uv sync --locked --extra dev` im Repository ausführen:
+
+```bash
+.venv/bin/python scripts/provision_test_arenas.py
+.venv/bin/python -m pytest -q
+```
+
+Unter Windows den Projektinterpreter `.venv\Scripts\python.exe` verwenden. Das Skript erzeugt folgende ignorierten Verzeichnisse:
+
+| Basis | Pakete zusätzlich zur Python-Standardbibliothek |
+| --- | --- |
+| `src/cubie/arenas/arena_envs/empty_test_env` (`PyVenv()`-Standard) | `msgspec==0.22.0`, `cloudpickle==3.1.2` |
+| `tests/.arenas/empty_venv` | dieselben Codec-Pakete |
+| `tests/.arenas/cowsay_env` | Codec-Pakete und `cowsay==6.1` |
+| `tests/.arenas/linter_env` | Codec-Pakete und `pylint==4.1.3` samt Abhängigkeiten |
+
+Die Codec- und Pylint-Versionen entsprechen `uv.lock`; transitive Arena-Abhängigkeiten löst `uv` während der Provisionierung auf. Das Skript darf wiederholt werden und installiert nur bei nicht erfüllten Anforderungen. Es entfernt keine zusätzlichen Pakete aus bestehenden Basen. Für einen sauberen Neuaufbau die betreffenden generierten Verzeichnisse entfernen und das Skript erneut aufrufen, insbesondere nach einem Python- oder Maschinenwechsel. Provisionierung vor parallelen Testläufen abschließen; nicht gleichzeitig auf dieselben Basen provisionieren.
+
+Pytest ruft die Provisionierung nicht automatisch auf. Die Tests für Paketmutationen installieren beziehungsweise deinstallieren absichtlich `cowsay` **im temporären Klon** und benötigen weiterhin `uv` sowie einen passenden Paketcache oder Netzwerkzugriff. Die Offline-Regressionen in `tests/test_offline_core.py` verwenden eigene Fixtures ohne Download.
 
 Eine Umgebungsänderung kann über `post.arena` gegen einen vorhandenen Vergleichspfad geprüft werden. Der Vergleich ignoriert unter anderem Startskripte, Caches und `.dist-info`. Ein solcher Dateiabgleich beweist keine semantische Gleichheit oder korrekte Paketauflösung.
 

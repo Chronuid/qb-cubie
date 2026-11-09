@@ -1,4 +1,4 @@
-"""Read-only checks before provisioning an arena's Python dependencies."""
+"""Read-only dependency checks for arena provisioning and runtime validation."""
 
 import json
 import os
@@ -62,7 +62,7 @@ def _requirements_satisfied(python_exe: Path, requirements: list[str]) -> bool:
     """
     if not requirements:
         return True
-    # Provisioning runs on the host. Import lazily so importing Cubie inside a
+    # Dependency checks run on the host. Import lazily so importing Cubie inside a
     # minimal arena does not require packaging in that arena as well.
     from packaging.requirements import InvalidRequirement, Requirement
     from packaging.specifiers import InvalidSpecifier, SpecifierSet

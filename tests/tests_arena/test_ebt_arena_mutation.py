@@ -18,7 +18,7 @@ PKG_ARENA = "tests/.arenas/cowsay_env"
 def target_install_package() -> bool:
     """Installs a package dynamically at runtime inside the arena."""
     subprocess.run(
-        ["uv", "pip", "install", "cowsay", "--python", sys.executable],
+        ["uv", "pip", "install", "cowsay==6.1", "--python", sys.executable],
         check=True, capture_output=True
     )
     return True

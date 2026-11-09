@@ -28,6 +28,16 @@ python3.13 -m venv .venv
 
 Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --extra dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
 
+Die Repository-Tests benötigen zusätzlich lokal provisionierte Arena-Basen und `uv` im `PATH`:
+
+```bash
+uv sync --locked --extra dev
+.venv/bin/python scripts/provision_test_arenas.py
+.venv/bin/python -m pytest -q
+```
+
+Die Provisionierung ist ein eigener Installationsschritt und kann Netzwerkzugriff benötigen. `PyVenv.setup()` prüft die Codec-Abhängigkeiten und kopiert die Basis, ohne Pakete zu installieren. Die erzeugten Pfade, Paketversionen und Wiederholung des Schritts beschreibt das [Arena-Handbuch](./docs/GUIDE_Arena-Management.md#provisionierung-der-testbasen).
+
 Speichere dieses vollständige Beispiel als `test_tax.py`:
 
 ```python

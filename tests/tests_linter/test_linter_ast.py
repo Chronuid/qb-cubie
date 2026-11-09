@@ -1,6 +1,6 @@
+import cubie
 import pytest, sys
 from pathlib import Path
-import cubie.arenas.pyvenv
 from cubie.protocols import WorldState
 from cubie.ebt import EBT
 from cubie import TempFS, PyVenv, AstLinter, Pylint
@@ -97,8 +97,6 @@ def test_executable_override_is_strict():
 
 
 ARENA_PATH = "tests/.arenas/linter_env"
-@pytest.fixture(scope="module", autouse=True)
-def setup_linter_arena(): cubie.arenas.pyvenv.ArenaBuilder(ARENA_PATH).with_packages(["pylint"]).build()
 
 
 # --- 1. Markdown artifacts (Should fail) ---
