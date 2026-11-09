@@ -1,130 +1,49 @@
-<center>
+# Arenen und IPC-Codecs
 
-# `Arenas` 
+Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen.
 
-![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+## Arena-Protokoll und Lebenszyklus
 
-Arenen bilden die physische Ausführungsschicht innerhalb der Cubie-Architektur. Während die `EBT`-Klasse die formallogische Ebene (die Beweisführung) orchestriert, übernehmen die Arenen die Rolle des isolierten Labors. Sie garantieren, dass Seiteneffekte, Datei-Installationen oder veränderte Umgebungsvariablen das Host-System nicht kompromittieren.
-</center>
+`cubie.protocols.Arena` verlangt:
 
----
+- `workspace_path`: Pfad des vorbereiteten Workspace, vorher gegebenenfalls `None`.
+- `setup(state)`: Erstellt die Umgebung und kopiert deklarierte Dateiquellen.
+- `execute(target, args, kwargs)`: Führt das Target aus und liefert den Rückgabewert.
+- `get_state()`: Liefert einen `WorldState` mit Rückgabe und aktuellen Workspace-/Umgebungspfaden.
+- `teardown()`: Entfernt die temporäre Umgebung.
 
-## Das `Arena`-Protokoll
+EBT erfasst den Zustand und vergleicht die Dateien vor `teardown()`. In Traces gespeicherte Pfade sind danach keine persistenten Dateiartefakte. Aufräumen entfernt keine externen Seiteneffekte und stellt nicht den gesamten Hostzustand wieder her.
 
-Alle Arenen in Cubie implementieren ein striktes, einheitliches Interface (`protocols.Arena`). Dieses Protokoll entkoppelt die EBT-Engine von den technischen Details der Sandbox-Generierung und forciert ein lineares Pipeline-Pattern (State-Guard Pattern).
+## TempFS
 
-### Kern-Methoden des Lebenszyklus
+`TempFS(custom_id=None)` startet mit `sys.executable` einen frischen Kindprozess, dessen CWD der Workspace ist. Der Elternprozess ändert sein CWD nicht. Das Callable und seine Argumente sowie Ergebnisse werden mit Cloudpickle übertragen. Mutationen an normalen Python-Objekten im Kind werden nicht zurückgespiegelt. IPC-Dateien liegen außerhalb des Workspace.
 
-*   **`setup(state: WorldState)`:**
-    Der Initialzünder der Pipeline. Die Arena empfängt den vollständigen `WorldState` des aktuellen Pre-States (Konfigurations-Zustand). Hier entscheidet die Arena, wie sie den geforderten Dateisystem-Zustand (`fs`) und gegebenenfalls den Basis-Umgebungszustand (`arena`) physisch auf der Festplatte (meist in `tempfile.mkdtemp`) aufbaut.
-*   **`execute(target, args, kwargs)`:**
-    Führt das übergebene Callable im Kontext des vorbereiteten Workspace aus. Abhängig vom Arena-Typ passiert dies als direkter Methodenaufruf mit verbogenem `CWD` oder via Interprozesskommunikation (IPC) in einem vollständig isolierten Subprozess.
-*   **`get_state() -> WorldState`:**
-    Die Aggregationsphase. Die Arena sammelt die funktionalen Return-Werte und die mutierten, absoluten Pfade vom physischen Workspace ein und verpackt diese zu einem neuen `WorldState`-Objekt (Prozessierungs-Zustand). Dieses Objekt repräsentiert die "echte Realität" und wird an die EBT-Engine zur Evaluierung übergeben.
-*   **`teardown()`:**
-    Zerstört die isolierte Umgebung restlos und bereinigt den Arbeitsspeicher sowie die Festplatte.
+Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()` kapselt bei eigenständiger Nutzung Aufbau, Ausführung und Aufräumen. EBT verwendet stattdessen die einzelnen Protokollmethoden, damit der Vergleich vor dem Aufräumen stattfinden kann.
 
----
+## PyVenv
 
-## Der Identifikations- und ID-Mechanismus
+`PyVenv(env_path=..., codec=None, decontams=None, custom_id=None)` verwendet standardmäßig `MSGspecCodec`. `setup()` wählt den Basispfad aus `pre.arena`, wenn dort ein String steht, sonst aus `env_path`. Fehlende Codec-Abhängigkeiten können vor dem Kopieren in der Basis nachinstalliert werden. Die Basis ist somit nicht zwingend unveränderlich.
 
-Um isolierte Umgebungen präzise nachverfolgen zu können (z.B. beim Debugging in temporären Verzeichnissen), implementieren alle nativen Cubie-Arenen (`PyVenv` und `TempFS`) ein standardisiertes ID-Muster.
+`workspace_path` bezeichnet den temporären Arbeitsordner und `virtual_path` dessen kopierte `.venv`. Das Target läuft mit dem Interpreter dieser Kopie. `get_state()` liefert den Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
 
-* **`custom_id`:** Ein optionaler String, der der Arena bei der Instanziierung mitgegeben werden kann. Wird kein Wert übergeben, fällt dieser auf den kleingeschriebenen Klassennamen zurück (z.B. `"pyvenv"` oder `"tempfs"`). Dies erlaubt es, spezifischen Testläufen einen semantischen Kontext zu geben.
-* **`arena_id`:** Ein intern generierter String, der die absolute Eindeutigkeit der Instanz garantiert. Er setzt sich aus dem Präfix `cubie_arena_`, der `custom_id` und einem 8-stelligen Hexadezimal-Code (via `uuid.uuid4()`) zusammen. Diese ID wird genutzt, um die temporären Verzeichnisse via `tempfile.mkdtemp(prefix=...)` kollisionsfrei und eindeutig zu benennen.
+`_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
----
+Der `ArenaBuilder` aus `cubie.arenas.pyvenv` provisioniert Basen über `uv` und kann Pakete installieren. `.build()` liefert eine `PyVenv`-Instanz. Die eingecheckte Standardbasis ist kein zugesicherter portabler Ersatz für diesen Vorbereitungsschritt.
 
-## `class PyVenv` (Vollständige Isolation)
+## IPCC und Codec-Auswahl
 
-Die `PyVenv`-Arena ist das Schwergewicht für maximale Sicherheit und Umgebungskontrolle. Sie nutzt `uv`, um flüchtige Klone von Python Virtual Environments zu erstellen und das Target in einem dedizierten Subprozess auszuführen.
+Das `IPCC`-Protokoll definiert `file_suffix`, `requirements`, `dump(obj, path)`, `load(path)` und `get_runner_snippet(in_path, out_path)`.
 
-### Architektonische Eigenschaften
+`MSGspecCodec` nutzt MessagePack für unterstützte Payloads und eine Modul-/Namensreferenz für das Target. `PickleCodec` verwendet Python-Pickle. `CloudpickleCodec` unterstützt zusätzliche dynamische Callables und Objektzustände; dabei können auch Host-Abhängigkeiten in den Payload gelangen. Sein `isolation`-Parameter bietet derzeit keine zusätzliche Dependency-Isolation: `_apply_dependency_isolation()` ist ein leerer Platzhalter.
 
-*   **IPC via Codec:** Da das Target in einem Subprozess läuft, können Eingaben (Args, Kwargs) und funktionale Ausgaben (Returns) nicht direkt übergeben werden. Die Arena nutzt das `IPCC`-Protokoll (Standartmäßig `MSGspecCodec`), um Daten zustandslos und sicher zwischen dem Host-Prozess (Cubie) und der Sandbox hin- und herzureichen.
-*   **Der `arena`-Override:** Befindet sich im deklarierten Pre-State ein String im Attribut `WorldState.arena`, wird dieser als Pfad zu einer Base-Arena interpretiert. `PyVenv` klont dynamisch dieses spezifische Environment anstelle des global bei der Instanziierung definierten Defaults.
-*   **Flakiness-Schutz (Volatility Ignorance):** Virtual Environments sind voll von volatilen Metadaten, die beim Byte-Diffing zu False-Positives führen. EBT und `PyVenv` nutzen einen bidirektionalen Filter, der Skripte mit absoluten Pfaden (`bin/`, `pyvenv.cfg`) sowie Caches und Paket-Metadaten (`__pycache__`, `.dist-info`) systematisch ausklammert. Die Evaluierung fokussiert sich rein auf die semantischen Modifikationen (wie neu hinzugefügte Quellcodes im `site-packages`-Ordner).
+Post-Prädikate werden beim normalen Arena-Lauf auf dem Host ausgewertet und verlangen für sich keinen bestimmten Arena-Codec. Werden sie durch EBT-Multiprocessing an Worker übertragen, gilt zusätzlich die Serialisierungsanforderung dieses Backends.
 
-### `PyVenv`-Attribute
+Pickle/Cloudpickle-Deserialisierung kann Code ausführen. MessagePack reduziert diesen konkreten Angriffsweg, schafft aber weder eine OS-Sicherheitsgrenze noch eine vertrauenswürdige Ergebnisquelle für bösartige Targets.
 
-#### Konfigurations-Attribute
-* **`PyVenv.env_path`:** Speichert den Pfad zur Basis-Arena, die als Vorlage für den flüchtigen Klon dient, als `Path`-Objekt.
-* **`PyVenv.codec`:** Eine Instanz des `IPCC`-Protokolls (standardmäßig `MSGspecCodec`), verantwortlich für die Serialisierung und Deserialisierung der I/O-Daten zwischen dem Host und der isolierten Umgebung.
-* **`PyVenv.custom_id`** & **`PyVenv.arena_id`:** Die Identifikations-Attribute für die semantische Benennung und das garantierte Tracing vom temporären Workspace.
+## Identifikation und Betriebsgrenzen
 
-#### Dekontamination & Phantom-Middleware (State-Guard)
+`custom_id` fließt in `arena_id` mit einem achtstelligen UUID-Anteil ein. Temporäre Verzeichnisse erhalten zusätzlich von `tempfile.mkdtemp` erzeugte Namen. Die IDs helfen bei der Zuordnung; sie sind kein Beweis absoluter Eindeutigkeit.
 
-Um das isolierte Environment vor ungewollten Import-Ästen des Host-Systems zu schützen, nutzt `PyVenv` eine injizierte Middleware (`_cubie_phantom.py`).
-* **Das `decontams` Attribut:** Eine Liste an Strings (Modulnamen), die dem Konstruktor übergeben wird (z.B. `decontams=["heavy_data_lib"]`). Die Arena erweitert diese Liste standardmäßig um Test-Frameworks wie `pytest`.
-* **Der Phantom-Hook:** Bevor das Target im Subprozess importiert wird, klinkt sich ein `MetaPathFinder` in das Importsystem ein. Versucht der Code, ein in `decontams` gelistetes Modul zu laden, wird der Import lautlos durch ein `PhantomObject` gemockt.
-* **Sicherheit:** Dies schützt ausschließlich den Import-Ast, um das Target sauber zu extrahieren. Greift die Laufzeit-Logik aktiv auf ein Phantom-Objekt zu, stürzt der Testlauf formallogisch korrekt ab.
+Es gibt keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puffert die gesamte Standardausgabe und Fehlerausgabe. Dateiziele werden nicht auf den Workspace begrenzt; absolute Pfade und `..` können außerhalb schreiben. Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
-#### Pfad- und Zustands-Attribute
-* **`PyVenv.workspace_path`:** Hält den absoluten Pfad (`Path`) zum temporär generierten Verzeichnis für den aktuellen Testlauf. 
-* **`PyVenv.virtual_path`:** Zeigt direkt auf das isolierte `.venv`-Verzeichnis innerhalb vom Workspace, welches den dynamischen Klon darstellt.
-
-#### Prozessierungs-Attribute
-* **`PyVenv._config_state`:** Referenziert das bei der `setup()`-Methode übergebene `WorldState`-Objekt (den deklarierten Pre-State).
-* **`PyVenv._actual_returns`:** Zwischenspeicher für die funktionalen Rückgabewerte des Targets nach dem erfolgreichen Abschluss des Subprozesses.
-* **Interne Subprozess-Kontrolle:** Variablen wie `_python_exe`, `_env_vars`, `_in_path` (Input-Datei für IPC), `_out_path` (Output-Datei für IPC) und `_process` kapseln den genauen Zustand und die Interaktion mit dem Systemprozess.
-
-### Das IPCC-Protokoll & Codec-Design
-
-Da das Target in einem Subprozess läuft, können Eingaben (Args, Kwargs) und funktionale Ausgaben (Returns) nicht nativ übergeben werden. Die Arena nutzt das `IPCC`-Protokoll (Inter-Process Communication Codec), um Daten zustandslos und sicher zwischen dem Host-Prozess (Cubie) und der Sandbox zu serialisieren und zu rehydrieren. 
-
-Die Wahl des Codecs ist ein architektonischer Trade-off zwischen Performance, Feature-Unterstützung und Sandbox-Integrität:
-
-#### 1. `MSGspecCodec` (Strict Isolation & Performance)
-Der Standard-Codec der `PyVenv`-Arena. Er nutzt hochoptimierte MessagePack-Serialisierung.
-*   **Vorteile:** Rasend schnell und sichert die Host-Isolation, da nur primitive Werte übergeben werden.
-*   **Limitierungen:** Er ist physikalisch unfähig komplexe Instanz-Zustände zu verarbeiten. 
-*   **UX-Design:** Trifft der Codec auf ein nicht unterstütztes Objekt, wirft er keinen kryptischen Traceback, sondern fängt den Fehler ab und empfiehlt dem Entwickler über eine formattierte `TypeError`-Nachricht den Wechsel auf den `CloudpickleCodec` oder die Simplifizierung des Payloads.
-
-#### 2. `CloudpickleCodec` (Feature Parity & Complexity)
-Dieser Codec wird explizit genutzt, wenn erweiterte EBT-Patterns (wie Lambdas für dynamische Post-Conditions oder Instanzen mit komplexen `__dict__`-States) über die Prozessgrenze transferiert werden müssen.
-*   **Die Isolations-Herausforderung:** `cloudpickle` bricht prinzipbedingt die strikte Sandbox-Prämisse. Es arbeitet "greedy" (gierig) und serialisiert nicht nur das Target, sondern zieht oft Teile des Host-Scopes und der Import-Referenzen mit in den Stream.
-*   **Isolations-Grade:** Der Codec besitzt einen `isolation`-Parameter im Konstruktor. 
-    *   `isolation=0`: Führt eine chirurgische Extraktion (Surgical Pickling) des Targets durch, wendet aber keine tieferen Schutzmechanismen gegen Dependency-Leaks an.
-    *   `isolation=1` (Default): Ein architektonischer Platzhalter für zukünftige Iterationen, in denen das Pickling-Verhalten so modifiziert werden soll, dass Host-Site-Packages strikt von der Arena ferngehalten werden.
-
-### Der `ArenaBuilder` (Provisioning)
-
-Um Test-Code nicht mit Setup-Boilerplate zu überladen, stellt das Modul den `ArenaBuilder` bereit. Über ein Fluent Interface können Base-Environments deklarativ generiert werden (inklusive der Installation von Drittanbieter-Bibliotheken via `uv pip`).
-
-`ArenaBuilder("tests/.arenas/ollama_env").with_packages(["ollama"]).build()`
-
----
-
-## `class TempFS` (Lightweight IO-Sandbox)
-
-Die `TempFS`-Arena ist die performante, leichtgewichtige Alternative für Programmsegmente, die I/O-Operationen ausführen, aber keine isolierten Python-Abhängigkeiten benötigen.
-
-### Architektonische Eigenschaften
-
-* **Kindprozess mit Host-Interpreter:** `TempFS.execute()` startet für jeden Aufruf einen frischen Prozess über `sys.executable`. `subprocess.run(cwd=workspace_path)` setzt ausschließlich das CWD des Kindprozesses. Der Aufrufer führt kein `os.chdir()` aus; unabhängige Arena-Instanzen können aus mehreren Threads aufgerufen werden.
-* **IPC und Objektzustand:** Cloudpickle überträgt Target, Argumente, Rückgaben und Exceptions. Python-Objektmutationen werden nicht in den Aufrufer zurückgespiegelt; Rückgaben besitzen eine neue Identität. Die installierten Pakete des Host-Interpreters bleiben verfügbar. IPC-Dateien liegen in einem separaten temporären Verzeichnis, das auch bei Fehlern entfernt wird.
-* **Beschränkung auf die Dateisystem-Topologie:** Die Arena ist ausschließlich für das Mapping und Verifizieren der Festplattenstruktur (`WorldState.fs`) konzipiert.
-* **Schutz durch Warnungen:** Wenn ein Nutzer versucht, eine komplexe Umgebungssimulation über das Attribut `WorldState.arena` in eine `TempFS`-Instanz zu injizieren, wirft die Klasse eine dedizierte Laufzeitwarnung und verweist architektonisch auf die Nutzung von `PyVenv`.
-
-### `TempFS`-Attribute
-
-#### Konfigurations-Attribute
-* **`TempFS.custom_id`** & **`TempFS.arena_id`:** Steuern – exakt wie bei `PyVenv` – die eindeutige Namensgebung des flüchtigen `tempfile`-Verzeichnisses für das Dateisystem.
-
-#### Pfad- und Zustands-Attribute
-* **`TempFS.workspace_path`:** Der absolute Pfad (`Path`) zum temporären Ordner, in den die in `WorldState.fs` deklarierten Dateien der Topologie projiziert werden.
-* Das Host-CWD wird nicht gespeichert oder wiederhergestellt, da `TempFS` es nicht verändert. Für jeden gleichzeitig aktiven Lebenszyklus wird eine eigene Instanz benötigt.
-
-#### Prozessierungs-Attribute
-* **`TempFS._config_state`:** Referenziert den durch die EBT-Engine übergebenen initialen Pre-State.
-* **`TempFS._actual_returns`:** Speichert den deserialisierten Rückgabewert des Targets. Übertragene Exceptions werden mit ihrem Typ und einem angehängten Remote-Traceback erneut ausgelöst; ein Prozessende ohne vollständiges Ergebnis wird als `RuntimeError` gemeldet.
-
----
-
-<center>
-
-![Error while trying to load the image](docs/.assets/cubie-small.png) 
-
-</center>
-
----
+Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.

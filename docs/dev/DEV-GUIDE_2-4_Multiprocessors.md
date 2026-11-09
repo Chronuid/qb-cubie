@@ -2,9 +2,9 @@
 
 # `Multiprocessors` 
 
-![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+![Error while trying to load the image](../.assets/cubie-logo-written.png)
 
-Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skalierung von Cubie. Es entkoppelt die formallogische Auswertung (EBT) vollständig von den physischen Details der Prozess-Erstellung, Inter-Prozess-Kommunikation (IPC) und Serialisierung.
+Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skalierung von Cubie. Es entkoppelt die Auswertung konkreter EBT-Beispiele vollständig von den physischen Details der Prozess-Erstellung, Inter-Prozess-Kommunikation (IPC) und Serialisierung.
 </center>
 
 ---
@@ -16,7 +16,7 @@ Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skal
 * **Abstrakte Parallelisierung:** Verteilung von $N$ unabhängigen `pre`-Zuständen auf asynchrone System-Worker, ohne die Makro-Pipeline der `EBT`-Engine mit Threading- oder Subprocess-Logik zu belasten.
 * **Auto-Routing (State Inspection):** Dynamische Analyse der übergebenen Zustände zur Laufzeit, um die Serialisierungs-Strategie zu wählen (z.B. Wechsel auf `cloudpickle`, sobald unpickelbare `lambda`-Funktionen entdeckt werden).
 * **Dependency Injection (DI) Bereitstellung:** Öffnung der Ausführungsschicht durch Protokolle, sodass Entwickler das Standard-Verhalten durch eigene Backends (wie `Celery`, `Ray` oder `joblib`) personalisieren können.
-* **Graceful Degradation (Self-Healing):** Automatische Fehlerbehandlung bei Abstürzen (z.B. Setup-Fehler auf C-Ebene im Pickle-Modul). Das System fängt Laufzeit-Crashs ab, markiert den fehlerhaften Prozessor temporär als inaktiv und weicht stufenlos auf den nächsten Resolver-Kandidaten aus, ohne den Entwickler-Testlauf zu zerstören.
+* **Backend-Fallback:** Bei Setup- und Ausführungsfehlern kann der Manager das Backend deaktivieren und die Aufgabenmenge mit einem anderen Backend erneut ausführen. Fachliche Target-Ausnahmen sind dabei nicht zuverlässig von Infrastrukturfehlern getrennt; bereits ausgeführte Seiteneffekte können wiederholt werden.
 
 ---
 
@@ -69,7 +69,7 @@ Dieses Protokoll (definiert in `protocols.py`) ist der verbindliche Vertrag für
 
 ### PickleProcessor
 Der **Fast-Path** der Cubie-Engine (Priority `1`). 
-Er nutzt die native `multiprocessing`-Bibliothek und deren `ProcessPoolExecutor`. Da der Standard-Pickler keine dynamischen Speicheradressen serialisieren kann, gibt seine `check_condition` nur `True` zurück, wenn der interne `StateInspector` *keine* lokalen Closures oder `lambda`-Funktionen in den WorldStates findet. Er liefert maximalen Durchsatz bei minimalem RAM-Overhead.
+Er nutzt die native `multiprocessing`-Bibliothek und deren `ProcessPoolExecutor`. Da der Standard-Pickler keine dynamischen Speicheradressen serialisieren kann, gibt seine `check_condition` nur `True` zurück, wenn der interne `StateInspector` *keine* lokalen Closures oder `lambda`-Funktionen in den WorldStates findet. Der konkrete Aufwand hängt von Daten, Plattform und Aufgaben ab; ein maximaler Durchsatz ist nicht nachgewiesen.
 
 ### LokyProcessor
 Der **Slow-Path** der Cubie-Engine (Priority `1`).
@@ -174,8 +174,11 @@ Sollte ein absoluter Blackbox-Modus nötig sein, in dem die nativen Fallbacks ph
 
 <center>
 
-![Error while trying to load the image](docs/.assets/cubie-small.png) 
+![Error while trying to load the image](../.assets/cubie-small.png)
 
 </center>
 
 ---
+## Betriebsgrenzen
+
+Die Workerzahl richtet sich nach den gemeldeten CPUs und wird derzeit weder durch die Aufgabenzahl noch durch ein Benutzerlimit begrenzt. Zusammen mit pytest-xdist und Arena-Unterprozessen kann dies erhebliche Überbelegung verursachen. Fallback ist keine Exactly-once-Garantie: Die gesamte Aufgabenmenge kann erneut laufen, auch wenn zuvor einzelne Targets schon Seiteneffekte erzeugt haben. Die heuristische Backend-Auswahl garantiert weder Serialisierbarkeit aller Targets noch Ausführungsisolation. Siehe [Vertragssemantik](../GUIDE_Contract-Semantics.md).

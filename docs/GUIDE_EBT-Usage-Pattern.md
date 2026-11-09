@@ -1,372 +1,177 @@
-# 📖 CUBIE-GUIDE: EBT Usage-Patterns
+# EBT-Nutzungsmuster
 
----
+Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_Contract-Semantics.md) definiert alle Felder, Vergleichsregeln und bekannten Fehler. Verwende für jeden Lauf eine neue EBT-Instanz und explizite, nichtleere Verträge. Die folgenden Python-Blöcke sind vollständige pytest-Beispiele.
 
-## 1. Einfache Nutzungs-Muster und eindeutige Beispiele
+## Konkrete Ein-/Ausgabepaare
 
-### 1.1. In-Memory ohne Ballast
-
+Zusammengehörige Wertepaare werden durch getrennte Verträge geprüft. `pytest.mark.parametrize` erzeugt dafür einen eigenen Testfall pro Paar:
 
 ```python
-# Vollständige Deklaration
-def test_1(): 
-    EBT(
-        target=my_func, 
-        pre=WorldState(args=(1, 2)), 
-        post=WorldState(returns=3)
-    ).run()
-    
-def test_2(): 
-    EBT(
-        target=my_func, 
-        pre=WorldState(kwargs={"x": 1, "y": 2}), 
-        post=WorldState(returns=3)
-    ).run()
-    
-def test_2_red(): 
-    EBT(
-        target=my_func, 
-        pre=WorldState(kwargs={"x": 1, "y": 2}), 
-        post=WorldState(returns=4),
-        expect=False
-    ).run()
+import pytest
+from cubie import EBT, WorldState
 
-def test_3(): 
+
+def double(value):
+    return value * 2
+
+
+@pytest.mark.parametrize("value, expected", [(1, 2), (2, 4), (-1, -2)])
+def test_double(value, expected):
     EBT(
-        arena=PyVenv("envs/custom_env_1"),
-        target=my_func, 
-        pre=WorldState(kwargs={"x": 6}), 
-        post=WorldState(returns=31), 
+        target=double,
+        pre=WorldState(args=(value,)),
+        post=WorldState(returns=expected),
     ).run()
 ```
 
-### 1.2. Datei-Transformationen & Seiteneffekte
+`args=[1, 2]` bedeutet zwei Positionsargumente. Eine Liste als einzelnes Argument wird mit `args=([1, 2],)` übergeben. `kwargs={"value": 1}` übergibt ein Schlüsselwortargument. `target=double` übergibt die Funktion; `target=double(...)` würde sie bereits vor dem Testlauf ausführen.
+
+## Mehrere Eingänge, ein gemeinsames Muster
 
 ```python
-def test_4(): 
+from cubie import EBT, WorldState
+
+
+def normalize(text):
+    return text.strip().lower()
+
+
+def test_normalize():
     EBT(
-        target=my_func,
-        pre=WorldState( # VORBEDINGUNG (P)
-            args=["kalkuel.md"], # Die Argumente für my_func("kalkuel.md")
-            fs={"fixtures/pre/kalkuel.md"} # Welche Dateien werden in die Sandbox kopiert?
-        ),
-        post=WorldState( # NACHBEDINGUNG (Q)
-            returns="Erfolgreich bereinigt", # Für die Roadmap - Optional: Konsolenausgabe prüfen
-            fs={"fixtures/post/kalkuel.md"} # Welchem Soll-Zustand muss die Sandbox danach entsprechen?
-        ), 
-        tags=["optional"]
-    ).run()
-```
-
-#### 1.3. Ganze Ordner / Repositories
-
-Wenn wir ganze Verzeichnisse oder Refactorings prüfen, zeigt das `WorldState`-Muster seine volle Stärke, bleibt aber schlank:
-
-```python
-def test_5(): 
-    EBT(
-        target=Agent.refactor_repo(),
-        arena=PyVenv("envs/qa_env"), # Wo wird ausgeführt? (Arena, optional deklarierbar)
-        pre=WorldState(fs="fixtures/pre/project_x/"), # Copied in als Workspace-Root
-        post=WorldState(
-            fs="fixtures/post/project_x/", # Byte-Vergleich des gesamten Ordners
-            returns=True # Erwarteter Return-Wert des Agents
-        ),
-        tags=["optional"]
-    ).run()
-```
-
-#### 1.4. Das Dictionary-Pattern
-
-Der bisher veranschaulichte Ansatz mit den `pre`- und `post`-Ordnern ist ein reiner Konventions-Ansatz (*Convention over Configuration*). 
-
-Das Dictionary-Pattern hingegen ist ein reiner Konfigurations-Ansatz (IoC) und gibt dir die absolute Kontrolle über die Dateisystem-Topologie.
-
-```python
-def test_6(): 
-    EBT(
-        target=my_func,
-        arena="envs/qa_env",
-        pre=WorldState(
-            args=["--process"], # Das Argument, das die Funktion bekommt
-            fs={
-                "/etc/app/config.yaml": "tests/pre/1_config.yaml",
-                "./data/pre.csv": "tests/pre/1_input.csv"
-            } # Mirror: Arena-Pfad ← Host-Dataset (Echte Kopie)
-        ),
-        post=WorldState(
-            fs={
-                "/etc/app/config.yaml": "tests/post/1_config.yaml", 
-                "./data/pre.csv":     "tests/post/1_input.csv"
-            } # Assert: Erwarteter Endzustand in der Arena ← Post-Dataset
-        )
-    ).run()
-
-```
-
-Das Dictionary-Mapping `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` wird genau dann zur Pflicht, wenn die Struktur deiner Testdaten auf der Festplatte (Host) **nicht** mit der Struktur übereinstimmt, die der Code (Target) während der Ausführung in der Sandbox (Arena) zwingend erwartet.
-
----
-
-## 2. Erweiterte EBT Usage-Patterns
-
-### 2.1. Das Fundament: 1:1 Mapping (Absolute Zuordnung)
-
-Die klassische EBT-Definition, abgeleitet aus dem Hoare-Tripel {P}S{Q}, mappt exakt einen definierten Input auf exakt einen definierten Output.
-Logik: S: P → Q
-Bedeutung: Das Programmsegment transformiert ein isoliertes P-Objekt präzise in ein Q-Objekt.
-
-### 2.2. Die Q-Menge: 1:N Mapping (Der beschränkte Existenzquantor)
-
-In Systemen mit nicht-diskreten, aber validen Lösungsräumen (z.B. definierte Zufallsgeneratoren) mappt ein P-Objekt auf eine Menge von erlaubten Zielzuständen. Der Test leuchtet grün, sobald das Ergebnis von S(P) irgendeinem Element der definierten Menge Q entspricht.
-Logik: ∃ q ∈ Qset : S(P) = q
-Bedeutung: Es existiert mindestens ein Element in der erlaubten Ziel-Menge, das mit dem Output identisch ist.
-Praxis-Beispiel (Datei-Zustände):
-
-#### Cubie Konfiguration für eine Q-Menge
-
-```python
-def test_7():  
-    EBT(
-        target=my_func,
-        pre=WorldState(fs="data/input/1_prompt.md"),
-        post=[
-            WorldState(fs="data/output/1_valid_response_a.md"),
-            WorldState(fs="data/output/1_valid_response_b.md"),
-            WorldState(fs="data/output/1_valid_response_c.md")
-        ]
-    ).run()
-```
-
-Der Testrunner vergleicht den Output gegen alle definierten Elemente der Post-Condition-Liste. Ein einzelner Byte-für-Byte-Match reicht für eine erfolgreiche Verifikation.
-
-### 2.3. Die P-Menge: N:1 Mapping (Der beschränkte Allquantor)
-Häufig müssen unterschiedliche Eingangs-Zustände auf ein und denselben, normierten Ziel-Zustand transformiert werden.
-Logik: ∀ p ∈ Pset : S(p) = Q
-Bedeutung: Für alle definierten Elemente der Eingabe-Menge muss die Funktion exakt denselben Ziel-Zustand Q generieren.
-Praxis-Beispiel (Datums-Format-Normalisierung, Datei-Zustände):
-
-#### Cubie Konfiguration für eine P-Menge
-
-```python
-def test_8():  
-    EBT(
-        target=my_func,
+        target=normalize,
         pre=[
-            WorldState(fs="data/input/1_date_format_us.txt"),
-            WorldState(fs="data/input/1_date_format_eu.txt"),
-            WorldState(fs="data/input/1_date_format_iso.txt")
+            WorldState(args=" TEXT "),
+            WorldState(args="text"),
+            WorldState(args="TeXt"),
         ],
-        post=WorldState(fs="data/output/1_date_format_normalized.txt")
-    ).run()
-```
-Das Framework iteriert deterministisch durch die Menge der Pre-Conditions und isoliert jede Ausführung in einer Arena. Jede Mutation muss in dem exakt gleichen Q-Dokument enden.
-
-#### Architektur-Hinweis: Abgrenzung zur Stochastik (PBT)
-Obwohl hier Mengen (Sets) verwendet werden, befinden wir uns weiterhin an der absoluten Grenze des EBT und tief im Territorium der deterministischen Prädikatenlogik erster Stufe (FOL). Die Mengen P und Q sind manuell definiert, endlich und deterministisch (Ground Truth). Es findet keine stochastische Flutung (wie bei der Logik höherer Stufe, HOL) statt. Wir nutzen lediglich endliche Mengen, um die Orthogonalität des Raumes präziser abzustecken, ohne den Rahmen der harten, falsifizierbaren Fakten zu verlassen.
-
-### 2.4 Die Anatomie des `WorldState`-Objekts
-
-Schauen wir uns genau an, wie das `WorldState`-Objekt die Brücke zwischen der formalen Logik und der Sandbox-Realität schlägt und wie es sich nahtlos auf deine mathematischen Mengen-Mappings übertragen lässt.
-
-Das `WorldState`-Objekt fungiert in Meso- und Macro-Szenarien als **Zustands-Deklarator**. Es trennt die funktionale Ausführungsebene (`args`, `returns`, `stdout`) strikt von der topologischen Dateisystem-Ebene (`fs`).
-
-Hier sind die drei Kernmechanismen, wie das `WorldState`-Objekt arbeitet:
-
-#### **Die Auswertung von `fs` (Hydration & Assert):**
-
-* **In `pre`:** Wenn `fs` ein Set aus Pfaden oder ein Dictionary ist, triggert Cubie die **physische Hydration**. Die Dateien werden vom Host gelesen und in den Workspace projiziert.
-
-
-* **In `post`:** Hier wechselt die Semantik von *Aktion* zu *Assertion*. Das Framework führt ein Byte-für-Byte Diff gegen die dort definierten Soll-Strukturen aus.
-
-
-#### **Pfad-Personalisierung über String-Mappings:**
-Durch das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` entkoppelt das `WorldState`-Objekt den Code von deiner physischen Testordner-Struktur. Das erlaubt es, für alle möglichen Szenarien personalisierten Code zu schreiben, um die Testordner-Strukturen ganz nach den eigenen Bedürfnissen anlegen zu lassen.
-
-#### **Typ-Flexibilität für funktionale Rückgaben:**
-Neben dem Dateisystem verwaltet es funktionale Schnittstellen wie `stdout` (für CLI-Streams) oder `returns` (für Rückgabewerte von Funktionen).
-
-
-### 2.5 Anwendung auf diskrete Mengen-Mappings
-
-Da wir nun wissen, wie das `WorldState`-Objekt aufgebaut ist, können wir die erweiterten Patterns für Quantoren (1:N und N:1) verstehen.
-
-#### Das 1:N Mapping (Der beschränkte Existenzquantor $\exists$)
-
-In Systemen mit nicht-diskreten, aber validen Lösungsräumen (z. B. Zufallsgeneratoren) mappt ein fixer P-Input auf eine endliche Menge von erlaubten Zielzuständen. Der Test leuchtet grün, sobald das Ergebnis von $S(P)$ irgendeinem Element der definierten Menge $Q$ entspricht.
-
-* **Logik:** $\exists q \in Q_{\text{set}} : S(P) = q$ 
-
-* **Bedeutung:** Es existiert mindestens ein Element in der erlaubten Ziel-Menge, das mit dem aktuellen Output identisch ist.
-
-#### Praxis-Beispiel (Datei-Zustände):
-
-Um den Raum orthogonal aufzuspannen und das System zur Abstraktion zu zwingen, definieren wir zwei EBT-Cases mit unterschiedlichen Wertebereichen:
-
-```python
-# Generator beschränkt auf Werte von 1 bis 5
-def test_9():  
-    EBT(
-        target=my_func,
-        pre=WorldState(args=("--min", "1", "--max", "5")),
-        post=[
-            WorldState(returns=0, expect=False),
-            WorldState(returns=1),
-            WorldState(returns=2),
-            WorldState(returns=3),
-            WorldState(returns=4),
-            WorldState(returns=5),
-            WorldState(returns=6, expect=False)
-        ]
-    ).run()
-# Orthogonale Erweiterung – Generator beschränkt auf 3 bis 7
-def test_10():  
-    EBT(
-        target=my_func,
-        pre=WorldState(args=("--min", "3", "--max", "7")),
-        post=[
-            WorldState(returns=2, expect=False),
-            WorldState(returns=3),
-            WorldState(returns=4),
-            WorldState(returns=5),
-            WorldState(returns=6),
-            WorldState(returns=7),
-            WorldState(returns=8, expect=False)
-        ]
+        post=WorldState(returns="text"),
     ).run()
 ```
 
-#### Das N:1 Mapping (Der beschränkte Allquantor $\forall$)
+Jeder dieser drei Eingänge wird einmal ausgeführt. Ohne Arena laufen die Aufrufe im aufrufenden Prozess und teilen dessen Zustand. Diese Liste begründet keine Aussage über alle anderen Strings.
 
-Müssen verschiedene unstrukturierte Eingänge (z. B. Datums-Format-Normaliserung oder polymorphe Interfaces) in dasselbe standardisierte Ziel-Format gepresst werden, übergeben wir eine **Liste von `WorldState`-Objekten** an den `pre`-Parameter. Cubie isoliert jeden Lauf isoliert in der Arena, verifiziert jedoch jedes Mal gegen denselben `post`-Zustand.
+## Erlaubte und verbotene Ergebnisse
 
 ```python
-def test_11():  
+from cubie import EBT, WorldState
+
+
+def choose_status():
+    return "OK"
+
+
+def test_status():
     EBT(
-        target=my_func,
-        pre=[ # Vorbedingung (P-Menge): Verschiedene verrauschte Eingangsquellen
-            WorldState(args=["raw_us.md"], fs={"/app/input.md": "fixtures/pre/raw_us.md"}),
-            WorldState(args=["raw_eu.md"], fs={"/app/input.md": "fixtures/pre/raw_eu.md"}),
-            WorldState(args=["raw_iso.md"], fs={"/app/input.md": "fixtures/pre/raw_iso.md"})
+        target=choose_status,
+        post=[
+            WorldState(returns="OK"),
+            WorldState(returns="WARN"),
+            WorldState(returns="ERROR", expect=False),
         ],
-        post=WorldState( # Nachbedingung (Q): Exakt ein kohärenter Ziel-Zustand
-            fs={"/app/output.md": "fixtures/post/normalized.md"}
-        ),
-        tags=["universal"]
     ).run()
 ```
 
----
+Die beobachtete Ausgabe muss zu mindestens einem positiven und zu keinem negativen Muster passen. Ohne positive Muster werden nur die negativen Muster ausgeschlossen. Ein zusätzliches negatives Muster ist hier zur Veranschaulichung enthalten; die beiden positiven Werte schließen `"ERROR"` bereits aus.
 
-# Arenen und Umgebungs-Mutationen
+Bei mehreren `pre`- und `post`-Einträgen gilt dieselbe gesamte Zielmenge für jeden Eingang. Ein gemeinsames `post` für die Werte `2` und `4` erlaubt auch eine Vertauschung. Es entsteht keine Zuordnung nach Listenposition.
 
-Das Attribut **`arena`** definiert den isolierten Ausführungsraum (die Sandbox), in dem das Target ($S$) operiert.
+Das gleiche Prinzip kann einen beobachteten Würfelwert auf den Bereich `1` bis `6` beschränken. Eine konstante Rückgabe innerhalb dieses Bereichs besteht ebenfalls. Alle möglichen Ergebnisse, Zufälligkeit und Verteilung sind damit nicht geprüft.
 
-Die wichtigste Grundregel für den Lebenszyklus einer Arena lautet: **Der Raum bleibt konstant.** Wenn im `WorldState` der `pre`-Condition eine Arena definiert wird, gilt diese implizit und zwingend auch für die `post`-Condition. Das Framework testet schließlich die Mutation *innerhalb* dieser einen Welt ($P \to Q$). Um eine Veränderung an der Arena zu validieren, muss die veränderte Arena als post-Zustand deklariert werden.
+`EBT(expect=False)` negiert dagegen das Gesamtergebnis. Es prüft keine erwartete Exception; Target-Ausnahmen propagieren weiterhin.
 
-### Validierung einer aktiven Umgebungs-Mutation
-
-In diesem Szenario testen wir eine Funktion, deren einziger Zweck es ist, ein Paket in eine virtuelle Umgebung zu installieren. Wir definieren eine leere Arena als Vorbedingung und prüfen, ob die Funktionalität die Umgebung korrekt mutiert hat.
-
-```python
-def test_12():
-    EBT(
-        target=EnvManager.install_package(),
-        pre=WorldState(args="requests", arena=PyVenv("envs/pre_env")),
-        post=WorldState(arena=PyVenv("envs/post_env"))
-    ).run()
-```
-
-```python
-def test_13():
-    EBT(
-        target=md_to_json_converter(),
-        pre=WorldState(
-            args="why-cats-like-to-cuddle.json", 
-            arena=TempFS("envs/pre_env/why-cats-like-to-cuddle.md")
-        ),
-        post=WorldState(
-            returns="'why-cats-like-to-cuddle.md' succesfully converted to json.",
-            arena=TempFS("envs/post_env/why-cats-like-to-cuddle.json")
-        )
-    ).run()
-```
-
-
-## 3. Dynamische Typisierung und Prädikate (Agnostic Typing)
-
-In realen Systemen sind Rückgabewerte und Dateiinhalte oft volatil (z. B. Zeitstempel, UUIDs oder API-Payloads). Cubie zwingt dich hierbei nicht zu exakten Wert-Deklarationen. Du kannst in den `post`-Bedingungen jederzeit native Typen, Callables oder Reguläre Ausdrücke in das `WorldState`-Objekt injizieren. Die Engine löst diese agnostisch auf.
-
-### 3.1 Funktionale Returns typisieren (RegEx, Unions & Any)
-Anstatt feste Strings oder Dictionaries zu fordern, kannst du die erwartete Struktur deklarativ abstecken. Die Engine iteriert rekursiv durch verschachtelte Datenstrukturen.
+## Rückgabemuster
 
 ```python
 import re
-from typing import Union, Any
-from dataclasses import dataclass
-from cubie import EBT
-from cubie import WorldState
+from typing import Any
+from cubie import EBT, WorldState
 
-@dataclass
-class User:
-    id: int
 
-def test_dynamic_payloads():
+def payload():
+    return {"task_id": "REQ-1234", "duration": 0.5, "next_page": None, "metadata": {}}
+
+
+def test_payload():
     EBT(
-        target=my_api_client,
-        post=WorldState(
-            returns={
-                "task_id": re.compile(r"^REQ-\d{4}$"), # RegEx-Validierung
-                "user": User,                          # isinstance() Check (Klasse, nicht Instanz)
-                "metadata": Any,                       # Feld muss existieren, Wert egal
-                "next_page": Union[str, None],         # Union-Typen (oder str | None)
-                "items": list                          # Prüfung auf Collection-Ebene
-            }
-        )
+        target=payload,
+        post=WorldState(returns={
+            "task_id": re.compile(r"^REQ-\d{4}$"),
+            "duration": float,
+            "next_page": str | None,
+            "metadata": Any,
+        }),
     ).run()
 
+
+def test_none_return():
+    EBT(
+        target=lambda: None,
+        post=WorldState(returns=lambda actual: actual is None),
+    ).run()
 ```
 
-### 3.2 Prädikate (Callables) für Rückgabewerte
+Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. Ein oberstes `returns=None` aktiviert derzeit keine Prüfung; deshalb verwendet das zweite Beispiel ein Prädikat. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
 
-Wenn statische Typen nicht ausreichen, kannst du eine beliebige Funktion (oder ein Lambda) übergeben. Die Funktion erhält den tatsächlichen Wert als Argument. Gibt sie `True` zurück, gilt der Test als bestanden.
+## Dateitransformation mit expliziter Arena
 
 ```python
-def test_with_custom_predicate():
+from pathlib import Path
+from cubie import EBT, TempFS, WorldState
+
+
+def uppercase_file():
+    text = Path("input.txt").read_text(encoding="utf-8")
+    Path("output.txt").write_text(text.upper(), encoding="utf-8")
+
+
+def test_uppercase_file(tmp_path):
+    source = tmp_path / "source.txt"
+    expected = tmp_path / "expected.txt"
+    source.write_text("hallo", encoding="utf-8")
+    expected.write_text("HALLO", encoding="utf-8")
+
     EBT(
-        target=generate_password,
-        post=WorldState(
-            # Das Callable validiert die komplexe Logik hinter dem Return-Wert
-            returns=lambda actual: isinstance(actual, str) and len(actual) >= 12 and "!" in actual
-        )
+        target=uppercase_file,
+        arena=TempFS(),
+        pre=WorldState(fs={"input.txt": str(source)}),
+        post=WorldState(fs={"output.txt": str(expected)}),
     ).run()
 ```
 
-### 3.3 Semantische Dateisystem-Validierung (FS Content Typing)
+Das Mapping lautet `{relativer_Zielpfad: Hostquelle}`. `pre.fs` kopiert Quellen, `post.fs` vergleicht die angegebenen Pfade. Andere Dateien im Workspace sind in diesem Beispiel nicht Teil der Erwartung. Für einen Vergleich aller Dateien kann `post.fs={".": "fixtures/post"}` mit einem vorhandenen Referenzverzeichnis verwendet werden. Leere Unterverzeichnisse werden rekursiv nicht mitverglichen.
 
-Standardmäßig gleicht das Dictionary-Pattern `{"Pfad_in_der_Arena": "Pfad_auf_dem_Host"}` Dateien Byte-für-Byte ab. Wenn du jedoch eine dynamische Log- oder JSON-Datei generierst, kannst du statt eines Host-Pfades ein Callable übergeben.
-**Wichtig:** Das Callable erhält in diesem Fall ein `pathlib.Path`-Objekt der Arena, mit dem du den Inhalt semantisch prüfen kannst. Eine explizite Arena (wie `TempFS`) ist hierbei Pflicht.
+Alternativ sind Sammlungen wie `fs={"fixtures/input.txt"}` erlaubt; sie kopieren hier nach `input.txt`. Ein einzelner String wie `fs="fixtures/input.txt"` wird nicht unterstützt. Gleichnamige Quellen können bei der Normalisierung kollidieren; verwende explizite Mappings. Absolute Zielpfade und `..` werden nicht abgefangen und können außerhalb des Workspace schreiben.
+
+## Dateiinhalte mit einem Prädikat prüfen
 
 ```python
 import json
 from pathlib import Path
-from cubie import TempFS
+from cubie import EBT, TempFS, WorldState
 
 
-def validate_json_schema(p: Path) -> bool:
-    if not p.exists(): return False
-    data = json.loads(p.read_text())
-    return isinstance(data.get("duration"), float)
+def create_report():
+    Path("report.json").write_text(json.dumps({"duration": 0.5}), encoding="utf-8")
 
 
-def test_dynamic_file_content(tmp_path):
+def valid_report(path: Path) -> bool:
+    return path.is_file() and isinstance(
+        json.loads(path.read_text(encoding="utf-8")).get("duration"), float
+    )
+
+
+def test_report():
     EBT(
-        arena=TempFS(),  # Zwingend erforderlich für fs-Operationen!
-        target=create_dynamic_report,
-        pre=WorldState(fs={".": str(tmp_path)}),
-        post=WorldState(
-            fs={"report.json": validate_json_schema}  # Aufruf des Prädikats statt Byte-Diffing
-        )
+        target=create_report,
+        arena=TempFS(),
+        post=WorldState(fs={"report.json": valid_report}),
     ).run()
 ```
+
+Das Prädikat erhält einen `Path` im noch bestehenden Workspace. Nach dem Vergleich wird die Arena aufgeräumt. `returns` prüft den Python-Rückgabewert; Konsolenausgaben sind kein `WorldState`-Feld.
+
+## Virtuelle Umgebungen
+
+Für ein vorhandenes, eigens vorbereitetes Basis-Environment kann `arena=PyVenv("tests/.arenas/qa_env")` verwendet werden. Die Umgebung muss zur Maschine passen; die eingecheckte Basis ist kein portabler Installationsvertrag. `PyVenv` kann fehlende Codec-Abhängigkeiten in der Basis nachinstallieren.
+
+Eine erwartete Umgebungsänderung lässt sich über `post=WorldState(arena="tests/.arenas/expected_env")` gegen einen vorhandenen Vergleichspfad prüfen. Das ist ein gefilterter Dateivergleich, kein Beleg korrekter Paketauflösung. Näheres erläutert das [Arena-Handbuch](GUIDE_Arena-Management.md). Beide vorhandenen Arenen führen nur vertrauenswürdigen Code aus und bilden keine OS-Sicherheitsgrenze.

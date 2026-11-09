@@ -2,9 +2,9 @@
 
 # `Linter` 
 
-![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+![Error while trying to load the image](../.assets/cubie-logo-written.png)
 
-Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (AST) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um deterministische und Sandbox-sichere Auswertungen zu garantieren.
+Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (AST) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](../GUIDE_Contract-Semantics.md).
 </center>
 
 ---
@@ -34,12 +34,12 @@ Die AST-Ebene befasst sich mit klassischen Linter-Tools, die als eigenständige 
 ### 2.1 `AstLinter` (Der Orchestrator)
 Die `AstLinter`-Klasse agiert nicht als eigentlicher Linter, sondern als "Stateful Orchestrator". Sie nimmt über ihren Konstruktor (`*linters`) beliebig viele `Linter`-konforme Backends (als Klassen oder Instanzen) entgegen und steuert deren Lebenszyklus.
 * **Auto-Discovery:** Wird der `check()`-Methode kein spezifisches Target übergeben, fällt der AstLinter automatisch auf das aktuelle Arbeitsverzeichnis (`Path.cwd()`) zurück.
-* **Kontext-Weiche & Scope-Schärfung:** Vor der Ausführung prüft der Orchestrator, ob das Projekt über eine native Konfiguration (`../../pyproject.toml`) verfügt. Ist dies nicht der Fall, injiziert er hartcodierte `DEFAULT_EXCLUDES` (wie `.venv` oder `__pycache__`) über die `register_excludes`-Methode in alle registrierten Backends, um Scope-Bleeding in Sandbox-Arenen zu verhindern.
+* **Konfigurationsprüfung und Grenze:** Der Orchestrator behandelt bereits eine beliebige `pyproject.toml` als native Konfiguration. Deshalb können `DEFAULT_EXCLUDES` auch ohne passende Backend-Einstellungen entfallen. Beim CST-Backend ist das Ausschlussset anfangs leer. Das ist ein offener Implementierungsbefund; Ausschlussmuster sind keine Sicherheitsgrenze.
 * **Aggregation:** Iteriert über alle Backends, sammelt deren Ergebnisse und führt sie zu einer einzigen, flachen Liste von `LinterDiagnostic`-Objekten zusammen.
 
 ### 2.2 `Pylint` (Das Backend)
-Implementiert das `Linter`-Protokoll und fungiert als isolierter Worker für das Pylint-CLI-Tool.
-* **Regex-gestützte Excludes:** Übersetzt die registrierten Ignore-Ordner in wasserdichte reguläre Ausdrücke (`--ignore-paths=.*.venv.*`). Dies zwingt Pylint auf OS-Ebene Scheuklappen auf und verhindert, dass das Tool im "Blindflug" aus isolierten PyVenv-Arenen ausbricht und System-Bibliotheken scannt.
+Implementiert das `Linter`-Protokoll und startet das Pylint-CLI-Tool als Subprozess mit den Rechten des Aufrufers.
+* **Regex-gestützte Excludes:** Registrierte Ausschlüsse werden in `--ignore-paths` übersetzt. Sie filtern den Analyseumfang, entziehen dem Linter-Prozess aber keine OS-Rechte.
 * **Rule-Management:** Über den `disable`-Parameter im Konstruktor können spezifische Regeln (wie `C0114`) gezielt abgeschaltet werden.
 * **Silent Failure Prevention:** Ein State-Guard überwacht den Subprozess. Stürzt Pylint ohne standardisierte Ausgabe ab, wirft der Worker eine sprechende `RuntimeError`-Exception, anstatt den Fehler zu schlucken.
 
@@ -67,3 +67,6 @@ Das Linter-Modul folgt strikt den architektonischen Richtlinien des Cubie-Projek
 1. **Dependency Inversion:** Der Orchestrator (`AstLinter`) kennt keine Subprozesse oder CLI-Flags. Er kommuniziert ausschließlich über das `Linter`-Protokoll.
 2. **Pure Worker & Stateful Orchestrators:** Operative CLI-Aufrufe (Pylint) und Datei-Crawlings (CstLinter) sind in spezialisierten Klassen gekapselt. Die Zustandsmutation (das Registrieren der Excludes) obliegt alleinig der übergeordneten Kompositionsfunktion des AstLinters.
 3. **Narrative Programming:** Die Hauptmethoden (`check`) fungieren als reine Inhaltsverzeichnisse (Top-Down-Lesbarkeit) und delegieren die technische Komplexität an kleine, gut benannte Hilfsmethoden (`_resolve_target`, `_propagate_excludes`).
+## Aussagegrenzen
+
+Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des jeweiligen Backends. Eine leere Liste beweist keine Fehlerfreiheit. Der MyPy-Adapter kann bestimmte Prozessabbrüche derzeit als leere Diagnoseliste behandeln; siehe [Gutachten, Abschnitt 5.2](../../GUTACHTEN.md). Weder ein Linter-Prozess noch seine Ausschlussmuster sind eine OS-Sicherheitsgrenze.

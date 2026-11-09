@@ -167,7 +167,7 @@ class PyVenv:
         self._env_vars.pop("PYTHONHOME", None)
 
     def _activate_arena_env(self) -> None:
-        """Overrides PATH and VIRTUAL_ENV to enforce the sandbox at the OS level."""
+        """Selects the copied environment via PATH and VIRTUAL_ENV without restricting OS rights."""
         __tracebackhide__ = True
         if self._env_vars is None or self.virtual_path is None:
             raise RuntimeError("STATE-GUARD: '_env_vars' or 'virtual_path' was not initialized.")

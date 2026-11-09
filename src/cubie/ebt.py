@@ -17,7 +17,7 @@ class EBTContext:
     arena_ignores: Set[str]
 class EBT:
     """
-    Orchestrates example-based-testing runs according to the formal Hoare triple `{P}S{Q}`.
+    Runs concrete examples against result patterns; the Hoare triple is a structural analogy, not a proof.
     """
     def __init__(
             self,

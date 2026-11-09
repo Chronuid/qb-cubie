@@ -1,6 +1,6 @@
 # 📖 CUBIE-GUIDE: Linter
 
-Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um deterministische und Sandbox-sichere Auswertungen zu garantieren.
+Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
 
 Dieses Dokument erklärt die typischen Usage-Pattern, zeigt auf, wie das Framework mit Dateisystemen und LLM-Outputs interagiert, und bietet einen Deep-Dive in die Entwicklung eigener Code-Style-Regeln.
 
@@ -27,10 +27,11 @@ diagnostics_file = linter.check(Path("src/main.py"))
 
 ```
 
-### 1.2 Hermetische Sandbox-Sicherheit
+### 1.2. Analyseumfang und Ausschlüsse
 
-Um Scope-Bleeding in virtuellen Umgebungen (wie der `PyVenv`-Arena) zu verhindern, prüft der Orchestrator auf native Konfigurationen (z. B. `pyproject.toml`). Fehlen diese, injiziert er automatisch `DEFAULT_EXCLUDES` (wie `.venv` oder `__pycache__`) in die Linter-Backends.
-Pylint übersetzt diese Excludes in wasserdichte Regex-Muster (z. B. `--ignore-paths=.*.venv.*`), wodurch System-Bibliotheken auf OS-Ebene konsequent ignoriert werden.
+Ausschlussmuster begrenzen den Analyseumfang, aber keine Zugriffsrechte. `AstLinter` behandelt derzeit bereits die Existenz einer beliebigen `pyproject.toml` als native Konfiguration. Dadurch können `DEFAULT_EXCLUDES` auch ohne passende Backend-Konfiguration entfallen; das Ausschlussset des CST-Backends ist anfangs leer. Prüfe den tatsächlich analysierten Umfang und konfiguriere benötigte Ausschlüsse ausdrücklich. Pylints `--ignore-paths` ist ein Dateifilter und keine OS-Sicherheitsgrenze.
+
+Eine leere Diagnoseliste bedeutet nur, dass der Adapter keine Diagnosen zurückgegeben hat. Der MyPy-Adapter kann derzeit bestimmte Prozessabbrüche als leere Liste behandeln. Das [Gutachten](../GUTACHTEN.md) beschreibt diese offenen Fehler.
 
 ### 1.3 Analyse von In-Memory Strings (LLM-Outputs)
 
@@ -107,7 +108,7 @@ class RequireReturnTypeRule(CstRule):
     Erzwingt Type-Hints für Rückgabewerte (außer bei __init__).
     """
     # Wird vom Framework aufgerufen, sobald eine Funktion im Baum gefunden wird
-    def visit_function_def(self, node: cst.FunctionDef) -> None:
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
         # Pattern Matching: Wir suchen exakt die Struktur m.Annotation() im returns-Feld
         has_return_type = m.matches(node, m.FunctionDef(returns=m.Annotation()))
         if not has_return_type and node.name.value != "__init__":

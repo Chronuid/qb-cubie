@@ -44,17 +44,17 @@ class WorldState:
 @runtime_checkable
 class Arena(Protocol):
     """
-    Contract for isolated execution environments.
+    Contract for temporary execution environments; no OS security boundary is implied.
     """
     @property
     def workspace_path(self) -> Optional[Path]:
-        """Returns the absolute path to the isolated working directory after setup."""
+        """Returns the absolute path to the arena working directory after setup."""
         ...
     def setup(self, state: WorldState) -> None:
         """Creates the temporary workspace and hydrates it based on the provided WorldState."""
         ...
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
-        """Executes the target within the isolated workspace and returns the raw functional result."""
+        """Executes the target within the arena workspace and returns the raw functional result."""
         ...
     def get_state(self) -> WorldState:
         """Packages and returns the mutated environment reality as a complete WorldState."""

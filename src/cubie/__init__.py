@@ -1,15 +1,15 @@
 """
-Framework for structured quality assurance via formal program verification and static code analysis.
+Experimental framework for declarative acceptance tests, reviews, and static code analysis.
 ===========
 
 `EBT` (Example-Based Testing):
-    Orchestrates tests based on Hoare triples ({P}S{Q}), supporting quantifier mappings and sandboxed execution.
+    Runs finite examples against result patterns; successful runs are not general correctness proofs.
 
 `RBT` (Review-Based Testing):
     Orchestrates review pipelines bridging automated targets with human or machine reviewers.
 
 `arenas` (`PyVenv`, `TempFS`):
-    Provides sandboxing and isolated execution environments for temporary target runs.
+    Provides temporary workspaces and child processes without an OS security boundary.
 
 `linters` (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`):
     Provides static code analysis, linting, and concrete syntax tree validation tools.

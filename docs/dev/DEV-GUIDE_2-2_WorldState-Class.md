@@ -1,68 +1,22 @@
-<center>
+# WorldState
 
-# `class WorldState` 
+`WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../GUIDE_Contract-Semantics.md).
 
-![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+```python
+from cubie import WorldState
 
-Die `WorldState`-Klasse ist ein Zustands-Deklarator, der alle Variablen einer Test-Welt kapselt. Sie dient als standardisierte Datenstruktur zur Definition von Zuständen. Seien es nun Vorbedingungen ($P$) oder Nachbedingungen ($Q$) innerhalb des EBT-Paradigmas.
-Die Klasse ist konzeptionell die Antwort auf die Frage, wie man komplexe Tests sauber abbildet, ohne den Code mit Boilerplate zu überladen. 
-Sie fungiert als das einheitliche Ziel-Schema, in welches die übergeordnete `EBT`-Klasse alle primitiven Eingaben (Shorthands) implizit konvertiert.
-</center>
+pre = WorldState(args=([1, 2],), kwargs={"strict": True})
+post = WorldState(returns=lambda value: value is None)
+```
 
-* **Die Kernidentität:** Die Klasse fungiert als strikter "Zustands-Deklarator". Sie ist das standardisierte Objekt, das eine konkrete "Welt" (sei es $P$ oder $Q$) kapselt.
+`args` hält Positionsargumente. Eine äußere Liste oder ein Tupel wird entpackt; deshalb wird eine Liste als einzelnes Argument in ein zusätzliches Tupel verpackt. `kwargs` muss ein Dictionary sein oder `None`. Es gibt keine automatische Inferenz eines primitiven `pre`-Werts in diese Felder.
 
-* **Die Trennung der Ebenen:** Ihre wichtigste strukturelle Eigenschaft ist die klare Trennung: Sie separiert die funktionale Ausführungsebene, wie Code-Inputs (`args`) oder Outputs (`returns`), strikt von der topologischen Dateisystem-Ebene (`fs`).
+`returns` enthält im Ergebnis den Python-Rückgabewert und in `post` dessen Sollwert oder Muster. Es erfasst keine Konsolenausgaben. Ein oberstes `returns=None` deaktiviert derzeit die Prüfung. Das Beispiel verwendet ein Prädikat, um wirklich `None` zu fordern. `stdout`, `stderr` und ein Feld für erwartete Exceptions existieren nicht.
 
+`fs` nimmt ein Dictionary `{Zielpfad: Hostquelle}` oder eine Sammlung von Hostpfaden auf. EBT normalisiert Sammlungen nach Basename; einzelne Pfadstrings werden nicht unterstützt. In `pre` kopiert die aktive Arena die Vorlagen, in `post` vergleicht EBT die benannten Pfade oder ruft ein Pfad-Prädikat auf. Eine Arena muss ausdrücklich gewählt werden. Die Normalisierung verändert den Zustand; gleichnamige Quellen können sich überschreiben.
 
+`arena` ist kontextabhängig: In `pre` kann ein ausführbares Arena-Objekt die globale Arena ersetzen. Ein String überschreibt die Basis einer bereits aktiven `PyVenv`. In `post` dient ein String oder `env_path` eines Objekts als Vergleichspfad. In erfassten Arena-Ergebnissen enthält das Feld gegebenenfalls den tatsächlichen Umgebungspfad. Es ist keine universelle String-Referenz auf eine Sicherheits-Sandbox.
 
----
+`expect` unterscheidet in `post` erlaubte (`True`) und verbotene (`False`) Muster. Es negiert nicht selbst den gesamten Lauf; dafür gibt es `EBT.expect`. Ein Wert in `pre.expect` wirkt sich nicht auf die EBT-Aggregation aus.
 
-### `WorldState.arena`
-
-Das Attribut `arena` speichert als String-Referenz den Pfad oder Bezeichner zu einem isolierten Ausführungsraum (Sandbox/Virtual-Environment). Es dient als reiner Datenhalter, um einen lokalen Override-Mechanismus für die Testumgebung zu ermöglichen, falls das Target die explizite Aufgabe hat, die Umgebung selbst zu mutieren. Wird das Attribut im Vorbedingungs-Zustand ($P$) definiert, repräsentiert es den Ausgangsraum; wird ein abweichender String im Nachbedingungs-Zustand ($Q$) definiert, fungiert dieser reine Datenpunkt für die übergeordnete Engine als deklariertes Ziel für eine Umgebungs-Mutation.
- * **Architektonische Abgrenzung (`arena` vs. `fs`)**: Die Arena repräsentiert ausschließlich das Environment unter der Haube (z.B. installierte Python-Libraries, System-Pakete, Environment-Variablen). Wenn das Ziel ist, zu testen, ob ein Paket erfolgreich via pip installiert wurde, nutzt man `arena`. Sie dient nicht dazu, offene Datei- oder Ordner-Strukturen vom Workspace zu prüfen.
-
----
-
-### `WorldState.args` und `WorldState.kwargs`
-
-Die Attribute `args` und `kwargs` bilden die funktionale Ausführungsebene des Zustands-Deklarators. Sie repräsentieren ausschließlich die Eingabeparameter für das Target (das Programmsegment $S$) und dienen dazu, die funktionalen Inputs strikt von etwaigen topologischen Dateisystem-Zuständen zu entkoppeln. Sie kapseln als passive Daten-Container ausschließlich die Code-Inputs (positionale und schlüsselwortbasierte Argumente), welche bei der Testausführung an das Target ($S$) übergeben werden sollen.
-
-* **Die Shorthand-Inferenz:** Sie sind die direkten Ziel-Attribute für die Auto-Inferenz der übergeordneten `EBT`-Engine bei reinen In-Memory-Funktionen. Wird in der Vorbedingung (`pre`) ein `tuple` übergeben, wird dieses konventionell und implizit als `args` ausgewertet; wird ein `dict` übergeben, landet dies automatisch im `kwargs`-Attribut des generierten `WorldState`-Objekts.
-
-* Das Framework nutzt diese Attribute als primäre Ziele für die Shorthand-Inferenz: Übergibt der Entwickler ein primitives `tuple` oder `dict` als Vorbedingung, konvertiert die `EBT`-Engine diese implizit in die `args`- bzw. `kwargs`-Attribute eines zugrundeliegenden `WorldState`-Objekts.
-
----
-
-### `WorldState.returns`
-Das Attribut `returns` ist das funktionale Gegenstück zu den Eingabeparametern und kapselt als passiver Daten-Container den erwarteten Output der Nachbedingung ($Q$). Es dient der Validierung direkter funktionaler Schnittstellen des Targets, strikt isoliert von topologischen Zuständen (`fs`). 
-
-* **Der hybride Charakter:** Anstatt die Schnittstellen künstlich aufzublähen, fungiert das Attribut als Sammelbecken für direkte Ausgaben. Es agiert als hybrider Soll-Wert und hält sowohl den klassisch erwarteten Rückgabewert (Return-Value) von Python-Funktionen als auch erwartete Konsolenausgaben (CLI-Streams) vor.
-* **Die Shorthand-Inferenz:** Es ist das primäre Ziel-Attribut für einfache Post-Conditions. Übergibt der Entwickler einen primitiven Datentyp (wie `int` oder `str`) direkt an das `post`-Attribut der `EBT`-Klasse, wandelt die Shorthand-Inferenz diesen Wert implizit in das `returns`-Attribut des zugrundeliegenden `WorldState`-Objekts um.
-
-
----
-
-### `WorldState.fs`
-
-Das Attribut `fs` (Filesystem) bildet die topologische Ebene des Zustands-Deklarators und trennt physische Dateisystem-Zustände strikt von den funktionalen Code-Inputs. Als passiver Daten-Container speichert es exakt die Pfad-Zuordnungen, welche die Struktur der Sandbox (Arena) definieren.
- 
-* **Der Datentyp (Konvention vs. Konfiguration):** Das Attribut fasst die Daten entweder als `set` für die flache direkte Konvention oder als `dict` (Dictionary-Pattern). Letzteres fungiert als unkompliziertes String-Mapping, um Pfade auf dem Host-System auf relative Ziel-Pfade innerhalb der isolierten Arena zu projizieren.
-
-* **Die kontextuelle Dualität (als passiver Daten-Container):** Das Attribut selbst speichert nur die Topologie, wird von der `EBT`-Engine jedoch völlig unterschiedlich ausgewertet. Befinden sich die Daten im `pre`-State, dienen sie der Engine als Vorlage für die Workspaces. Befinden sie sich im `post`-State, liest die Engine sie als erwartete Soll-Struktur für das anschließende Byte-für-Byte-Diffing aus.
-
-* * **Architektonische Abgrenzung (`fs` vs. `arena`):** Während die Arena die unsichtbare Laufzeitumgebung darstellt, repräsentiert `fs` die physischen Dateien auf der Festplatte (Ordner, Skripte, Konfigurationen). Wenn das Ziel ist, zu testen, ob ein Skript eine Datei korrekt formatiert oder einen Ordner generiert hat, nutzt man ausschließlich `fs`.
-
-### `WorldState.expect`
-
-Das Attribut `expect` (bool: True or False) fungiert als Negation der Erwartungshaltung für einen Testlauf, um Negativ-Beispiele deklarieren zu können.
-
----
-
-<center>
-
-![Error while trying to load the image](docs/.assets/cubie-small.png) 
-
-</center>
-
----
+Ein `WorldState` ist weder ein bewiesenes Zustandsprädikat noch eine vollständige Abbildung aller Seiteneffekte. Änderungen an enthaltenen Objekten bleiben möglich; auch ein eingefrorener `EBTContext`, der solche Objekte referenziert, verhindert das nicht.

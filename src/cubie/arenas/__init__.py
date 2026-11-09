@@ -1,5 +1,5 @@
 """
-Provides execution environments (sandboxing) for the temporary execution of targets.
+Provides temporary execution environments without an OS security boundary.
 ===========
 
 `PyVenv`:

@@ -1,210 +1,40 @@
-<center>
+# Die EBT-Klasse
 
-# `class EBT` 
+`EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung.
 
-![Error while trying to load the image](docs/.assets/cubie-logo-written.png) 
+## Konstruktor und Konfiguration
 
-Die `EBT`-Klasse dient als direkte architektonische Übersetzung des formalen $\{P\}S\{Q\}$ Paradigmas in ausführbaren Code und orchestriert die `WorldState`-Zustände.
-</center>
+`EBT(target, arena=None, pre=None, post=None, expect=True, custom_id=None, reporter=PytestReporter(), multiprocessing=False, multiprocessors=None, tags=None)` ist das öffentliche Interface.
 
+`target` muss ohne Arena oder mit `TempFS` ein Callable sein; zusätzliche String-Referenzen werden durch den `PyVenv`-Codec aufgelöst. `pre` und `post` akzeptieren `WorldState`, Listen davon oder `None`. `_ensure_list(None)` erzeugt `[WorldState()]`; andere Einzelwerte werden lediglich in eine Liste verpackt. Eine `ConventionMap` oder Inferenz primitiver Werte in `args`, `kwargs` oder `returns` existiert nicht.
 
----
+`arena` legt die ausführbare Umgebung fest. Ein `pre.arena`-Objekt mit `setup` hat Vorrang. Ein String in `pre.arena` erzeugt keine Arena, sondern überschreibt bei aktiver `PyVenv` den Basispfad. `post.arena` kann einen Vergleichspfad bereitstellen. Beide vorhandenen Arenen sind keine OS-Sicherheitsgrenzen.
 
-## Konstruktor-API (Quick-Lookup)
+`expect` negiert bei `False` das Gesamtergebnis aller Schritte. Es behandelt keine erwarteten Exceptions. `post.expect` kennzeichnet unabhängig davon erlaubte oder verbotene Muster; `pre.expect` steuert diese Auswertung nicht.
 
-Die `EBT`-Klasse fungiert als zentraler Orchestrator. Ihr Konstruktor definiert den gesamten Test-Lebenszyklus und dient als primäres Interface:
+`reporter=None` unterbindet Reporter-Assertions. Fehler beim Aufbau, bei der Target-Ausführung oder im Vergleich bleiben möglich. `tags` speichert Metadaten; daraus entstehen keine pytest-Marken. `custom_id` fließt in `_run_id` ein, die beim Konstruktoraufruf und nicht bei jedem `.run()` erzeugt wird.
 
-* **`target`** (`Any`): Das auszuführende Programmsegment ($S$). Akzeptiert Callables oder String-Referenzen (Late-Binding).
-* **`arena`** (`Optional[Arena]`): Der isolierte Ausführungsraum (Sandbox wie `TempFS` oder `PyVenv`), in dem das Target operiert.
-* **`pre`** (`Union[WorldState, List[WorldState], None]`): Die Vorbedingungen ($P$). Die Übergabe einer Liste triggert automatisch den beschränkten Allquantor ($\forall$).
-* **`post`** (`Union[WorldState, List[WorldState], None]`): Die Nachbedingungen ($Q$). Die Übergabe einer Liste triggert automatisch den beschränkten Existenzquantor ($\exists$).
-* **`expect`** (`bool`): Invertiert die formallogische Erwartungshaltung des Tests (Negativ-Test) (Default: `True`).
-* **`custom_id`** (`Optional[str]`): Optionaler, semantischer Name für den Testlauf (für Logging und Tracing).
-* **`reporter`** (`Optional[Reporter]`): Injizierter Konsument für externe Assertions und Formatierungen (Default: `PytestReporter` | `None`: aktiviert den Headless-Mode).
-* **`multiprocessing`** (`bool`): Aktiviert die asynchrone, parallele Ausführung der State-Pipelines über Worker-Pools (Default: `False`).
-* **`multiprocessors`** (`Optional[List[Multiprocessor]]`): DI-Hook-Registry für eigene Prozessor-Strategien (erweitert den Auto-Routing-Standard der Engine).
+`multiprocessing=True` delegiert Aufgaben an den `MultiprocessManager`. Übergebene `multiprocessors` werden zur Standardliste aus `PickleProcessor` und `LokyProcessor` hinzugefügt. Ein ausschließlicher eigener Backend-Satz erfordert das explizite Setzen von `engine.MULTIPROCESSORS` vor dem Lauf. Details stehen im [Multiprocessing-Handbuch](DEV-GUIDE_2-4_Multiprocessors.md).
 
----
+## Pipeline
 
-## Kern-Verantwortlichkeiten
+1. `_arrange()` normalisiert `fs` in den übergebenen Zustandsobjekten. Diese Objekte werden dabei verändert. Es erfolgt keine umfassende Validierung aller Deklarationen.
+2. `_validate()` führt die Aufgaben sequenziell oder über das Multiprocessing-Modul aus. `_build_context()` bündelt Konfiguration in einem `EBTContext`. Obwohl dieser `frozen=True` ist, bleiben enthaltene Listen, Sets und Objekte veränderlich; es gibt keine tiefe Zustandsisolation.
+3. `_process_single_task()` wählt die aktive Arena und ruft `_execute_step()` auf. Ohne Arena wird das Target direkt aufgerufen. Mit Arena folgen `setup`, `execute` und `get_state`.
+4. `_evaluate_step()` vergleicht das eine Ergebnis gegen jeden `post`-Zustand und erzeugt je Vergleich einen `EvaluationTrace`. Der rohe Match berücksichtigt noch nicht, ob das Zielmuster verboten ist.
+5. Die Arena wird nach dem Vergleich aufgeräumt, auch bei Fehlern. Ein zusätzlicher Aufräumfehler wird der ursprünglichen Exception als Notiz hinzugefügt. Pfade in Traces sind danach keine persistenten Artefakte.
+6. `_report()` ruft `_evaluate_run()` auf und übergibt den `RunTrace` an den Reporter. Bei regulärem Abschluss liefert `run()` diesen Trace zurück.
 
-#### **Erweiterte Formallogische Engine:**  
-  Die Klasse steuert den iterativen Prüfprozess für komplexe Lösungsräume. Sie verwaltet dabei drei fundamentale Zustands-Säulen auf Augenhöhe:
-* **`pre` (Vorbedingung):** Definiert den Ausgangszustand. Werden Listen übergeben, wendet die Engine deterministisch das Prinzip des beschränkten Allquantors ($\forall$) an und führt für jeden deklarierten Zustand einen isolierten Prüfdurchlauf aus.
-* **`_outcome` (Tatsächliches Resultat):** Repräsentiert die ungeschönte Realität *nach* der Ausführung des Targets. Das Handling und die physische Aggregation dieses Zustands (insbesondere von topologischen Mutationen und Seiteneffekten) wird in Zusammenarbeit mit der isolierten `Arena` und deren `Arena-Protokoll` erzeugt und verwaltet.
-* **`post` (Nachbedingung):** Definiert den erwarteten Soll-Zustand. Werden Listen übergeben, wendet die Engine das Prinzip des beschränkten Existenzquantors ($\exists$) an. Der Testzyklus gilt als bestanden, sobald das `_outcome` mit mindestens einem der definierten `post`-Zustände übereinstimmt (ODER-Verknüpfung).
+## Aggregation
 
-#### **Agnostische Typ- und Prädikats-Evaluierung (Dynamic Typing):**
-Während das Framework in der Basis-Auswertung auf striktes Byte-by-Byte-Diffing und exakte Werte-Gleichheit (`==`) setzt, unterstützt die `EBT`-Engine nativ eine dynamische, formallogische Typen-Auflösung. Anstatt die Engine mit Parsing-Bibliotheken (wie Pydantic) aufzublähen, fungiert die Evaluierungsphase (`_evaluate_func` und `_evaluate_fs`) als intelligenter Router. 
-Werden in den `post`-Zuständen keine festen Werte, sondern Typ-Deklarationen definiert, delegiert die Makro-Pipeline die Auswertung an dedizierte Worker (`_compare`-Pattern). Dies ermöglicht die nahtlose Validierung von:
-* **Native Types & Klassen:** Deklarationen via `type` (z. B. `str`, `list` oder benutzerdefinierte Klassen) werden als Laufzeit-Identitätsprüfung (`isinstance`) aufgelöst.
-* **Union Types & Wildcards:** `typing.Union` (oder `|`), `Optional` und `typing.Any` werden rekursiv entpackt und auf Erfüllbarkeit geprüft.
-* **Pattern Matching:** Übergebene reguläre Ausdrücke (`re.Pattern`) triggern automatisch ein `re.match()` auf den tatsächlichen Wert im `_outcome`-Zustand.
-* **Callables (Prädikate):** Das Framework erkennt injizierte Funktionen (`Callable` oder `lambda`) und führt diese als zustandslose Prädikate aus. Dies gilt sowohl für funktionale Returns als auch für Dateisystem-Evaluierungen (`fs`). Schlägt ein Prädikat fehl oder wirft es typische Laufzeitfehler (z. B. `TypeError`, `KeyError`), wertet die Engine dies formallogisch sauber als Mismatch, ohne den Testlauf abstürzen zu lassen.
+Die Traces werden nach Eingangsschritt gruppiert. Pro Schritt muss mindestens ein positives Muster passen, sofern positive Muster existieren, und kein negatives darf passen. Danach werden die Schritte mit UND verknüpft. `EBT.expect=False` negiert dieses Endergebnis. Alle Eingänge teilen dieselbe Zielmenge; eine Zuordnung von `pre[i]` zu `post[i]` entsteht nicht.
 
-#### Multiprocessing - Strategy-Pattern & Chain of Responsibility with DI-Hook-Registry:
-Wenn `multiprocessing=True` gesetzt ist, routet die `EBT`-Engine die Aufgabe durch eine entkoppelte Multiprocessing-Architektur. Das Framework nutzt das Strategy-Pattern (Chain of Responsibility), um zur Laufzeit den Ausführungsweg zu bestimmen. 
-Anstatt die Parallelisierungslogik hart in der Engine zu verdrahten, delegiert die `EBT`-Klasse die Verantwortung an eine priorisierte Hook-Registry. Diese Registry wertet den Zustand der Engine aus und wählt den Ausführungsweg. Durch das DI-Interface können Entwickler zudem vollständig eigene Backends in die Chain einklinken.
-Detaillierte Spezifikationen zur internen Resolution und den einzelnen Prozessoren finden sich im ergänzenden Dokument: **[Multiprocessors (DEV-GUIDE_2-4)](DEV-GUIDE_2-4_Multiprocessors.md)**.
+Leere Zustandslisten können derzeit ohne Vergleiche erfolgreich erscheinen. Wiederholte Läufe derselben Instanz sammeln alte `_outcome`- und `_traces`-Einträge weiter und können neue Fehler verdecken. Verwende eine frische EBT-Instanz je Ausführung. Die Listen in bereits zurückgegebenen `RunTrace`-Objekten sind keine stabilen historischen Momentaufnahmen.
 
----
+## Vergleiche und Diagnosen
 
----
+`_calculate_diffs()` aktiviert Rückgabevergleiche derzeit nur für `post.returns is not None`. Für einen echten `None`-Sollwert ist ein Prädikat nötig. `arena` und `fs` werden nur bei wahrheitswertig gesetzten Feldern verglichen. Ein leerer Zustand prüft damit keine Ergebnismerkmale.
 
-## EBT-Attribute
+`_compare()` unterstützt `Any`, Unions, Typen, Regex, Callables und verschachtelte Container. Die exakten Regeln stehen in der Semantikreferenz. `EvaluationTrace.diffs` enthält Abweichungen für Rückgaben, Dateien und Arena-Vorlagen. Der Standardreporter kann Details falscher Rückgaben mit falschem Wahrheitswert auslassen, obwohl diese verglichen wurden.
 
-### EBT-Objekt-Attribute
-
-#### `EBT.arena`
-Definiert den isolierten Ausführungsraum (die Sandbox), in dem das Programmsegment ($S$) operiert. Wird die Arena hier auf Ebene der `EBT`-Klasse definiert, dient sie als konstanter, unveränderlicher Ausführungsraum für die gesamte Transformation. Sie kann lokal auf `WorldState`-Ebene überschrieben werden, wenn das Target explizit die Aufgabe hat, seine Umgebung selbst zu mutieren.
-
-#### `EBT.target`
-Repräsentiert das auszuführende Programmsegment ($S$), welches die Transformation vornimmt. Das Attribut ist hochdynamisch und akzeptiert:
-* **Direkte Callables:** Reguläre Funktionen, `@staticmethod`, `@classmethod` oder verschachtelte Klassen (Nested Classes). Der IPC-Codec löst die Namensräume über den `__qualname__` iterativ auf, um die OOP-Kapselung strikt zu wahren.
-* **String-Referenzen (Late-Binding):** Akzeptiert voll qualifizierte Pfade als String (z.B. `"my_pkg.module.run"` oder `"module:run"`). Dies ist essenziell für Targets, die auf dem Host-System noch nicht existieren und erst zur Laufzeit via `WorldState.fs` in die Arena injiziert oder exklusiv in der Arena (Drittanbieter-Pakete) installiert werden. 
-* **HINWEIS:** *Die Übergabe von an Instanzen gebundenen Methoden ist experimentell. Die EBT-Engine warnt hierbei explizit, da die Rehydrierung des Instanz-Zustandes über IPC bei komplexen Objekten fehlschlagen kann. Es wird dringend die Nutzung zustandsloser statischer Methoden empfohlen.)*
-
-
-#### `EBT.reporter`
-Dient als Dependency-Injection-Mechanismus für die externe Fehlerbehandlung und das finale Reporting. Es akzeptiert jedes Objekt, das dem `Reporter`-Protokoll entspricht (standardmäßig der `PytestReporter`). Dieses Attribut entkoppelt die formallogische Auswertung der Engine vollständig von spezifischen Test-Frameworks. Wird hier `None` deklariert, operiert die EBT-Instanz im lautlosen "Headless Mode" und delegiert keine Assertions nach außen.
-
-#### `EBT.MULTIPROCESSORS`
-Eine Hook-Registry zur Steuerung der Parallelisierungs-Strategien via Dependency Injection (DI). 
-
-**Der smarte Standard (Auto-Routing):** Wird dem Konstruktor kein Argument übergeben, greift der Cubie-Standard. Hierbei nutzt Cubie einen heuristischen `StateInspector`, der die `WorldState`-Objekte analysiert und dynamisch zwischen zwei Standard-Prozessoren wählt:
-1. **Fast-Path (`PickleProcessor`):** Der native Python-Pickler. Blitzschnell, speichereffizient, aber limitiert auf Serialisierungen der Standardbibliothek. Greift, wenn keine dynamischen Prädikate erkannt werden.
-2. **Slow-Path (`LokyProcessor`):** Wird vollautomatisch aktiviert, sobald Cubie unpickelbare Elemente (wie `lambda`-Funktionen oder lokale `<locals>`-Closures) in den Zuständen erkennt. Nutzt `cloudpickle` für tiefe Bytecode-Serialisierung und extrem robuste Worker-Isolation.
-
-**Custom Processors (DI):** Das Attribut erlaubt es, das gesamte Multiprocessing-Verhalten durch eigene Implementierungen (z. B. für `joblib`, `Ray` oder `Celery`) zu überschreiben. Eigene Prozessoren müssen lediglich das `Multiprocessor`-Protokoll implementieren und gliedern sich nahtlos in die Chain of Responsibility ein.
-
----
-
-### EBT-Konfigurations-Attribute
-
-#### `EBT.custom_id` und `EBT._run_id`
-Dienen der eindeutigen Identifikation eines Testdurchlaufs. `custom_id` erlaubt es dem Entwickler, dem Lauf einen semantischen Namen zu geben, während `_run_id` intern als eindeutiger Identifier (inklusive UUID) für Tracing, Logging und Debugging der iterativen Quantoren-Schritte generiert wird.
-
-#### `EBT.expect`
-Ein boolescher Modifikator (Standard: `True`), der die formallogische Erwartungshaltung des gesamten Testlaufs invertiert. Wird `expect` auf `False` gesetzt, deklariert dies einen expliziten Negativ-Test – der Test leuchtet grün, wenn die Ausführung *fehlschlägt* bzw. die Assertions *nicht* zutreffen.  Sie kann lokal auf `WorldState`-Ebene überschrieben werden, um die Zustands-Deklarationen granular invertieren zu können.
-
-#### `EBT.FS_IGNORES` und `EBT.ARENA_IGNORES`
-
-Beides sind Set-basierte Konfigurations-Attribute (`Set[str]`), welche das strikte Byte-by-Byte-Diffing während der Validierungsphase steuern. Sie definieren präzise, welche Dateien oder Verzeichnisse bei der Evaluation der Zielzustände ignoriert werden, um Test-Flakiness durch flüchtige Daten oder erwartete, aber bedeutungslose Seiteneffekte zu verhindern.
-
-* **`EBT.FS_IGNORES`:** Dieses Set ist standardmäßig leer (`{""}`). Es greift tief in der `_evaluate_fs`-Methode. Wenn ein Pfad-Segment (Datei oder Ordnername) in diesem Set gelistet ist, wird das entsprechende Element mitsamt aller rekursiv darin verschachtelten Unterordner vollständig vom Dateisystem-Abgleich ausgeschlossen. Das ist ideal, um irrelevante Build-Artefakte (z. B. `build/`) oder dynamisch generierte Dateien aus der Gleichung zu nehmen, ohne die formale Logik des Tests zu brechen.
-* **`EBT.ARENA_IGNORES`:** Dieses Set enthält standardmäßig eine kuratierte Liste von flüchtigen Metadaten und umgebungsspezifischen Pfaden (z. B. `bin`, `Scripts`, `pyvenv.cfg`, `__pycache__`, `_virtualenv.py`). Es wird durch die `_evaluate_arena`-Methode (bzw. `_compare_venv_contents`) beim Abgleich isolierter Umgebungen wie der `PyVenv`-Arena herangezogen. Dies garantiert kompromisslos, dass systembedingte Varianzen, Caches oder flüchtige Paket-Hashes (wie `.dist-info`) die Evaluation des funktionalen Zustands nicht destabilisieren.
-
-#### `EBT.MULTIPROCESSING`
-Ein boolesches Konfigurations-Attribut (Standard: `False`), das die Skalierungs- und Ausführungsstrategie der zentralen Validierungsphase (`_validate`) steuert. 
-
-* **`EBT.MULTIPROCESSING=False` (Singleprocessing):** Die Engine iteriert sequenziell über alle definierten `pre`-Zustände. Dies ist das robuste Standardverhalten, ideal für einfache Tests und essenziell für lineares Debugging von fehlschlagenden Transformationen.
-* **`EBT.MULTIPROCESSING=True` (Multiprocessing):** Aktiviert die parallele Abarbeitung der Tasks mittels eines `ProcessPoolExecutor`. Die Engine teilt die Menge aller Eingabezustände (den beschränkten Allquantor $\forall$) dynamisch in Chunks auf und verteilt sie auf die verfügbaren System-Kerne (`os.cpu_count()`).
-
----
-
-### EBT-Zustands-Attribute
-
-#### `EBT.pre`: `List[WorldState]`
-Definiert das $P$ (Pre-Condition) im Hoare-Tripel. Es kapselt die Eingabewerte (`args`, `kwargs`) und topologischen Ausgangsstrukturen (`fs`), mit denen die `Arena` und das `target` vorbereitet werden. 
-
-#### `EBT._outcome`: `List[WorldState]`
-Das Resultat der Ausführung. Es fungiert als Trägerobjekt für die tatsächliche Realität nach der Ausführung des Targets. Es kapselt die direkten funktionalen Rückgabewerte (`returns`), sowie die Filesystem-Zustände `fs` und die durch die Environment-Seiteneffekte `arena` (.venv), um sie generisch gegen die `post`-Zustände abgleichen zu können.
-
-#### `EBT.post`: `List[WorldState]`
-Definiert das $Q$ (Post-Condition) im Hoare-Tripel. Es fungiert als reines Assertion-Objekt, gegen welches das generierte `_outcome`-Attribut durch die EBT-Engine verifiziert wird. 
-
----
-
-### EBT-Prozessierungs-Attribute
-
-#### `EBT._traces`: `List[EvaluationTrace]`
-Eine interne Liste, welche die vollständige Historie und Evaluation aller Teilschritte eines Testlaufs aufzeichnet. Jedes `EvaluationTrace`-Objekt kapselt exakt einen $\forall$-$\exists$-Vergleich (bestehend aus Target, spezifischem `pre`, erwartetem `post`, generiertem `_outcome`, den vorberechneten `diffs` und dem booleschen Match-Ergebnis). Diese Traces bilden das Fundament für die finale Konsolidierung.
-
-#### `EBT._run_duration`: `Optional[float]`
-Erfasst die exakte Ausführungszeit der gesamten Validierungs-Makro-Phase, um saubere Performance-Metriken für den Abschlussbericht bereitzustellen.
-
-#### `EBT._run_evaluation`: `Optional[bool]`
-Speichert das absolute, formallogische Endergebnis des gesamten Testlaufs. Dieser Wert wird in der `_evaluate_run`-Pipe berechnet, indem die Quantoren-Logik der Mikro-Steps zusammengeführt und der globale `expect`-Modifikator der `EBT`-Klasse angewendet wird.
-
-#### `EBT.run_trace`: `Optional[RunTrace]`
-Das finale, unveränderliche Trägerobjekt der Auswertung. Es bündelt den gesamten Kontext des Runs: Alle rohen `EvaluationTrace`-Objekte, die `_run_duration` und die finale `_run_evaluation`. Dieses Objekt wird als unteilbarer Fakt an den deklarierten `reporter` übergeben und bildet immer den verbindlichen Rückgabewert der öffentlichen `run()`-Methode.
-
----
-
----
-
-## EBT-Design
-
-### Pattern
-
-#### Allgemeine Muster
-Die Architektur des EBT-Moduls ist eine direkte softwaretechnische Manifestation der deterministischen Hoare-Logik ($\{P\}S\{Q\}$). Das Design folgt einem strikten Pipeline-Muster, das sich fraktal verhält: Die großen Makro-Phasen des gesamten Testlaufs spiegeln sich in isolierten Mikro-Phasen für jede einzelne Zustands-Transformation wider. 
-Ein zentrales Muster ist dabei die **Index-Topologie** (Objekt-Synchronität). Die Zustände existieren als Listen, die fest miteinander verankert sind: Ein `pre[i]` führt zwingend zu einem `_outcome[i]`, welches anschließend gegen eine Menge definierter Zielzustände `post[n]` validiert wird. 
-
-#### Komponenten
-Die Klasse strukturiert ihre internen Methoden nach einem klaren Paradigma:
-* **Services:** Die öffentliche API der Klasse (primär die `run()`-Methode), welche den globalen Lebenszyklus initiiert.
-* **Pipes:** Die zentralen Phasen-Orchestratoren (`_arrange`, `_validate`, `_report`), welche den sequenziellen Datenfluss durch die Makro-Architektur steuern.
-* **Utilities:** Isolierte, zustandslose Hilfsfunktionen (wie Pfad-Normalisierungen, Byte-Diffing-Algorithmen oder formallogische Evaluatoren), die von den Pipes aufgerufen werden, um spezifische Teilaufgaben zu lösen.
-
----
-
-### Lebenszyklus
-
-#### Steps
-Ein Step repräsentiert exakt einen $\{P\}S\{Q\}$ Durchlauf für einen spezifischen Ausgangszustand (Index $i$) und operiert als in sich geschlossene Mikro-Pipeline. Er durchläuft seine eigenen drei Mikro-Phasen:
-1. **Mikro-Arrange:** Zuweisung des deterministischen Ausgangszustands `pre[i]` und der zugehörigen Zielzustände `post[n]`. Die Abbildung gegen eine Menge $n$ ist essenziell, da im Falle eines Existenzquantors mehrere valide Endzustände für ein einzelnes `_outcome` existieren können.
-2. **Mikro-Validate:** Aufbau der physischen Arena, synchrone Ausführung des Targets und das rein wertungsfreie Erfassen der entstandenen Realität in ein `_outcome[i]`-Objekt.
-3. **Mikro-Report:** Der sofortige Abgleich des `_outcome[i]`-Objekts mit den erwarteten `post[n]`-Zuständen (inkl. I/O-lastigem Byte-Diffing). Hierbei wird auch das **lokale `expect`-Attribut** des jeweiligen `WorldState`-Objekts berücksichtigt, um gezielte Negativ-Evaluationen (Invertierung der Erwartungshaltung) direkt auf Mikro-Ebene sauber aufzulösen. Die Ergebnisse werden als rohe `EvaluationTrace`-Objekte verpackt. 
-Das macht den Step extrem ressourceneffizient und ermöglicht es, hunderte Steps sicher parallel zu orchestrieren.
-
-#### Runs
-Ein Run ist die Makro-Ebene und aggregiert die gesamte Menge aller definierten Steps einer `EBT`-Instanz. Er steuert den übergeordneten Lebenszyklus. Er garantiert, dass alle Zustände geordnet vorbereitet werden, triggert die Abarbeitung der Mikro-Steps, konsolidiert am Ende die gesammelten Evaluations-Daten in einem formallogischen `RunTrace`-Objekt und delegiert dieses an den injizierten Reporter. Den Abschluss des Lebenszyklus bildet immer die verbindliche Rückgabe dieses `RunTrace`-Objekts an das aufrufende System.
-
----
-
-### Phasen-Verantwortlichkeiten
-
-#### Arrange (Mapping und Vorbereitung)
-Diese Makro-Phase sichert die formale Integrität des gesamten Runs. Sie validiert die Ausführbarkeit, delegiert die Shorthand-Inferenz an die `ConventionMap` und normalisiert Datentypen. Ihre primäre Verantwortung ist es, die Listen-Strukturen für `pre` und `post` aufzubauen, um die Index-Topologie für die Steps bereitzustellen.
-
-#### Validate (Ausführung & Mikro-Evaluation)
-Die Validate-Phase agiert als Orchestrator für die Mikro-Steps. Sie iteriert über die vorbereiteten Listen und triggert die Transformationen.
-Innerhalb dieser Makro-Phase finden die gesamten `Mikro-Validate` und `Mikro-Report` Lebenszyklen der Steps statt.  
-* **Mikro-Arrange:** Aufbau der Arena. 
-* **Mikro-Validate:** Ausführung des Targets in der Arena. Die Daten der Arenen-Zustände werden als WorldState-Objekt auf Klassen-Ebene im `_outcome`-Attribut gesammelt. 
-* **Mikro-Report:** Abschließend findet die Mikro-Evaluation und der direkte Abgleich gegen die `post[n]`-Zustände (inklusive deren lokaler `expect`-Regeln) statt. Die resultierenden, rohen `EvaluationTrace`-Objekte werden auf Klassen-Ebene im `_traces`-Attribut gesammelt.
-
-#### Evaluate & Report (Auswertung, Konsolidierung und Delegation)
-Die finale Makro-Phase ist vollständig von der Ausführung und den Dateisystemen entkoppelt (keinerlei I/O-Last). Mit der Souveränität der Engine teilt sich dieser Abschlussbereich glasklar in zwei separate Verantwortlichkeiten auf:
-
-* **Die `_evaluate_run`-Logik (Fakten-Konsolidierung):** Anhand der gesammelten `EvaluationTrace`-Objekte wendet diese Phase rein logische Operationen an (die Auflösung von All- und Existenzquantoren, $\forall$ und $\exists$) und berechnet basierend auf dem **globalen `expect`-Modifikator** der `EBT`-Klasse das absolute Endergebnis. Diese Auswertung wird völlig wertungsfrei als Fakt in einer unveränderlichen `RunTrace`-Datenstruktur deklariert.
-* **Die `_report`-Pipe (Delegation):** Diese Phase übernimmt die Orchestrierung nach außen. Sie triggert die Evaluation und übergibt das fertige `RunTrace`-Objekt an den injizierten Reporter (standardmäßig den `PytestReporter`). Alle Pytest-spezifischen Assertions, String-Formatierungen und Diff-Reports sind vollständig in diesen Reporter ausgelagert. Wird `None` als Reporter deklariert, bleibt die Phase lautlos.
-
-Abschließend retourniert die öffentliche `run()`-Service-Methode das `RunTrace`-Objekt, um eine programmatische Weiterverarbeitung zu ermöglichen.
-
----
-
----
-
-## 4. Architektonische Visualisierung
-
-Um das Zusammenspiel zwischen Makro-Orchestrierung (Runs) und Mikro-Ausführung (Steps) sowie die topologische Datenbindung zu verdeutlichen, lassen sich die internen Datenflüsse visuell darstellen.
-
-### 4.1 Anatomie des EvaluationTrace
-
-![Error while trying to load the image](docs/.assets/EvaluationTrace.jpg)
-
-### 4.2 Die Makro-/Mikro-Orchestrierung (Runs & Steps)
-
-![Error while trying to load the image](docs/.assets/runs_and_steps.jpg)
-
----
-
-<center>
-
-![Error while trying to load the image](docs/.assets/cubie-small.png) 
-
-</center>
-
----
+`FS_IGNORES` startet mit `{""}` und filtert Pfadsegmente im rekursiven Dateiscan. `ARENA_IGNORES` enthält unter anderem `bin`, `Scripts`, `pyvenv.cfg` und `__pycache__`; der Arena-Scan ignoriert zusätzlich `.pyc` und `.dist-info`. Diese Ausschlüsse verändern den Prüfbereich und garantieren weder Reproduzierbarkeit noch semantische Gleichheit. Leere Unterverzeichnisse werden im rekursiven Scan nicht erfasst.
