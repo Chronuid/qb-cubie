@@ -211,7 +211,7 @@ Um Cubie von einem faszinierenden Prototyp in ein stabiles, produktionsreifes Fr
    testpaths = ["tests"]
    ```
    Dies verhindert, dass Pytest fremde Modultests einsammelt.
-3. **Behebung des Pfad-Bugs in `test_astlinter_ignores_venv_directory`:**  
+3. **Behebung des Pfad-Bugs in `test_astlinter_ignores_venv_directory`:** (DONE)  
    Das Linter-Target darf niemals unvalidiert auf übergeordnete Verzeichnisse (`..`) außerhalb der Arena zugreifen. Pfade müssen strikt an den Workspace der Arena gebunden werden.
 
 ### Priorität 2 (Architektur-Härtung)

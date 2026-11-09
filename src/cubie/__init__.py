@@ -1,3 +1,22 @@
+"""
+Framework for structured quality assurance via formal program verification and static code analysis.
+===========
+
+`EBT` (Example-Based Testing):
+    Orchestrates tests based on Hoare triples ({P}S{Q}), supporting quantifier mappings and sandboxed execution.
+
+`RBT` (Review-Based Testing):
+    Orchestrates review pipelines bridging automated targets with human or machine reviewers.
+
+`arenas` (`PyVenv`, `TempFS`, `DockerArena`, `VmArena`):
+    Provides sandboxing and isolated execution environments for temporary target runs.
+
+`linters` (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`):
+    Provides static code analysis, linting, and concrete syntax tree validation tools.
+
+`protocols` & `WorldState`:
+    Defines foundational protocols, execution states, and IPC serialization codecs.
+"""
 from . import ebt, multiprocessors, protocols, rbt, reporter
 from .arenas.tempfs import TempFS
 from .arenas.pyvenv import PyVenv
