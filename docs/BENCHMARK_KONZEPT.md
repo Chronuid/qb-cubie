@@ -6,6 +6,13 @@ Die Benchmarks sollen Entwicklern ermöglichen, ihre eigenen Agentensysteme repr
 
 Zusätzlich konkretisiert das Konzept [GUTACHTEN.md, Abschnitt 9.3](../GUTACHTEN.md#93-produktnutzen-anschließend-gezielt-nachweisen). Ein optionales Vergleichsprofil mit gewöhnlichem pytest dient der Untersuchung von Cubies Produktnutzen. Ein einzelnes Agentensystem mit eigenen Aufgaben zu prüfen, ist ein vollständiger, eigenständiger Anwendungsfall.
 
+Die konkreten Entwürfe der zu prüfenden Agentensysteme stehen in
+[AGENTEN_KONZEPT.md](AGENTEN_KONZEPT.md): ein Reviewer-Agent und ein
+Developer-Agent mit gemeinsamem Ollama-Unterbau und `gemma4:12b`.
+Das Dokument trennt vorhandene Schnittstellen, geplante Agentenfunktionen und
+noch notwendige Erweiterungen der Messung. Die Agenten sind eigenständige
+Benchmark-Teilnehmer; Referenzurteil und unabhängige Abnahme bleiben beim Runner.
+
 ## 1. Fragestellungen und Reichweite
 
 | Benchmark | Primäre Frage | Frage zum Produktnutzen |
@@ -319,6 +326,30 @@ Statuswerte trennen mindestens `completed`, `agent_timeout`, `budget_exceeded`, 
 Generierter Code und Agentenwerkzeuge laufen in einer eigens begrenzten Benchmark-Umgebung, zunächst einem Container pro Episode mit festgelegten Ressourcen, ohne Host-Workspace, Container-Daemon-Socket oder Zugangsdaten. Der Agentenadapter außerhalb dieser Umgebung vermittelt notwendige Modellaufrufe; der ausgeführte Projektcode benötigt nach Provisionierung kein Netzwerk. Der Evaluator besitzt einen getrennten Workspace und beendet bei Timeout die gesamte Prozessgruppe bzw. den Container.
 
 Dies ist Infrastruktur des Benchmarks, keine neue Cubie-Arena. `TempFS` und `PyVenv` bleiben Werkzeuge für temporäre Ausführung und bilden keine OS-Sicherheitsgrenze. Der Benchmark darf diese Rolle nicht stillschweigend auf sie übertragen.
+
+### 7.4 Konkrete Ollama-Agenten
+
+[Das Agentenkonzept](AGENTEN_KONZEPT.md) beschreibt zwei geplante Teilnehmer
+auf Basis von `gemma4:12b` mit festgehaltenem Modelldigest. Beide verwenden den
+vorhandenen JSONL-Prozessadapter, strukturierte Modellantworten und eine
+begrenzte lokale Werkzeugschleife. Der Reviewer verändert den geprüften Stand
+nicht; der Developer trennt Testentwurf, Rot, Implementierung und Refactoring.
+Referenzen und unabhängige Abnahmen bleiben außerhalb ihres Modellkontexts.
+
+Das vorhandene [Ollama-Nutzungsexperiment](EXPERIMENT_Benchmark-10-3.md)
+liefert explorative Entwicklerbelege, noch keine offizielle Pilotabnahme und
+keinen praktisch geprüften Reviewer. Für dessen Pilot müssen frei formulierte
+Befunde unabhängig nachbewertet werden: Der aktuelle Evaluator vergleicht auch
+`mechanism` und `impact` exakt und erfüllt damit noch nicht den semantischen
+Trefferbegriff aus Abschnitt 4.2.
+
+Für den Developer gilt zunächst ein Inkrement je Episode. Die vorhandene
+Phasenanfrage enthält weder die Vergleichsbedingung noch Testergebnisse der
+vorherigen Phase. Deshalb verwenden Cubie und pytest explizite passende
+Agentenkonfigurationen; lokale Reparaturen erfolgen vor der Phasenabgabe.
+Mehrere kontrollierte Inkremente, Testrevisionen und zusätzliche Belegarchive
+sind im Agentenkonzept als Erweiterungen gekennzeichnet. Adapterinterne
+Aufruflimits werden getrennt von den Werkzeugbudgets des Runners erfasst.
 
 ## 8. Aufnahme in pytest und CI
 
