@@ -1,6 +1,6 @@
 # Konzept: ReviewAgent und DeveloperAgent
 
-**Stand:** 10. November 2026. **Status:** Entwurf für die Implementierung, keine Messergebnisse.
+**Stand:** 10. November 2026. **Status:** Phasen 1–3 implementiert, weitere Phasen geplant; keine Agenten-Messergebnisse.
 
 Die Benchmarks sollen Entwicklern ermöglichen, ihre eigenen Agentensysteme reproduzierbar zu prüfen, Schwächen zu lokalisieren und Änderungen zu vergleichen. ReviewAgent untersucht die Qualität nachvollziehbarer Reviews; DeveloperAgent untersucht die Entwicklung von Projekten mit Cubie und einem durch Tests geleiteten Vorgehen. Mitgelieferte Szenarien ermöglichen den Einstieg, eigene Szenarien und konfigurierbare Benchmark-Sets die Anwendung auf den jeweiligen Entwicklungsalltag.
 
@@ -448,6 +448,28 @@ vertrauenswürdigen lokalen Materialien aus. Prozessadapter und Containerisolati
 für fremden Agentencode sind noch nicht enthalten; ein Fake-Erfolg ist kein
 Agentenleistungsnachweis. Referenzen bleiben `author_checked` bis zur
 unabhängigen menschlichen Aufnahmeprüfung.
+
+### 10.3 Eigene Agenten und Szenarien
+
+Die dritte Phase ist implementiert: Öffentliche Python-API und CLI unterstützen
+JSONL-Prozesse mit echtem Fähigkeitenaustausch, Agenten- und Szenariovorlagen,
+explizite Referenzvalidierung, Typ-/Tagfilter und den Vergleich archivierter
+Läufe. Der Runner kontrolliert Artefakte und beobachtet Entwicklerphasen selbst;
+Sitzungen bleiben innerhalb einer Episode erhalten und beginnen je Versuch neu.
+
+[Das Tutorial](GUIDE_Benchmark-Custom.md) und das mit `init-example` exportierbare
+Versandkostenpaket ermöglichen den Einstieg aus einem installierten Wheel.
+Das Paket enthält zwei Review-Varianten, eine Entwicklungsepisode und einen
+deterministischen JSONL-Peer. `cubie-bench guide` zeigt die installierte Anleitung.
+Die [EBT-Cases und ihr Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_3.md)
+prüfen den gesamten Ablauf mit einem einzigen Agenten und ohne Produktvergleich.
+
+Die lokale Ausführung setzt vertrauenswürdige Agenten und Evaluatoren voraus;
+die Containerisolation aus Abschnitt 7.3 ist noch nicht implementiert.
+Werkzeugbudgets erfassen Runner-Aufrufe, keine internen Werkzeuge eines
+externen Dienstes. Der Review-Evaluator vergleicht strukturierte Referenzfelder
+und ist kein allgemeiner semantischer Reviewer. Das Beispiel liefert keinen
+Agentenleistungsnachweis; Referenzen bleiben `author_checked`.
 
 ## 11. Methodische Bezugspunkte
 

@@ -27,7 +27,8 @@ def save(root, plan, inputs, runs):
 
 def _report(path, result):
     """Write the human-readable run report."""
-    lines = ["# Offline fake benchmark", "", "Infrastructure check; no model performance was measured.", "",
+    description = "Infrastructure check; no model performance was measured." if all(r["agent_kind"] == "fake" for r in result["runs"]) else "External process benchmark; inspect each agent configuration and its evidence."
+    lines = ["# Benchmark results", "", description, "",
              "[Manifest](manifest.json) · [JSON results](results.json)", ""]
     for run in result["runs"]:
         lines.extend(_section(run))

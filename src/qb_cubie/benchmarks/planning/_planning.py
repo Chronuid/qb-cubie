@@ -60,7 +60,7 @@ def agents(root, values):
         agent = v.read_data(root / path, toml=True)
         identifier = v.identifier(agent.get("id"), "agent.id")
         v.require(identifier not in ids, "agent.id", f"duplicate agent: {identifier}")
-        v.strings(agent.get("command"), "agent.command", nonempty=True)
+        v.command(agent.get("command"))
         v.strings(agent.get("capabilities"), "agent.capabilities")
         result.append(agent)
         ids.add(identifier)
@@ -125,6 +125,8 @@ def _budget(scenario, suite):
 
 def _hash_file(digest, root, path):
     """Add framed path, mode, symlink and content data to a package digest."""
+    if {"__pycache__", ".pytest_cache"} & set(path.relative_to(root).parts):
+        return
     v.require(path.resolve().is_relative_to(root), "sources", f"material escapes package: {path}")
     v.require(not (path.is_symlink() and path.is_dir()), "sources", "directory symlinks are unsupported")
     name = path.relative_to(root).as_posix().encode()

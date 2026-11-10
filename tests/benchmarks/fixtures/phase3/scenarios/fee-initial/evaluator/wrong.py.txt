@@ -1,0 +1,2 @@
+def fee(subtotal):
+    return 0 if subtotal > 5000 else 499

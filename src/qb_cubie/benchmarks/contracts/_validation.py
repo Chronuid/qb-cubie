@@ -47,6 +47,15 @@ def strings(value, field, *, nonempty=False):
     return value
 
 
+def command(value):
+    """Validate a nonempty argument list while preserving repeated arguments."""
+    require(type(value) is list and bool(value), "agent.command", "expected a nonempty argument list")
+    for argument in value:
+        text(argument, "agent.command")
+        require("\x00" not in argument, "agent.command", "NUL in command")
+    return value
+
+
 def number(value, field, *, positive=False, integer=False):
     """Validate a finite numeric value within the requested bounds."""
     require(type(value) in (int, float), field, "expected a finite number")

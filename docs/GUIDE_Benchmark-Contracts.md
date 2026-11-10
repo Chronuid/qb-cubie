@@ -1,13 +1,16 @@
 # Benchmark-Verträge und Offline-Smoke-Läufe
 
 `qb_cubie.benchmarks` bietet die Datenverträge für Phase 10.1 und den
-installierbaren Offline-Durchstich aus Phase 10.2 des
+installierbaren Offline-Durchstich aus Phase 10.2 und die Prozessanbindung aus Phase 10.3 des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md#101-öffentliche-verträge-und-referenzen).
 Laden, Planen und Nachrichtenvalidierung benötigen keine zusätzlichen
 Abhängigkeiten und führen keinen Szenariocode aus. CLI und Runner sind ebenfalls
 installierbar; für die pytest-Unterprozesse wird das Extra `benchmarks` benötigt.
-Der Runner unterstützt bisher ausschließlich den eingebauten Fake und benötigt
-keinen Modellzugang.
+Der Runner unterstützt den eingebauten Fake und externe JSONL-Prozesse.
+[Das Tutorial für eigene Agenten und Szenarien](GUIDE_Benchmark-Custom.md)
+beschreibt Vorlagen, Fähigkeitenaustausch, Referenzprüfung und Laufvergleich.
+Mit `cubie-bench guide` ist es auch im installierten Wheel verfügbar.
+Der Fake und der exportierbare Beispielprozess benötigen keinen Modellzugang.
 
 ## Installieren und ausführen
 
@@ -70,20 +73,23 @@ Die Agentenkonfiguration verwendet `command = ["builtin:fake"]`. Im Abschnitt
 Die Cubie-Bedingung führt echte EBT-Agententests und RBT mit aufzeichnendem
 Reporter aus. `cubie-vs-pytest` kann dieselben deterministischen Abgaben auch mit
 reinen pytest-Agententests ausführen. Die Review-Auswertung vergleicht im
-Fake-Durchstich strukturierte Referenzfelder; semantisches Matching frei
-formulierter Antworten gehört zur späteren Agentenanbindung.
+Durchstich strukturierte Referenzfelder; ein allgemeines semantisches Matching
+frei formulierter Antworten ist weiterhin nicht enthalten.
 
 Die Ausführung ist für vertrauenswürdige lokale Smoke-Materialien gedacht.
 Unterprozesse erhalten keine Provider-Schlüssel oder geerbten Python-/pytest-
-Konfigurationen. Laufzeit- und Werkzeugbudgets werden durchgesetzt; bei Timeout
+Konfigurationen. Das Laufzeitbudget und das Budget der vom Runner gestarteten
+Werkzeuge werden durchgesetzt; interne Werkzeugaufrufe eines externen Dienstes
+sind damit nicht gemessen. Bei Timeout
 wird unter POSIX die Prozessgruppe beendet, unter Windows über `taskkill /T`.
 Die lokale Ausführung bietet noch keine Container-Sicherheitsgrenze für fremden
 Code. Harte Token-/Kostenbudgets werden vor dem Start abgelehnt. Das globale
 Zeitlimit verhindert weitere Starts mit Status `not_started`.
 
-Ausführbare Projekt-Referenzen ergänzen private Vorlagen `acceptance_tests`,
-`agent_tests` und den relativen Pfad `submission_module`. Für die pytest-Bedingung
-wird außerdem `pytest_agent_tests` benötigt. Der unabhängige Evaluator aggregiert
+Ausführbare Projekt-Referenzen ergänzen die private Vorlage `acceptance_tests`
+und den relativen Pfad `submission_module`. Der Fake benötigt außerdem `agent_tests`
+und für die pytest-Bedingung `pytest_agent_tests`; externe Prozesse reichen ihre
+Tests selbst ein. Der unabhängige Evaluator aggregiert
 `test_<criterion_id>` einschließlich Parametrisierungen; eine fehlende Prüfung
 ist ein Infrastrukturfehler. Vorlagen für Agententests und Evaluator bleiben
 außerhalb des exportierten sichtbaren Baums.

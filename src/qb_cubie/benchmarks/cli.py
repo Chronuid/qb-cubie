@@ -4,9 +4,9 @@ import argparse
 import json
 import sys
 
+from qb_cubie.benchmarks import _cli_commands, _cli_parser
 from qb_cubie.benchmarks.planning.planner import plan_suite
 from qb_cubie.benchmarks.runner import run_suite
-from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
 
 
 def main(argv=None):
@@ -24,15 +24,11 @@ def main(argv=None):
 
 def _parser():
     """Define the supported benchmark commands and arguments."""
-    parser = argparse.ArgumentParser(description="Offline smoke benchmark: initialize, plan, run; see GUIDE_Benchmark-Contracts.md")
+    parser = argparse.ArgumentParser(description="Benchmark agents and scenarios: initialize, plan, run, compare; see GUIDE_Benchmark-Custom.md and GUIDE_Benchmark-Contracts.md")
     commands = parser.add_subparsers(dest="command", required=True)
-    init = commands.add_parser("init-suite", help="Create relocatable smoke templates")
-    init.add_argument("path")
-    init.add_argument("--preset", choices=["smoke"], required=True)
-    init.add_argument("--fake", action="store_true", required=True, help="Use the offline reference fake")
-    for name in ("plan", "run"):
-        command = commands.add_parser(name, help=f"{name.capitalize()} the selected suite")
-        command.add_argument("--suite", required=True)
+    _cli_parser.authoring(commands)
+    _cli_parser.suites(commands)
+    _cli_parser.comparison(commands)
     parser.add_argument("--format", choices=["json", "text"], default="text")
     _formats(commands)
     return parser
@@ -46,8 +42,8 @@ def _formats(commands):
 
 def _dispatch(arguments):
     """Execute the selected command and determine its exit code."""
-    if arguments.command == "init-suite":
-        return init_smoke_suite(arguments.path), 0
+    if arguments.command not in {"plan", "run"}:
+        return _cli_commands.dispatch(arguments)
     if arguments.command == "plan":
         return plan_suite(arguments.suite), 0
     result = run_suite(arguments.suite)
@@ -59,7 +55,7 @@ def _text(result):
     if "output" in result:
         limits = f"Limits: {result['max_runs']} runs; {result['max_total_wall_time_seconds']} seconds\n" if "max_runs" in result else ""
         return f"Output: {result['output']}\nAttempts: {len(result['runs'])}\n" + limits + _summaries(result)
-    return f"Smoke suite: {result['suite']}\ncubie-bench plan --suite {result['suite']}\ncubie-bench run --suite {result['suite']}"
+    return _cli_commands.text(result)
 
 
 def _summaries(result):

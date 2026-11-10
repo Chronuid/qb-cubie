@@ -1,0 +1,56 @@
+"""Dispatch the public custom-agent authoring and comparison commands."""
+
+from qb_cubie.benchmarks.adapters.process import validate_agent
+from qb_cubie.benchmarks.contracts import _validation as v
+from qb_cubie.benchmarks.contracts.validation import list_package, validate_package
+from qb_cubie.benchmarks.reporting.comparison import compare_runs
+from qb_cubie.benchmarks.scaffolding.custom import (
+    init_agent,
+    init_example,
+    init_scenario,
+    init_suite,
+)
+from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
+
+
+def dispatch(args):
+    """Execute a command using the same public API as Python clients."""
+    actions = {"init-agent": lambda: init_agent(args.path),
+               "validate-agent": lambda: validate_agent(args.path),
+               "init-scenario": lambda: init_scenario(args.path, args.benchmark),
+               "init-example": lambda: init_example(args.path),
+               "guide": guide,
+               "init-suite": lambda: _suite(args),
+               "validate": lambda: validate_package(args.path, args.check_references),
+               "list": lambda: list_package(args.package),
+               "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent)}
+    return actions[args.command](), 0
+
+
+def guide():
+    """Return the tutorial bundled in the installed distribution."""
+    from importlib.resources import files
+    return {"guide": files("qb_cubie.benchmarks").joinpath("data/GUIDE_Benchmark-Custom.md").read_text(encoding="utf-8")}
+
+
+def _suite(args):
+    """Require an explicit fake choice or a complete external configuration."""
+    if args.fake:
+        v.require(args.agent is None and args.package is None, "init-suite", "--fake cannot combine with --agent/--package")
+        return init_smoke_suite(args.path)
+    v.require(args.agent is not None and args.package is not None, "init-suite", "provide --agent and --package or --fake")
+    return init_suite(args.path, args.agent, args.package)
+
+
+def text(result):
+    """Render comparison scope, discovery and validation in plain language."""
+    if "guide" in result:
+        return result["guide"]
+    if "scope" in result:
+        return "\n".join([f"Comparison: {result['scope']}", *result["warnings"],
+                          *[f"{p['scenario_id']} ({p['condition']}, repetition {p['repetition']}): {p['metric_deltas']}"
+                            for p in result["pairs"]]])
+    if "scenarios" in result:
+        return "\n".join([f"Package: {result['namespace']}",
+                          *[s.get("qualified_id", s.get("scenario_id", "")) for s in result["scenarios"]]])
+    return "\n".join(f"{key}: {value}" for key, value in result.items())

@@ -1,0 +1,2 @@
+def fee(subtotal):
+    return -1

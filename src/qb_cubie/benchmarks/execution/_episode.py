@@ -4,7 +4,7 @@ import shutil
 import time
 
 from qb_cubie.benchmarks.adapters import fake
-from qb_cubie.benchmarks.execution import evaluators
+from qb_cubie.benchmarks.execution import _external, evaluators
 from qb_cubie.benchmarks.execution._messages import exchange
 from qb_cubie.benchmarks.execution._process import ExecutionError
 from qb_cubie.benchmarks.execution._project import develop
@@ -65,7 +65,7 @@ def _export(material, workspace):
     """Export visible materials with executable Python filenames."""
     source = material["base"] / material["scenario"]["visible"]
     for path in source.rglob("*"):
-        if path.is_file():
+        if path.is_file() and not {"__pycache__", ".pytest_cache"} & set(path.relative_to(source).parts):
             relative = path.relative_to(source)
             target = workspace / (relative.with_suffix("") if relative.name.endswith(".py.txt") else relative)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -89,6 +89,8 @@ def _initial(context):
 
 def _perform(context):
     """Execute the appropriate review or developer workflow."""
+    if context["agent"]["command"] != ["builtin:fake"]:
+        return _external.perform(context)
     if context["run"]["benchmark"] == "review_agent":
         submission = submit(context)
         exchange(context, "review", submission["artifacts"], submission["run_id"])
@@ -106,6 +108,9 @@ def _failure(status, reason):
 
 def _finish(context, result):
     """Preserve final submission identity and episode evidence."""
+    result["agent_kind"] = "fake" if context["agent"]["command"] == ["builtin:fake"] else "process"
+    if result["agent_kind"] == "process":
+        result.update(agent_version=context.get("agent_version"), usage=context.get("usage", dict(fake.USAGE)))
     result["finished_at"] = now()
     result["submitted_tree_sha256"] = tree_hash(context["workspace"])
     result["tool_calls"] = context["tool_calls"]

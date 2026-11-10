@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "free_threshold": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "free_threshold",
+      "path": "shipping.py",
+      "symbol": "is_free",
+      "mechanism": "Strict comparison excludes the free-shipping boundary.",
+      "impact": "An order of 5000 cents is charged shipping.",
+      "counterexample": {
+        "subtotal": 5000,
+        "expected": true,
+        "actual": false
+      },
+      "allowed_alternatives": []
+    }
+  ]
+}

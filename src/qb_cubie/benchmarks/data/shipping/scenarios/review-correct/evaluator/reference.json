@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "free_threshold": "pass"
+  },
+  "findings": []
+}

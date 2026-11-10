@@ -1,0 +1,10 @@
+import pytest
+from qb_cubie import EBT, WorldState
+from shipping import fee
+
+
+@pytest.mark.parametrize("subtotal,expected", [(0, 499), (4999, 499), (5000, 0), (9000, 0)])
+def test_fee(subtotal, expected):
+    trace = EBT(target=fee, pre=WorldState(args=(subtotal,)),
+                post=WorldState(returns=expected), reporter=None).run()
+    assert trace.evaluation is True

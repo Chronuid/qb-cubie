@@ -45,6 +45,7 @@ def main():
         environment["PATH"] = str(python.parent)
         tests = root / "tests"
         shutil.copytree(PROJECT_ROOT / "tests/wheel", tests)
+        shutil.copytree(PROJECT_ROOT / "tests/benchmarks/fixtures/phase3", tests / "phase3-example")
         config = root / "pytest.ini"
         config.write_text("[pytest]\n", encoding="utf-8")
 
@@ -72,6 +73,9 @@ def main():
             run("-m", "pip", "check")
             filename = "benchmark_installed.py" if profile == "benchmarks" else "smoke_installed.py"
             run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config), str(tests / filename))
+            if profile == "benchmarks":
+                run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config),
+                    str(tests / "benchmark_custom_installed.py"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "namespace": "shop",
+  "version": "1.0.0",
+  "license": "MIT",
+  "provenance": "Public phase-10.3 author-checked acceptance fixture; no agent measurement.",
+  "scenarios": [
+    "scenarios/review-correct/scenario.json",
+    "scenarios/review-boundary/scenario.json",
+    "scenarios/fee-initial/scenario.json"
+  ]
+}

@@ -90,6 +90,11 @@ Nach Änderungen an Anforderungen wird `uv lock` ausgeführt und die Änderung a
 
 ## Wheel-Prüfung und CI
 
+Eigene Agenten und Szenarien lassen sich mit dem optionalen Extra `benchmarks`
+über JSONL anbinden. Das [Tutorial](docs/GUIDE_Benchmark-Custom.md) zeigt
+Installation, ein ausführbares Beispielpaket und den Vergleich gespeicherter
+Läufe. Nach Installation öffnet `cubie-bench guide` dieselbe Anleitung.
+
 Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
 
 | Prüfung | Python | Betriebssystem / GitHub-Runner |

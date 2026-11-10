@@ -1,0 +1,115 @@
+"""Deterministic public JSONL peer; independent of Cubie runner internals."""
+
+import hashlib
+import json
+import os
+import sys
+import time
+import uuid
+from pathlib import Path
+
+CAPABILITIES = ["review_output", "workspace_changes", "phased_submission", "cancel", "wall_time", "tool_calls"]
+SESSION = uuid.uuid4().hex
+MODE = sys.argv[1] if len(sys.argv) > 1 else "reference"
+AGENT_ID = sys.argv[2] if len(sys.argv) > 2 else "own-agent"
+TESTS = '''import pytest
+from qb_cubie import EBT, WorldState
+from shipping import fee
+
+
+@pytest.mark.parametrize("subtotal,expected", [(0, 499), (4999, 499), (5000, 0), (9000, 0)])
+def test_fee(subtotal, expected):
+    trace = EBT(target=fee, pre=WorldState(args=(subtotal,)),
+                post=WorldState(returns=expected), reporter=None).run()
+    assert trace.evaluation is True
+'''
+SOLUTION = "def fee(subtotal):\n    return 0 if subtotal >= 5000 else 499\n"
+
+
+def emit(value):
+    print(json.dumps(value), flush=True)
+
+
+def record(request):
+    workspace = Path(request["workspace"]) if "workspace" in request else None
+    files = sorted(p.relative_to(workspace).as_posix() for p in workspace.rglob("*") if p.is_file()) if workspace else []
+    with Path("traffic.jsonl").open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps({"request": request, "session": SESSION, "pid": os.getpid(), "files": files,
+                                 "credential_present": "CUBIE_PHASE3_SECRET" in os.environ}) + "\n")
+
+
+def handshake():
+    return {"schema_version": 2 if MODE == "wrong_version" else 1, "type": "capabilities",
+            "agent_id": AGENT_ID, "agent_version": "fixture-1",
+            "capabilities": ["review_output"] if MODE == "missing_capabilities" else CAPABILITIES}
+
+
+def review(workspace):
+    source = (workspace / "shipping.py").read_text(encoding="utf-8")
+    (workspace / "task.md").read_text(encoding="utf-8")
+    faulty = "> 5000" in source and MODE != "approve_all"
+    finding = {"criterion_id": "free_threshold", "path": "shipping.py", "symbol": "is_free",
+               "mechanism": "Strict comparison excludes the free-shipping boundary.",
+               "impact": "An order of 5000 cents is charged shipping."}
+    payload = {"schema_version": 1, "criterion_results": {"free_threshold": "fail" if faulty else "pass"},
+               "findings": [finding] if faulty else [],
+               "sources": [] if MODE == "no_evidence" else ["shipping.py", "task.md"]}
+    (workspace / "review.json").write_text(json.dumps(payload), encoding="utf-8")
+    return ["review.json"]
+
+
+def develop(request, workspace):
+    tests = workspace / "tests" / "test_project.py"
+    if request["phase"] == "test_design":
+        tests.parent.mkdir(exist_ok=True)
+        tests.write_text(TESTS, encoding="utf-8")
+    if request["phase"] == "green" or MODE == "early_implementation":
+        code = SOLUTION.replace(">=", ">") if MODE == "wrong_solution" else SOLUTION
+        (workspace / "shipping.py").write_text(code, encoding="utf-8")
+    if request["phase"] == "green" and MODE == "modify_tests":
+        tests.write_text("def test_fee():\n    assert True\n", encoding="utf-8")
+    if request["phase"] == "red" and MODE == "red_import_error":
+        (workspace / "shipping.py").write_text("import phase3_missing_dependency\n", encoding="utf-8")
+    (workspace / "README.md").write_text("Call shipping.fee(subtotal) with integer cents.\n", encoding="utf-8")
+    return ["tests/test_project.py", "shipping.py", "README.md"]
+
+
+def event(request):
+    workspace = Path(request["workspace"])
+    names = review(workspace) if request["phase"] == "review" else develop(request, workspace)
+    hashes = {name: hashlib.sha256((workspace / name).read_bytes()).hexdigest() for name in names}
+    result = {"schema_version": 1, "type": "event", "run_id": request["run_id"],
+              "scenario_id": request["scenario_id"], "phase": request["phase"], "status": "completed",
+              "artifacts": names, "artifact_hashes": hashes,
+              "usage": {"input_tokens": None, "output_tokens": None, "cost": None}}
+    if MODE in {"foreign_run", "foreign_scenario", "foreign_phase"}:
+        key = {"foreign_run": "run_id", "foreign_scenario": "scenario_id", "foreign_phase": "phase"}[MODE]
+        result[key] = {"run_id": "another-run", "scenario_id": "shop/another-case", "phase": "green"}[key]
+    if MODE == "missing_artifact":
+        (workspace / names[0]).unlink()
+    if MODE == "tampered_artifact":
+        hashes[names[0]] = "0" * 64
+    if MODE in {"traversal", "absolute_artifact"}:
+        result["artifacts"] = ["../outside.json" if MODE == "traversal" else str(workspace / names[0])]
+    if MODE in {"mutate_source", "mutate_task"}:
+        (workspace / ("shipping.py" if MODE == "mutate_source" else "task.md")).write_text("changed\n", encoding="utf-8")
+    return result
+
+
+for line in sys.stdin:
+    incoming = json.loads(line)
+    record(incoming)
+    if incoming["type"] == "capabilities":
+        emit(handshake())
+        continue
+    print("phase3 fixture diagnostic", file=sys.stderr, flush=True)
+    if MODE == "hang":
+        time.sleep(3600)
+    if MODE == "crash":
+        sys.exit(7)
+    if MODE == "eof":
+        break
+    if MODE == "invalid_json":
+        print("not JSON", flush=True)
+        continue
+    emit(event(incoming))

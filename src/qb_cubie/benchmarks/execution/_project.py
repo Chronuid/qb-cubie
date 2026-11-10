@@ -51,7 +51,8 @@ def _phase(context, phase):
 
 def _entry(context, phase, outcome, snapshot, evidence):
     """Bind a phase observation to its test-tree identity and evidence."""
-    exchange(context, phase, ["tests/test_project.py", context["reference"]["submission_module"]])
+    if "peer" not in context:
+        exchange(context, phase, ["tests/test_project.py", context["reference"]["submission_module"]])
     return {"phase": phase, "test_outcome": outcome, "test_tree_sha256": tree_hash(snapshot / "tests"),
             "snapshot": snapshot.relative_to(context["root"]).as_posix(),
             "evidence": [p.relative_to(context["root"]).as_posix() for p in evidence]}

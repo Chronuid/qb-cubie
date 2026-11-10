@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from qb_cubie.benchmarks.adapters.fake import validate_fake
+from qb_cubie.benchmarks.adapters.process import configuration, probe
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.contracts.packages import load_package
 from qb_cubie.benchmarks.planning._planning import _identity
@@ -20,6 +21,7 @@ def prepare(path, plan):
     _layout(plan, scenarios)
     for run in plan["runs"]:
         _executable(run, agents[run["agent_id"]], scenarios[run["scenario_id"]])
+    _probe(agents, plan)
     return {"suite": path, "agents": agents, "packages": list(dict.fromkeys(packages))}
 
 
@@ -42,9 +44,22 @@ def _agents(root, suite):
     for name in suite["agents"]:
         path = (root / name).resolve()
         agent = v.read_data(path, toml=True)
-        validate_fake(agent)
-        result[agent["id"]] = {"path": path, "config": agent}
+        cwd = path.parent
+        if agent.get("command") == ["builtin:fake"]:
+            validate_fake(agent)
+        else:
+            agent, cwd = configuration(path)
+        result[agent["id"]] = {"path": path, "config": agent, "cwd": cwd}
     return result
+
+
+def _probe(agents, plan):
+    """Check selected process capabilities after all data-only preconditions."""
+    for identifier in dict.fromkeys(run["agent_id"] for run in plan["runs"]):
+        entry = agents[identifier]
+        if entry["config"]["command"] != ["builtin:fake"]:
+            required = {cap for run in plan["runs"] if run["agent_id"] == identifier for cap in run["required_capabilities"]}
+            probe(entry["config"], entry["cwd"], required)
 
 
 def _scenarios(packages):
@@ -60,16 +75,18 @@ def _scenarios(packages):
 
 def _executable(run, agent, material):
     """Validate runtime capabilities and private project test materials."""
-    v.require(set(run["budgets"]) <= {"wall_time_seconds", "tool_calls"}, "budgets", "fake measures wall time and tool calls only")
+    v.require(set(run["budgets"]) <= {"wall_time_seconds", "tool_calls"}, "budgets", "runner enforces wall time and its own tool invocations only")
     if run["benchmark"] == "developer_agent":
         v.require(importlib.util.find_spec("pytest") is not None, "benchmarks", "install qb-cubie[benchmarks]")
         reference, base = material["reference"], material["base"]
         tests = "agent_tests" if run["condition"] == "cubie" else "pytest_agent_tests"
-        for field in ("acceptance_tests", tests):
+        fake = agent["config"]["command"] == ["builtin:fake"]
+        for field in ("acceptance_tests", tests) if fake else ("acceptance_tests",):
             v.contained(base, reference.get(field), field)
         v.relative(reference.get("submission_module"), "submission_module")
-        mutant = agent["config"].get("fake", {}).get("mutant", "wrong-return")
-        v.require(mutant in reference["mutants"], "fake.mutant", f"unknown mutant: {mutant}")
+        if fake:
+            mutant = agent["config"].get("fake", {}).get("mutant", "wrong-return")
+            v.require(mutant in reference["mutants"], "fake.mutant", f"unknown mutant: {mutant}")
 
 
 def _archive_agents(agents, destination):

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "review-correct",
+  "benchmark": "review_agent",
+  "title": "Versandkosten: review-correct",
+  "group_id": "shipping-review",
+  "split": "development",
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "free_threshold"
+  ],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}
