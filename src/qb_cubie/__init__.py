@@ -1,22 +1,20 @@
-"""
-Experimental framework for declarative acceptance tests, reviews, and static code analysis.
-===========
+"""Experimental framework for declarative acceptance tests, reviews, and static code analysis."""
 
-`EBT` (Example-Based Testing):
-    Runs finite examples against result patterns; successful runs are not general correctness proofs.
+# `EBT` (Example-Based Testing):
+#     Runs finite examples against result patterns; successful runs are not general correctness proofs.
+#
+# `RBT` (Review-Based Testing):
+#     Orchestrates review pipelines bridging automated targets with human or machine reviewers.
+#
+# `arenas` (`PyVenv`, `TempFS`):
+#     Provides temporary workspaces and child processes without an OS security boundary.
+#
+# `linters` (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`):
+#     Provides static code analysis, linting, and concrete syntax tree validation tools.
+#
+# `protocols` & `WorldState`:
+#     Defines foundational protocols, execution states, and IPC serialization codecs.
 
-`RBT` (Review-Based Testing):
-    Orchestrates review pipelines bridging automated targets with human or machine reviewers.
-
-`arenas` (`PyVenv`, `TempFS`):
-    Provides temporary workspaces and child processes without an OS security boundary.
-
-`linters` (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`):
-    Provides static code analysis, linting, and concrete syntax tree validation tools.
-
-`protocols` & `WorldState`:
-    Defines foundational protocols, execution states, and IPC serialization codecs.
-"""
 from . import ebt, multiprocessors, protocols, rbt, reporter
 from .arenas.tempfs import TempFS
 from .arenas.pyvenv import PyVenv
@@ -54,5 +52,5 @@ __all__ = [
     "CstRule",
     "CstLinter",
     "Pylint",
-    "MyPy"
+    "MyPy",
 ]

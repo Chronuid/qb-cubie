@@ -5,25 +5,26 @@ from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from enum import Enum, auto
 from functools import partial
-from typing import Any, Callable, Iterable, List, Never
+from typing import Any, Callable, Iterable, List, Never, TypedDict
 
-import cloudpickle
+import cloudpickle  # type: ignore[import-untyped]
 
 from .protocols import Mapper, Multiprocessor
 
 try:
-    from loky import get_reusable_executor
+    from loky import get_reusable_executor  # type: ignore[import-untyped]
+
     LOKY_AVAILABLE = True
-except ImportError:  LOKY_AVAILABLE = False
+except ImportError:
+    LOKY_AVAILABLE = False
 
 
 class _TaskFailure(Exception):
-    """Transport a task exception separately from executor/serialization errors.
+    """Transport a task exception separately from executor/serialization errors."""
 
-    Transport the original exception as bytes so a failing exception reducer or
-    constructor cannot break the pool and accidentally initiate task replay.
-    Executors retain the remote traceback as this wrapper's cause.
-    """
+    # Transport the original exception as bytes so a failing exception reducer or
+    # constructor cannot break the pool and accidentally initiate task replay.
+    # Executors retain the remote traceback as this wrapper's cause.
 
     def __reduce__(self):
         error = self.args[0]
@@ -46,9 +47,7 @@ def _restore_task_failure(payload, error_type, message):
         if not isinstance(error, Exception):
             raise TypeError("exception reconstruction did not return an Exception")
     except Exception:  # noqa: BLE001 -- a broken constructor must not turn a task error into pool loss
-        error = RuntimeError(
-            f"Task raised {error_type}: {message}. The original exception could not be transported."
-        )
+        error = RuntimeError(f"Task raised {error_type}: {message}. The original exception could not be transported.")
     return _TaskFailure(error)
 
 
@@ -94,30 +93,36 @@ def _worker_count(n_tasks: int, max_workers: int | None) -> int:
 
 # ========== PICKLE PROCESSOR ======================================================================================== #
 
+
 class PickleMapper:
-    """
-    The pickle-specific mapper - acts up with lambdas and locals but is otherwise pretty fast.
-    """
+    """The pickle-specific mapper - acts up with lambdas and locals but is otherwise pretty fast."""
+
     def __init__(self, n_tasks: int, *, max_workers: int | None = None):
         self.n_worker = _worker_count(n_tasks, max_workers)
         self.chunksize = max(1, n_tasks // (self.n_worker * 4))
         self.executor = ProcessPoolExecutor(max_workers=self.n_worker)
-    def __enter__(self) -> 'PickleMapper':
+
+    def __enter__(self) -> "PickleMapper":
         self.executor.__enter__()
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.executor.__exit__(exc_type, exc_val, exc_tb)
+
     def map(self, fn: Callable, *iterables: Iterable) -> Iterable[Any]:
         return self.executor.map(fn, *iterables, chunksize=self.chunksize)
 
 
 # ------------------ Multiprocessor(Protocol) ------------------------------------------------------------------------ #
 
+
 class PickleProcessor:
     priority = 1
+
     @staticmethod
     def check_condition(pre_states: list, post_states: list) -> bool:
         return not StateInspector.has_unpicklable_callables(pre_states, post_states)
+
     @staticmethod
     def create_handler(n_tasks: int, *, max_workers: int | None = None) -> Mapper:
         return PickleMapper(n_tasks, max_workers=max_workers)
@@ -125,30 +130,31 @@ class PickleProcessor:
 
 # ========== LOKY PROCESSOR ========================================================================================== #
 
+
 class LokyMapper:
-    """
-    The Loky-specific mapper - uses cloudpickle serialization for dynamic predicates (lambdas and locals).
-    """
+    """The Loky-specific mapper - uses cloudpickle serialization for dynamic predicates (lambdas and locals)."""
+
     def __init__(self, n_tasks: int, *, max_workers: int | None = None):
         self.n_worker = _worker_count(n_tasks, max_workers)
         self.chunksize = max(1, n_tasks // (self.n_worker * 4))
-        self.executor = get_reusable_executor(
-            max_workers=self.n_worker,
-            context="loky",
-            timeout=10
-        )
-    def __enter__(self) -> 'LokyMapper':
+        self.executor = get_reusable_executor(max_workers=self.n_worker, context="loky", timeout=10)
+
+    def __enter__(self) -> "LokyMapper":
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.executor.shutdown(wait=True)
+
     def map(self, fn: Callable, *iterables: Iterable) -> Iterable[Any]:
         return self.executor.map(fn, *iterables, chunksize=self.chunksize)
 
 
 # ------------------ Multiprocessor(Protocol) ------------------------------------------------------------------------ #
 
+
 class LokyProcessor:
     priority = 1
+
     @staticmethod
     def check_condition(pre_states: list, post_states: list) -> bool:
         needs_loky = StateInspector.has_unpicklable_callables(pre_states, post_states)
@@ -162,11 +168,13 @@ class LokyProcessor:
 
     @staticmethod
     def create_handler(n_tasks: int, *, max_workers: int | None = None) -> LokyMapper:
-        if not LOKY_AVAILABLE: raise RuntimeError("LokyProcessor was called without the Loky module installed.")
+        if not LOKY_AVAILABLE:
+            raise RuntimeError("LokyProcessor was called without the Loky module installed.")
         return LokyMapper(n_tasks, max_workers=max_workers)
 
 
 # ========== STATE INSPECTOR ========================================================================================= #
+
 
 class StateInspector:
     @staticmethod
@@ -174,37 +182,48 @@ class StateInspector:
         try:
             pickle.dumps(containers)
             return False
-        except (AttributeError, TypeError, pickle.PicklingError): return True
+        except (AttributeError, TypeError, pickle.PicklingError):
+            return True
 
 
 ########################################################################################################################
-
 
 
 ########################################################################################################################
 ####### =======================  M U L T I P R O C E S S  ====================================================== #######
 ########## -------------------------------------------------------------------------------------------------- ##########
 
+
 class S(Enum):
     INITIAL = auto()
     RESOLVE = auto()
     SETUP = auto()
     EXECUTE = auto()
+
+
 class F(Enum):
     SUCCESS = auto()
     FAIL = auto()
+
+
+class _ManagerContext(TypedDict):
+    processor: Multiprocessor | None
+    runner: "MultiprocessRunner | None"
+    result: Iterable[Any] | None
+    error: Exception | None
+
+
 class MultiprocessManager:
-    """
-    Receives data of the EBT class, controls the resolver and runner, and provides the execution.
-    """
+    """Receives data of the EBT class, controls the resolver and runner, and provides the execution."""
+
     def __init__(
-            self,
-            pre_states: list,
-            post_states: list,
-            task_func: Callable,
-            processors: List['Multiprocessor'],
-            *,
-            max_workers: int | None = None
+        self,
+        pre_states: list,
+        post_states: list,
+        task_func: Callable,
+        processors: List["Multiprocessor"],
+        *,
+        max_workers: int | None = None,
     ):
         _validate_max_workers(max_workers)
         self._pre_states = pre_states
@@ -212,74 +231,87 @@ class MultiprocessManager:
         self._task_func = task_func
         self._processors = processors
         self._max_workers = max_workers
-        self.dispatcher = {  #'δ'
+        self._configure_states()
+        self.ctx: _ManagerContext | None = None
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def execute(self) -> None | Iterable[Any]:
+        self.ctx = {"processor": None, "runner": None, "result": None, "error": None}
+        state: S | F = S.INITIAL
+        while isinstance(state, S):
+            state = self.dispatcher[state]()
+        ctx = self._context()
+        if state is F.FAIL:
+            raise RuntimeError("STATE-GUARD: All Processors failed") from ctx["error"]
+        return ctx["result"]
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def _configure_states(self) -> None:
+        self.dispatcher: dict[S, Callable[[], S | F]] = {  #'δ'
             S.INITIAL: self._state_initial,
             S.RESOLVE: self._state_resolve,
             S.SETUP: self._state_setup,
-            S.EXECUTE: self._state_execute
+            S.EXECUTE: self._state_execute,
         }
-        self.ctx = None
-
-    # ------------------------------------------------------------------------------------------------------------------
-
-    def execute(self) -> None | RuntimeError | Iterable[Any]:
-        self.ctx = {"processor": None, "runner": None, "result": None, "error": None}
-        dispatcher = self.dispatcher
-        state = S.INITIAL
-        while state not in (F.SUCCESS, F.FAIL): state = dispatcher[state]()
-        if state == F.SUCCESS: return self.ctx["result"]
-        if state == F.FAIL: raise RuntimeError("STATE-GUARD: All Processors failed") from self.ctx["error"]
-
-    # ------------------------------------------------------------------------------------------------------------------
 
     def _state_initial(self) -> S:
-        self.ctx.update({"processor": None, "runner": None, "result": None})
+        ctx = self._context()
+        ctx.update({"processor": None, "runner": None, "result": None})
         return S.RESOLVE
 
     def _state_resolve(self) -> S | F:
+        ctx = self._context()
         try:
-            self.ctx["processor"] = self._resolve_handler()
+            ctx["processor"] = self._resolve_handler()
             return S.SETUP
         except _NoEligibleProcessor as e:
             # Keep the last actual infrastructure failure when fallback exhausts.
-            if self.ctx["error"] is None:
-                self.ctx["error"] = e
+            if ctx["error"] is None:
+                ctx["error"] = e
             return F.FAIL
 
     def _state_setup(self) -> S:
-        self.ctx["runner"] = self._setup_runner(self.ctx["processor"])
+        ctx = self._context()
+        processor = ctx["processor"]
+        if processor is None:
+            raise RuntimeError("STATE-GUARD: No processor selected for SETUP state.")
+        ctx["runner"] = self._setup_runner(processor)
         return S.EXECUTE
 
     def _state_execute(self) -> S | F:
+        ctx = self._context()
         try:
-            runner = self.ctx["runner"]
-            if runner:
-                self.ctx["result"] = runner.execute()
-                return F.SUCCESS
-            self.ctx["error"] = RuntimeError("STATE-GUARD: Runner was None in EXECUTE state")
-            return F.FAIL
+            runner = ctx["runner"]
+            if runner is None:
+                ctx["error"] = RuntimeError("STATE-GUARD: Runner was None in EXECUTE state")
+                return F.FAIL
+            ctx["result"] = runner.execute()
+            return F.SUCCESS
         except _BackendFailure as failure:
-            self.ctx["error"] = failure.error
-            self._degrade_and_warn(
-                self.ctx["processor"], failure.phase, failure.error,
-            )
-            return S.INITIAL
+            return self._fallback(failure)
+
+    def _fallback(self, failure: _BackendFailure) -> S:
+        ctx = self._context()
+        ctx["error"] = failure.error
+        self._degrade_and_warn(ctx["processor"], failure.phase, failure.error)
+        return S.INITIAL
+
+    def _context(self) -> _ManagerContext:
+        if self.ctx is None:
+            raise RuntimeError("STATE-GUARD: Multiprocess context was not initialized.")
+        return self.ctx
 
     # ----- Helper -----
 
-    def _resolve_handler(self):
-        return MultiprocessResolver.resolve(
-            self._pre_states,
-            self._post_states,
-            self._processors
-        )
+    def _resolve_handler(self) -> Multiprocessor:
+        return MultiprocessResolver.resolve(self._pre_states, self._post_states, self._processors)
 
-    def _setup_runner(self, processor):
+    def _setup_runner(self, processor: Multiprocessor) -> "MultiprocessRunner":
         return MultiprocessRunner(
-            handler=processor,
-            pre_states=self._pre_states,
-            task_func=self._task_func,
-            max_workers=self._max_workers
+            handler=processor, pre_states=self._pre_states, task_func=self._task_func, max_workers=self._max_workers
         )
 
     def _degrade_and_warn(self, processor, phase: str, error: Exception):
@@ -292,23 +324,19 @@ class MultiprocessManager:
             "Priority set to 0. Attempting fallback: all tasks will be replayed if another "
             "eligible backend is available. Tasks may already have run; duplicate side effects "
             f"are possible and are not rolled back.\nError: {error}",
-            category=UserWarning, stacklevel=2
+            category=UserWarning,
+            stacklevel=2,
         )
 
 
 # ========== RESOLVER ================================================================================================ #
 
+
 class MultiprocessResolver:
-    """
-    Manages the Chain of Responsibility and determines the responsible multiprocessor.
-    """
+    """Manages the Chain of Responsibility and determines the responsible multiprocessor."""
+
     @classmethod
-    def resolve(
-            cls,
-            pre_states: list,
-            post_states: list,
-            processors: List[Multiprocessor]
-    ) -> Multiprocessor:
+    def resolve(cls, pre_states: list, post_states: list, processors: List[Multiprocessor]) -> Multiprocessor:
         sorted_processors = sorted(processors, key=lambda p: getattr(p, "priority", 0), reverse=True)
         for processor in sorted_processors:
             if getattr(processor, "priority", 0) > 0 and processor.check_condition(pre_states, post_states):
@@ -320,10 +348,7 @@ class MultiprocessResolver:
 
     @classmethod
     def _find_eligible_processor(
-            cls,
-            processors: List[Multiprocessor],
-            pre_states: list,
-            post_states: list
+        cls, processors: List[Multiprocessor], pre_states: list, post_states: list
     ) -> Multiprocessor:
         """Iterates through the pipeline and triggers the evaluation of the hooks."""
         for processor in processors:
@@ -342,15 +367,12 @@ class MultiprocessResolver:
 
 # ========== RUNNER ================================================================================================== #
 
+
 class MultiprocessRunner:
     """Manage mapper execution, error classification, and cleanup."""
+
     def __init__(
-            self,
-            handler: Multiprocessor,
-            pre_states: list,
-            task_func: Callable,
-            *,
-            max_workers: int | None = None
+        self, handler: Multiprocessor, pre_states: list, task_func: Callable, *, max_workers: int | None = None
     ):
         _validate_max_workers(max_workers)
         self._handler = handler
@@ -389,11 +411,13 @@ class MultiprocessRunner:
 
     def _collect(self, mapper: Mapper) -> list:
         """Consume all task results from the active mapper."""
-        return list(mapper.map(
-            partial(_call_task, self._task_func),
-            self._indices,
-            self._pre_states,
-        ))
+        return list(
+            mapper.map(
+                partial(_call_task, self._task_func),
+                self._indices,
+                self._pre_states,
+            )
+        )
 
     def _abort(self, context: Mapper, failure: BaseException) -> Never:
         """Close the failed mapper and propagate the classified error."""
@@ -421,5 +445,6 @@ class MultiprocessRunner:
         except BaseException as cleanup_error:  # noqa: BLE001 -- preserve the primary error even during cancellation
             error.add_note(f"Multiprocessor cleanup also failed: {cleanup_error!r}")
             raise error
+
 
 ########################################################################################################################

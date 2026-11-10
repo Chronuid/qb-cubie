@@ -1,4 +1,5 @@
 import pytest, hashlib
+import os
 from src.qb_cubie.ebt import *
 from typing import List, Any, Callable, Iterable
 from src.qb_cubie.protocols import WorldState, Mapper

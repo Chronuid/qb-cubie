@@ -1,19 +1,20 @@
-import subprocess, json
+import subprocess
+import json
 from typing import Union, Optional, List
 from ..linter import LinterDiagnostic, _ensure_installed
 from pathlib import Path
 
 # ------- PYLINT -------------------------------------------------------------------------------------------------------
 
+
 class Pylint:
-    """
-    Implements the Linter protocol to execute Pylint and parse its output.
-    """
+    """Implements the Linter protocol to execute Pylint and parse its output."""
+
     def __init__(
-            self,
-            executable: Optional[Union[str, List[str]]] = None,
-            excludes: Optional[List[str]] = None,
-            disable: Optional[List[str]] = None
+        self,
+        executable: Optional[Union[str, List[str]]] = None,
+        excludes: Optional[List[str]] = None,
+        disable: Optional[List[str]] = None,
     ) -> None:
         self._executable = executable
         self._excludes = set(excludes) if excludes else set()
@@ -39,33 +40,34 @@ class Pylint:
         """Constructs the CLI command with robust regex exclusion paths and rule disables."""
         exe_cmd = self._resolve_executable()
         cmd = exe_cmd + ["-f", "json"]
-        if self._disable: cmd.append(f"--disable={','.join(self._disable)}")
+        if self._disable:
+            cmd.append(f"--disable={','.join(self._disable)}")
         if self._excludes and isinstance(target, Path):
             patterns = [f".*{excl}.*" for excl in self._excludes]
             cmd.append(f"--ignore-paths={','.join(patterns)}")
         return cmd
 
     def _parse_json(self, stdout: str) -> List[LinterDiagnostic]:
-        """Parses the Pylint JSON output into uniform diagnostic objects with path and scope mapping."""
-        diagnostics = []
-        if not stdout.strip(): return diagnostics
-        for error in json.loads(stdout):
-            diagnostics.append(LinterDiagnostic(
-                file_path=error.get("path", "UNKNOWN"),
-                linter_name=self.name,
-                rule_id=error.get("message-id", "UNKNOWN"),
-                line=error.get("line", 0),
-                column=error.get("column", 0),
-                message=error.get("message", ""),
-                severity=error.get("type", "error"),
-                node_name=error.get("obj", "")
-            ))
-        return diagnostics
+        """Parse structured Pylint output into uniform diagnostics."""
+        if not stdout.strip():
+            return []
+        return [self._diagnostic(error) for error in json.loads(stdout)]
+
+    def _diagnostic(self, error: dict) -> LinterDiagnostic:
+        return LinterDiagnostic(
+            file_path=error.get("path", "UNKNOWN"), linter_name=self.name,
+            rule_id=error.get("message-id", "UNKNOWN"),
+            line=error.get("line", 0), column=error.get("column", 0),
+            message=error.get("message", ""), severity=error.get("type", "error"),
+            node_name=error.get("obj", ""),
+        )
 
     def _resolve_executable(self) -> List[str]:
         """Resolves the Pylint executable command."""
-        if isinstance(self._executable, list): return self._executable
-        if isinstance(self._executable, str): return [self._executable]
+        if isinstance(self._executable, list):
+            return self._executable
+        if isinstance(self._executable, str):
+            return [self._executable]
         return _ensure_installed("pylint", "QB_CUBIE_PYLINT_PATH")
 
     @staticmethod
@@ -82,7 +84,5 @@ class Pylint:
         """Guards against silent failures or hard crashes of the linter."""
         if process.returncode != 0 and not process.stdout.strip() and process.stderr.strip():
             raise RuntimeError(
-                f"Linter 'Pylint' crashed or is missing.\n"
-                f"Command: {' '.join(cmd)}\n"
-                f"Stderr: {process.stderr.strip()}"
+                f"Linter 'Pylint' crashed or is missing.\nCommand: {' '.join(cmd)}\nStderr: {process.stderr.strip()}"
             )

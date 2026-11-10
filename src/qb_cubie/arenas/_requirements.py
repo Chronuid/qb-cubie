@@ -54,90 +54,120 @@ def _environment_python(env_path: Path) -> Path:
 
 
 def _requirements_satisfied(python_exe: Path, requirements: list[str]) -> bool:
-    """Check installed metadata, versions, extras and transitive requirements.
-
-    Installer arguments and direct references are delegated to uv because their
-    satisfaction cannot be established from version metadata alone. No success
-    is cached across calls, so changes to an existing arena are observed.
-    """
+    """Check installed metadata, versions, extras and transitive requirements."""
     if not requirements:
         return True
-    # Dependency checks run on the host. Import lazily so importing Cubie inside a
-    # minimal arena does not require packaging in that arena as well.
+    parsed = _parse_requirements(requirements)
+    if parsed is None:
+        return False
+    return _Requirements(_inspect_environment(python_exe)).check(parsed)
+
+
+def _parse_requirements(requirements: list[str]):
+    # Import lazily: minimal arenas can import Cubie without packaging installed.
     from packaging.requirements import InvalidRequirement, Requirement
-    from packaging.specifiers import InvalidSpecifier, SpecifierSet
-    from packaging.utils import canonicalize_name
-    from packaging.version import InvalidVersion
 
     try:
-        parsed = [Requirement(value) for value in requirements]
+        return [Requirement(value) for value in requirements]
     except InvalidRequirement:
-        return False
+        return None
 
+
+def _inspection_env() -> dict[str, str]:
     env = os.environ.copy()
     env.pop("PYTHONHOME", None)
     env["PYTHONNOUSERSITE"] = "1"
-    # Preserve application hooks, but never use host site-packages via PYTHONPATH.
+    # Preserve application hooks without exposing host site-packages.
     env["PYTHONPATH"] = os.pathsep.join(
         str(Path(path).absolute())
         for path in env.get("PYTHONPATH", "").split(os.pathsep)
         if path and "site-packages" not in path and "dist-packages" not in path
     )
+    return env
+
+
+def _inspect_environment(python_exe: Path) -> dict:
     try:
         process = subprocess.run(
             [str(python_exe.absolute()), "-B", "-c", _INSPECT_ENVIRONMENT],
-            cwd=python_exe.parent.parent, env=env,
+            cwd=python_exe.parent.parent, env=_inspection_env(),
             check=True, capture_output=True, text=True,
         )
     except (OSError, subprocess.CalledProcessError) as error:
         detail = getattr(error, "stderr", None) or str(error)
-        raise RuntimeError(
-            f"Could not inspect arena requirements using {python_exe}: {detail}"
-        ) from error
+        raise RuntimeError(f"Could not inspect arena requirements using {python_exe}: {detail}") from error
+    return _read_snapshot(python_exe, process.stdout)
+
+
+def _read_snapshot(python_exe: Path, stdout: str) -> dict:
     try:
-        snapshot = json.loads(process.stdout)
+        return json.loads(stdout)
     except json.JSONDecodeError as error:
-        raise RuntimeError(
-            f"Invalid package metadata response from {python_exe}: {process.stdout}"
-        ) from error
+        raise RuntimeError(f"Invalid package metadata response from {python_exe}: {stdout}") from error
 
-    environment = snapshot["environment"]
-    installed = {}
-    for distribution in snapshot["distributions"]:
-        installed.setdefault(canonicalize_name(distribution["name"]), distribution)
-    checked = set()
 
-    def satisfied(requirement, parent_extras=("",)):
-        if requirement.marker and not any(
-            requirement.marker.evaluate({**environment, "extra": extra})
-            for extra in parent_extras
-        ):
+class _Requirements:
+    def __init__(self, snapshot: dict):
+        from packaging.utils import canonicalize_name
+
+        self.environment = snapshot["environment"]
+        self.installed: dict[str, dict] = {}
+        for distribution in snapshot["distributions"]:
+            self.installed.setdefault(canonicalize_name(distribution["name"]), distribution)
+        self.checked: set[tuple[str, frozenset[str]]] = set()
+
+    def check(self, requirements) -> bool:
+        from packaging.requirements import InvalidRequirement
+        from packaging.specifiers import InvalidSpecifier
+        from packaging.version import InvalidVersion
+
+        try:
+            return all(self.satisfied(requirement) for requirement in requirements)
+        except (InvalidRequirement, InvalidSpecifier, InvalidVersion):
+            # Delegate unsupported metadata to the explicit provisioning step.
+            return False
+
+    def satisfied(self, requirement, parent_extras=("",)) -> bool:
+        from packaging.utils import canonicalize_name
+
+        if not self._active(requirement, parent_extras):
             return True
         if requirement.url:
             return False
-        distribution = installed.get(canonicalize_name(requirement.name))
-        if distribution is None:
+        distribution = self.installed.get(canonicalize_name(requirement.name))
+        if distribution is None or not self._matches(requirement, distribution):
             return False
+        return self._dependencies(requirement, distribution)
+
+    def _active(self, requirement, parent_extras) -> bool:
+        return not requirement.marker or any(
+            requirement.marker.evaluate({**self.environment, "extra": extra})
+            for extra in parent_extras
+        )
+
+    def _matches(self, requirement, distribution: dict) -> bool:
+        from packaging.specifiers import SpecifierSet
+        from packaging.utils import canonicalize_name
+
         if not requirement.specifier.contains(distribution["version"], prereleases=True):
             return False
         if not SpecifierSet(distribution["requires_python"]).contains(
-            environment["python_full_version"], prereleases=True,
+            self.environment["python_full_version"], prereleases=True,
         ):
             return False
         extras = {canonicalize_name(extra) for extra in requirement.extras}
-        if not extras <= {canonicalize_name(extra) for extra in distribution["extras"]}:
-            return False
-        key = (canonicalize_name(requirement.name), frozenset(extras))
-        if key in checked:
+        return extras <= {canonicalize_name(extra) for extra in distribution["extras"]}
+
+    def _dependencies(self, requirement, distribution: dict) -> bool:
+        from packaging.requirements import Requirement
+        from packaging.utils import canonicalize_name
+
+        extras = frozenset(canonicalize_name(extra) for extra in requirement.extras)
+        key = (canonicalize_name(requirement.name), extras)
+        if key in self.checked:
             return True
-        checked.add(key)
+        self.checked.add(key)
         return all(
-            satisfied(Requirement(value), ("", *extras))
+            self.satisfied(Requirement(value), ("", *extras))
             for value in distribution["requires"]
         )
-
-    try:
-        return all(satisfied(requirement) for requirement in parsed)
-    except (InvalidRequirement, InvalidSpecifier, InvalidVersion):
-        # Let the existing installer handle unsupported or malformed metadata.
-        return False

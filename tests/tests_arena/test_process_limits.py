@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import tracemalloc
 from types import SimpleNamespace
 
@@ -74,3 +75,20 @@ def test_binary_output_is_counted_without_decoding(tmp_path):
     )
     assert process.returncode == 0
     assert process.stdout == b"\xff" and process.stderr == b"\xfe"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="Limits require POSIX process groups")
+def test_timeout_includes_process_startup(tmp_path, monkeypatch):
+    original = _process.subprocess.Popen
+
+    def delayed_start(*args, **kwargs):
+        process = original(*args, **kwargs)
+        time.sleep(0.1)
+        return process
+
+    monkeypatch.setattr(_process.subprocess, "Popen", delayed_start)
+    with pytest.raises(TimeoutError, match="timed out"):
+        _process.run_process(
+            [sys.executable, "-c", "pass"], cwd=tmp_path,
+            timeout=0.05, capture_output=True,
+        )

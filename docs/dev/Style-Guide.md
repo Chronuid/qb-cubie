@@ -12,6 +12,37 @@ Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierun
 
 Um einen einheitlichen, testbaren und pflegbaren Code im gesamten Projekt zu haben, gelten folgende Styleguide-Richtlinien: 
 
+### Automatisierte Prüfung
+
+`tests/test_styleguide.py` prüft sämtliche Python-Dateien unter `src/` auf maximal
+500 physische Modulzeilen (vorübergehend ausgesetzt), maximal 12 Codezeilen pro Funktionskörper und einzeilige
+Docstring-Beschreibungen. Signaturen, der eigene Docstring, Leerzeilen und Kommentare
+zählen nicht zum Funktionskörper; mehrzeilige Ausdrücke und verschachtelte Definitionen
+zählen mit. Bei Docstrings wird der mit `ast.get_docstring` bereinigte Text geprüft;
+Anführungszeichen auf eigenen Zeilen sind erlaubt. Fehlende Docstrings sind kein Verstoß.
+Caches und mit `pyvenv.cfg` erkennbare virtuelle Umgebungen werden nicht untersucht.
+
+`tests/test_lint.py` ergänzt Ruff (`E4`, `E7`, `E9`, `F`), Pylint (`unreachable`)
+und Mypy (Typfehler sowie `--warn-unreachable --check-untyped-defs`). Die Werkzeuge
+laufen mit dem pytest-Interpreter und einer isolierten Konfiguration. Fehlende Werkzeuge
+und Prozessfehler lassen die Tests fehlschlagen. Die in der Entwicklungsgruppe bereits
+enthaltenen Abhängigkeiten genügen; Arena-Basen werden für diese Tests nicht benötigt.
+
+```bash
+uv sync --locked --group dev
+.venv/bin/python -m pytest -q tests/test_styleguide.py tests/test_lint.py
+```
+
+Beide Module werden auch beim normalen pytest-Lauf und dadurch in der Repository-CI
+ausgeführt. Bestehende Verstöße bleiben fehlgeschlagene Tests mit Fundstellen;
+es gibt keine Bestandsausnahmen. Gegenproben prüfen die Zeilenzählung sowie saubere
+und fehlerhafte Eingaben für jedes Lint-Werkzeug.
+
+Englische Sprache, prägnante Namen, genau ein beschreibender Satz, narrative
+Lesbarkeit und die Trennung von Worker-Logik und Zustandssteuerung benötigen
+zusätzlich ein inhaltliches Review; die automatisierten Prüfungen decken diese
+semantischen Anforderungen nicht ab.
+
 ### Englisch
 Um die Kommentare, Docstrings und Bezeichnungen im Code direkt einheitlich für alle ohne Umwege lesbar zu machen, gilt es diese in der englischen Sprache zu verfassen.
 

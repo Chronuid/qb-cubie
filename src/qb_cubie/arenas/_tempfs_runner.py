@@ -10,30 +10,39 @@ from pathlib import Path
 def main():
     input_path, output_path = map(Path, sys.argv[1:])
     with input_path.open("rb") as stream:
-        # Load the transport from caller paths before giving workspace modules
-        # precedence for target imports (a fixture could itself be cloudpickle.py).
-        import_paths, authkey = pickle.load(stream)
-        sys.path[:] = import_paths
-        multiprocessing.current_process().authkey = authkey
-        import cloudpickle
+        transport = _prepare_transport(stream)
+        result = _call_target(stream, transport)
+    output_path.write_bytes(_serialize_result(result, transport))
 
-        sys.path.insert(0, str(Path.cwd()))
-        try:
-            target, args, kwargs = cloudpickle.load(stream)
-            result = (True, target(*args, **kwargs), None)
-        except BaseException as error:  # noqa: BLE001 - the process boundary transports all target exceptions
-            # KeyboardInterrupt/SystemExit must reach the caller as exceptions,
-            # without terminating the runner before it writes its response.
-            result = (False, error, traceback.format_exc())
+
+def _prepare_transport(stream):
+    # Load transport from caller paths before giving workspace modules precedence.
+    import_paths, authkey = pickle.load(stream)
+    sys.path[:] = import_paths
+    multiprocessing.current_process().authkey = authkey
+    import cloudpickle  # type: ignore[import-untyped]
+
+    sys.path.insert(0, str(Path.cwd()))
+    return cloudpickle
+
+
+def _call_target(stream, transport):
     try:
-        payload = cloudpickle.dumps(result)
-    except Exception as error:  # noqa: BLE001 - user-defined reducers can raise arbitrary exceptions
-        payload = cloudpickle.dumps((
+        target, args, kwargs = transport.load(stream)
+        return True, target(*args, **kwargs), None
+    except BaseException as error:  # noqa: BLE001 -- transport all target exceptions across the process boundary
+        return False, error, traceback.format_exc()
+
+
+def _serialize_result(result, transport) -> bytes:
+    try:
+        return transport.dumps(result)
+    except Exception as error:  # noqa: BLE001 -- user-defined reducers may raise arbitrary exceptions
+        return transport.dumps((
             False,
             RuntimeError(f"TempFS could not serialize the target result or exception: {error}"),
             traceback.format_exc(),
         ))
-    output_path.write_bytes(payload)
 
 
 if __name__ == "__main__":
