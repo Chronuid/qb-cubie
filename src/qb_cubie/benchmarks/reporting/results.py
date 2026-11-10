@@ -1,5 +1,6 @@
 """Archive resolved plans, observations and linked human-readable results."""
 
+import json
 import platform
 
 from qb_cubie.benchmarks.reporting._files import (
@@ -38,7 +39,8 @@ def _report(path, result):
 def _section(run):
     """Describe one attempt and link its evaluation evidence."""
     lines = [f"## {run['scenario_id']} ({run['run_id']})", "",
-             f"Status: {run['status']}; quality_passed: {str(run['quality_passed']).lower()}", ""]
+             (f"Status: {run['status']}; quality_passed: {str(run['quality_passed']).lower()}; "
+              f"process_passed: {json.dumps(run.get('process_passed'))}"), ""]
     lines.extend(f"- {key}: {value}" for key, value in run["criterion_results"].items())
     lines.extend(_phases(run))
     if run.get("process_reason") or run.get("reason"):

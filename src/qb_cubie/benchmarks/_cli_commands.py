@@ -48,9 +48,23 @@ def text(result):
         return result["guide"]
     if "scope" in result:
         return "\n".join([f"Comparison: {result['scope']}", *result["warnings"],
-                          *[f"{p['scenario_id']} ({p['condition']}, repetition {p['repetition']}): {p['metric_deltas']}"
-                            for p in result["pairs"]]])
+                          *[_comparison_pair(p) for p in result["pairs"]]])
     if "scenarios" in result:
         return "\n".join([f"Package: {result['namespace']}",
                           *[s.get("qualified_id", s.get("scenario_id", "")) for s in result["scenarios"]]])
     return "\n".join(f"{key}: {value}" for key, value in result.items())
+
+
+def _comparison_pair(pair):
+    """Show both attempt outcomes alongside numeric differences."""
+    return (f"{pair['scenario_id']} ({pair['condition']}, repetition {pair['repetition']}):\n"
+            f"  before: {_attempt(pair['before'])}\n"
+            f"  after: {_attempt(pair['after'])}\n"
+            f"  metric_deltas: {pair['metric_deltas']}")
+
+
+def _attempt(run):
+    """Keep infrastructure, evaluation, quality and process outcomes distinct."""
+    return (f"agent={run['agent_id']}; status={run['status']}; "
+            f"evaluation_status={run['evaluation_status']}; quality_passed={run['quality_passed']}; "
+            f"process_passed={run.get('process_passed')}")

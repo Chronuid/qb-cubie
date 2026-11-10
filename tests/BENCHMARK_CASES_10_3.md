@@ -288,3 +288,61 @@ Diese Prüfungen für fehlende Ausgabedateien, generierte Caches und wiederholte
 Argumente sind im abschließenden gezielten Lauf mit 389 bestandenen Tests
 enthalten. Die Skips und Warnungen stammen aus bestehenden Tests.
 Ruff für sämtliche ergänzten Python-Dateien und `git diff --check` bestehen.
+
+## Ergänzung: Regressionen aus dem Nutzungsexperiment
+
+Die Cases in
+[test_experiment_regressions.py](benchmarks/phase3/test_experiment_regressions.py)
+konkretisieren die priorisierten Befunde aus
+[EXPERIMENT_Benchmark-10-3.md](../docs/EXPERIMENT_Benchmark-10-3.md).
+Die Abnahme wurde zunächst mit bewusst sichtbarer Rotphase ergänzt.
+Die nachfolgende Produktkorrektur ist unten dokumentiert; die archivierten
+Ollama-Belege bleiben unverändert.
+Keine `xfail`-Marker, Skips, Modellaufrufe oder Netzwerkabhängigkeiten.
+
+Der vorhandene externe JSONL-Peer reicht im temporären Paket neue Testentwürfe
+ein. Der sichtbare Versandkostenvertrag und die unabhängige Referenzabnahme
+werden dort um `ValueError` bei negativen Beträgen ergänzt. Damit sind die
+Exceptiontests fachlich begründet. Die Referenzlösung erfüllt auch diesen
+Zusatzvertrag. Die EBT-Hülle prüft `run_suite` über die öffentliche API;
+die eingereichten Tests laufen tatsächlich als separate pytest-Prozesse.
+
+| Kriterium des Experiments | Neue Cases / Sollverhalten |
+| --- | --- |
+| Fehlende erwartete Exception ist fachliches Rot | `test_missing_expected_exception_is_business_red`: einmal ausschließlich `pytest.raises`, einmal zusammen mit einer EBT-Assertion. JUnit belegt `DID NOT RAISE`; Rot zählt als `assertion_failure`, Grün und Refactoring bestehen bei identischem eingefrorenem Testbaum; Qualität und Prozess bestehen. |
+| Echte Fehler dürfen durch fachliches Rot nicht verdeckt werden | `test_real_test_errors_override_business_failures`: Laufzeitfehler und Fixture-Setupfehler neben fachlichen Fehlern bleiben `test_error`; Syntax- und Importfehler bleiben `import_error`. Ein Laufzeitfehler enthält absichtlich die Texte `AssertionError` und `DID NOT RAISE`, um eine bloße Teilstringsuche als Fehlklassifikation aufzudecken. |
+| Falsche Agentenorakel bleiben Prozessfehler | `test_wrong_agent_oracle_stays_a_process_failure_despite_correct_product`: fachlich korrekte Produktion besteht die unabhängige Abnahme, falscher Agententest bleibt in Grün und Refactoring rot; `process_passed=false`. |
+| Bericht trennt Qualität und Prozess sichtbar | `test_report_names_quality_and_process_separately`: Markdown nennt `quality_passed: true` und ausdrücklich `process_passed: false`. |
+| `full` bedeutet vergleichbar, nicht erfolgreich | `test_text_comparison_exposes_status_quality_and_process`: zwei vollständig vergleichbare Entwicklerläufe mit gleichem Qualitäts-, aber unterschiedlichem Prozessurteil. CLI zeigt Status, Qualität und Prozess statt ausschließlich leerer Metrikdifferenzen. |
+| Exitcode 0 ist kein Prozessabnahmenachweis | `test_cli_exit_zero_does_not_hide_process_failure`: abgeschlossener Lauf mit Prozessfehler behält Exitcode 0 und zeigt beide Ergebnisfelder ausdrücklich an. |
+
+Reproduktion:
+
+```bash
+.venv/bin/python -m pytest tests/benchmarks/phase3/test_experiment_regressions.py -q
+```
+
+Das lokale Modell-Tutorial sowie die Sicherung von Modell-Digest,
+Provider-/Adapterversion und Aufrufparametern bleiben nachgelagerte Arbeit.
+Diese deterministischen Cases behaupten weder einen realen Modellaufruf noch
+Reproduzierbarkeit identischer Modellantworten. Die vorhandenen Fähigkeits-,
+Filter-, Referenzvalidierungs- und Wheel-Cases gelten weiterhin.
+
+Erste Ausführung am 10. November 2026: **6 bestanden, 4 fehlgeschlagen**.
+Die beiden Exception-Cases erhalten noch `test_error` statt `assertion_failure`.
+Im Markdown fehlt das explizite Prozessfeld; der Textvergleich zeigt weiterhin
+nur `{}`. Alle sechs Gegenproben bestehen. Die bisherigen Prozessadapter- und
+Vergleichscases bestehen unverändert (**39 bestanden**). Ruff meldet für das
+neue Testmodul keine Befunde.
+
+Nach der Produktkorrektur am 10. November 2026 bestehen **alle zehn neuen
+Cases**. Die Klassifikation prüft den abschließenden pytest-Fehlertyp statt
+beliebiger Vorkommen von `AssertionError` im Traceback. Fehlende erwartete
+Exceptions werden als fachliches Rot akzeptiert; andere Testfehler behalten
+Vorrang. Bericht und Textvergleich zeigen das Prozessurteil ausdrücklich.
+
+Abschließende Prüfung mit
+`pytest tests/benchmarks tests/test_styleguide.py -q`: **390 bestanden,
+1 bestehender Skip** (temporär ausgesetzte Modulgrößenregel).
+Ruff für den Benchmark-Produktcode und das neue Testmodul sowie
+`git diff --check` sind ohne Befund.

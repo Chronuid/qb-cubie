@@ -42,9 +42,17 @@ def _outcome(result):
     if result["returncode"] == 2:
         return "import_error"
     failures = [item for case in result["cases"] for item in case["failures"]]
-    if failures and all(f["kind"] == "failure" and "AssertionError" in f["text"] for f in failures):
+    if result["returncode"] == 1 and failures and all(_business_failure(f) for f in failures):
         return "assertion_failure"
     return "test_error"
+
+
+def _business_failure(failure):
+    """Recognize pytest assertion and missing-exception summaries, excluding setup errors."""
+    terminal = failure["text"].rstrip().rsplit("\n", 1)[-1]
+    return failure["kind"] == "failure" and (
+        terminal.endswith(": AssertionError")
+        or (terminal.endswith(": Failed") and failure["message"].startswith("Failed: DID NOT RAISE ")))
 
 
 def criteria(observation, identifiers):

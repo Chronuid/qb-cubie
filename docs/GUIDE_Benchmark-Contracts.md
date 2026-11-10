@@ -47,6 +47,14 @@ nachgewiesene Rotphase erfüllt den Entwicklungsprozess nicht. Eine korrekte
 Ablehnung fehlerhaften Codes kann die Review-Aufgabe bestehen. Ein Fake-Erfolg
 prüft die Infrastruktur und misst keine Modellleistung.
 
+Fehlende erwartete Exceptions in `pytest.raises` zählen ebenso wie
+Assertion-Fehler als fachliches Rot (`assertion_failure`). Zusätzliche
+Laufzeit-, Setup-, Syntax- oder Importfehler verhindern eine gültige Rotphase.
+`report.md` nennt das Prozessurteil ausdrücklich neben der Qualität;
+bei Aufgaben ohne Prozessbewertung steht dort `null`. Der Textvergleich zeigt
+die Status- und Ergebnisfelder beider Läufe neben den Metrikdifferenzen.
+Sein Scope `full` bezeichnet die Vergleichbarkeit der Aufgaben.
+
 Ohne Qualitätsgate liefert eine vollständig durchgeführte Messung Exitcode 0,
 auch bei fachlichem Durchfallen. Exitcode 2 bezeichnet Konfigurationsfehler,
 Exitcode 3 ungültige oder unterbrochene Ausführungen. Unbekannte Modell-, Token-
