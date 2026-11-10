@@ -2,7 +2,8 @@
 
 **Stand:** 10. November 2026. **Status:** Gemeinsamer Unterbau (§5, Schritt 1)
 und Reviewer-Kern (§5, Schritt 2) implementiert und offline geprüft;
-Reviewer-JSONL-Anschluss im echten EBT-Smoke geprüft; Developer-Rollenprozess,
+Reviewer-JSONL-Anschluss im echten EBT-Smoke geprüft; Developer-Kern (§5, Schritt 3)
+implementiert und offline geprüft; Developer-Rollenprozess,
 Wheel-Nachweise und Modellmessreihen weiterhin geplant.
 
 Dieses Dokument konkretisiert die Agentenseite des
@@ -390,6 +391,15 @@ Der Reviewer-Kern unter `examples/ollama-agents/reviewer.py` erfüllt alle
 und die 109 Unterbau-Cases offline. Der zusätzliche echte Pipeline-EBT weist den Reviewer-JSONL-Anschluss mit
 Modellmetadaten, unabhängiger Evaluation und RBT-Aufzeichnung für einen konformen
 Fall nach. Wheel-Installation und vollständige Smoke-Sets bleiben offen.
+
+Für Schritt 3 dokumentieren die
+[EBT-Abnahmecases für den Developer-Durchstich](../tests/AGENTEN_CASES_5_3.md)
+den expliziten Adaptervertrag: 36 ursprüngliche Cases prüfen fachliches Rot inklusive
+`pytest.raises`, eingefrorene Tests, lokale Grün-Reparaturen, Nutzungshinweise,
+ein falsches Testorakel und verbotene Teständerungen. Der Developer-Kern unter
+`examples/ollama-agents/developer.py` erfüllt alle 36 Cases und neun zusätzliche
+Gegenproben. Mit den bisherigen 199 Offline-Agenten-Cases bestehen 244 Cases.
+Der Developer-Prozessanschluss, Wheel-Nachweis und echte Developer-Smokes bleiben offen.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,

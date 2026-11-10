@@ -1,9 +1,10 @@
-# Unterbau und Reviewer-Kern für lokale Ollama-Agenten
+# Unterbau, Reviewer- und Developer-Kern für lokale Ollama-Agenten
 
-Dieses eigenständige Beispiel implementiert Schritt 1 und den Reviewer-Kern aus Schritt 2 von
+Dieses eigenständige Beispiel implementiert Schritt 1 sowie die Rollenkerne aus Schritt 2 und 3 von
 [AGENTEN_KONZEPT.md](../../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
-Es verwendet ausschließlich die Python-Standardbibliothek und benötigt
-Python ab 3.13. Import und Offline-Prüfungen starten weder Ollama noch ein
+Der gemeinsame Unterbau und der Reviewer verwenden die Python-Standardbibliothek;
+der Developer nutzt zusätzlich den installierten Cubie-Testausführer und pytest.
+Python ab 3.13 wird benötigt. Import und Offline-Prüfungen starten weder Ollama noch ein
 Modell. Das historische Beispiel unter `../ollama-user-benchmark/` bleibt
 unverändert.
 
@@ -256,3 +257,52 @@ unabhängige Evaluation, RBT-Aufzeichnung und die Identität beider Berichte.
 Aufruf und Grenzen stehen in der [Live-Testbeschreibung](../../tests/live_ollama/README.md).
 Dieser Prozessanschluss ersetzt den zuvor noch offenen JSONL-Nachweis für den
 Reviewer; Wheel-Installation und vollständige Rollen-Smoke-Sets bleiben offen.
+
+## Developer-Kern (§5.3)
+
+`developer.py` exportiert `DeveloperAdapter`. Der Kern implementiert die Folge
+`test_design → red → green → refactor` für eine Episode. Dieselbe Instanz nimmt
+über `develop(request)` nacheinander reguläre v1-Developer-Anfragen entgegen und
+liefert pro Anfrage genau ein Abschlussereignis als Dictionary. Der Aufrufer
+übernimmt dessen JSONL-Ausgabe und finalisiert das externe EvidenceWriter-Archiv
+nach der letzten Phase oder einem Abbruch. Ein eigener Developer-JSONL-Prozess
+und zugehörige Agenten-TOMLs bleiben Folgearbeit.
+
+Die Konstruktorparameter entsprechen dem Reviewer, ergänzt um `mode="cubie"`
+oder `mode="pytest"`. Für den Developer sind anfänglich 1800 Sekunden,
+12 Modellaufrufe, 40 interne Werkzeugaufrufe und `num_predict=4096` vorgesehen.
+Budget und Adapter werden pro Episode einmal angelegt. Modus, Promptstand
+`developer-v1` und Werkzeugbeschreibung müssen vor Messungen eingefroren werden.
+
+Die Implementierung liegt unter `ollama_agents/developer/`: `adapter.py` steuert
+Phasen und Reparaturen, `sources.py` vergibt Dateirechte und überwacht den
+akzeptierten Stand, `schema.py` definiert Prompt und Aktionsschema, `tools.py`
+führt reale Tests aus. Der Developer benötigt neben der Standardbibliothek eine
+installierte Cubie-Version und pytest. Er verwendet den vorhandenen
+Benchmark-Testausführer und dessen JUnit-Klassifikation. Isoliertes Python
+(`-I`) in einer temporären Projektkopie verhindert einen versehentlichen Import
+des Repository-Checkouts. Die Kopie stellt keine OS-Sandbox dar.
+
+Im Testentwurf sind neue Python-Dateien unter `tests/` erlaubt; bestehende
+Originaldateien bleiben unverändert. Syntax-/Importfehler und vollständig grüne
+Tests erhalten konkrete Korrekturhinweise. Bei fachlichem Rot kann der Agent
+abgeben; der akzeptierte Teststand bleibt danach unveränderlich. Die Rotphase
+meldet diesen Stand ohne Modellaufruf. Grün und Refactor dürfen ausschließlich
+die ermittelten Produktionsmodule und ein neues Nutzungsdokument ändern.
+Standardziel ist `USAGE.md`; existiert es bereits, wird ein freier Name wie
+`USAGE.agent-1.md` gewährt und im Modellkontext genannt.
+
+Jeder erlaubte Schreibvorschlag wird atomar übernommen und in einer Kopie
+getestet. Tatsächliche Testergebnisse gelangen ins Belegarchiv und zurück ins
+Modell. Maximal drei Implementierungsvorschläge teilen dieselben Episodenlimits.
+Nach dem dritten Vorschlag wird der letzte zulässige Grünstand abgegeben,
+auch wenn die Tests wegen eines falschen Orakels weiterhin scheitern.
+`completed` bedeutet eine fertige Abgabe; die unabhängige Prozessabnahme bleibt
+beim Runner. Refactor muss weiterhin grüne Tests vorweisen. Ein No-op ist erlaubt.
+Verbotene Dateiziele und ungültige Modellantworten erhalten eine einzige
+Korrekturchance pro Phase. Budgetabbrüche werden separat gemeldet.
+
+Die [Developer-Kriterienmatrix](../../tests/AGENTEN_CASES_5_3.md) dokumentiert die
+36 ursprünglichen Abnahmecases und neun ergänzende Gegenproben. Diese Offline-
+Replays prüfen die Adapterfunktion, keine Modellleistung. Echte Developer-Smokes,
+Wheel-Installation und private unabhängige Abnahmen stehen weiterhin aus.
