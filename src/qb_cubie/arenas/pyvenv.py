@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Any, List, Optional
 
+from .._execution import CapturedResult, RemoteException
 from ..protocols import IPCC, WorldState
 from ._hydration import hydrate_workspace
 from ._process import run_process, validate_limits
@@ -220,6 +221,16 @@ class PyVenv:
         if self._out_path is None: raise RuntimeError("STATE-GUARD: '_out_path' was not initialized.")
         status, result = self.codec.load(self._out_path)
         if status == "ERROR": raise RuntimeError(f"Arena Error: {result}")
+        if status == "CAPTURED_SUCCESS":
+            return CapturedResult(value=result)
+        if status == "TARGET_EXCEPTION":
+            if isinstance(result, dict):
+                result = RemoteException(result["type"], result["message"], result["mro"])
+            if not isinstance(result, Exception):
+                raise TypeError("Invalid captured target exception from arena.")
+            return CapturedResult(exception=result)
+        if status != "SUCCESS":
+            raise RuntimeError(f"Unknown arena result status: {status!r}")
         return result
 
     def _teardown_ipc_files(self) -> None:

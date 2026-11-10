@@ -20,7 +20,7 @@
 
 `expect` negiert bei `False` das Gesamtergebnis aller Schritte. Es behandelt keine erwarteten Exceptions. `post.expect` kennzeichnet unabhängig davon erlaubte oder verbotene Muster; `pre.expect` steuert diese Auswertung nicht.
 
-`reporter=None` unterbindet Reporter-Assertions. Fehler beim Aufbau, bei der Target-Ausführung oder im Vergleich bleiben möglich. `tags` speichert Metadaten; daraus entstehen keine pytest-Marken. `custom_id` fließt in `_run_id` ein, die beim Konstruktoraufruf und nicht bei jedem `.run()` erzeugt wird.
+`reporter=None` unterbindet Reporter-Assertions. Fehler beim Aufbau, bei der Target-Ausführung oder im Vergleich bleiben möglich. `tags` speichert Metadaten; daraus entstehen keine pytest-Marken. `custom_id` fließt in `_run_id` ein, die für jeden `.run()`-Aufruf neu erzeugt wird.
 
 `multiprocessing=True` delegiert Aufgaben an den `MultiprocessManager`. Übergebene `multiprocessors` werden zur Standardliste aus `PickleProcessor` und `LokyProcessor` hinzugefügt. Ein ausschließlicher eigener Backend-Satz erfordert das explizite Setzen von `engine.MULTIPROCESSORS` vor dem Lauf. Details stehen im [Multiprocessing-Handbuch](DEV-GUIDE_2-4_Multiprocessors.md).
 
@@ -30,7 +30,7 @@
 
 1. `_arrange()` prüft die Zustandslisten erneut und normalisiert `fs`. Unterschiedliche Quellen mit gleichem Basename in FS-Kurzformen führen zu `ValueError`; explizite Zielpfad-Mappings lösen die Mehrdeutigkeit auf. Erst nach erfolgreicher Normalisierung aller Zustände werden ihre `fs`-Felder verändert. Fehler verhindern Arena-Aufbau und Target-Ausführung.
 2. `_validate()` führt die Aufgaben sequenziell oder über das Multiprocessing-Modul aus. `_build_context()` bündelt Konfiguration in einem `EBTContext`. Obwohl dieser `frozen=True` ist, bleiben enthaltene Listen, Sets und Objekte veränderlich; es gibt keine tiefe Zustandsisolation.
-3. `_process_single_task()` wählt die aktive Arena und ruft `_execute_step()` auf. Ohne Arena wird das Target direkt aufgerufen. Mit Arena folgen `setup`, `execute` und `get_state`.
+3. `_process_single_task()` wählt die aktive Arena und ruft `_execute_step()` auf. Ohne Arena wird das Target direkt aufgerufen. Mit Arena folgen `setup`, `execute` und `get_state`. Bei mindestens einem `post.raises`-Vertrag kapselt `CaptureTarget` ausschließlich den Target-Aufruf; Arena- und Transportfehler werden nicht erfasst. Die PyVenv-Codecs übertragen diese Erfassung als explizite Ergebnisstatus und beschreibende Exception-Daten.
 4. `_evaluate_step()` vergleicht das eine Ergebnis gegen jeden `post`-Zustand und erzeugt je Vergleich einen `EvaluationTrace`. Der rohe Match berücksichtigt noch nicht, ob das Zielmuster verboten ist.
 5. Die Arena wird nach dem Vergleich aufgeräumt, auch bei Fehlern. Ein zusätzlicher Aufräumfehler wird der ursprünglichen Exception als Notiz hinzugefügt. Pfade in Traces sind danach keine persistenten Artefakte.
 6. `_report()` ruft `_evaluate_run()` auf und übergibt den `RunTrace` an den Reporter. Bei regulärem Abschluss liefert `run()` diesen Trace zurück.
@@ -43,11 +43,11 @@ Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt
 
 ## Vergleiche und Diagnosen
 
-`_calculate_diffs()` aktiviert Rückgabevergleiche für `post.returns is not UNSPECIFIED`. Der Sentinel ist ein Enum-Mitglied und behält seine Identität beim Kopieren sowie bei Pickle-/Cloudpickle-Serialisierung für Multiprocessing. Explizites `None` wird als Sollwert verglichen. `arena` und `fs` werden nur bei wahrheitswertig gesetzten Feldern verglichen. Ein leerer Zustand prüft damit keine Ergebnismerkmale.
+`_calculate_diffs()` aktiviert Rückgabevergleiche für `post.returns is not UNSPECIFIED`. Der Sentinel ist ein Enum-Mitglied und behält seine Identität beim Kopieren sowie bei Pickle-/Cloudpickle-Serialisierung für Multiprocessing. Explizites `None` wird als Sollwert verglichen. `post.raises` prüft Typ und optionalen Meldungsregex; `returns` und `raises` im selben Zustand sind ungültig. `arena` und `fs` werden nur bei wahrheitswertig gesetzten Feldern verglichen. Ein leerer Zustand verlangt normale Beendigung, prüft aber keine weiteren Ergebnismerkmale.
 
-`_compare()` unterstützt `Any`, Unions, Typen, Regex, Callables und verschachtelte Container. Die exakten Regeln stehen in der Semantikreferenz. `EvaluationTrace.diffs` enthält Abweichungen für Rückgaben, Dateien und Arena-Vorlagen. Der Standardreporter kann Details falscher Rückgaben mit falschem Wahrheitswert auslassen, obwohl diese verglichen wurden.
+`_compare()` unterstützt `Any`, Unions, Typen, Regex, Callables und verschachtelte Container. Die exakten Regeln stehen in der Semantikreferenz. `EvaluationTrace.diffs` enthält Abweichungen für Rückgaben, Ausnahmeverträge, FS und Arena-Vorlagen. Der Standardreporter zeigt auch falsy Rückgaben und erwartete/beobachtete Exceptions. `JsonReporter(path)` persistiert abgeschlossene Läufe einschließlich typisierter Werte und Diffs mit `schema_version: 1`; er erhebt selbst keine fachliche Assertion.
 
-`FS_IGNORES` startet mit `{""}` und filtert Pfadsegmente im rekursiven Dateiscan. `ARENA_IGNORES` enthält unter anderem `bin`, `Scripts`, `pyvenv.cfg` und `__pycache__`; der Arena-Scan ignoriert zusätzlich `.pyc` und `.dist-info`. Diese Ausschlüsse verändern den Prüfbereich und garantieren weder Reproduzierbarkeit noch semantische Gleichheit. Leere Unterverzeichnisse werden im rekursiven Scan nicht erfasst.
+`FS_IGNORES` startet mit `{""}` und filtert Pfadsegmente samt Teilbaum im rekursiven Scan. `ARENA_IGNORES` enthält unter anderem `bin`, `Scripts`, `pyvenv.cfg` und `__pycache__`; der Arena-Scan ignoriert zusätzlich `.pyc` und `.dist-info`. Diese Ausschlüsse verändern den Prüfbereich und garantieren weder Reproduzierbarkeit noch semantische Gleichheit. Der Scan erfasst Dateien und Verzeichnisse einschließlich leerer Unterverzeichnisse; verschachtelte Datei-/Verzeichniswechsel zählen als `modified`.
 
 ---
 

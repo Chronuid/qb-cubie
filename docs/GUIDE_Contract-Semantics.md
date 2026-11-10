@@ -15,7 +15,7 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | Begriff / API | Bedeutung im vorhandenen Code |
 | --- | --- |
 | EBT-Vertrag | Endliche Menge konkreter Ausführungen mit gemeinsamen erlaubten/verbotenen Zielmustern. Kein Korrektheitsbeweis. |
-| `WorldState` | Veränderliche Dataclass mit `args`, `kwargs`, `arena`, `fs`, `returns`, `expect`. Kein allgemein bewiesenes Zustandsprädikat und keine eingefrorene Momentaufnahme. |
+| `WorldState` | Veränderliche Dataclass mit `args`, `kwargs`, `arena`, `fs`, `returns`, `expect`, `raises`, `exception`. Kein allgemein bewiesenes Zustandsprädikat und keine eingefrorene Momentaufnahme. |
 | `pre` | Ein `WorldState` oder eine nichtleere Liste davon. Für jeden Eintrag wird das Target einmal aufgerufen. `None` wird zu `[WorldState()]`; `[]` führt zu `ValueError`. Ungültige Typen und Listeneinträge führen zu `TypeError`. |
 | `post` | Ein `WorldState` oder eine nichtleere Liste gemeinsamer Zielmuster mit denselben Validierungsregeln wie `pre`. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
 | `args` | `None` ergibt keine Positionsargumente. Listen und Tupel werden in Positionsargumente entpackt; andere Objekte werden als ein Argument übergeben. `args=[1, 2]` ruft `f(1, 2)` auf; `args=([1, 2],)` ruft `f([1, 2])` auf; `args=(None,)` ruft `f(None)` auf. |
@@ -31,9 +31,12 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgegl
 | `pre.fs` | Kopiervorlage für die explizit gewählte Arena. Quellen dürfen Dateien oder Verzeichnisse sein. |
 | `post.fs` | Vergleichsvorlage für die angegebenen Pfade oder Prädikate, die einen `pathlib.Path` erhalten. Leeres `fs` aktiviert keine Prüfung auf einen leeren Workspace. |
 | `target` | Ohne Arena und in `TempFS` ein Callable. `PyVenv` unterstützt zusätzlich String-Referenzen; ihre Auflösung übernimmt der Codec. Ein Aufruf wie `target=my_func()` führt die Funktion schon beim Aufbau des Tests aus. |
-| Exceptions | Target-Fehler propagieren. Es gibt kein eigenes Feld für erwartete Exceptions; `expect=False` fängt sie nicht ab. |
+| `post.raises` | `ExceptionExpectation(exception_type, match=None)` fordert einen Target-Fehler des Typs oder einer Unterklasse mit optionalem Meldungsregex. Darf im selben Zustand nicht mit `returns` kombiniert werden. |
+| `outcome.exception` | Beobachtete Target-Exception oder `None`. Bei einer Exception ist `outcome.returns is UNSPECIFIED`. PyVenv liefert eine beschreibende `RemoteException`. |
+| Exceptions | Ohne `post.raises` propagieren Target-Fehler weiterhin; `expect=False` fängt sie nicht ab. Mit Ausnahmevertrag werden normale Rückgabe, Typ und Meldung verglichen. Infrastrukturfehler bleiben Ausführungsabbrüche. |
 | `stdout` / `stderr` | Keine `WorldState`-Felder und keine EBT-Rückgabemuster. `returns` bezeichnet ausschließlich den Python-Rückgabewert. |
 | Reporter | Standardmäßig wertet `PytestReporter` das Ergebnis per Assertion aus. `reporter=None` unterdrückt diese Assertion; Target-, Aufbau- und Vergleichsfehler können weiterhin Exceptions auslösen. |
+| `JsonReporter(path)` | Schreibt einen abgeschlossenen EBT-Lauf als versioniertes JSON, auch bei `evaluation=False`; erhebt selbst keine fachliche Assertion. Schreibfehler propagieren. |
 | Traces | Unabhängige Momentaufnahmen für Vergleiche (`EvaluationTrace`) und Gesamtergebnis (`RunTrace`). Die Dataclasses bleiben durch den Empfänger veränderbar. Workspace-Pfade können nach dem Aufräumen nicht mehr existieren. |
 | RBT | Synchrone Übergabe von Zielbezeichnung und Prüfregel an `reviewer.review(...)`; keine automatische Target-Ausführung, Quellenbeschaffung oder Beweisführung. |
 
@@ -79,6 +82,40 @@ Die Reihenfolge der Mustererkennung ist relevant:
 
 Ein `EvaluationTrace.evaluation` beschreibt den rohen Match auch für ein verbotenes Muster. Erst die Aggregation berücksichtigt `post.expect`.
 
+## Ausnahmeverträge
+
+`WorldState(raises=ExceptionExpectation(ValueError, match=r"^invalid order: \d+$"))`
+verlangt eine geworfene `ValueError` oder Unterklasse. Das optionale Stringmuster
+verwendet `re.search` auf `str(exception)`; Traceback-Notizen gehören nicht zur
+verglichenen Meldung. Typ und Meldung müssen gemeinsam passen. Ein zurückgegebenes
+Exception-Objekt ist weiterhin eine normale Rückgabe.
+
+`raises` verlangt eine Unterklasse von `Exception`, keine Instanz und kein
+`BaseException`. Ungültige Typen, Regex und gleichzeitig spezifizierte
+`returns`/`raises` führen vor Target-Ausführung zu `TypeError` oder `ValueError`.
+EBT validiert die veränderlichen Zustände vor jedem Lauf erneut.
+
+Für „Rückgabe oder Exception“ werden zwei positive Post-Zustände angegeben.
+Ein Post-Zustand ohne `raises` passt ausschließlich zu normaler Beendigung,
+auch wenn `returns` ausgelassen ist. `raises` und `fs` im selben Zustand müssen
+beide passen. Nach einer erfassten Exception wird der FS-Zustand vor dem
+Aufräumen verglichen. Negative Ausnahmezustände verwenden dieselbe Match- und
+Aggregationsregel wie negative Rückgabezustände.
+
+Die Erfassung umschließt nur den eigentlichen Target-Aufruf. Import-/Auflösungs-,
+Transport-, Arena-, Vergleichs- und Aufräumfehler erfüllen keinen Ausnahmevertrag.
+`KeyboardInterrupt` und `SystemExit` werden nicht erfasst; in PyVenv bleiben
+Prozessabbrüche wie bisher Arena-Systemfehler.
+
+Direkte Ausführung und TempFS bewahren die transportierbare Exception-Instanz.
+PyVenv überträgt mit allen drei Codecs Typnamen, Meldung und qualifizierte
+Klassen-MRO als `RemoteException` (öffentlich aus `qb_cubie` importierbar).
+`type_name`, `message` und `type_mro` beschreiben den entfernten Fehler; dessen
+Klasse wird auf dem Host weder importiert noch instanziiert. Das Typmatching
+verwendet dort die qualifizierten MRO-Namen. Dynamisch registrierte virtuelle
+ABC-Unterklassen sind damit keine transportierte Unterklassenbeziehung.
+Pytest-Bericht und JSON verwenden den beobachteten ursprünglichen Typnamen.
+
 ## Dateisystem und Arenen
 
 `EvaluationTrace.diffs["fs"]` gliedert Abweichungen nach dem Zielpfad des Mappings.
@@ -99,9 +136,9 @@ und von der Verbosity. Ein ausschließlich fehlgeschlagener Vergleich liefert
 keine irreführende Zusammenfassung mit null Abweichungen. Die Formatierung greift
 nicht erneut auf die Vergleichsdateien zu und funktioniert auch nach deren Löschung.
 
-Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnissen vergleicht EBT rekursiv die relativen Dateipfade und Dateiinhalte; fehlende, zusätzliche und geänderte Dateien zählen als Abweichung. Dateien außerhalb der angegebenen Vergleichspfade bleiben ungeprüft. `fs={".": "fixtures/post"}` vergleicht die Dateien des gesamten Workspace gegen die Vorlage.
+Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnissen vergleicht EBT rekursiv relative Datei- und Verzeichnispfade sowie Dateiinhalte, einschließlich leerer Unterverzeichnisse. Fehlende, zusätzliche und geänderte Einträge zählen als Abweichung. Ein Wechsel Datei ↔ Verzeichnis innerhalb eines gemappten Verzeichnisses am gleichen relativen Pfad wird als `modified` erfasst. Ein Typkonflikt des explizit gemappten Vergleichsobjekts selbst bleibt ein Vergleichsfehler mit `error`-Eintrag. Die Diff-Listen sind sortiert. Pfade außerhalb der angegebenen Vergleichspfade bleiben ungeprüft. `fs={".": "fixtures/post"}` vergleicht den gesamten Workspace gegen die Vorlage.
 
-Leere Unterverzeichnisse werden beim rekursiven Vergleich nicht erfasst. Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft; ein vollständiger Vertrag über Verzeichnisstruktur, Metadaten, Rechte oder Symlink-Identität entsteht daraus nicht. `FS_IGNORES` filtert Pfadsegmente im rekursiven Dateiscan. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.
+Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft. Metadaten, Rechte und Symlink-Identität werden nicht verglichen; Symlinks werden entsprechend dem aufgelösten Datei-/Verzeichnistyp behandelt, unaufgelöste Links nicht erfasst. `FS_IGNORES` filtert Pfadsegmente samt Teilbaum. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.
 
 Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Unterschiedliche Quellen mit gleichem Basename führen vor Arena-Aufbau und Target-Ausführung zu `ValueError`. Die Meldung nennt Zustandsfeld, Index, Zielnamen und beide Quellen. Verwende für solche Fälle explizite, unterschiedliche Zielpfade, etwa `{"left/config.json": "a/config.json", "right/config.json": "b/config.json"}`. Wiederholungen desselben Pfads sind erlaubt; der Pfadvergleich erfolgt lexikalisch mit `pathlib.Path`, ohne Auflösung von Symlinks oder `..`.
 
@@ -154,6 +191,39 @@ Die Vorzustände werden vor der Target-Ausführung erfasst. Aufgezeichnete Zust�
 Proxies eines `multiprocessing.Manager`, etwa Events oder Barrieren in Argumenten, werden im Trace durch unveränderliche Referenzdaten (`resource_type`, `resource_id`) ersetzt. Das Target erhält weiterhin die lebenden Proxies. Der Trace dokumentiert deren Identität, nicht den veränderlichen Zustand des entfernten Objekts, und benötigt später keine Verbindung zum Manager.
 
 Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre eigenen Seiteneffekte, externe Ressourcen und bereits mutierte Target-Argumente werden zwischen Läufen nicht zurückgesetzt. Gleichzeitige `.run()`-Aufrufe auf derselben Instanz werden nicht unterstützt.
+
+## Persistente EBT-Berichte
+
+`JsonReporter(path)` speichert einen abgeschlossenen `RunTrace` als UTF-8-JSON mit
+`schema_version: 1`, Lauf-ID, Target, Laufzeit, `expect`, Gesamtbewertung und allen
+Vergleichsspuren einschließlich positiver und negativer Post-Zustände.
+`pre`, `post`, `outcome` und aufgezeichnete Diffs bleiben nach Teardown auswertbar.
+Die Ausgabe liest weder Workspace noch Referenzdateien erneut. Dateien selbst
+werden nicht archiviert. Ausführungsabbrüche ohne abgeschlossenen `RunTrace`
+erzeugen keinen Bericht.
+
+Rückgaben verwenden typisierte Knoten: `kind: "unspecified"` bezeichnet den
+Sentinel; `kind: "value"` enthält `type` und `value`. Dadurch bleiben `None`,
+`False`, `0` und leere Container unterscheidbar. Container enthalten rekursiv
+typisierte Werte. Dictionaries mit Stringschlüsseln behalten ihre Schlüssel;
+andere Dictionaries werden als Liste von Schlüssel-/Wertpaaren dargestellt.
+Tupel und Mengen verwenden JSON-Listen mit qualifiziertem Python-Typnamen.
+Zyklen werden mit `kind: "cycle"` beschrieben. Nicht endliche Floats und sonstige
+Objekte erhalten eine begrenzte Darstellung (`kind: "description"`).
+
+Typ-, Regex- und Callable-Muster tragen `kind: "pattern"`, Typ und Beschreibung.
+Prädikate werden bei der Ausgabe nicht aufgerufen. Die Daten benötigen keine
+ausführbare Deserialisierung und sind kein wieder ausführbarer Testvertrag.
+Diff-Kategorien und relative Pfade bleiben direkt lesbar; nicht JSON-kompatible
+Diff-Werte werden ebenfalls beschrieben. Erwartete Exceptions enthalten `type`
+und `match`; beobachtete Exceptions `type` und `message`.
+
+Der Reporter erhebt keine Assertion für ein fachliches Mismatch. CI-Verbraucher
+müssen `evaluation` auswerten oder anschließend `PytestReporter().report(result)`
+aufrufen. Die Ausgabe ersetzt die Zieldatei erst nach vollständigem Schreiben;
+Schreibfehler propagieren und eine vorhandene Datei bleibt bei fehlgeschlagener
+Ersetzung erhalten. Das Elternverzeichnis muss existieren. Derselbe Pfad wird
+überschrieben; für historische Läufe sind getrennte Pfade zu verwenden.
 
 ## Backend-Fallback und Wiederholungen
 

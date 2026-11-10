@@ -1,3 +1,4 @@
+import re
 import typing
 from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable
 from dataclasses import dataclass, field
@@ -38,6 +39,25 @@ class _UnspecifiedReturn(Enum):
 UNSPECIFIED = _UnspecifiedReturn.VALUE
 
 
+@dataclass(frozen=True)
+class ExceptionExpectation:
+    """Match an ordinary target exception by subclass and optional message regex."""
+
+    exception_type: type[Exception]
+    match: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.exception_type, type) or not issubclass(self.exception_type, Exception):
+            raise TypeError("exception_type must be a subclass of Exception.")
+        if self.match is not None:
+            if not isinstance(self.match, str):
+                raise TypeError("ExceptionExpectation.match must be a string or None.")
+            try:
+                re.compile(self.match)
+            except re.error as error:
+                raise ValueError(f"Invalid exception message regex: {error}") from error
+
+
 @dataclass
 class WorldState:
     """
@@ -45,6 +65,8 @@ class WorldState:
 
     Omit returns (or use UNSPECIFIED) to leave the return value unrestricted.
     Explicit returns=None requires the target to return None.
+    raises declares an alternative exceptional completion; it cannot be combined
+    with returns in the same state. exception records an observed target error.
     """
     args: Optional[Any] = None
     kwargs: Optional[Any]  = None
@@ -52,6 +74,24 @@ class WorldState:
     fs: Optional[Any]  = None
     returns: Any = UNSPECIFIED
     expect: Optional[bool]  = True
+    raises: ExceptionExpectation | None = None
+    exception: Exception | None = None
+
+    def __post_init__(self) -> None:
+        self.validate_exception_contract()
+
+    def validate_exception_contract(self) -> None:
+        """Also called before each run, since WorldState is mutable."""
+        if self.raises is not None:
+            if not isinstance(self.raises, ExceptionExpectation):
+                raise TypeError("WorldState.raises must be an ExceptionExpectation or None.")
+            if self.returns is not UNSPECIFIED:
+                raise ValueError("A WorldState cannot specify both returns and raises.")
+        if self.exception is not None:
+            if not isinstance(self.exception, Exception):
+                raise TypeError("WorldState.exception must be an Exception or None.")
+            if self.returns is not UNSPECIFIED:
+                raise ValueError("An exceptional outcome cannot also contain a return value.")
 
 
 # ========== ARENA-PROTOCOL | EXAMPLE-BASED-TESTING ====================================================================

@@ -7,6 +7,7 @@ from .multiprocessors import *
 from .multiprocessors import _validate_max_workers
 from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED
 from .reporter import PytestReporter
+from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
 
@@ -136,6 +137,8 @@ class EBT:
         _validate_max_workers(self.max_workers)
         self.pre = self._ensure_list(self.pre, "pre")
         self.post = self._ensure_list(self.post, "post")
+        for state in (*self.pre, *self.post):
+            state.validate_exception_contract()
         normalized = [
             (state, self._normalize_fs(state.fs, f"{field}[{index}].fs"))
             for field, states in (("pre", self.pre), ("post", self.post))
@@ -212,7 +215,10 @@ class EBT:
         try:
             # Capture the declared states before target code can mutate them.
             recorded_pre, recorded_posts = _snapshot((pre_state, ctx.post_states))
-            outcome = EBT._execute_step(pre_state, ctx.target, active_arena)
+            outcome = EBT._execute_step(
+                pre_state, ctx.target, active_arena,
+                capture_exceptions=any(post.raises is not None for post in ctx.post_states),
+            )
             for post_state, recorded_post in zip(ctx.post_states, recorded_posts):
                 trace = EBT._evaluate_step(
                     pre_idx=pre_idx, t_step_start=t_step_start,ctx=ctx,
@@ -247,18 +253,31 @@ class EBT:
         )
 
     @staticmethod
-    def _execute_step(pre_state: WorldState, target: Any, active_arena: Optional[Arena]) -> WorldState:
+    def _execute_step(
+            pre_state: WorldState, target: Any, active_arena: Optional[Arena],
+            *, capture_exceptions: bool = False,
+    ) -> WorldState:
         """Executes the target for a single step and returns the normalized outcome state."""
         __tracebackhide__ = True
         args = EBT._normalize_args(pre_state.args)
         kwargs = pre_state.kwargs if pre_state.kwargs is not None else {}
         if not isinstance(kwargs, dict):
             raise TypeError(f"STATE-GUARD: Expected a dict for 'kwargs', but received {type(kwargs).__name__}.")
+        execution_target = CaptureTarget(target) if capture_exceptions else target
         if active_arena:
             active_arena.setup(pre_state)
-            active_arena.execute(target, args, kwargs)
-            return active_arena.get_state()
-        return WorldState(returns=target(*args, **kwargs))
+            execution_result = active_arena.execute(execution_target, args, kwargs)
+            outcome = active_arena.get_state()
+        else:
+            execution_result = execution_target(*args, **kwargs)
+            outcome = WorldState(returns=execution_result)
+        if capture_exceptions:
+            captured = execution_result
+            if not isinstance(captured, CapturedResult):
+                raise TypeError("Arena did not preserve the captured target result.")
+            outcome.returns = UNSPECIFIED if captured.exception is not None else captured.value
+            outcome.exception = captured.exception
+        return outcome
 
     @staticmethod
     def _evaluate_step(
@@ -282,7 +301,26 @@ class EBT:
         """Isolates the formal-logical diff calculation and delegates to the type guard."""
         __tracebackhide__ = True
         diffs = {}
-        if post.returns is not UNSPECIFIED: EBT._append_diff(diffs, "returns", EBT._evaluate_func(post, outcome))
+        if post.raises is not None:
+            error = outcome.exception
+            expected = post.raises
+            type_matches = (
+                qualified_name(expected.exception_type) in error.type_mro
+                if isinstance(error, RemoteException) else isinstance(error, expected.exception_type)
+            )
+            if not type_matches or (expected.match is not None and re.search(expected.match, str(error)) is None):
+                diffs["raises"] = {
+                    "expected": {"type": qualified_name(expected.exception_type), "match": expected.match},
+                    "actual": exception_details(error),
+                }
+        elif outcome.exception is not None:
+            # An unrestricted return state still requires normal completion.
+            diffs["raises"] = {"expected": None, "actual": exception_details(outcome.exception)}
+        if post.returns is not UNSPECIFIED:
+            if outcome.exception is not None:
+                diffs["returns"] = {"expected": str(post.returns), "error": "Target raised instead of returning."}
+            else:
+                EBT._append_diff(diffs, "returns", EBT._evaluate_func(post, outcome))
         if post.arena:
             EBT._append_diff(
                 diffs,
@@ -459,20 +497,25 @@ class EBT:
         """Generates a structured diff dictionary mapping missing, unexpected, and modified files."""
         __tracebackhide__ = True
         exp_keys, act_keys = set(expected.keys()), set(actual.keys())
+        modified = []
+        for path in sorted(exp_keys & act_keys):
+            exp, act = expected[path], actual[path]
+            if exp.is_dir() != act.is_dir() or (exp.is_file() and not filecmp.cmp(act, exp, shallow=False)):
+                modified.append(str(path))
         diff = {
-            "missing": [str(p) for p in exp_keys - act_keys],
-            "unexpected": [str(p) for p in act_keys - exp_keys],
-            "modified": [str(p) for p in exp_keys & act_keys if not filecmp.cmp(actual[p], expected[p], shallow=False)]
+            "missing": [str(p) for p in sorted(exp_keys - act_keys)],
+            "unexpected": [str(p) for p in sorted(act_keys - exp_keys)],
+            "modified": modified,
         }
         return {k: v for k, v in diff.items() if v} or None
 
     @staticmethod
     def _collect_topology(base_dir: Path, ignores: Set[str], is_arena: bool = False) -> dict[Path, Path]:
-        """Collects all relevant files of a directory, respecting ignore configurations."""
+        """Collect regular files and directories, including empty ones, within scope."""
         __tracebackhide__ = True
         files = {}
         for item in base_dir.rglob('*'):
-            if not item.is_file(): continue
+            if not (item.is_file() or item.is_dir()): continue
             rel_path = item.relative_to(base_dir)
             if any(p in ignores for p in rel_path.parts): continue
             if is_arena and (item.suffix == ".pyc" or any(p.endswith(".dist-info") for p in rel_path.parts)): continue

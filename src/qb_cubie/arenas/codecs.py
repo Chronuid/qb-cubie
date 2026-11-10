@@ -1,5 +1,7 @@
 from typing import Any
 
+from .._execution import CaptureTarget
+
 ########################################################################################################################
 # ========== IPC-CODEC-IMPLEMENTATIONS =================================================================================
 ########################################################################################################################
@@ -15,9 +17,12 @@ class PickleCodec:
     def dump(obj: Any, path: str) -> None:
         import pickle
         target, args, kwargs, decontams = obj
+        capture = isinstance(target, CaptureTarget)
+        if capture:
+            target = target.target
         with open(path, "wb") as f:
             pickle.dump(decontams, f)
-            pickle.dump((target, args, kwargs), f)
+            pickle.dump((target, args, kwargs, capture), f)
 
     @staticmethod
     def load(path: str) -> Any:
@@ -34,7 +39,7 @@ class PickleCodec:
                 with open({repr(in_path)}, 'rb') as f:
                     decontams = pickle.load(f)
                     with _cubie_phantom.activate_hook(decontams):
-                        t, a, k = pickle.load(f)
+                        t, a, k, capture = pickle.load(f)
                         if isinstance(t, str):
                             import importlib
                             if ":" in t: module_name, qualname = t.split(":", 1)
@@ -45,8 +50,16 @@ class PickleCodec:
                             mod = importlib.import_module(module_name)
                             t = mod
                             for part in qualname.split('.'): t = getattr(t, part)
-                        res = t(*a, **k)   
-                with open({repr(out_path)}, 'wb') as f: pickle.dump(("SUCCESS", res), f)
+                        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+                        try:
+                            res = t(*a, **k)
+                        except Exception as error:
+                            if not capture: raise
+                            status = "TARGET_EXCEPTION"
+                            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                                   "message": str(error),
+                                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+                with open({repr(out_path)}, 'wb') as f: pickle.dump((status, res), f)
             except Exception as e:
                 error_msg = f"{{type(e).__name__}}: {{str(e)}}"
                 with open({repr(out_path)}, 'wb') as f: pickle.dump(("ERROR", error_msg), f)
@@ -113,8 +126,17 @@ class MSGspecCodec:
                             func = mod
                             for part in parts: func = getattr(func, part)
                     # ----- 3. Execute target and report successful result -----
-                    res = func(*data["args"], **data["kwargs"])
-                    with open({repr(out_path)}, 'wb') as f: f.write(msgspec.msgpack.encode(["SUCCESS", res]))
+                    capture = target_info.get("capture_exception", False)
+                    status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+                    try:
+                        res = func(*data["args"], **data["kwargs"])
+                    except Exception as error:
+                        if not capture: raise
+                        status = "TARGET_EXCEPTION"
+                        res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                               "message": str(error),
+                               "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+                    with open({repr(out_path)}, 'wb') as f: f.write(msgspec.msgpack.encode([status, res]))
                 except Exception as e: # Exception abfangen und an den Host melden
                     error_msg = f"{{type(e).__name__}}: {{str(e)}}"
                     with open({repr(out_path)}, 'wb') as f: f.write(msgspec.msgpack.encode(["ERROR", error_msg]))
@@ -126,6 +148,8 @@ class MSGspecCodec:
     @classmethod
     def _extract_target_info(cls, target: Any) -> dict:
         """Routes the provided target to the appropriate extraction strategy."""
+        if isinstance(target, CaptureTarget):
+            return {**cls._extract_target_info(target.target), "capture_exception": True}
         if isinstance(target, str): return cls._extract_string(target)
         if hasattr(target, "__self__") and not isinstance(target.__self__, type):
             return cls._extract_instance(target)
@@ -187,6 +211,9 @@ class CloudpickleCodec:
         import cloudpickle
         import sys
         target, args, kwargs, decontams = obj
+        capture = isinstance(target, CaptureTarget)
+        if capture:
+            target = target.target
         modules_to_unregister = set()
         def force_value_pickling(item):
             mod_name = getattr(item, "__module__", None)
@@ -202,7 +229,8 @@ class CloudpickleCodec:
         for arg in args: force_value_pickling(arg)
         for val in kwargs.values(): force_value_pickling(val)
         if self.isolation >= 1: self._apply_dependency_isolation()
-        payload = {"target": target, "args": args, "kwargs": kwargs, "decontams": decontams}
+        payload = {"target": target, "args": args, "kwargs": kwargs, "decontams": decontams,
+                   "capture_exception": capture}
         try:
             with open(path, "wb") as f: cloudpickle.dump(payload, f)
         finally:
@@ -239,9 +267,18 @@ class CloudpickleCodec:
                         target = importlib.import_module(module_name)
                         for part in qualname.split('.'): target = getattr(target, part)
                     # ----- 3. Execute -----
-                    res = target(*args, **kwargs)
+                    capture = data.get("capture_exception", False)
+                    status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+                    try:
+                        res = target(*args, **kwargs)
+                    except Exception as error:
+                        if not capture: raise
+                        status = "TARGET_EXCEPTION"
+                        res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                               "message": str(error),
+                               "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
                 # ----- 4. Serialize successful result -----
-                with open({repr(out_path)}, 'wb') as f: cloudpickle.dump(["SUCCESS", res], f)
+                with open({repr(out_path)}, 'wb') as f: cloudpickle.dump([status, res], f)
             except Exception as e:
                 error_msg = f"{{type(e).__name__}}: {{str(e)}}"
                 with open({repr(out_path)}, 'wb') as f: cloudpickle.dump(["ERROR", error_msg], f)

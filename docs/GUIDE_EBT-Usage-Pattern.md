@@ -210,6 +210,44 @@ def test_report():
 
 Das Prädikat erhält einen `Path` im noch bestehenden Workspace. Nach dem Vergleich wird die Arena aufgeräumt. `returns` prüft den Python-Rückgabewert; Konsolenausgaben sind kein `WorldState`-Feld.
 
+## Erwartete Ausnahmen und persistente Berichte
+
+```python
+import json
+from qb_cubie import EBT, ExceptionExpectation, JsonReporter, PytestReporter, WorldState
+
+
+def reject_order():
+    raise ValueError("invalid order: 17")
+
+
+def test_rejected_order(tmp_path):
+    report_path = tmp_path / "acceptance.json"
+    result = EBT(
+        target=reject_order,
+        post=WorldState(
+            raises=ExceptionExpectation(ValueError, match=r"^invalid order: \d+$"),
+        ),
+        reporter=JsonReporter(report_path),
+    ).run()
+    PytestReporter().report(result)
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["schema_version"] == 1
+    assert report["evaluation"] is True
+```
+
+Typ und Meldung der Ausnahme müssen passen. `returns` und `raises` im selben
+Post-Zustand sind ungültig; alternative normale Rückgaben und Exceptions werden
+als getrennte Post-Zustände angegeben. `fs` darf mit einer Ausnahmeerwartung
+kombiniert werden. Infrastrukturfehler bleiben Ausführungsabbrüche.
+
+`JsonReporter` schreibt auch fehlgeschlagene abgeschlossene Läufe und erhebt
+selbst keine Assertion. Deshalb erfolgt die pytest-Abnahme im Beispiel nach der
+Persistierung. Bereits ermittelte Diffs können auch nach Arena-Teardown gespeichert
+werden. Getrennte Berichtspfade bewahren unterschiedliche Läufe. Details zum
+Format und zu entfernten Exceptions stehen in der
+[Vertragsreferenz](GUIDE_Contract-Semantics.md).
+
 ## Virtuelle Umgebungen
 
 Für ein vorhandenes, eigens vorbereitetes Basis-Environment kann `arena=PyVenv("tests/.arenas/qa_env")` verwendet werden. Die Umgebung muss zur Maschine passen und wird lokal provisioniert. `PyVenv` prüft die Codec-Abhängigkeiten ohne Installation; fehlende Pakete müssen vorher ausdrücklich mit dem `ArenaBuilder` installiert werden. Das [Arena-Handbuch](GUIDE_Arena-Management.md#provisionierung-der-testbasen) beschreibt den Vorbereitungsschritt für die Repository-Tests.
