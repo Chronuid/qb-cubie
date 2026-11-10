@@ -1,0 +1,10 @@
+from pathlib import Path
+
+def build_index(source, output):
+    source, output = Path(source), Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    names = sorted(p.name for p in source.iterdir() if p.is_file())
+    for name in names:
+        (output / name).write_bytes((source / name).read_bytes())
+    (output / "index.txt").write_text("".join(name + "\n" for name in names), encoding="utf-8")
+    (output / "debug.txt").write_text("debug", encoding="utf-8")

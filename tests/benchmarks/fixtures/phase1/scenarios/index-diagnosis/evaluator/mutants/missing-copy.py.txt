@@ -1,0 +1,11 @@
+from pathlib import Path
+
+def build_index(source, output):
+    source, output = Path(source), Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    names = sorted(p.relative_to(source).as_posix() for p in source.rglob("*") if p.is_file() and p.suffix == ".txt")
+    for name in names:
+        destination = output / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        pass
+    (output / "index.txt").write_text("".join(name + "\n" for name in names), encoding="utf-8")

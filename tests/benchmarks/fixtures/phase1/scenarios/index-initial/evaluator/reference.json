@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "solution": "evaluator/solution.py.txt",
+  "mutants": {
+    "wrong-return": "evaluator/mutants/wrong-return.py.txt",
+    "missing-copy": "evaluator/mutants/missing-copy.py.txt",
+    "extra-file": "evaluator/mutants/extra-file.py.txt",
+    "reverse-sort": "evaluator/mutants/reverse-sort.py.txt",
+    "corrupt-copy": "evaluator/mutants/corrupt-copy.py.txt"
+  },
+  "criterion_results": {
+    "copies": "pass",
+    "sorted_index": "pass",
+    "exact_tree": "pass",
+    "returns_none": "pass"
+  },
+  "mutant_criteria": {
+    "wrong-return": [
+      "returns_none"
+    ],
+    "missing-copy": [
+      "copies",
+      "exact_tree"
+    ],
+    "corrupt-copy": [
+      "copies"
+    ],
+    "extra-file": [
+      "exact_tree"
+    ],
+    "reverse-sort": [
+      "sorted_index"
+    ]
+  }
+}

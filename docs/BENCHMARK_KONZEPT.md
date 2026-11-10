@@ -410,6 +410,19 @@ Die mögliche Schlussfolgerung lautet beispielsweise: „Bei den untersuchten Da
 | 4. Basisdatensatz und Pilot | 24 Reviews, drei Datei-Projekte und ein Kontrollprojekt; optionaler pytest-Vergleich; Wiederholungen | Referenzen und Mutanten validiert; reale Läufe nachprüfbar; Streuung, Kosten und Bewertungsstreitfälle dokumentiert |
 | 5. Messbetrieb | Eigener CI-Job, konfigurierbare Gates, Berichte, eingefrorene Messkonfiguration und zurückgehaltene Aufgaben | Standardtests bleiben offline; Sets sind reproduzierbar; eigene CI-Nutzung sowie Produktmessung sind dokumentiert |
 
+### 10.1 Öffentliche Verträge und Referenzen
+
+Die deterministischen Abnahmecases liegen unter [tests/benchmarks](../tests/benchmarks).
+Die [Kriterienzuordnung und der öffentliche Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_1.md)
+beschreiben Paket-/Szenariovalidierung, Agenten-/Evaluatornachrichten und
+Set-Semantik. Zwei neue Review-Fälle sowie ein Dokumentindex mit drei Episoden,
+Referenzlösungen und 17 Fehlervarianten liefern deterministische Gegenproben.
+Die öffentliche API in `qb_cubie.benchmarks` implementiert diese Verträge;
+[die Anleitung](GUIDE_Benchmark-Contracts.md) beschreibt ihre Verwendung.
+Laden und Planen führen keinen Szenario- oder Agentencode aus. Die Referenzen
+tragen weiterhin den Stand `author_checked`; eine unabhängige menschliche
+Aufnahmeprüfung steht aus. Der ausführende Durchstich folgt in Phase 2.
+
 Wesentliche Infrastrukturprüfungen sind: immer freigebender Reviewer wird an Fehlerfällen erkannt; immer ablehnender Reviewer an konformen Fällen; doppelte Findings erhöhen Recall nicht; Enthaltung ist keine Freigabe; veränderter Kontext entwertet alte Nachweise; grüne Tests ohne beobachtete Rotphase erfüllen den Prozess nicht; fachlicher Testfehlschlag und Importfehler bleiben unterscheidbar; fremde oder fehlende Ergebnisartefakte führen nie zum Erfolg. Diese Prüfungen sichern die Bewertungslogik und sind unabhängig von Modellantworten ausführbar.
 
 Für Nutzbarkeit und Erweiterbarkeit kommen hinzu: Paket ohne Typangaben ist lauffähig; eigene Typen erfordern keine Registrierung; Mehrfachtypen vervielfachen keine Läufe; kombinierte Filter und Ausschlüsse haben die dokumentierte Bedeutung; unbekannte IDs und unvollständige Episodenfolgen scheitern vor Agentenstart; Pfade funktionieren aus einem anderen Arbeitsverzeichnis; Laden und Planen starten keinen Szenariocode; CLI und pytest erzeugen denselben Plan; bestehende und eigene Pakete können gemeinsam ausgewählt werden; Plan, globale Limits und Gates werden eingehalten. Eine Person ohne Kenntnis der Runner-Interna soll mit Tutorial und Vorlagen eine neue Aufgabe ergänzen und deren Bericht verstehen können.

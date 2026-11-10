@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "namespace": "phase1",
+  "version": "1.0.0",
+  "license": "MIT",
+  "provenance": "New public development examples for BENCHMARK_KONZEPT phase 1; not agent measurements.",
+  "scenarios": [
+    "scenarios/review-paid-correct/scenario.json",
+    "scenarios/review-paid-faulty/scenario.json",
+    "scenarios/index-initial/scenario.json",
+    "scenarios/index-maintenance/scenario.json",
+    "scenarios/index-diagnosis/scenario.json"
+  ]
+}

@@ -190,6 +190,7 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
+[↦ | Benchmark-Verträge: Pakete, Sets und Nachrichten | ↤](./docs/GUIDE_Benchmark-Contracts.md)
 
 [↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 

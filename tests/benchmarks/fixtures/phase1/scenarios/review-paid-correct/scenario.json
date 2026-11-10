@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "review-paid-correct",
+  "benchmark": "review_agent",
+  "title": "Review paid balance",
+  "group_id": "paid-balance",
+  "split": "development",
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "paid_only",
+    "exact_cents"
+  ],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

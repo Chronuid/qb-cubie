@@ -1,0 +1,17 @@
+schema_version = 1
+name = "phase1-smoke"
+profile = "agent-evaluation"
+repetitions = 1
+agents = ["../agents/fake.toml"]
+output = "../results"
+
+[[sources]]
+path = ".."
+
+[budgets]
+wall_time_seconds = 60
+tool_calls = 5
+
+[limits]
+max_runs = 5
+max_total_wall_time_seconds = 300
