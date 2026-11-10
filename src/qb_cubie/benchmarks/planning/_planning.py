@@ -2,8 +2,8 @@
 
 import hashlib
 
-from . import _validation as v
-from .packages import load_package
+from qb_cubie.benchmarks.contracts import _validation as v
+from qb_cubie.benchmarks.contracts.packages import load_package
 
 DEFAULTS = {"review_agent": {"wall_time_seconds": 300, "tool_calls": 20},
             "developer_agent": {"wall_time_seconds": 1800, "tool_calls": 100}}
@@ -12,6 +12,7 @@ CAPABILITIES = {"wall_time_seconds": "wall_time", "tool_calls": "tool_calls",
 
 
 def sources(root, values):
+    """Resolve scenario sources and reject conflicting package identities."""
     v.require(type(values) is list and bool(values), "sources", "expected a nonempty list")
     scenarios = []
     packages: dict[str, dict] = {}
@@ -27,12 +28,14 @@ def sources(root, values):
 
 
 def _source(root, source):
+    """Resolve a supported local scenario source."""
     v.mapping(source, "sources")
     v.require(set(source) == {"path"}, "sources", "phase 1 supports local path sources")
     return (root / v.text(source.get("path"), "sources.path")).resolve()
 
 
 def _identity(root, package):
+    """Identify all declared package material with a deterministic digest."""
     manifests = [root / "package.json"]
     paths = set(manifests)
     for scenario in package["scenarios"]:
@@ -45,10 +48,12 @@ def _identity(root, package):
 
 
 def _scenarios(package, identity):
+    """Attach package identity to every loaded scenario."""
     return [{**scenario, "package": identity} for scenario in package["scenarios"]]
 
 
 def agents(root, values):
+    """Load uniquely identified agent configurations."""
     paths = v.strings(values, "agents", nonempty=True)
     result, ids = [], set()
     for path in paths:
@@ -63,6 +68,7 @@ def agents(root, values):
 
 
 def expand(scenarios, configured_agents, suite):
+    """Expand selected scenarios into bounded trial combinations."""
     conditions = ["cubie", "pytest"] if suite["profile"] == "cubie-vs-pytest" else ["cubie"]
     _preflight(scenarios, configured_agents, conditions, suite)
     runs = []
@@ -75,6 +81,7 @@ def expand(scenarios, configured_agents, suite):
 
 
 def _run(scenario, agent, repetition, condition, suite):
+    """Resolve one trial with its budgets and required capabilities."""
     budget = _budget(scenario, suite)
     required = _capabilities(scenario["benchmark"], budget)
     missing = required - set(agent["capabilities"])
@@ -87,11 +94,13 @@ def _run(scenario, agent, repetition, condition, suite):
 
 
 def _capabilities(benchmark, budget):
+    """Determine capabilities required by the benchmark and budgets."""
     required = {"review_output"} if benchmark == "review_agent" else {"workspace_changes", "phased_submission"}
     return required | {CAPABILITIES[key] for key in budget} | {"cancel"}
 
 
 def limits(value, count, total):
+    """Validate global limits against the complete run plan."""
     v.mapping(value, "limits")
     v.require(set(value) <= {"max_runs", "max_total_wall_time_seconds"}, "limits", "unknown global limit")
     maximum = v.number(value.get("max_runs", 1000), "max_runs", positive=True, integer=True)
@@ -102,6 +111,7 @@ def limits(value, count, total):
 
 
 def _preflight(scenarios, configured_agents, conditions, suite):
+    """Check trial counts and total budgets before expansion."""
     factor = len(configured_agents) * len(conditions) * suite["repetitions"]
     count = len(scenarios) * factor
     total = sum(_budget(scenario, suite)["wall_time_seconds"] for scenario in scenarios) * factor
@@ -109,10 +119,12 @@ def _preflight(scenarios, configured_agents, conditions, suite):
 
 
 def _budget(scenario, suite):
+    """Resolve default, suite and scenario budget overrides."""
     return {**DEFAULTS[scenario["benchmark"]], **suite.get("budgets", {}), **scenario.get("budgets", {})}
 
 
 def _hash_file(digest, root, path):
+    """Add framed path, mode, symlink and content data to a package digest."""
     v.require(path.resolve().is_relative_to(root), "sources", f"material escapes package: {path}")
     v.require(not (path.is_symlink() and path.is_dir()), "sources", "directory symlinks are unsupported")
     name = path.relative_to(root).as_posix().encode()

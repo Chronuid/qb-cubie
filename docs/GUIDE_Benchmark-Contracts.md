@@ -1,10 +1,92 @@
-# Benchmark-Verträge: Laden, Planen und Nachrichten validieren
+# Benchmark-Verträge und Offline-Smoke-Läufe
 
-`qb_cubie.benchmarks` bietet die Datenverträge für Phase 10.1 des
+`qb_cubie.benchmarks` bietet die Datenverträge für Phase 10.1 und den
+installierbaren Offline-Durchstich aus Phase 10.2 des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md#101-öffentliche-verträge-und-referenzen).
-Die Funktionen sind Bestandteil von `qb-cubie` und benötigen keine zusätzlichen
-Abhängigkeiten. Sie importieren keinen Szenariocode und starten keine Prozesse,
-Agenten oder Modellaufrufe. CLI und ausführender Runner folgen in Phase 2.
+Laden, Planen und Nachrichtenvalidierung benötigen keine zusätzlichen
+Abhängigkeiten und führen keinen Szenariocode aus. CLI und Runner sind ebenfalls
+installierbar; für die pytest-Unterprozesse wird das Extra `benchmarks` benötigt.
+Der Runner unterstützt bisher ausschließlich den eingebauten Fake und benötigt
+keinen Modellzugang.
+
+## Installieren und ausführen
+
+Diese Befehle funktionieren in einem eigenen Arbeitsverzeichnis ohne Checkout:
+
+```bash
+python -m pip install 'qb-cubie[benchmarks]'
+cubie-bench init-suite ./sets/smoke.toml --preset smoke --fake
+cubie-bench plan --suite ./sets/smoke.toml
+cubie-bench plan --suite ./sets/smoke.toml --format json
+cubie-bench run --suite ./sets/smoke.toml
+```
+
+Die Initialisierung erzeugt `sets/smoke.toml`, `agents/fake.toml` und
+`scenarios/smoke/`. Vorhandene Ziele werden nicht überschrieben. Die relativen
+Pfade bleiben nach einem gemeinsamen Umzug gültig. Das Paket enthält zwei
+Review-Fälle und die Erstentwicklung des Dokumentindex. Die Wartungs- und
+Diagnosevorlagen aus Phase 10.1 bleiben separates Referenzmaterial.
+
+Der Plan zeigt IDs, Paketversionen, Agent, Bedingung, Wiederholung, Evaluator,
+Typen/Tags und Budgets. JSON und Python-API verwenden denselben Plan. Unter
+`results/<run_id>/` entstehen:
+
+- `report.md`: Kriterien, Phasen und Links zu Belegen;
+- `results.json`: Ausführungsstatus sowie Qualitäts- und Prozessurteile;
+- `manifest.json`: eingefrorener Plan, Eingabeidentitäten und Artefakthashes;
+- `inputs/`: archiviertes Set, Agentenkonfiguration und Szenariopaket;
+- `episodes/`: getrennte Ausgangsstände, Workspaces, Phasensnapshots,
+  Anfragen/Antworten und unabhängige Evaluatorbeobachtungen.
+
+`completed` bedeutet, dass die Bewertung ausgeführt wurde. `quality_passed`
+und `process_passed` sind getrennt zu lesen: Eine fachlich richtige Lösung ohne
+nachgewiesene Rotphase erfüllt den Entwicklungsprozess nicht. Eine korrekte
+Ablehnung fehlerhaften Codes kann die Review-Aufgabe bestehen. Ein Fake-Erfolg
+prüft die Infrastruktur und misst keine Modellleistung.
+
+Ohne Qualitätsgate liefert eine vollständig durchgeführte Messung Exitcode 0,
+auch bei fachlichem Durchfallen. Exitcode 2 bezeichnet Konfigurationsfehler,
+Exitcode 3 ungültige oder unterbrochene Ausführungen. Unbekannte Modell-, Token-
+und Kostenwerte bleiben `null`.
+
+## Python-Aufruf und Gegenproben
+
+```python
+from pathlib import Path
+from qb_cubie.benchmarks import init_smoke_suite, run_suite
+
+suite = Path("./sets/smoke.toml")
+init_smoke_suite(suite)
+result = run_suite(suite)
+print(result["output"])
+```
+
+Die Agentenkonfiguration verwendet `command = ["builtin:fake"]`. Im Abschnitt
+`[fake]` kann `behavior = "reference"` durch `"mutant"` mit
+`mutant = "wrong-return"` ersetzt werden. Die unabhängige Abnahme muss dann
+`returns_none` ablehnen. Weitere Gegenproben beschreibt der
+[Abnahmevertrag](../tests/BENCHMARK_CASES_10_2.md#deterministische-gegenproben-des-fake-adapters).
+
+Die Cubie-Bedingung führt echte EBT-Agententests und RBT mit aufzeichnendem
+Reporter aus. `cubie-vs-pytest` kann dieselben deterministischen Abgaben auch mit
+reinen pytest-Agententests ausführen. Die Review-Auswertung vergleicht im
+Fake-Durchstich strukturierte Referenzfelder; semantisches Matching frei
+formulierter Antworten gehört zur späteren Agentenanbindung.
+
+Die Ausführung ist für vertrauenswürdige lokale Smoke-Materialien gedacht.
+Unterprozesse erhalten keine Provider-Schlüssel oder geerbten Python-/pytest-
+Konfigurationen. Laufzeit- und Werkzeugbudgets werden durchgesetzt; bei Timeout
+wird unter POSIX die Prozessgruppe beendet, unter Windows über `taskkill /T`.
+Die lokale Ausführung bietet noch keine Container-Sicherheitsgrenze für fremden
+Code. Harte Token-/Kostenbudgets werden vor dem Start abgelehnt. Das globale
+Zeitlimit verhindert weitere Starts mit Status `not_started`.
+
+Ausführbare Projekt-Referenzen ergänzen private Vorlagen `acceptance_tests`,
+`agent_tests` und den relativen Pfad `submission_module`. Für die pytest-Bedingung
+wird außerdem `pytest_agent_tests` benötigt. Der unabhängige Evaluator aggregiert
+`test_<criterion_id>` einschließlich Parametrisierungen; eine fehlende Prüfung
+ist ein Infrastrukturfehler. Vorlagen für Agententests und Evaluator bleiben
+außerhalb des exportierten sichtbaren Baums.
 
 ## Einstieg
 
@@ -23,8 +105,7 @@ print(len(plan["runs"]), plan["total_wall_time_seconds"])
 Ein Paketbeispiel mit fünf Szenarien liegt im Repository unter
 [tests/benchmarks/fixtures/phase1](../tests/benchmarks/fixtures/phase1/package.json).
 Sein Set ist ausschließlich zum Planen geeignet: Das deklarierte Agentenkommando
-existiert absichtlich nicht. Die Vorlagen des ausführenden Durchstichs werden
-dieses Beispiel später ergänzen.
+existiert absichtlich nicht. Für ausführbare Vorlagen dient `init_smoke_suite`.
 
 Alle Rückgaben sind JSON-kompatible Dictionaries und Listen. Jede Nachricht
 wird als eigene Momentaufnahme zurückgegeben; die Validierung verändert ihre
@@ -171,12 +252,12 @@ Die beiden Evaluatorworkspaces müssen ohne Überschneidung getrennt sein.
 Pfadnormalisierung berücksichtigt POSIX und Windows; verschiedene Schreibweisen
 desselben Pfades gelten nicht als getrennte Verzeichnisse. Physische
 Symlinkauflösung in der tatsächlichen Ausführungsumgebung bleibt Aufgabe des
-späteren Runners.
+ausführenden Runners.
 
 Review-Anfragen verwenden Phase `review` und Format `review_v1`;
 Entwickleranfragen Phasen `test_design`, `red`, `green`, `refactor` und Format
 `project_v1`. Phasenreihenfolge und tatsächliche Rot-/Grün-Belege prüft erst
-der spätere Runner.
+der ausführende Runner.
 
 `status` unterscheidet `completed`, `agent_timeout`, `budget_exceeded`,
 `invalid_output`, `infrastructure_error`, `not_started`. Ein abgeschlossenes
@@ -190,7 +271,7 @@ abgelehnt. `abstain` wird nicht zu einer Freigabe.
 Segmente oder Laufwerksangaben. Abgeschlossene Abgaben/Bewertungen benötigen
 mindestens einen solchen Verweis. `artifact_hashes` ordnet Artefaktpfaden
 SHA-256-Werte aus 64 kleinen Hexadezimalzeichen zu. Ob Dateien existieren,
-die Hashes stimmen und die Inhalte zur Abgabe gehören, prüft erst der spätere
+die Hashes stimmen und die Inhalte zur Abgabe gehören, prüft der ausführende
 Evaluator. Die Strukturvalidierung bietet dafür keine Abnahme.
 
 `usage` enthält `input_tokens`, `output_tokens`, `cost`. Unbekannte Werte bleiben
@@ -198,3 +279,22 @@ Evaluator. Die Strukturvalidierung bietet dafür keine Abnahme.
 `name`, `value`, `unit`, `direction` (`higher`, `lower`, `neutral`) und
 `aggregation`. Unbestimmte Werte bleiben `null`; bei offenen oder nicht
 bewerteten Ergebnissen sind numerische Qualitätswerte unzulässig.
+
+
+## Paketstruktur
+
+Die öffentliche API bleibt unter `qb_cubie.benchmarks` verfügbar. `cli.py` und
+`runner.py` bilden die zentralen Einstiegspunkte. Die Fachmodule sind gruppiert:
+
+| Unterpaket | Aufgabe |
+| --- | --- |
+| `contracts` | Paket-, Referenz- und Nachrichtenvalidierung |
+| `planning` | Auswahl, Budgets und vollständige Laufpläne |
+| `execution` | Episoden, Phasen, Prozesse und unabhängige Bewertung |
+| `adapters` | Deterministische Fake-Abgaben |
+| `reporting` | Dateiidentitäten, Archive und lesbare Berichte |
+| `scaffolding` | Erzeugung eigenständiger Smoke-Vorlagen |
+
+Die installierten Vorlagendaten bleiben unter `data/`. Interne Funktionen und
+Methoden besitzen erklärende Docstring-Einzeiler; die Styleguide-Prüfung sichert
+auch deren Vollständigkeit im Benchmark-Paket.

@@ -1,0 +1,22 @@
+"""Frozen fake-agent tests for the visible document-index requirement."""
+
+from indexer import build_index
+from qb_cubie import EBT, WorldState
+
+
+def index_text(source, output):
+    try:
+        build_index(source, output)
+    except NotImplementedError:
+        return None
+    return (output / "index.txt").read_text(encoding="utf-8")
+
+
+def test_index(tmp_path):
+    source, output = tmp_path / "docs", tmp_path / "out"
+    source.mkdir()
+    (source / "z.txt").write_text("last", encoding="utf-8")
+    (source / "a.txt").write_text("first", encoding="utf-8")
+    trace = EBT(target=index_text, pre=WorldState(args=(source, output)),
+                post=WorldState(returns="a.txt\nz.txt\n"), reporter=None).run()
+    assert trace.evaluation is True

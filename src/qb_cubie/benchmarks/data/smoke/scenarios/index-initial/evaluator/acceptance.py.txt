@@ -1,0 +1,47 @@
+"""Independent acceptance of document-index output, including exact topology."""
+
+from pathlib import Path
+
+import pytest
+
+from indexer import build_index
+
+
+@pytest.fixture(params=["populated", "empty", "binary"])
+def observed(tmp_path, request):
+    inputs = {"z.txt": b"last\n", "a.txt": b"first\n", "skip.csv": b"a,b\n"}
+    if request.param == "empty":
+        inputs = {}
+    if request.param == "binary":
+        inputs = {"one.bin": b"\x00\xff", "LOUD.TXT": b"upper"}
+    source, output = tmp_path / "docs", tmp_path / "out"
+    source.mkdir()
+    (source / "sub").mkdir()
+    (source / "sub/nested.txt").write_bytes(b"nested")
+    for name, content in inputs.items():
+        (source / name).write_bytes(content)
+    returned = build_index(source, output)
+    return source, output, returned, inputs
+
+
+def test_copies(observed):
+    source, output, _, inputs = observed
+    for name, content in inputs.items():
+        assert (output / name).read_bytes() == content
+        assert (source / name).read_bytes() == content
+    assert (source / "sub/nested.txt").read_bytes() == b"nested"
+
+
+def test_sorted_index(observed):
+    _, output, _, inputs = observed
+    assert (output / "index.txt").read_bytes() == "".join(name + "\n" for name in sorted(inputs)).encode()
+
+
+def test_exact_tree(observed):
+    _, output, _, inputs = observed
+    actual = {p.relative_to(output).as_posix() for p in output.rglob("*") if p.is_file()}
+    assert actual == set(inputs) | {"index.txt"}
+
+
+def test_returns_none(observed):
+    assert observed[2] is None

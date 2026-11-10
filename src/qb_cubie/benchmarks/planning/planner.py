@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from . import _validation as v
-from ._planning import agents, expand, limits, sources
-from .selection import select_scenarios
+from qb_cubie.benchmarks.contracts import _validation as v
+from qb_cubie.benchmarks.planning._planning import agents, expand, limits, sources
+from qb_cubie.benchmarks.planning.selection import select_scenarios
 
 
 def plan_suite(path: str | Path) -> dict:
@@ -23,6 +23,7 @@ def plan_suite(path: str | Path) -> dict:
 
 
 def _suite(suite):
+    """Validate suite identity, profile and repetition settings."""
     v.text(suite.get("name"), "name")
     v.text(suite.get("output"), "output")
     v.choice(suite.get("profile"), {"agent-evaluation", "cubie-vs-pytest"}, "profile")

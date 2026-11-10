@@ -31,7 +31,7 @@ Die Messungen adressieren insbesondere 9.3.3 und 9.3.4. Sie können Schwierigkei
 - EBT-Verträge mit mehreren Eingängen teilen eine Zielmenge. Korrelierte Fälle werden deshalb einzeln parametrisiert. Ein `JsonReporter` erhebt keine fachliche Assertion: Der Benchmark prüft zusätzlich ausdrücklich `RunTrace.evaluation`.
 - Die Root-[conftest.py](../tests/conftest.py) verändert Arbeitsverzeichnis und Importpfad. Die Prüfung erzeugter Projekte muss daher in separaten Prozessen außerhalb des Cubie-Checkouts laufen und ein gebautes Wheel verwenden.
 
-Die Benchmark-Funktionalität erhält eine öffentlich dokumentierte Schnittstelle und wird zugleich in Cubies Testsuite verwendet. Sie wird als optional installierbarer Teil von `qb-cubie` mit dem geplanten Extra `benchmarks` und dem Kommando `cubie-bench` ausgeliefert. Die Installation benötigt keinen Repository-Checkout. Der Kern von EBT/RBT erhält dadurch keine Pflichtabhängigkeit auf Agentenanbieter; Änderungen am Reviewer-Protokoll sind für den ersten Durchstich nicht erforderlich.
+Die Benchmark-Funktionalität erhält eine öffentlich dokumentierte Schnittstelle und wird zugleich in Cubies Testsuite verwendet. Sie wird als optional installierbarer Teil von `qb-cubie` mit dem Extra `benchmarks` und dem Kommando `cubie-bench` ausgeliefert. Die Installation benötigt keinen Repository-Checkout. Der Kern von EBT/RBT erhält dadurch keine Pflichtabhängigkeit auf Agentenanbieter; Änderungen am Reviewer-Protokoll sind für den ersten Durchstich nicht erforderlich.
 
 ## 3. Gemeinsames Versuchsdesign
 
@@ -322,7 +322,7 @@ Dies ist Infrastruktur des Benchmarks, keine neue Cubie-Arena. `TempFS` und `PyV
 
 ## 8. Aufnahme in pytest und CI
 
-Vorgesehene Struktur, noch nicht implementiert:
+Zielstruktur; implementierter Umfang siehe Phase 10.1 und 10.2:
 
 ```text
 src/qb_cubie/benchmarks/
@@ -428,6 +428,26 @@ Wesentliche Infrastrukturprüfungen sind: immer freigebender Reviewer wird an Fe
 Für Nutzbarkeit und Erweiterbarkeit kommen hinzu: Paket ohne Typangaben ist lauffähig; eigene Typen erfordern keine Registrierung; Mehrfachtypen vervielfachen keine Läufe; kombinierte Filter und Ausschlüsse haben die dokumentierte Bedeutung; unbekannte IDs und unvollständige Episodenfolgen scheitern vor Agentenstart; Pfade funktionieren aus einem anderen Arbeitsverzeichnis; Laden und Planen starten keinen Szenariocode; CLI und pytest erzeugen denselben Plan; bestehende und eigene Pakete können gemeinsam ausgewählt werden; Plan, globale Limits und Gates werden eingehalten. Eine Person ohne Kenntnis der Runner-Interna soll mit Tutorial und Vorlagen eine neue Aufgabe ergänzen und deren Bericht verstehen können.
 
 Empfohlene Reihenfolge: zuerst ein kleiner vollständiger Durchstich beider Benchmarks, dann Datensatzausbau und mehrere Agentenkonfigurationen. Den Modellvergleich oder einen großen Aufgabenkatalog vorzuziehen, würde noch ungeprüfte Bewertungsmechanismen vervielfachen.
+
+### 10.2 Installierbarer Durchstich ohne Modell
+
+Der Durchstich ist implementiert: `qb-cubie[benchmarks]` installiert
+`cubie-bench`; `init-suite --preset smoke --fake` erzeugt ein verschiebbares
+Paket mit zwei Review-Fällen und einer Dokumentindex-Erstentwicklung.
+Planner, Phasensteuerung, unabhängiger Evaluator und Ergebnisarchiv verwenden
+öffentliche Schnittstellen. Die Cubie-Bedingung führt EBT und RBT tatsächlich aus.
+
+Die [EBT-Cases und ihr Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_2.md)
+prüfen Referenzen, Mutanten, Rot-/Grün-Belege, fehlende Artefakte und Timeouts.
+Der [Wheel-Harness](../scripts/check_wheel.py) führt die Installationscases ohne
+Checkout aus. [Die Anleitung](GUIDE_Benchmark-Contracts.md) beschreibt Installation,
+Planung, Ausführung und Berichte. Die ursprüngliche Rotphase bleibt dokumentiert.
+
+Dieser Stand führt ausschließlich den deterministischen Fake mit
+vertrauenswürdigen lokalen Materialien aus. Prozessadapter und Containerisolation
+für fremden Agentencode sind noch nicht enthalten; ein Fake-Erfolg ist kein
+Agentenleistungsnachweis. Referenzen bleiben `author_checked` bis zur
+unabhängigen menschlichen Aufnahmeprüfung.
 
 ## 11. Methodische Bezugspunkte
 

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "paid_only": "fail",
+    "exact_cents": "pass"
+  },
+  "findings": [
+    {
+      "criterion_id": "paid_only",
+      "path": "policy.py",
+      "symbol": "eligible",
+      "mechanism": "The predicate includes unpaid rows.",
+      "impact": "An unpaid balance is added to the paid total.",
+      "counterexample": {
+        "rows": [
+          {
+            "status": "unpaid",
+            "cents": 125
+          }
+        ],
+        "expected": 0,
+        "actual": 125
+      },
+      "allowed_alternatives": [
+        "Locate the predicate use in balance.total and explain the same cause."
+      ]
+    }
+  ]
+}

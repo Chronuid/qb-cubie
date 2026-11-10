@@ -2,7 +2,7 @@
 
 from pathlib import PurePosixPath, PureWindowsPath
 
-from . import _validation as v
+from qb_cubie.benchmarks.contracts import _validation as v
 
 
 def validate_agent_request(payload: dict) -> dict:
@@ -57,6 +57,7 @@ def validate_evaluation(payload: dict, request: dict) -> dict:
 
 
 def _envelope(payload):
+    """Validate the common versioned message envelope."""
     data = v.version(v.snapshot(payload))
     v.text(data.get("run_id"), "run_id")
     v.identifier(data.get("scenario_id"), "scenario_id", qualified=True)
@@ -64,6 +65,7 @@ def _envelope(payload):
 
 
 def _bound(payload, request):
+    """Bind an event or evaluation to its originating request."""
     data = _envelope(payload)
     for field in ("run_id", "scenario_id"):
         v.require(data[field] == request[field], field, "result belongs to another request")
@@ -71,10 +73,12 @@ def _bound(payload, request):
 
 
 def _criteria(data):
+    """Validate the nonempty list of requested criteria."""
     v.strings(data.get("criteria"), "criteria", nonempty=True)
 
 
 def _workspace(value, field):
+    """Validate an absolute workspace path without traversal."""
     v.text(value, field)
     path = PureWindowsPath(value) if PureWindowsPath(value).drive else PurePosixPath(value)
     v.require(path.is_absolute() and ".." not in path.parts, field, "expected an absolute path without parent traversal")
@@ -82,6 +86,7 @@ def _workspace(value, field):
 
 
 def _usage(value):
+    """Validate measured or explicitly unknown resource usage."""
     v.mapping(value, "usage")
     for key in ("input_tokens", "output_tokens", "cost"):
         v.require(key in value, "usage", f"missing {key}; use null for unknown values")
@@ -90,6 +95,7 @@ def _usage(value):
 
 
 def _hashes(value):
+    """Validate submitted artifact paths and SHA-256 digests."""
     v.mapping(value, "artifact_hashes")
     v.require(bool(value), "artifact_hashes", "expected submitted artifacts")
     for path, digest in value.items():
@@ -100,6 +106,7 @@ def _hashes(value):
 
 
 def _completion(data, status, state):
+    """Validate consistency between execution and evaluation status."""
     if status == "completed":
         v.require(state != "not_evaluated", "evaluation_status", "completed evaluation needs a judgment or adjudication")
     else:
@@ -108,6 +115,7 @@ def _completion(data, status, state):
 
 
 def _metrics(values, state):
+    """Validate distinct metrics and their evaluation completeness."""
     v.require(type(values) is list, "metrics", "expected a list")
     names = set()
     for metric in values:
@@ -117,6 +125,7 @@ def _metrics(values, state):
 
 
 def _metric(metric, state):
+    """Validate metric metadata and values against evaluation completeness."""
     for field in ("name", "unit", "aggregation"):
         v.text(metric.get(field), f"metrics.{field}")
     v.choice(metric.get("direction"), {"higher", "lower", "neutral"}, "metrics.direction")
@@ -128,6 +137,7 @@ def _metric(metric, state):
 
 
 def _separate(data):
+    """Require nonoverlapping submitted and reference workspaces."""
     submitted = _workspace(data.get("submitted_workspace"), "submitted_workspace")
     reference = _workspace(data.get("reference_workspace"), "reference_workspace")
     v.require(not (submitted.is_relative_to(reference) or reference.is_relative_to(submitted)),

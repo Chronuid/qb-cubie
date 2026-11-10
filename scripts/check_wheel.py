@@ -2,11 +2,12 @@
 
 Usage: python scripts/check_wheel.py dist
 Only the standard library is needed to run this script. Installation may use
-the network. Core and optional linter installations are checked separately;
+the network. Core, optional linter and benchmark profiles are checked separately;
 pytest is installed explicitly as a test harness after checking the core alone.
 """
 
 import argparse
+import hashlib
 import os
 import shutil
 import subprocess
@@ -61,13 +62,16 @@ def main():
             "assert qb_cubie.EBT(target=sum, pre=qb_cubie.WorldState(args=([1, 2],)), "
             "post=qb_cubie.WorldState(returns=3)).run().evaluation is True")
         run("-m", "pip", "install", "--disable-pip-version-check", "pytest==9.2.0")
-        for profile in ("core", "linters"):
+        for profile in ("core", "linters", "benchmarks"):
             if profile == "linters":
                 run("-m", "pip", "install", "--disable-pip-version-check", f"{wheels[0]}[linters]")
+            if profile == "benchmarks":
+                run("-m", "pip", "install", "--disable-pip-version-check", f"{wheels[0]}[benchmarks]")
+                environment["QB_CUBIE_TEST_WHEEL_SHA256"] = hashlib.sha256(wheels[0].read_bytes()).hexdigest()
             environment["QB_CUBIE_WHEEL_PROFILE"] = profile
             run("-m", "pip", "check")
-            run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config),
-                str(tests / "smoke_installed.py"))
+            filename = "benchmark_installed.py" if profile == "benchmarks" else "smoke_installed.py"
+            run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config), str(tests / filename))
 
 
 if __name__ == "__main__":

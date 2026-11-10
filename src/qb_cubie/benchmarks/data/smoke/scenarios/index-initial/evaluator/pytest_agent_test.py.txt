@@ -1,0 +1,17 @@
+"""Frozen pytest fake-agent tests for the visible document-index requirement."""
+
+from indexer import build_index
+
+
+def test_index(tmp_path):
+    source, output = tmp_path / "docs", tmp_path / "out"
+    source.mkdir()
+    (source / "z.txt").write_text("last", encoding="utf-8")
+    (source / "a.txt").write_text("first", encoding="utf-8")
+    implemented = True
+    try:
+        build_index(source, output)
+    except NotImplementedError:
+        implemented = False
+    assert implemented, "Implement document index"
+    assert (output / "index.txt").read_text(encoding="utf-8") == "a.txt\nz.txt\n"

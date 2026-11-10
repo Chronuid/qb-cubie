@@ -20,6 +20,10 @@ dependencies = [
 
 [project.optional-dependencies]
 linters = ["libcst>=1.9,<2", "mypy>=2.4.1,<3", "pylint>=4.1.3,<5"]
+benchmarks = ["pytest>=9.2,<10"]
+
+[project.scripts]
+cubie-bench = "qb_cubie.benchmarks.cli:main"
 
 [dependency-groups]
 dev = [
@@ -41,6 +45,9 @@ where = ["src"]
 include = ["qb_cubie", "qb_cubie.*"]
 exclude = ["qb_cubie.arenas.arena_envs.*"]
 namespaces = false
+
+[tool.setuptools.package-data]
+"qb_cubie.benchmarks" = ["data/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

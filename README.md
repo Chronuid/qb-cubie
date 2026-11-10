@@ -30,6 +30,12 @@ python3.13 -m venv .venv
 
 Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --group dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
 
+Ein modellfreier Benchmark-Smoke-Lauf ist mit dem Extra `benchmarks` auch ohne
+Checkout verfügbar: `cubie-bench init-suite ./sets/smoke.toml --preset smoke --fake`,
+danach `cubie-bench plan --suite ./sets/smoke.toml` und
+`cubie-bench run --suite ./sets/smoke.toml`. Installation, Ergebnisdateien und
+Gegenproben erklärt die [Benchmark-Anleitung](docs/GUIDE_Benchmark-Contracts.md).
+
 Die Repository-Tests benötigen zusätzlich lokal provisionierte Arena-Basen und `uv` im `PATH`:
 
 ```bash

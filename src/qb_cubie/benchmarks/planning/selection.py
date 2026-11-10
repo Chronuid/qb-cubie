@@ -1,6 +1,6 @@
 """Resolve declarative filters and explicit episode prerequisites."""
 
-from . import _validation as v
+from qb_cubie.benchmarks.contracts import _validation as v
 
 FIELDS = {"ids", "exclude_ids", "benchmarks", "splits", "types_any", "types_all",
           "types_none", "tags_any", "tags_all", "tags_none"}
@@ -19,6 +19,7 @@ def select_scenarios(scenarios, filters):
 
 
 def _known(scenarios, field, values):
+    """Validate explicit selection identifiers against available scenarios."""
     if field in {"ids", "exclude_ids"}:
         available = {s["qualified_id"] for s in scenarios}
         v.require(set(values) <= available, field, f"unknown IDs: {sorted(set(values) - available)}; available: {sorted(available)}")
@@ -31,6 +32,7 @@ def _known(scenarios, field, values):
 
 
 def _matches(scenario, filters):
+    """Determine whether a scenario satisfies all selection fields."""
     tests = {"ids": scenario["qualified_id"] in filters.get("ids", [scenario["qualified_id"]]),
              "exclude_ids": scenario["qualified_id"] not in filters.get("exclude_ids", []),
              "benchmarks": scenario["benchmark"] in filters.get("benchmarks", [scenario["benchmark"]]),
@@ -39,6 +41,7 @@ def _matches(scenario, filters):
 
 
 def _taxonomy(values, filters, field):
+    """Validate positive type and tag filters against available values."""
     any_values = filters.get(field + "_any")
     return ((any_values is None or bool(values & set(any_values)))
             and set(filters.get(field + "_all", [])) <= values
@@ -46,6 +49,7 @@ def _taxonomy(values, filters, field):
 
 
 def _order(chosen):
+    """Order selected scenarios by their declared prerequisites."""
     ordered, pending = [], dict(chosen)
     for scenario in chosen.values():
         missing = set(scenario["requires"]) - chosen.keys()
