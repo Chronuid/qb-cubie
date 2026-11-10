@@ -15,8 +15,6 @@ from .reporter import PytestReporter
 from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
 from ._files import same_contents
 
-# ========== EXAMPLE-BASED-TESTING =====================================================================================
-
 
 @dataclasses.dataclass(frozen=True)
 class _ProcessResourceReference:
@@ -64,6 +62,8 @@ class _Snapshot:
         elif not isinstance(item, (type, types.FunctionType, types.MethodType)) and hasattr(item, "__dict__"):
             yield vars(item)
 
+
+# ========== EXAMPLE-BASED-TESTING =====================================================================================
 
 @dataclasses.dataclass(frozen=True)
 class EBTContext:

@@ -269,6 +269,8 @@ Geeignete übergreifende Regressionseigenschaften sind: Ein Reporterwechsel ver�
 
 ### 9.3 Produktnutzen anschließend gezielt nachweisen
 
+Ein [Konzept für die Benchmarks ReviewAgent und DeveloperAgent](docs/BENCHMARK_KONZEPT.md) beschreibt ein allgemein nutzbares Prüfwerkzeug für eigene Agentensysteme mit erweiterbaren Szenariopaketen und konfigurierbaren Benchmark-Sets. Ein optionales Vergleichsprofil konkretisiert die Produktnutzenmessung; Review-Nachweise werden an Quellstand und Kontext gebunden. Es ist ein Implementierungsentwurf; Messergebnisse liegen damit noch nicht vor.
+
 1. Eingabe-Erwartungs-Paare und klarere Zustandsrollen anbieten.
 2. Ausgabeform und Fehlerpolitik unabhängig konfigurierbar machen.
 3. Mehrere unabhängige Datei-Workflows mit gewöhnlichem pytest vergleichen: Einrichtungsaufwand, Verständlichkeit, Fehlersuche und Wartungsaufwand erfassen.
