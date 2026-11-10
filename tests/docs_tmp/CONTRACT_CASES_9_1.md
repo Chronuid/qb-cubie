@@ -1,7 +1,11 @@
 # EBT-Cases zu Gutachten 9.1: falsche Erfolge verhindern
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Diese Cases spezifizieren den gewünschten Zustand zu Abschnitt 9.1 des
-[Gutachtens](../GUTACHTEN.md). Sie wurden zunächst gegen den unkorrigierten
+[Gutachtens](../../GUTACHTEN.md). Sie wurden zunächst gegen den unkorrigierten
 Produktivcode entwickelt und danach zur Prüfung der Implementierung verwendet.
 Die Tests werden regulär von pytest eingesammelt und haben keine
 `xfail`-Markierungen. Das Ausgangsergebnis vor den Korrekturen bleibt unten
@@ -9,12 +13,12 @@ als historische Gegenprobe dokumentiert.
 
 | Befund | Cases | Geprüfter Sollvertrag |
 | --- | --- | --- |
-| B1 | [test_ebt_contract_mutation.py](tests_ebt/test_ebt_contract_mutation.py) | Vergleich, Diffs und aufgezeichneter Vertrag verwenden denselben vor Ausführung festgelegten Stand. |
-| B2 | [test_ebt_phantom_calls.py](tests_arena/test_ebt_phantom_calls.py) | Importhilfen dürfen relevante Laufzeitprüfungen auch bei ignorierten Rückgaben nicht verschwinden lassen. |
-| B2, ergänzend | [test_phantom_import_policy.py](tests_arena/test_phantom_import_policy.py) | Fehlendes pytest erlaubt nur Testdeklarationen beim Import; Ersatzabhängigkeiten werden ausdrücklich ausgewählt. |
-| B3 | [test_pylint_analysis_integrity.py](tests_linter/test_pylint_analysis_integrity.py) | Abgebrochene oder unvollständige Pylint-Analysen liefern keinen abgeschlossenen EBT-Erfolg. |
-| B4 | [test_mypy_analysis_integrity.py](tests_linter/test_mypy_analysis_integrity.py) | Windows-Diagnosen bleiben erhalten; ein Fehlerstatus ohne erkannte Fehlermeldung wird als Werkzeugfehler behandelt. |
-| B5 | [test_human_reviewer_fresh_decision.py](test_human_reviewer_fresh_decision.py) | Jeder Review braucht eine neue Entscheidung und einen eigenen Bericht. |
+| B1 | [test_ebt_contract_mutation.py](../tests_ebt/test_ebt_contract_mutation.py) | Vergleich, Diffs und aufgezeichneter Vertrag verwenden denselben vor Ausführung festgelegten Stand. |
+| B2 | [test_ebt_phantom_calls.py](../tests_arena/test_ebt_phantom_calls.py) | Importhilfen dürfen relevante Laufzeitprüfungen auch bei ignorierten Rückgaben nicht verschwinden lassen. |
+| B2, ergänzend | [test_phantom_import_policy.py](../tests_arena/test_phantom_import_policy.py) | Fehlendes pytest erlaubt nur Testdeklarationen beim Import; Ersatzabhängigkeiten werden ausdrücklich ausgewählt. |
+| B3 | [test_pylint_analysis_integrity.py](../tests_linter/test_pylint_analysis_integrity.py) | Abgebrochene oder unvollständige Pylint-Analysen liefern keinen abgeschlossenen EBT-Erfolg. |
+| B4 | [test_mypy_analysis_integrity.py](../tests_linter/test_mypy_analysis_integrity.py) | Windows-Diagnosen bleiben erhalten; ein Fehlerstatus ohne erkannte Fehlermeldung wird als Werkzeugfehler behandelt. |
+| B5 | [test_human_reviewer_fresh_decision.py](../test_human_reviewer_fresh_decision.py) | Jeder Review braucht eine neue Entscheidung und einen eigenen Bericht. |
 
 ## Konkretisierte Verträge
 
@@ -98,7 +102,7 @@ vor Implementierungskorrekturen:
 Die fehlgeschlagenen Tests treffen die spezifizierten Verhaltenslücken;
 der Lauf enthält keine Setup- oder Sammlungsfehler. Die bereits bestehenden
 Tests aus `test_ebt_run_isolation.py`, `test_mypy_process_status.py`,
-`test_headless_reviewer.py` und `test_rbt_reporter.py` bestehen separat:
+`tests/test_headless_reviewer.py` und `test_rbt_reporter.py` bestehen separat:
 **94 passed**. Ruff akzeptiert die fünf neuen Python-Testdateien.
 
 ## Abnahme nach Produktivkorrekturen

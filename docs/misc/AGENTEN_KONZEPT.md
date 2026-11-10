@@ -5,7 +5,13 @@ und Reviewer-Kern (§5, Schritt 2) implementiert und offline geprüft;
 Reviewer-JSONL-Anschluss im echten EBT-Smoke geprüft; Developer-Kern (§5, Schritt 3)
 implementiert und offline geprüft; Developer-Rollenprozess und Wheel-Nachweis
 (§5, Schritt 4) implementiert. Tatsächliche Installations-Smokes und ihre
-Ergebnisse sind im §5.4-Nachweis dokumentiert; Modellmessreihen bleiben geplant.
+Ergebnisse sind im §5.4-Nachweis dokumentiert. Die Pilotfreigabe (§5, Schritt 5)
+ist implementiert; die explorative lokale Messreihe und ihre methodischen Grenzen
+stehen im [§5.5-Nachweis](../../tests/docs_tmp/AGENTEN_CASES_5_5.md).
+
+Die [gemeinsame Übersicht offener Punkte](OFFENE_PUNKTE_Benchmarks-Agenten.md)
+benennt fehlende Umsetzung, praktische Nachweise und optionale Erweiterungen
+mit konkreten Abschlusskriterien für beide Konzepte.
 
 Dieses Dokument konkretisiert die Agentenseite des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md), insbesondere Abschnitte 4, 5 und 7.
@@ -18,13 +24,13 @@ Für einen Benchmark-Lauf ist jeweils nur der ausgewählte Agent erforderlich.
 
 ## 1. Ausgangspunkt und Entwurfsentscheidungen
 
-Das vorhandene [Ollama-Beispiel](../examples/ollama-user-benchmark/README.md)
+Das vorhandene [Ollama-Beispiel](../../examples/ollama-user-benchmark/README.md)
 demonstriert einen echten Developer mit zwei Modellaufrufen, festem Dateiziel
 und strukturierter Ausgabe. Das [Nutzungsexperiment](EXPERIMENT_Benchmark-10-3.md)
 belegt den Nutzen dieser Ausgabegrenzen, aber auch falsche Testorakel und eine
 fehlende Reparaturschleife. Die historischen Archive bleiben unverändert.
 Die dort beobachtete Ablehnung von `pytest.raises`-Rot ist im aktuellen
-[`_pytest.py`](../src/qb_cubie/benchmarks/execution/_pytest.py) bereits ausdrücklich
+[`_pytest.py`](../../src/qb_cubie/benchmarks/execution/_pytest.py) bereits ausdrücklich
 berücksichtigt; sie ist als Regression zu prüfen, nicht als unverändert offener
 Implementierungsfehler zu behandeln.
 
@@ -117,7 +123,7 @@ Längenlimit unvollständige Antwort wird nicht durch Abschneiden repariert.
 ### 2.3 Protokoll, Identität und Nachweise
 
 Verbindlich sind die vorhandenen
-[JSONL-Verträge](GUIDE_Benchmark-Custom.md#nachrichten-und-phasen), nicht ein
+[JSONL-Verträge](../GUIDE_Benchmark-Custom.md#nachrichten-und-phasen), nicht ein
 neues Agentenprotokoll. stdout enthält ausschließlich JSONL; Diagnosen gehen
 an stderr. Genau ein Abschlussereignis beantwortet jede Phasenanfrage.
 Dateiänderungen erfolgen vor diesem Ereignis; `artifact_hashes` beziehen sich
@@ -136,7 +142,7 @@ Der Abbruch einer HTTP-Verbindung beweist keine sofortige Beendigung der
 serverseitigen Inferenz; vor dem nächsten Versuch ist der Serverzustand zu prüfen.
 
 Jede Agenten-TOML enthält eine vollständige `[model]`-Deklaration gemäß
-[Modellnachweis](GUIDE_Benchmark-Custom.md#modellkonfiguration-nachweisen).
+[Modellnachweis](../GUIDE_Benchmark-Custom.md#modellkonfiguration-nachweisen).
 Der Handshake bestätigt sie identisch. `prompt_sha256` bindet ein kanonisches
 Paket aus Systemprompt, Rollenvorlage, Ausgabeschema und Werkzeugbeschreibung;
 die konkreten Nachrichten werden zusätzlich archiviert. Verschiedene Adapter-
@@ -249,7 +255,7 @@ unterscheidbar. Die Bindung an die Quellen prüft der Runner selbst.
 
 ### 3.3 Voraussetzung für eine aussagekräftige Review-Messung
 
-Der aktuelle [`evaluators.py`](../src/qb_cubie/benchmarks/execution/evaluators.py)
+Der aktuelle [`evaluators.py`](../../src/qb_cubie/benchmarks/execution/evaluators.py)
 vergleicht die Tupel aus `criterion_id`, `path`, `symbol`, `mechanism` und
 `impact` exakt. Damit zählen auch fachlich gleichwertige, anders formulierte
 Erklärungen als Fehlbefunde. Das genügt für deterministische Protokolltests,
@@ -365,7 +371,7 @@ Qualität und Prozesskonformität bestimmt weiterhin der unabhängige Runner.
 ## 5. Umsetzung und Abnahme
 
 Der gemeinsame Adapterunterbau liegt als eigenständiges Beispiel unter
-[`examples/ollama-agents/`](../examples/ollama-agents/README.md).
+[`examples/ollama-agents`](../../examples/ollama-agents/README.md).
 Beide Rollen, versionierte Prompts, Agenten-TOMLs und getrennte Smoke-Sets sind
 über den Wheel-Export verfügbar. Das historische Nutzerbeispiel und seine Archive
 bleiben als Vergleichsbasis bestehen.
@@ -379,13 +385,13 @@ bleiben als Vergleichsbasis bestehen.
 | 5. Kalibrierung und Pilot | Zwei Kalibrierungs-, danach fünf Messwiederholungen je Bedingung auf ausgewähltem Set | Parameter vorher eingefroren; alle begonnenen Versuche enthalten; offizielle Referenzen unabhängig aufgenommen. |
 
 Für Schritt 1 dokumentiert die
-[EBT-Kriterienmatrix mit Schnittstellenvertrag](../tests/AGENTEN_CASES_5_1.md)
+[EBT-Kriterienmatrix mit Schnittstellenvertrag](../../tests/docs_tmp/AGENTEN_CASES_5_1.md)
 die ursprüngliche Rotphase und die implementierte Abnahme. Alle 97 ursprünglichen
-Cases und zwölf ergänzende Gegenproben unter `tests/ollama_agents/` bestehen
+Cases und zwölf ergänzende Gegenproben unter `tests/ollama_agents` bestehen
 offline. Diese Replays belegen den Unterbau, keine Modellleistung.
 
 Für Schritt 2 liegen die
-[EBT-Abnahmecases für den Reviewer-Durchstich](../tests/AGENTEN_CASES_5_2.md)
+[EBT-Abnahmecases für den Reviewer-Durchstich](../../tests/docs_tmp/AGENTEN_CASES_5_2.md)
 vor: zwei neue kleine Quellstände, Enthaltung, Quellenänderungen, tatsächliche
 Kontext-/Werkzeugbelege und die getrennte semantische Nachbewertung.
 Der Reviewer-Kern unter `examples/ollama-agents/reviewer.py` erfüllt alle
@@ -395,7 +401,7 @@ Modellmetadaten, unabhängiger Evaluation und RBT-Aufzeichnung für einen konfor
 Fall nach. Wheel-Installation und vollständige Smoke-Sets ergänzt Schritt 4.
 
 Für Schritt 3 dokumentieren die
-[EBT-Abnahmecases für den Developer-Durchstich](../tests/AGENTEN_CASES_5_3.md)
+[EBT-Abnahmecases für den Developer-Durchstich](../../tests/docs_tmp/AGENTEN_CASES_5_3.md)
 den expliziten Adaptervertrag: 36 ursprüngliche Cases prüfen fachliches Rot inklusive
 `pytest.raises`, eingefrorene Tests, lokale Grün-Reparaturen, Nutzungshinweise,
 ein falsches Testorakel und verbotene Teständerungen. Der Developer-Kern unter
@@ -405,7 +411,7 @@ Der Developer-Prozessanschluss, Wheel-Nachweis und echte Developer-Smokes sind
 Gegenstand des anschließenden Schritts 4.
 
 Für Schritt 4 dokumentiert der
-[Installationsnachweis mit Abnahmematrix](../tests/AGENTEN_CASES_5_4.md)
+[Installationsnachweis mit Abnahmematrix](../../tests/docs_tmp/AGENTEN_CASES_5_4.md)
 den Export über `cubie-bench init-ollama`: Das Wheel enthält die Beispielbibliothek,
 beide JSONL-Rollenprozesse, einen exportierbaren Leitfaden, eingefrorene
 Agentenkonfigurationen und getrennte Reviewer-/Developer-Smoke-Sets.
@@ -420,6 +426,22 @@ Kriterienentscheidungen und die vollständige Developer-Episode einschließlich
 unabhängiger Qualitäts- und Prozessabnahme. Beim fehlerhaften Review bleibt die
 bekannte Grenze des exakten Finding-Abgleichs sichtbar. Der Nachweis ersetzt
 weder Kalibrierung noch Pilotbewertung.
+
+Für Schritt 5 dokumentieren die
+[EBT-Abnahmecases für Kalibrierung und Pilot](../../tests/docs_tmp/AGENTEN_CASES_5_5.md)
+zwei Kalibrierungs- und anschließend fünf eingefrorene
+Messwiederholungen je ausgewählter Aufgabe, Agent und Bedingung, vollständige
+Versuchsarchive einschließlich Fehlschlägen sowie die unabhängige Aufnahme
+aller ausgewählten Referenzen. Die Pilotfreigabe im installierten Paket
+`ollama_agents.pilot` erfüllt alle 65 ursprünglichen Cases und zusätzliche
+Gegenproben. Der optionale Ablauf `python -m ollama_agents.pilot.live ZIEL
+--exploratory` exportiert ein neues Beispiel, führt unbewertete Vorprüfungen
+und anschließend die seriellen Messungen aus; alle Runner- und Adapterarchive
+bleiben erhalten. Offizielle Freigaben benötigen weiterhin unabhängige menschliche
+Aufnahmebelege. Die ausdrücklich explorative Variante verändert keine
+Referenzstatus und liefert keinen offiziellen Goldstandard. Menschliche
+Referenzaufnahme und blinde semantische Finding-Nachbewertung bleiben offen;
+die methodische Abnahme von Schritt 5 ist deshalb noch nicht abgeschlossen.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,

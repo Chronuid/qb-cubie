@@ -74,7 +74,7 @@ Das Linter-Modul folgt strikt den architektonischen Richtlinien des Cubie-Projek
 3. **Narrative Programming:** Die Hauptmethoden (`check`) fungieren als reine Inhaltsverzeichnisse (Top-Down-Lesbarkeit) und delegieren die technische Komplexität an kleine, gut benannte Hilfsmethoden (`_resolve_target`, `_propagate_excludes`).
 ## Aussagegrenzen
 
-Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des jeweiligen Backends. Eine leere Liste beweist keine Fehlerfreiheit. MyPy akzeptiert nur Status 0 oder 1 und lehnt unbekannte Ausgabezeilen sowie einen Fehlerstatus ohne erkannte Fehlerdiagnose ab. Absolute Windows-Pfade bleiben in Diagnosen erhalten. Die früheren Prozessstatus- und Parserlücken sind durch [Regressionstests](../../tests/CONTRACT_CASES_9_1.md) abgesichert. Weder ein Linter-Prozess noch seine Ausschlussmuster sind eine OS-Sicherheitsgrenze.
+Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des jeweiligen Backends. Eine leere Liste beweist keine Fehlerfreiheit. MyPy akzeptiert nur Status 0 oder 1 und lehnt unbekannte Ausgabezeilen sowie einen Fehlerstatus ohne erkannte Fehlerdiagnose ab. Absolute Windows-Pfade bleiben in Diagnosen erhalten. Die früheren Prozessstatus- und Parserlücken sind durch [Regressionstests](../../tests/docs_tmp/CONTRACT_CASES_9_1.md) abgesichert. Weder ein Linter-Prozess noch seine Ausschlussmuster sind eine OS-Sicherheitsgrenze.
 
 ---
 

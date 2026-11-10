@@ -63,3 +63,56 @@ und verwenden die installierte Cubie-Version.
 Die automatischen Wheel-Cases verwenden einen lokalen HTTP-Replay ohne Modell.
 Sie weisen Installation und Protokoll nach; tatsächliche Modellleistung muss
 mit obigen expliziten Inferenzaufrufen separat beobachtet werden.
+
+## Kalibrierung und eingefrorene Messung
+
+Für ein ausgewähltes Set zuerst `repetitions=2` mit ausreichend großen
+Gesamtbudgets konfigurieren und ausführen. Anschließend das Pilotset mit
+`repetitions=5` vorbereiten. Nach der Kalibrierung sind Parameteranpassungen
+erlaubt; Aufgaben, Bedingungen und fachliche Referenzen bleiben gleich.
+
+```bash
+python -m ollama_agents.pilot --suite sets/pilot.toml \
+  --calibration results/calibration/ARCHIV-ID --destination frozen-pilot
+cubie-bench run-frozen frozen-pilot --output results/pilot --format json
+cubie-bench summarize-pilot results/pilot/ARCHIV-ID --format json
+```
+
+Die Freigabe prüft alle übergebenen Kalibrierungsarchive einschließlich erfolgloser
+Versuche. Sie verlangt zwei tatsächlich gestartete Wiederholungen je Aufgabe,
+Agent und Bedingung sowie genau fünf geplante Messwiederholungen. Weitere Runden,
+Dubletten, beschädigte Archive und veränderte Aufgaben werden abgewiesen.
+Kalibrierungsergebnisse gehen nicht in die Pilotstatistik ein. Das Messpaket
+enthält vollständige Kopien der Kalibrierungsarchive und deren Hashbindung.
+
+Ohne zusätzliche Option benötigen alle ausgewählten Referenzen
+`independently_checked` mit zwei verschiedenen menschlichen Zustimmungen und
+privaten Belegdateien. `--exploratory` erlaubt Autorreferenzen und kennzeichnet
+das Messpaket entsprechend. Die Funktion erfindet keine menschlichen Belege.
+
+Die öffentlichen Smokes lassen sich als vollständig archivierte explorative
+Messreihe mit zwei Kalibrierungs- und anschließend fünf Messwiederholungen ausführen:
+
+```bash
+python -m ollama_agents.pilot.live /absoluter/neuer/studienpfad --exploratory
+```
+
+Das startet echte Modellaufrufe: zwei unbewertete Vorprüfungen, 6 Kalibrierungs-
+und 15 Mess-Episoden, seriell mit identischen Rollenparametern. Der Ablauf legt
+neue Sets an, friert sie vor Ausführung ein und speichert Modellmetadaten,
+Ladezustand, GPU-Beobachtungen an Stapelgrenzen, Rohantworten, interne Aufrufe,
+Runnerbelege und getrennte Zusammenfassungen. Der neue Zielpfad darf nicht
+existieren. `study.json` und `interrupted.json` dokumentieren den Ablauf auch
+bei Abbruch; Fehler werden nicht durch automatische Ersatzversuche verdeckt.
+
+Externe Adapterarchive liegen absichtlich dauerhaft unter dem absoluten
+Studienpfad, außerhalb temporärer Ausführungskopien. Gemeinsam mit allen
+Runnerarchiven, Messpaketen und dem installierten Wheel aufbewahren. Ein
+verschobenes Studienarchiv bleibt anhand relativer Hashmanifeste prüfbar;
+für eine erneute Ausführung müssen absolute Belegziele ausdrücklich neu
+konfiguriert und unter einer neuen Messidentität eingefroren werden.
+
+Die Messreihe verwendet bekannte öffentliche Entwicklungsaufgaben und ist
+explorativ. Eine offizielle Referenzaufnahme, unabhängige unbekannte Aufgaben,
+blinde semantische Finding-Nachbewertung und allgemeine Leistungsaussagen sind
+damit nicht verbunden.

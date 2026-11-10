@@ -3,10 +3,7 @@
 
 def authoring(commands):
     """Add agent, scenario, validation and discovery commands."""
-    ollama = commands.add_parser("init-ollama", help="Export installed Ollama roles and freeze local model metadata")
-    ollama.add_argument("path")
-    ollama.add_argument("--endpoint", default="http://localhost:11434")
-    ollama.add_argument("--model", default="gemma4:12b")
+    _ollama(commands)
     for name in ("init-agent", "validate-agent", "init-scenario", "init-example", "init-base", "validate"):
         parser = commands.add_parser(name)
         parser.add_argument("path")
@@ -16,6 +13,14 @@ def authoring(commands):
             parser.add_argument("--check-references", action="store_true")
     commands.add_parser("list", help="List scenarios, types and tags").add_argument("--package", required=True)
     commands.add_parser("guide", help="Read the installed GUIDE_Benchmark-Custom.md tutorial")
+
+
+def _ollama(commands):
+    """Add explicit provider and model selection to the installed example export."""
+    parser = commands.add_parser("init-ollama", help="Export installed Ollama roles and freeze local model metadata")
+    parser.add_argument("path")
+    parser.add_argument("--endpoint", default="http://localhost:11434")
+    parser.add_argument("--model", default="gemma4:12b")
 
 
 def suites(commands):

@@ -6,9 +6,9 @@
 
 Dieses Dokument ersetzt das Gutachten vom 9. November 2026. Es bewertet den aktuellen Code und unterscheidet bestätigte Fehler, dokumentierte Entwurfsentscheidungen und gutachterliche Einschätzungen. Die neue Bewertung behebt keine Implementierungsfehler.
 
-**Nachtrag zur Umsetzung von 9.1:** B1–B5 wurden anschließend im Produktivcode korrigiert und durch [ausführbare Vertragsfälle](tests/CONTRACT_CASES_9_1.md) abgesichert. Die folgenden Befunde und Untersuchungsergebnisse dokumentieren weiterhin den oben genannten untersuchten Commit; sie sind keine erneute Bewertung des korrigierten Arbeitsstands. Die aktuelle Vertragssemantik und verbleibenden Einschränkungen stehen im README und in den Handbüchern.
+**Nachtrag zur Umsetzung von 9.1:** B1–B5 wurden anschließend im Produktivcode korrigiert und durch [ausführbare Vertragsfälle](tests/docs_tmp/CONTRACT_CASES_9_1.md) abgesichert. Die folgenden Befunde und Untersuchungsergebnisse dokumentieren weiterhin den oben genannten untersuchten Commit; sie sind keine erneute Bewertung des korrigierten Arbeitsstands. Die aktuelle Vertragssemantik und verbleibenden Einschränkungen stehen im README und in den Handbüchern.
 
-**Nachtrag zur Umsetzung von 9.2:** Kernfunktionen laden Tk nicht mehr; Dateiinhalte werden ohne persistenten Vergleichscache geprüft. PyVenv passt unterstützte POSIX-Python-Einstiegsskripte an den Klon an und lehnt nicht unterstützte Launcher vor dem Target-Aufruf ab. Native Windows-Konsolenlauncher sind ausdrücklich ausgeschlossen. Die drei historischen Testdateien wurden für die Standardsammlung umbenannt; der generative Prozess-Test behält 100 Beispiele und verwendet eine lokale Ausnahme von der Hypothesis-Zeitfrist. Dokumentationskorrekturen und die neue Abnahme stehen in den [Vertragsfällen zu 9.2](tests/CONTRACT_CASES_9_2.md). Die nachfolgenden historischen Befunde bleiben als Ausgangsstand erhalten.
+**Nachtrag zur Umsetzung von 9.2:** Kernfunktionen laden Tk nicht mehr; Dateiinhalte werden ohne persistenten Vergleichscache geprüft. PyVenv passt unterstützte POSIX-Python-Einstiegsskripte an den Klon an und lehnt nicht unterstützte Launcher vor dem Target-Aufruf ab. Native Windows-Konsolenlauncher sind ausdrücklich ausgeschlossen. Die drei historischen Testdateien wurden für die Standardsammlung umbenannt; der generative Prozess-Test behält 100 Beispiele und verwendet eine lokale Ausnahme von der Hypothesis-Zeitfrist. Dokumentationskorrekturen und die neue Abnahme stehen in den [Vertragsfällen zu 9.2](tests/docs_tmp/CONTRACT_CASES_9_2.md). Die nachfolgenden historischen Befunde bleiben als Ausgangsstand erhalten.
 
 ## 1. Gesamturteil
 
@@ -269,7 +269,7 @@ Geeignete übergreifende Regressionseigenschaften sind: Ein Reporterwechsel ver�
 
 ### 9.3 Produktnutzen anschließend gezielt nachweisen
 
-Ein [Konzept für die Benchmarks ReviewAgent und DeveloperAgent](docs/BENCHMARK_KONZEPT.md) beschreibt ein allgemein nutzbares Prüfwerkzeug für eigene Agentensysteme mit erweiterbaren Szenariopaketen und konfigurierbaren Benchmark-Sets. Ein optionales Vergleichsprofil konkretisiert die Produktnutzenmessung; Review-Nachweise werden an Quellstand und Kontext gebunden. Es ist ein Implementierungsentwurf; Messergebnisse liegen damit noch nicht vor.
+Ein [Konzept für die Benchmarks ReviewAgent und DeveloperAgent](docs/misc/BENCHMARK_KONZEPT.md) beschreibt ein allgemein nutzbares Prüfwerkzeug für eigene Agentensysteme mit erweiterbaren Szenariopaketen und konfigurierbaren Benchmark-Sets. Ein optionales Vergleichsprofil konkretisiert die Produktnutzenmessung; Review-Nachweise werden an Quellstand und Kontext gebunden. Es ist ein Implementierungsentwurf; Messergebnisse liegen damit noch nicht vor.
 
 1. Eingabe-Erwartungs-Paare und klarere Zustandsrollen anbieten.
 2. Ausgabeform und Fehlerpolitik unabhängig konfigurierbar machen.

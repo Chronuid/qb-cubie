@@ -1,8 +1,12 @@
 # EBT-Abnahmecases: Developer-Durchstich (§5, Schritt 3)
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. **Developer-Kern implementiert und offline geprüft.**
-Die [36 neuen Cases](ollama_agents/developer) konkretisieren den Developer-Durchstich
-in [AGENTEN_KONZEPT.md](../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme)
+Die [36 neuen Cases](../ollama_agents/developer) konkretisieren den Developer-Durchstich
+in [AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme)
 und die Regeln aus §4.1–4.3. Sie ergänzen die Unterbau- und Reviewer-Abnahme.
 Die ursprüngliche Rotphase bleibt unten dokumentiert. Der Produktionsadapter
 erfüllt inzwischen alle ursprünglichen Cases; der Prozessanschluss bleibt Folgearbeit.
@@ -130,7 +134,7 @@ separate Folgearbeit. Die Rotphase ist keine abgeschlossene §5.3-Implementierun
 ## Ergebnis nach Implementierung
 
 Alle **36 ursprünglichen Cases** bestehen unverändert. **Neun zusätzliche
-Gegenproben** in [test_boundaries.py](ollama_agents/developer/test_boundaries.py)
+Gegenproben** in [test_boundaries.py](../ollama_agents/developer/test_boundaries.py)
 prüfen explizite Framework-Dokumentation für beide Modi, null Werkzeugbudget,
 fremde Shellaktionen und Zusatzfelder, Symlinks vor Inferenz, unbekannte
 Tokenmessungen über weitere Aufrufe, eine reparierte Refactor-Regression und die

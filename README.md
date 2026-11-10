@@ -172,7 +172,7 @@ Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit
 
 ## Bekannte Einschränkungen
 
-Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](./tests/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Abschnitt 9.2 ergänzt den Kernbetrieb ohne Tk, aktuelle Dateivergleiche und einen geprüften Unterstützungsumfang für kopierte Konsolenskripte. Weiterhin gelten:
+Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](tests/docs_tmp/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Abschnitt 9.2 ergänzt den Kernbetrieb ohne Tk, aktuelle Dateivergleiche und einen geprüften Unterstützungsumfang für kopierte Konsolenskripte. Weiterhin gelten:
 
 - **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten ihre Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Referenzdateien werden ebenfalls nicht archiviert.
 - **PyVenv-Importhilfen:** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes pytest unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; relevante Laufzeitaufrufe benötigen die echte Bibliothek. Die Importbedingungen bleiben Teil des Testvertrags.
@@ -182,7 +182,7 @@ Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen
 
 Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-Aufrufe setzen die EBT-Laufdaten zurück. Das setzt weder Target-Seiteneffekte noch bereits veränderte Argumente zurück. `WorldState(returns=None)` erwartet ausdrücklich `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Mehrere Eingänge teilen dieselbe Zielmenge; korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge. Ein `JsonReporter` persistiert Ergebnisse, erhebt aber selbst keine fachliche Assertion. Die genaue Vertragsbedeutung steht in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
 
-Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](./tests/CONTRACT_CASES_9_2.md).
+Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](tests/docs_tmp/CONTRACT_CASES_9_2.md).
 
 ---
 
@@ -193,6 +193,8 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 ![Error while trying to load the image](./docs/.assets/cubie-small.png)
 
 ## Dokumentation
+
+[Dokumentationsübersicht und Einordnung der Ablagen](docs/README.md)
 
 [↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./docs/GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  

@@ -33,5 +33,5 @@ cubie-bench compare ./results/BEFORE ./results/AFTER
 Diese Kommandos sind implementiert. Das installierte Paket exportiert mit
 `cubie-bench init-example ./shipping-demo` ein entsprechendes ausführbares
 Beispiel samt Konfiguration und Set. `cubie-bench guide` zeigt das Tutorial.
-Details und Fehlerfälle stehen in `tests/BENCHMARK_CASES_10_3.md` des
+Details und Fehlerfälle stehen in `../../../docs_tmp/BENCHMARK_CASES_10_3.md` des
 Cubie-Repositories. Die lokale Ausführung setzt vertrauenswürdigen Code voraus.

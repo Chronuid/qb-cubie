@@ -1,7 +1,8 @@
 # Lokale Ollama-Agenten aus Checkout und Wheel
 
-Dieses Beispiel implementiert den Unterbau, beide Rollenkerne und den Installationsweg aus Schritt 1 bis 4 von
-[AGENTEN_KONZEPT.md](../../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+Dieses Beispiel implementiert den Unterbau, beide Rollenkerne, den Installationsweg
+und die Pilotfreigabe aus Schritt 1 bis 5 von
+[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
 Der gemeinsame Unterbau und der Reviewer verwenden die Python-Standardbibliothek;
 der Developer nutzt zusätzlich den installierten Cubie-Testausführer und pytest.
 Python ab 3.13 wird benötigt. Import und Offline-Prüfungen starten weder Ollama noch ein
@@ -43,7 +44,7 @@ cubie-bench run --suite sets/developer.toml
 Ollama-Version, Parameter, Adapterversion und Prompt-Hash ein. `--endpoint` und
 `--model` wählen Server und Modell explizit. Das Ziel darf noch nicht existieren.
 Der vollständige [installierte Leitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md)
-wird als `README.md` mitexportiert. [Abnahme und tatsächliche Läufe](../../tests/AGENTEN_CASES_5_4.md)
+wird als `README.md` mitexportiert. [Abnahme und tatsächliche Läufe](../../tests/docs_tmp/AGENTEN_CASES_5_4.md)
 trennen deterministische Wheel-Replays von echten Modell-Smokes.
 
 ## Offline verwenden
@@ -163,7 +164,7 @@ Aus dem Repositorywurzelverzeichnis:
 .venv/bin/python -m mypy --check-untyped-defs --warn-unreachable examples/ollama-agents
 ```
 
-Die [Kriterienmatrix](../../tests/AGENTEN_CASES_5_1.md) beschreibt den Vertrag
+Die [Kriterienmatrix](../../tests/docs_tmp/AGENTEN_CASES_5_1.md) beschreibt den Vertrag
 und die ursprüngliche Rotphase. Sämtliche Cases laufen ohne Modell; während
 der Tests sind echte Netzwerkverbindungen gesperrt. Der zusätzliche
 HTTP-Transporttest ersetzt ausschließlich `urlopen()` und führt die tatsächliche
@@ -232,7 +233,7 @@ Ausgaben werden begrenzt und Auslassungen markiert. Bei Timeout wird unter POSIX
 wie beim lokalen Runner die gesamte Testprozessgruppe beendet und eingesammelt.
 Die Kopie ist keine OS-Isolation für fremden Code.
 
-Die [Reviewer-Kriterienmatrix](../../tests/AGENTEN_CASES_5_2.md) dokumentiert
+Die [Reviewer-Kriterienmatrix](../../tests/docs_tmp/AGENTEN_CASES_5_2.md) dokumentiert
 90 bestandene Reviewer-Cases einschließlich 22 ergänzender Gegenproben.
 Zusammen mit den 109 Unterbau-Cases bestehen 199 Offline-Cases. Der JSONL-Prozess
 mit Handshake und Modellmetadaten ist im zusätzlichen Pipeline-EBT unten geprüft.
@@ -330,8 +331,60 @@ beim Runner. Refactor muss weiterhin grüne Tests vorweisen. Ein No-op ist erlau
 Verbotene Dateiziele und ungültige Modellantworten erhalten eine einzige
 Korrekturchance pro Phase. Budgetabbrüche werden separat gemeldet.
 
-Die [Developer-Kriterienmatrix](../../tests/AGENTEN_CASES_5_3.md) dokumentiert die
+Die [Developer-Kriterienmatrix](../../tests/docs_tmp/AGENTEN_CASES_5_3.md) dokumentiert die
 36 ursprünglichen Abnahmecases und neun ergänzende Gegenproben. Diese Offline-
 Replays prüfen die Adapterfunktion, keine Modellleistung. Der Installationsweg
 ergänzt Prozessgegenproben und beide Smoke-Sets mit unabhängiger Runner-Abnahme.
 Die tatsächlichen Modell-Läufe und deren Grenzen stehen im §5.4-Nachweis.
+
+## Kalibrierung und Pilot (§5.5)
+
+Die installierte Funktion `ollama_agents.pilot.freeze_pilot` verlangt zwei
+vollständig archivierte Kalibrierungswiederholungen und friert anschließend fünf
+Messwiederholungen je ausgewählter Aufgabe, Agent und Bedingung ein. Fachliche
+Fehlschläge und Infrastrukturfehler werden mitgezählt. Nicht gestartete Zellen,
+doppelte Archive, zusätzliche Runden und geänderte Aufgaben verhindern die
+Freigabe. Budgets und Modellparameter dürfen vor dem Einfrieren angepasst werden.
+Aufnahmebelege dürfen ergänzt werden; Änderungen am fachlichen Referenzurteil
+oder an privaten Abnahmetests erfordern eine neue Kalibrierung.
+
+```bash
+# Kalibrierungsset mit repetitions=2 ausführen und Ergebnisarchiv aufbewahren.
+cubie-bench run --suite sets/calibration.toml --format json
+# Pilotset enthält repetitions=5 und ausreichende Gesamtbudgets.
+python -m ollama_agents.pilot --suite sets/pilot.toml \
+  --calibration results/calibration/ARCHIV-ID --destination frozen-pilot
+cubie-bench run-frozen frozen-pilot --output results/pilot --format json
+cubie-bench summarize-pilot results/pilot/ARCHIV-ID --format json
+```
+
+Ohne `--exploratory` benötigt jede ausgewählte Referenz zwei dokumentierte
+menschliche Zustimmungen und den Status `independently_checked`. Der Schalter
+erlaubt ausdrücklich explorative Messungen mit Autorreferenzen; deren Manifest
+vermerkt `study_kind=exploratory`. Es werden keine Prüfbelege erzeugt oder
+Referenzstatus umgeschrieben. Das vorhandene Freeze-Format bindet Quellen,
+Prompts, Agenten, Modellkonfiguration und die mitkopierten Kalibrierungsarchive.
+Der UTC-Einfrierzeitpunkt liegt nach dem Ende aller Kalibrierungsversuche.
+
+Für die wiederholte Messung der öffentlichen Reviewer-/Developer-Smokes gibt es
+einen eigenen, ausdrücklich freizuschaltenden Ablauf:
+
+```bash
+python -m ollama_agents.pilot.live /absoluter/neuer/studienpfad --exploratory
+```
+
+Dieser Ablauf exportiert das installierte Beispiel, prüft und wärmt das Modell
+mit unbewertetem Material vor und führt seriell 6 Kalibrierungs- und danach 15
+Mess-Episoden aus. Er prüft Digest und Provider-Version an den Stapelgrenzen,
+erfasst GPU-/Ladezustand und archiviert Runner- und externe Adapterbelege unter
+dem Studienpfad. Modellaufrufe und Werkzeugergebnisse werden nachgezählt und
+gegen die gehashten Belege geprüft. `study.json` wird vor jedem Stapel aktualisiert;
+abgebrochene Studien bleiben einschließlich vorhandener Fragmente erhalten.
+Der Ablauf wiederholt keine gescheiterte Episode automatisch.
+
+Die öffentlichen Aufgaben sind bekannte Entwicklungsdaten. Diese Messung liefert
+keinen offiziellen Goldstandard oder Nachweis für unbekannte Projekte. Kosten
+bleiben unbekannt; Reviewer-Findingtexte unterliegen weiterhin dem exakten
+Matcher. Menschliche Aufnahme und blinde semantische Nachbewertung bleiben offen.
+Das [§5.5-Protokoll](../../tests/docs_tmp/AGENTEN_CASES_5_5.md) trennt Offline-Abnahme und
+tatsächliche Modellmessungen.

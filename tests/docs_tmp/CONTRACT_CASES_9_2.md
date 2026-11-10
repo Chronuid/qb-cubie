@@ -1,7 +1,11 @@
 # EBT-Cases zu Gutachten 9.2: Umgebungsausführung und Abnahme
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Diese Cases konkretisieren den Sollzustand aus Abschnitt 9.2 des
-[Gutachtens](../GUTACHTEN.md). Sie wurden zunächst gegen den unkorrigierten
+[Gutachtens](../../GUTACHTEN.md). Sie wurden zunächst gegen den unkorrigierten
 Produktivcode entwickelt und anschließend zur Prüfung der Korrekturen verwendet.
 Die Repository-Cases werden regulär eingesammelt und enthalten kein `xfail`.
 Die roten Ausgangsergebnisse bleiben unten als historische Gegenprobe erhalten;
@@ -11,11 +15,11 @@ die aktuelle Implementierung und Abnahme stehen im letzten Abschnitt.
 
 | Punkt | Cases / Nachweis | Sollvertrag |
 | --- | --- | --- |
-| 9.2.1 / B6 | [test_core_without_tk.py](test_core_without_tk.py), gemeinsames [Prozessszenario](wheel/tk_contract.py) | Paketimport, EBT, TempFS und Headless-RBT funktionieren ohne Tk. Erst ein grafischer Review benötigt Tk und meldet bei Fehlen einen verständlichen Installationshinweis. |
-| 9.2.2 / B7 | [test_ebt_console_environment.py](tests_arena/test_ebt_console_environment.py) | Ein kopiertes Konsolenskript verwendet Interpreter und Abhängigkeiten des Klons; alternativ wird eine nicht unterstützte Basis vor dem Target-Aufruf ausdrücklich abgelehnt. |
-| 9.2.3 | [test_ebt_fresh_file_comparison.py](tests_ebt/test_ebt_fresh_file_comparison.py) | Erneute Datei-, Verzeichnis- und Arena-Vergleiche lesen aktuelle Inhalte, auch bei gleicher Größe und wiederhergestellter mtime. |
-| 9.2.4 | [test_default_collection_contract.py](test_default_collection_contract.py) | Alle 14 historischen Fälle gehören zur Standardsammlung. Ihre explizite Ausführung und Ergebnisse stehen unten. |
-| 9.2.5 | Ergänzungen in [smoke_installed.py](wheel/smoke_installed.py); bestehende [MyPy-Cases](tests_linter/test_mypy_analysis_integrity.py) und [GUI-Cases](test_human_reviewer_fresh_decision.py) | Die Wheel-Matrix prüft echte absolute Dateipfade sowie fehlendes Tk. Fensterabbruch verwirft alte Freigaben und unbestätigte Berichte. |
+| 9.2.1 / B6 | [test_core_without_tk.py](../test_core_without_tk.py), gemeinsames [Prozessszenario](../wheel/tk_contract.py) | Paketimport, EBT, TempFS und Headless-RBT funktionieren ohne Tk. Erst ein grafischer Review benötigt Tk und meldet bei Fehlen einen verständlichen Installationshinweis. |
+| 9.2.2 / B7 | [test_ebt_console_environment.py](../tests_arena/test_ebt_console_environment.py) | Ein kopiertes Konsolenskript verwendet Interpreter und Abhängigkeiten des Klons; alternativ wird eine nicht unterstützte Basis vor dem Target-Aufruf ausdrücklich abgelehnt. |
+| 9.2.3 | [test_ebt_fresh_file_comparison.py](../tests_ebt/test_ebt_fresh_file_comparison.py) | Erneute Datei-, Verzeichnis- und Arena-Vergleiche lesen aktuelle Inhalte, auch bei gleicher Größe und wiederhergestellter mtime. |
+| 9.2.4 | [test_default_collection_contract.py](../test_default_collection_contract.py) | Alle 14 historischen Fälle gehören zur Standardsammlung. Ihre explizite Ausführung und Ergebnisse stehen unten. |
+| 9.2.5 | Ergänzungen in [smoke_installed.py](../wheel/smoke_installed.py); bestehende [MyPy-Cases](../tests_linter/test_mypy_analysis_integrity.py) und [GUI-Cases](../test_human_reviewer_fresh_decision.py) | Die Wheel-Matrix prüft echte absolute Dateipfade sowie fehlendes Tk. Fensterabbruch verwirft alte Freigaben und unbestätigte Berichte. |
 | 9.2.6 | Dokumentationsabgleich unten mit ausführbaren Vertragsnachweisen | Historische Fehlerbehauptungen werden vom gegenwärtigen Verhalten getrennt; offene B6-/B7-/Cache-Befunde werden nicht vorzeitig als behoben bezeichnet. |
 
 ## Konkretisierte Verträge
@@ -164,10 +168,10 @@ laufenden generativen Fälle müssen mit einem begründeten Zeitbudget bestehen.
 
 | Fundstelle | Abweichung / aktueller Stand | Ausführbarer Nachweis und nächster Dokumentationsschritt |
 | --- | --- | --- |
-| [EBT-Entwicklerübersicht](../docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | Der Absatz „Bekannte Fehler“ behauptet weiterhin ungeprüfte `None`-Rückgaben, akzeptierte leere Zustandslisten und veränderliche alte Traces. Diese Behauptungen sind überholt. | [Explizite None-Rückgaben](tests_ebt/test_ebt_returns.py), [Rückgabeverträge](tests_ebt/test_ebt_contract_returns.py), [Zustandsvalidierung](tests_ebt/test_ebt_state_validation.py), [Laufisolation](tests_ebt/test_ebt_run_isolation.py); Absatz an die zentrale Semantikreferenz anpassen. |
-| [Linter-Entwicklerhandbuch](../docs/dev/DEV-GUIDE_2-5_Linter.md) | Der Schlussabsatz behauptet weiterhin, MyPy könne Prozessabbrüche als leere Liste behandeln. | [MyPy-Prozessstatus](tests_linter/test_mypy_process_status.py) und [Analyseintegrität](tests_linter/test_mypy_analysis_integrity.py); historischen Befund von der korrigierten Status-/Parserprüfung trennen. |
-| [README: bekannte Einschränkungen](../README.md#bekannte-einschränkungen) | Tk-Paketimport, kopierte Skripte, Cache und 14 fehlende Standardfälle sind weiterhin zutreffend als offen beschrieben. | Neue Cases dieses Dokuments; Aussagen erst nach Produktivkorrektur beziehungsweise Sammlung und Auswertung aktualisieren. |
-| [RBT-Nutzungsmuster](../docs/GUIDE_RBT-Usage-Pattern.md) | Schließen ohne Entscheidung ergibt eine neue Ablehnung mit leerem Bericht. Die Aussage entspricht der Korrektur aus 9.1. | Acht [GUI-Cases](test_human_reviewer_fresh_decision.py) bestehen; als aktuelle Semantik beibehalten. |
+| [EBT-Entwicklerübersicht](../../docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | Der Absatz „Bekannte Fehler“ behauptet weiterhin ungeprüfte `None`-Rückgaben, akzeptierte leere Zustandslisten und veränderliche alte Traces. Diese Behauptungen sind überholt. | [Explizite None-Rückgaben](../tests_ebt/test_ebt_returns.py), [Rückgabeverträge](../tests_ebt/test_ebt_contract_returns.py), [Zustandsvalidierung](../tests_ebt/test_ebt_state_validation.py), [Laufisolation](../tests_ebt/test_ebt_run_isolation.py); Absatz an die zentrale Semantikreferenz anpassen. |
+| [Linter-Entwicklerhandbuch](../../docs/dev/DEV-GUIDE_2-5_Linter.md) | Der Schlussabsatz behauptet weiterhin, MyPy könne Prozessabbrüche als leere Liste behandeln. | [MyPy-Prozessstatus](../tests_linter/test_mypy_process_status.py) und [Analyseintegrität](../tests_linter/test_mypy_analysis_integrity.py); historischen Befund von der korrigierten Status-/Parserprüfung trennen. |
+| [README: bekannte Einschränkungen](../../README.md#bekannte-einschränkungen) | Tk-Paketimport, kopierte Skripte, Cache und 14 fehlende Standardfälle sind weiterhin zutreffend als offen beschrieben. | Neue Cases dieses Dokuments; Aussagen erst nach Produktivkorrektur beziehungsweise Sammlung und Auswertung aktualisieren. |
+| [RBT-Nutzungsmuster](../../docs/GUIDE_RBT-Usage-Pattern.md) | Schließen ohne Entscheidung ergibt eine neue Ablehnung mit leerem Bericht. Die Aussage entspricht der Korrektur aus 9.1. | Acht [GUI-Cases](../test_human_reviewer_fresh_decision.py) bestehen; als aktuelle Semantik beibehalten. |
 
 Dieser historische Abgleich dokumentiert die konkreten Korrekturstellen für
 9.2.6; er ersetzt keine umfassende Prüfung sämtlicher Dokumente. Die beiden
@@ -192,7 +196,7 @@ vorbereitenden Testschritt nicht erneut ausgeführt.
   Shell-Trampoline im Klon an. Nicht unterstützte basisgebundene Launcher,
   zusätzliche `.exe`-Dateien und externe Skriptlinks werden abgelehnt. Die
   Unterstützung umfasst keine beliebigen eingebetteten Paketpfade und keine
-  interaktiven Aktivierungsskripte; siehe [Arena-Handbuch](../docs/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
+  interaktiven Aktivierungsskripte; siehe [Arena-Handbuch](../../docs/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
 - Die drei historischen Dateien heißen jetzt `test_mp_hypothesis.py`,
   `test_mypy.py` und `test_linter.py`. Die sieben Inspector-/Multiprocessing-
   und sieben Linterfälle werden regulär eingesammelt. Das lokale

@@ -1,10 +1,14 @@
 # EBT-Cases zu Phase 10.1: Öffentliche Verträge und Referenzen
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Status: **Öffentliche Schnittstellen implementiert**, 10. November 2026.
 Diese Cases konkretisieren die erste Phase aus
-[BENCHMARK_KONZEPT.md, Abschnitt 10](../docs/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+[BENCHMARK_KONZEPT.md, Abschnitt 10](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
 Die beschriebenen Python-Schnittstellen sind in
-[`qb_cubie.benchmarks`](../src/qb_cubie/benchmarks/__init__.py) implementiert.
+[`qb_cubie.benchmarks`](../../src/qb_cubie/benchmarks/__init__.py) implementiert.
 Der ausführende Benchmark-Runner folgt in Phase 2.
 
 Alle Cases werden regulär gesammelt, ohne `xfail`, Freischaltoptionen oder
@@ -16,14 +20,14 @@ geprüft; die vollständige Sammlung benötigt weiterhin keine Agentenanbindung.
 
 | Kriterium aus Phase 1 | Cases | Konkreter Sollvertrag |
 | --- | --- | --- |
-| Paket-/Szenarioschema | [test_public_packages.py](benchmarks/test_public_packages.py) | Version, Identität, Lizenz, Herkunft, Materialien, Kriterien und Evaluator sind explizit. Ungültige Felder, fehlende Referenzen, doppelte IDs und Splitwechsel innerhalb einer Gruppe sind Konfigurationsfehler. |
-| Typen und Ablauf getrennt | [test_public_packages.py](benchmarks/test_public_packages.py), [test_protocol_contracts.py](benchmarks/test_protocol_contracts.py) | Fehlende Typen/Tags werden zu leeren Listen; freie eigene Typen ändern weder Benchmark noch Evaluator. `benchmark` bestimmt zulässige Phasen. |
-| Agenten-/Evaluatorprotokoll | [test_protocol_contracts.py](benchmarks/test_protocol_contracts.py) | Versionierte Anfragen und Antworten; getrennte Agenten- und Evaluatorinputs; Bindung an Lauf und Szenario; Status, Kriteriumsentscheidungen und offene Nachbewertung bleiben unterscheidbar. |
-| Set-Semantik | [test_suite_semantics.py](benchmarks/test_suite_semantics.py) | ODER innerhalb eines Filters, UND zwischen Filtern, Vorrang von Ausschlüssen, keine doppelten Läufe durch Mehrfachtypen; Fehler bei leeren Filtern, unbekannten IDs, Leerauswahl und fehlenden Voraussetzungen. |
-| Planbarkeit | [test_suite_semantics.py](benchmarks/test_suite_semantics.py) | Relative Pfade beziehen sich auf die Set-Datei. Wiederholungen bilden eigene Versuche. Globale Grenzen führen zum Fehler statt zur Kürzung. Planen startet kein Agentenkommando. |
-| Zwei eindeutige Review-Fälle | [test_reference_cases.py](benchmarks/test_reference_cases.py) | Konformer und dateiübergreifend fehlerhafter Fall; vollständige Kriterienurteile; ausführbares Gegenbeispiel; unveränderte echte Quellen werden geprüft. |
-| Datei-Projekt mit drei Episoden | [test_reference_cases.py](benchmarks/test_reference_cases.py) | Erstentwicklung, Wartung und Diagnose haben eigene Ausgangsstände, Referenzen und Fehlervarianten. Rückgabe, Inhalt, Sortierung und vollständige Dateimenge werden gemeinsam geprüft. |
-| Unabhängige Referenzkontrolle | [test_reference_cases.py](benchmarks/test_reference_cases.py) | Direkter Python-Aufruf und Dateibaumvergleich bestimmen das erwartete Urteil; anschließend muss die EBT-Auswertung damit übereinstimmen. Keine Referenz wird aus der Ausgabe des Targets erzeugt. |
+| Paket-/Szenarioschema | [test_public_packages.py](../benchmarks/test_public_packages.py) | Version, Identität, Lizenz, Herkunft, Materialien, Kriterien und Evaluator sind explizit. Ungültige Felder, fehlende Referenzen, doppelte IDs und Splitwechsel innerhalb einer Gruppe sind Konfigurationsfehler. |
+| Typen und Ablauf getrennt | [test_public_packages.py](../benchmarks/test_public_packages.py), [test_protocol_contracts.py](../benchmarks/test_protocol_contracts.py) | Fehlende Typen/Tags werden zu leeren Listen; freie eigene Typen ändern weder Benchmark noch Evaluator. `benchmark` bestimmt zulässige Phasen. |
+| Agenten-/Evaluatorprotokoll | [test_protocol_contracts.py](../benchmarks/test_protocol_contracts.py) | Versionierte Anfragen und Antworten; getrennte Agenten- und Evaluatorinputs; Bindung an Lauf und Szenario; Status, Kriteriumsentscheidungen und offene Nachbewertung bleiben unterscheidbar. |
+| Set-Semantik | [test_suite_semantics.py](../benchmarks/test_suite_semantics.py) | ODER innerhalb eines Filters, UND zwischen Filtern, Vorrang von Ausschlüssen, keine doppelten Läufe durch Mehrfachtypen; Fehler bei leeren Filtern, unbekannten IDs, Leerauswahl und fehlenden Voraussetzungen. |
+| Planbarkeit | [test_suite_semantics.py](../benchmarks/test_suite_semantics.py) | Relative Pfade beziehen sich auf die Set-Datei. Wiederholungen bilden eigene Versuche. Globale Grenzen führen zum Fehler statt zur Kürzung. Planen startet kein Agentenkommando. |
+| Zwei eindeutige Review-Fälle | [test_reference_cases.py](../benchmarks/test_reference_cases.py) | Konformer und dateiübergreifend fehlerhafter Fall; vollständige Kriterienurteile; ausführbares Gegenbeispiel; unveränderte echte Quellen werden geprüft. |
+| Datei-Projekt mit drei Episoden | [test_reference_cases.py](../benchmarks/test_reference_cases.py) | Erstentwicklung, Wartung und Diagnose haben eigene Ausgangsstände, Referenzen und Fehlervarianten. Rückgabe, Inhalt, Sortierung und vollständige Dateimenge werden gemeinsam geprüft. |
+| Unabhängige Referenzkontrolle | [test_reference_cases.py](../benchmarks/test_reference_cases.py) | Direkter Python-Aufruf und Dateibaumvergleich bestimmen das erwartete Urteil; anschließend muss die EBT-Auswertung damit übereinstimmen. Keine Referenz wird aus der Ausgabe des Targets erzeugt. |
 
 ## Öffentlicher Python-Vertrag
 
@@ -43,7 +47,7 @@ Konfigurationsfehler wird nicht als fachliche Ablehnung zurückgegeben.
 | `validate_evaluation(payload, request)` | Evaluatorergebnis plus Evaluatoranfrage | Unveränderte gültige Nutzlast mit Ausführungsstatus, Bewertungsstatus, Kriterienurteilen, Metriken und Belegpfaden. Fehlende Kriterien oder fremde Kriterien sind bei vollständiger Bewertung ungültig. |
 
 Die konkreten Nachrichten stehen als feste Beispiele in
-[test_protocol_contracts.py](benchmarks/test_protocol_contracts.py).
+[test_protocol_contracts.py](../benchmarks/test_protocol_contracts.py).
 Version 1 ist der einzige hier zugesicherte Schemastand. Review-Anfragen verwenden
 `review`; Developer-Anfragen `test_design`, `red`, `green`, `refactor`.
 Diese Phasenbezeichnungen spezifizieren das Nachrichtenformat; ihre Reihenfolge
@@ -64,7 +68,7 @@ beweist auch keine Qualität einer Agentenantwort.
 
 ## Neue öffentliche Referenzmaterialien
 
-Das Paket unter [fixtures/phase1](benchmarks/fixtures/phase1/package.json) hat
+Das Paket unter [fixtures/phase1](../benchmarks/fixtures/phase1/package.json) hat
 Namespace `phase1`, Version `1.0.0`, MIT-Lizenz und ausschließlich Split
 `development`. Die Review-Varianten teilen `group_id=paid-balance`, die drei
 Entwicklerepisoden `group_id=document-index`. Beide Review-Fälle kommen bewusst
@@ -176,7 +180,7 @@ dieselbe Validierung, löst Budgets und Agentenfähigkeiten auf und erstellt ein
 vollständigen Plan. Auch eine übergroße Zahl von Wiederholungen wird vor dem
 Erzeugen der Versuche gegen die globalen Grenzen geprüft.
 
-[Ergänzende Gegenproben](benchmarks/test_contract_boundaries.py) prüfen unter
+[Ergänzende Gegenproben](../benchmarks/test_contract_boundaries.py) prüfen unter
 anderem Zyklen, fehlende Messfähigkeiten, numerisch ungültige Budgets, doppelte
 JSON-Schlüssel, Referenzen im sichtbaren Material und getrennte Ergebnis-
 Momentaufnahmen. Evaluatortypen müssen zum Benchmark passen; Evaluatorworkspaces dürfen sich
@@ -185,7 +189,7 @@ Unterbrochene oder offene Bewertungen dürfen keine numerischen
 Qualitätswerte behaupten. Negative Werte abgeschlossener eigener Metriken sind
 zulässig, etwa für Zeitdifferenzen.
 
-Die [API-Anleitung](../docs/GUIDE_Benchmark-Contracts.md) dokumentiert die
+Die [API-Anleitung](../../docs/GUIDE_Benchmark-Contracts.md) dokumentiert die
 verfügbaren Eingaben, Voreinstellungen und Grenzen. Die noch ausstehende
 menschliche Referenzfreigabe und der ausführende Durchstich bleiben separat
 sichtbar.

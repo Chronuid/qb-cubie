@@ -1,8 +1,12 @@
 # EBT-Cases zu Phase 10.3: Eigene Agenten und Szenarien
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: **10. November 2026, öffentliche Prozessanbindung implementiert.**
 Diese Cases konkretisieren Phase 3 aus
-[BENCHMARK_KONZEPT.md](../docs/BENCHMARK_KONZEPT.md#103-eigene-agenten-und-szenarien).
+[BENCHMARK_KONZEPT.md](../../docs/misc/BENCHMARK_KONZEPT.md#103-eigene-agenten-und-szenarien).
 Sie ergänzen die Verträge aus [10.1](BENCHMARK_CASES_10_1.md) und
 [10.2](BENCHMARK_CASES_10_2.md). Die ursprüngliche Rotphase ist unten dokumentiert.
 Alle ursprünglichen Cases bleiben reguläre Prüfungen ohne `xfail` oder Skips.
@@ -13,18 +17,18 @@ zweiten Agenten oder den Cubie-/pytest-Produktvergleich.
 
 | Lieferung / Abnahmekriterium | Cases | Beobachtbarer Sollvertrag |
 | --- | --- | --- |
-| Prozessadapter | [test_process_adapter.py](benchmarks/phase3/test_process_adapter.py) | Ein echtes externes Programm empfängt JSONL, liest sichtbares Material und reicht gehashte Artefakte ein. Ein eigener Agent bewertet beide Review-Varianten in der Cubie-Bedingung. Der unabhängige Evaluator erkennt eine konstante Freigabe als Fehler. |
-| Fähigkeiten und Konfigurationsfehler | [test_authoring.py](benchmarks/phase3/test_authoring.py), [test_process_adapter.py](benchmarks/phase3/test_process_adapter.py) | Tatsächlicher Fähigkeitenaustausch statt Vertrauen auf TOML-Angaben. Falsche Protokollversion und fehlende Fähigkeiten verhindern Aufgabenstart und Laufartefakte. Ein Review-Agent ohne Phasenabgabe wird nicht für Entwicklung eingeplant. |
-| Agentenvorlage | [test_authoring.py](benchmarks/phase3/test_authoring.py) | `init-agent` liefert bearbeitbare Prozesskonfiguration; `validate-agent` prüft den realen Peer ohne Szenarioausführung. Bestehende Dateien werden nicht überschrieben. |
-| Tutorial aus installiertem Wheel | [benchmark_custom_installed.py](wheel/benchmark_custom_installed.py) | Agent initialisieren und konfigurieren, Verbindung prüfen, externes Paket validieren und entdecken, Set anlegen, planen, zweimal ausführen, gespeicherte Läufe vergleichen. Nur installierte öffentliche API und CLI, externes Arbeitsverzeichnis, kein Checkout. Die CLI-Hilfe verweist auf `GUIDE_Benchmark-Custom`; `guide` zeigt die installierte Anleitung. |
-| Externes Beispielpaket | [fixtures/phase3](benchmarks/fixtures/phase3/package.json), [test_external_packages.py](benchmarks/phase3/test_external_packages.py) | Eigener Namespace, neue Fachdomäne, MIT-Lizenz, Quellen und getrennte Referenzen. Bestehende Evaluatoren genügen; keine Registrierung und keine Core-Änderung. Verschieben und Aufruf aus anderem Arbeitsverzeichnis funktionieren. |
-| Szenariovorlagen und Referenzprüfung | [test_authoring.py](benchmarks/phase3/test_authoring.py) | Vollständige Vorlagen für Review und Entwicklung. Strukturelle Validierung führt keinen Szenariocode aus; ausdrücklich eingeschaltete Referenzprüfung akzeptiert die Lösung und erkennt den Mutanten. Fehlerhafte Lösung und wirkungsloser Mutant verhindern Validierung. |
-| Typ-/Tagfilter | [test_external_packages.py](benchmarks/phase3/test_external_packages.py) | Freie Typen wie `shop/shipping`, kombinierte Filter und Ausschlüsse, untypisierter Fall, keine doppelten Versuche bei mehreren Typen. Bestehendes und eigenes Paket passen in denselben Plan. Unbekannte Auswahl und fehlende Vorgänger scheitern vor Prozessstart. |
-| CLI/API-Gleichheit | [test_authoring.py](benchmarks/phase3/test_authoring.py), [test_comparison.py](benchmarks/phase3/test_comparison.py) | Externe Pläne und Vergleiche sind in CLI-JSON und Python identisch. Initialisierung und Planung starten den Agenten nicht. |
-| Kontrollierte Entwicklerphasen | [test_process_adapter.py](benchmarks/phase3/test_process_adapter.py) | Dieselbe Sitzung innerhalb einer Episode, frische Sitzung je Versuch. Runner beobachtet fachliches Rot, Grün und Refactoring mit eingefrorenen Tests. Vorzeitige Implementierung, Importfehler und nachträglich geänderte Tests erfüllen den Prozess nicht. |
-| Fehler und Nachweise | [test_process_adapter.py](benchmarks/phase3/test_process_adapter.py) | Ungültiges JSON, fremde IDs/Phasen, falsche Hashes, fehlende oder ausbrechende Artefakte, fehlende Quellenbelege und geänderte Quellen/Aufträge ergeben keinen Erfolg. Absturz, EOF und echter Timeout bleiben unterscheidbar. JSONL und stderr werden archiviert. Unbekannte Nutzung bleibt `null`. |
-| Laufvergleich | [test_comparison.py](benchmarks/phase3/test_comparison.py) | Vergleich archivierter Läufe verschiedener Agentenkonfigurationen; Aufgaben-, Paket-, Bedingungs- und Budgetbindung; sichtbarer Teilvergleich bei geänderter Auswahl; kein Vergleich ungleicher Bedingungen. Mehrfachtypen vervielfachen keine Paare. Rückgang des Recalls und undefinierte Präzision bleiben erkennbar. |
-| Unabhängige Gegenproben | [test_fixture_peer.py](benchmarks/phase3/test_fixture_peer.py), [test_external_packages.py](benchmarks/phase3/test_external_packages.py) | JSONL-Peer erfüllt bestehende Nachrichtenverträge. Direkte Funktionsaufrufe und ein separater pytest-Prozess unterscheiden korrekte Lösung, Grenzmutant und Stub ohne neue Runner-Funktionen. |
+| Prozessadapter | [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Ein echtes externes Programm empfängt JSONL, liest sichtbares Material und reicht gehashte Artefakte ein. Ein eigener Agent bewertet beide Review-Varianten in der Cubie-Bedingung. Der unabhängige Evaluator erkennt eine konstante Freigabe als Fehler. |
+| Fähigkeiten und Konfigurationsfehler | [test_authoring.py](../benchmarks/phase3/test_authoring.py), [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Tatsächlicher Fähigkeitenaustausch statt Vertrauen auf TOML-Angaben. Falsche Protokollversion und fehlende Fähigkeiten verhindern Aufgabenstart und Laufartefakte. Ein Review-Agent ohne Phasenabgabe wird nicht für Entwicklung eingeplant. |
+| Agentenvorlage | [test_authoring.py](../benchmarks/phase3/test_authoring.py) | `init-agent` liefert bearbeitbare Prozesskonfiguration; `validate-agent` prüft den realen Peer ohne Szenarioausführung. Bestehende Dateien werden nicht überschrieben. |
+| Tutorial aus installiertem Wheel | [benchmark_custom_installed.py](../wheel/benchmark_custom_installed.py) | Agent initialisieren und konfigurieren, Verbindung prüfen, externes Paket validieren und entdecken, Set anlegen, planen, zweimal ausführen, gespeicherte Läufe vergleichen. Nur installierte öffentliche API und CLI, externes Arbeitsverzeichnis, kein Checkout. Die CLI-Hilfe verweist auf `GUIDE_Benchmark-Custom`; `guide` zeigt die installierte Anleitung. |
+| Externes Beispielpaket | [fixtures/phase3](../benchmarks/fixtures/phase3/package.json), [test_external_packages.py](../benchmarks/phase3/test_external_packages.py) | Eigener Namespace, neue Fachdomäne, MIT-Lizenz, Quellen und getrennte Referenzen. Bestehende Evaluatoren genügen; keine Registrierung und keine Core-Änderung. Verschieben und Aufruf aus anderem Arbeitsverzeichnis funktionieren. |
+| Szenariovorlagen und Referenzprüfung | [test_authoring.py](../benchmarks/phase3/test_authoring.py) | Vollständige Vorlagen für Review und Entwicklung. Strukturelle Validierung führt keinen Szenariocode aus; ausdrücklich eingeschaltete Referenzprüfung akzeptiert die Lösung und erkennt den Mutanten. Fehlerhafte Lösung und wirkungsloser Mutant verhindern Validierung. |
+| Typ-/Tagfilter | [test_external_packages.py](../benchmarks/phase3/test_external_packages.py) | Freie Typen wie `shop/shipping`, kombinierte Filter und Ausschlüsse, untypisierter Fall, keine doppelten Versuche bei mehreren Typen. Bestehendes und eigenes Paket passen in denselben Plan. Unbekannte Auswahl und fehlende Vorgänger scheitern vor Prozessstart. |
+| CLI/API-Gleichheit | [test_authoring.py](../benchmarks/phase3/test_authoring.py), [test_comparison.py](../benchmarks/phase3/test_comparison.py) | Externe Pläne und Vergleiche sind in CLI-JSON und Python identisch. Initialisierung und Planung starten den Agenten nicht. |
+| Kontrollierte Entwicklerphasen | [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Dieselbe Sitzung innerhalb einer Episode, frische Sitzung je Versuch. Runner beobachtet fachliches Rot, Grün und Refactoring mit eingefrorenen Tests. Vorzeitige Implementierung, Importfehler und nachträglich geänderte Tests erfüllen den Prozess nicht. |
+| Fehler und Nachweise | [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Ungültiges JSON, fremde IDs/Phasen, falsche Hashes, fehlende oder ausbrechende Artefakte, fehlende Quellenbelege und geänderte Quellen/Aufträge ergeben keinen Erfolg. Absturz, EOF und echter Timeout bleiben unterscheidbar. JSONL und stderr werden archiviert. Unbekannte Nutzung bleibt `null`. |
+| Laufvergleich | [test_comparison.py](../benchmarks/phase3/test_comparison.py) | Vergleich archivierter Läufe verschiedener Agentenkonfigurationen; Aufgaben-, Paket-, Bedingungs- und Budgetbindung; sichtbarer Teilvergleich bei geänderter Auswahl; kein Vergleich ungleicher Bedingungen. Mehrfachtypen vervielfachen keine Paare. Rückgang des Recalls und undefinierte Präzision bleiben erkennbar. |
+| Unabhängige Gegenproben | [test_fixture_peer.py](../benchmarks/phase3/test_fixture_peer.py), [test_external_packages.py](../benchmarks/phase3/test_external_packages.py) | JSONL-Peer erfüllt bestehende Nachrichtenverträge. Direkte Funktionsaufrufe und ein separater pytest-Prozess unterscheiden korrekte Lösung, Grenzmutant und Stub ohne neue Runner-Funktionen. |
 
 ## Neues externes Material
 
@@ -91,7 +95,7 @@ Die Exitcodes aus 10.2 bleiben bestehen.
 
 ## JSONL-Prozessvertrag für die Cases
 
-Der Testpeer [jsonl_agent.py.txt](benchmarks/fixtures/phase3/agents/jsonl_agent.py.txt)
+Der Testpeer [jsonl_agent.py.txt](../benchmarks/fixtures/phase3/agents/jsonl_agent.py.txt)
 verwendet ausschließlich die Standardbibliothek. Der Testaufbau exportiert ihn
 als `jsonl_agent.py`; er importiert keine Cubie-Interna und liest keine
 Evaluatorreferenzen. Nur seine eingereichten Entwicklertests importieren die
@@ -182,7 +186,7 @@ die verglichenen Szenarien ausdrücklich.
 .venv/bin/python -m ruff check tests/benchmarks/phase3 tests/wheel/benchmark_custom_installed.py scripts/check_wheel.py
 ```
 
-Der [Wheel-Harness](../scripts/check_wheel.py) kopiert das Beispielpaket aus dem
+Der [Wheel-Harness](../../scripts/check_wheel.py) kopiert das Beispielpaket aus dem
 Repository in seine externe Testumgebung und führt zusätzlich
 `benchmark_custom_installed.py` aus. Die ursprünglichen vier Wheel-Cases sowie
 ein ergänzender Export-/Tutorialcase prüfen die implementierten CLI-Kommandos.
@@ -225,12 +229,12 @@ für diesen Testentwurf nicht erneut ausgeführt.
 Die öffentlichen Funktionen, CLI-Kommandos und der JSONL-Prozessadapter sind
 implementiert. `init_example` bzw. `cubie-bench init-example` exportiert ein
 eigenständiges Paket aus dem Wheel ohne Repository-Fixtures. `cubie-bench guide`
-zeigt das mitgelieferte [Tutorial](../docs/GUIDE_Benchmark-Custom.md).
+zeigt das mitgelieferte [Tutorial](../../docs/GUIDE_Benchmark-Custom.md).
 Der Prozess wird vor der unabhängigen Schlussbewertung beendet; ein Absturz
 nach gültiger Abgabe bleibt ein Infrastrukturfehler. Rohe Nachrichten und
 Diagnosen werden archiviert, Sitzungen bei Fehlern und Timeouts aufgeräumt.
 
-Die neun [zusätzlichen Grenzprüfungen](benchmarks/phase3/test_boundaries.py)
+Die neun [zusätzlichen Grenzprüfungen](../benchmarks/phase3/test_boundaries.py)
 prüfen den installierbaren Export und die Anleitung, frühe Ablehnung harter
 Kostenlimits, nachträglichen Prozessabsturz, verschiebbare Konfiguration,
 wiederholte Kommandoargumente und den Ausschluss generierter Python-/pytest-
@@ -292,9 +296,9 @@ Ruff für sämtliche ergänzten Python-Dateien und `git diff --check` bestehen.
 ## Ergänzung: Regressionen aus dem Nutzungsexperiment
 
 Die Cases in
-[test_experiment_regressions.py](benchmarks/phase3/test_experiment_regressions.py)
+[test_experiment_regressions.py](../benchmarks/phase3/test_experiment_regressions.py)
 konkretisieren die priorisierten Befunde aus
-[EXPERIMENT_Benchmark-10-3.md](../docs/EXPERIMENT_Benchmark-10-3.md).
+[EXPERIMENT_Benchmark-10-3.md](../../docs/misc/EXPERIMENT_Benchmark-10-3.md).
 Die Abnahme wurde zunächst mit bewusst sichtbarer Rotphase ergänzt.
 Die nachfolgende Produktkorrektur ist unten dokumentiert; die archivierten
 Ollama-Belege bleiben unverändert.

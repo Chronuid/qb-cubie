@@ -10,7 +10,7 @@ noch nicht geben.
 Ich habe die öffentliche Anleitung als Einstieg verwendet, mit `init-scenario`
 eine Entwicklungsvorlage und mit `init-example` die JSONL-Protokollvorlage
 exportiert. Die eigentliche Implementierung liegt unter
-[examples/ollama-user-benchmark](../examples/ollama-user-benchmark/README.md).
+[examples/ollama-user-benchmark](../../examples/ollama-user-benchmark/README.md).
 Cubies Produktcode und vorhandene Tests wurden nicht verändert. Die Untersuchung
 ist ein praktischer Nutzungstest, keine umfassende Prüfung aller Zusagen in 10.3.
 
@@ -62,8 +62,8 @@ wurde Gemma entladen und neu geladen. `/api/ps` bestätigte anschließend
 | V1: freies JSON mit Dateizuordnung | Infrastrukturfehler: unerwarteter Pfad | Infrastrukturfehler: zusätzliche Zeichen nach JSON | 3 |
 | V2: JSON-Schema mit festem Ziel | Qualität bestanden, Prozess nicht bestanden | Qualität bestanden, Prozess nicht bestanden | 0 |
 
-[V1-Bericht](../examples/ollama-user-benchmark/evidence/76b469c2c0ce4832afb36256e47402c6/report.md),
-[V2-Bericht](../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/report.md).
+[V1-Bericht](../../examples/ollama-user-benchmark/evidence/76b469c2c0ce4832afb36256e47402c6/report.md),
+[V2-Bericht](../../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/report.md).
 Beide Archive enthalten Requests, Responses, stderr, Eingaben und Ergebnisse;
 V2 zusätzlich Phasensnapshots und tatsächliche Testbeobachtungen. Die externen
 Skriptdateien habe ich zusätzlich als `agent-v1.py` und `agent-v2.py` gesichert.
@@ -95,8 +95,8 @@ Dennoch lautet `test_outcome="test_error"`, und der Prozess wird mit
 im selben Beleg explizit enthalten. Anschließend bestehen alle sechs Agententests
 in Grün und Refactoring sowie die unabhängigen Abnahmen.
 
-[Rot-Beobachtung](../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/episodes/0002/red/observation.json),
-[Prozessergebnis](../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/episodes/0002/result.json).
+[Rot-Beobachtung](../../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/episodes/0002/red/observation.json),
+[Prozessergebnis](../../examples/ollama-user-benchmark/evidence/0553435a98a04a74a1634504eaf18465/episodes/0002/result.json).
 
 Aus Anwendersicht ist das ein falsches negatives Prozessurteil für normale
 pytest-Exceptiontests. Vor vollständiger Abnahme sollte Cubie fehlende erwartete
@@ -117,7 +117,7 @@ unverändert; ich habe den Fehler nicht durch angepasste Tests verdeckt.
 | Review-Agenten und alle Filtervarianten | In diesem Experiment nicht praktisch geprüft |
 | Isolation, harte Kosten-/Tokenbudgets | Nicht geprüft; dokumentierte Grenzen bleiben bestehen |
 
-Der [JSON-Laufvergleich](../examples/ollama-user-benchmark/evidence/comparison.json)
+Der [JSON-Laufvergleich](../../examples/ollama-user-benchmark/evidence/comparison.json)
 vergleicht V1 und V2 als vollständig kompatible Aufgaben. Die Textausgabe zeigt
 pro Paar lediglich `{}`. Für mich fehlt hier eine sofort sichtbare Gegenüberstellung
 von Infrastrukturstatus, Qualität und Prozessurteil. `full` beschreibt die

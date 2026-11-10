@@ -19,7 +19,12 @@ from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
 
 def dispatch(args):
     """Execute a command using the same public API as Python clients."""
-    actions = {"init-agent": lambda: init_agent(args.path),
+    return _actions(args)[args.command](), 0
+
+
+def _actions(args):
+    """Bind authoring and reporting arguments without executing a selected action."""
+    return {"init-agent": lambda: init_agent(args.path),
                "init-ollama": lambda: init_ollama(args.path, endpoint=args.endpoint, model=args.model),
                "validate-agent": lambda: validate_agent(args.path),
                "init-scenario": lambda: init_scenario(args.path, args.benchmark),
@@ -31,7 +36,6 @@ def dispatch(args):
                "list": lambda: list_package(args.package),
                "summarize-pilot": lambda: summarize_pilot(args.archives),
                "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent)}
-    return actions[args.command](), 0
 
 
 def guide():

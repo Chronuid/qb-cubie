@@ -1,8 +1,12 @@
 # EBT-Cases zu Phase 10.2: Installierbarer Durchstich ohne Modell
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: **10. November 2026, öffentlicher Offline-Durchstich implementiert.**
 Diese Cases konkretisieren Phase 2 aus
-[BENCHMARK_KONZEPT.md, Abschnitt 10](../docs/BENCHMARK_KONZEPT.md#102-installierbarer-durchstich-ohne-modell).
+[BENCHMARK_KONZEPT.md, Abschnitt 10](../../docs/misc/BENCHMARK_KONZEPT.md#102-installierbarer-durchstich-ohne-modell).
 CLI, Fake-Adapter, Phasensteuerung, unabhängige Evaluatoren und Ergebnisarchiv sind implementiert.
 Die bestehenden [Phase-10.1-Verträge](BENCHMARK_CASES_10_1.md) bleiben gültig.
 
@@ -10,19 +14,19 @@ Die bestehenden [Phase-10.1-Verträge](BENCHMARK_CASES_10_1.md) bleiben gültig.
 
 | Lieferung / Abnahmekriterium | Cases | Beobachtbare Verpflichtung |
 | --- | --- | --- |
-| CLI und installierbares Extra | [benchmark_installed.py](wheel/benchmark_installed.py) | `benchmarks` ist in den Distributionsmetadaten deklariert; `cubie-bench` ist ein ausführbarer Entry Point. Hilfe nennt Initialisierung, Planung und Ausführung. |
-| Smoke-Set aus Wheel ohne Checkout | [benchmark_installed.py](wheel/benchmark_installed.py) | Frische venv, installierte Module unter `sys.prefix`, externer Arbeitsordner, keine Root-conftest oder Quellpfade. Ein Agent und eine Wiederholung decken Review und Entwicklung ab. |
-| Vorlagen | [test_execution.py](benchmarks/phase2/test_execution.py), [benchmark_installed.py](wheel/benchmark_installed.py) | Initialisierung erzeugt ein eigenständiges, verschiebbares Set mit Paket und Fake-Konfiguration; vorhandene Dateien werden nicht überschrieben. Leerzeichen und ein anderes Arbeitsverzeichnis funktionieren. |
-| Derselbe Planner | [test_results.py](benchmarks/phase2/test_results.py), [benchmark_installed.py](wheel/benchmark_installed.py) | Python-API, CLI-JSON und archivierter Laufplan stimmen überein. Unbekannte Szenario-IDs verhindern den Start und erzeugen keine Laufartefakte. |
-| Fake-Adapter ohne Modell | [test_execution.py](benchmarks/phase2/test_execution.py), [test_results.py](benchmarks/phase2/test_results.py) | Referenzläufe funktionieren ohne Provider-Schlüssel und bei blockierten Socketverbindungen im Testprozess. Nutzung und Modellkennung bleiben unbekannt statt erfunden. |
-| Korrekte Lösung besteht, falsche fällt durch | [test_execution.py](benchmarks/phase2/test_execution.py) | Unabhängiger Evaluator akzeptiert Referenzlösungen und lehnt falsche Rückgabe, fehlende/beschädigte Kopie, zusätzliche Datei und falsche Sortierung am jeweiligen Kriterium ab. |
-| Review-Auswertung | [test_execution.py](benchmarks/phase2/test_execution.py) | Konformer und fehlerhafter Review-Fall unterscheiden konstante Freigabe, konstante Ablehnung und Enthaltung. Doppelte Findings erhöhen Recall nicht über eins. |
-| Phasensteuerung | [test_execution.py](benchmarks/phase2/test_execution.py) | `test_design → red → green → refactor`; beobachteter Assertion-Fehlschlag, danach erfolgreiche Tests; identischer Testbaum in allen Phasen. Fehlende Rotphase, Importfehler, rote Grünphase und geänderte Tests erfüllen den Prozess nicht. |
-| Fehlende oder fremde Belege | [test_execution.py](benchmarks/phase2/test_execution.py) | Fehlende Datei, fehlende Quellenbelege, fremde Laufkennung, falscher Artefakthash und veränderter Review-Kontext ergeben `invalid_output`, niemals einen Erfolg. |
-| Timeouts und Infrastrukturfehler | [test_execution.py](benchmarks/phase2/test_execution.py) | Selbst gemeldeter Timeout, tatsächlich blockierender Fake und Absturz bleiben unterscheidbar. Der Hängefall wird zusätzlich durch einen äußeren 15-Sekunden-Prozess-Timeout begrenzt. |
-| Ergebnisdateien und Nachprüfbarkeit | [test_results.py](benchmarks/phase2/test_results.py) | JSON entspricht der API-Rückgabe; Markdown nennt Kriterium und existierende Belegdateien; SHA-256 stimmt mit archivierten Bytes überein. Eingaben, Quell-/Kontextkennung und Plan bleiben erhalten. |
-| Frische Versuche | [test_execution.py](benchmarks/phase2/test_execution.py) | Wiederholte Aufrufe haben verschiedene Laufkennungen, Ausgabeverzeichnisse und Workspaces; der erste Bericht bleibt bytegleich erhalten. |
-| CLI-Ergebnissemantik | [benchmark_installed.py](wheel/benchmark_installed.py) | Konfigurationsfehler: Exitcode 2; abgebrochene Ausführung: 3; vollständig durchgeführte Messung ohne Qualitätsgate: 0, auch wenn die Lösung fachlich durchfällt. |
+| CLI und installierbares Extra | [benchmark_installed.py](../wheel/benchmark_installed.py) | `benchmarks` ist in den Distributionsmetadaten deklariert; `cubie-bench` ist ein ausführbarer Entry Point. Hilfe nennt Initialisierung, Planung und Ausführung. |
+| Smoke-Set aus Wheel ohne Checkout | [benchmark_installed.py](../wheel/benchmark_installed.py) | Frische venv, installierte Module unter `sys.prefix`, externer Arbeitsordner, keine Root-conftest oder Quellpfade. Ein Agent und eine Wiederholung decken Review und Entwicklung ab. |
+| Vorlagen | [test_execution.py](../benchmarks/phase2/test_execution.py), [benchmark_installed.py](../wheel/benchmark_installed.py) | Initialisierung erzeugt ein eigenständiges, verschiebbares Set mit Paket und Fake-Konfiguration; vorhandene Dateien werden nicht überschrieben. Leerzeichen und ein anderes Arbeitsverzeichnis funktionieren. |
+| Derselbe Planner | [test_results.py](../benchmarks/phase2/test_results.py), [benchmark_installed.py](../wheel/benchmark_installed.py) | Python-API, CLI-JSON und archivierter Laufplan stimmen überein. Unbekannte Szenario-IDs verhindern den Start und erzeugen keine Laufartefakte. |
+| Fake-Adapter ohne Modell | [test_execution.py](../benchmarks/phase2/test_execution.py), [test_results.py](../benchmarks/phase2/test_results.py) | Referenzläufe funktionieren ohne Provider-Schlüssel und bei blockierten Socketverbindungen im Testprozess. Nutzung und Modellkennung bleiben unbekannt statt erfunden. |
+| Korrekte Lösung besteht, falsche fällt durch | [test_execution.py](../benchmarks/phase2/test_execution.py) | Unabhängiger Evaluator akzeptiert Referenzlösungen und lehnt falsche Rückgabe, fehlende/beschädigte Kopie, zusätzliche Datei und falsche Sortierung am jeweiligen Kriterium ab. |
+| Review-Auswertung | [test_execution.py](../benchmarks/phase2/test_execution.py) | Konformer und fehlerhafter Review-Fall unterscheiden konstante Freigabe, konstante Ablehnung und Enthaltung. Doppelte Findings erhöhen Recall nicht über eins. |
+| Phasensteuerung | [test_execution.py](../benchmarks/phase2/test_execution.py) | `test_design → red → green → refactor`; beobachteter Assertion-Fehlschlag, danach erfolgreiche Tests; identischer Testbaum in allen Phasen. Fehlende Rotphase, Importfehler, rote Grünphase und geänderte Tests erfüllen den Prozess nicht. |
+| Fehlende oder fremde Belege | [test_execution.py](../benchmarks/phase2/test_execution.py) | Fehlende Datei, fehlende Quellenbelege, fremde Laufkennung, falscher Artefakthash und veränderter Review-Kontext ergeben `invalid_output`, niemals einen Erfolg. |
+| Timeouts und Infrastrukturfehler | [test_execution.py](../benchmarks/phase2/test_execution.py) | Selbst gemeldeter Timeout, tatsächlich blockierender Fake und Absturz bleiben unterscheidbar. Der Hängefall wird zusätzlich durch einen äußeren 15-Sekunden-Prozess-Timeout begrenzt. |
+| Ergebnisdateien und Nachprüfbarkeit | [test_results.py](../benchmarks/phase2/test_results.py) | JSON entspricht der API-Rückgabe; Markdown nennt Kriterium und existierende Belegdateien; SHA-256 stimmt mit archivierten Bytes überein. Eingaben, Quell-/Kontextkennung und Plan bleiben erhalten. |
+| Frische Versuche | [test_execution.py](../benchmarks/phase2/test_execution.py) | Wiederholte Aufrufe haben verschiedene Laufkennungen, Ausgabeverzeichnisse und Workspaces; der erste Bericht bleibt bytegleich erhalten. |
+| CLI-Ergebnissemantik | [benchmark_installed.py](../wheel/benchmark_installed.py) | Konfigurationsfehler: Exitcode 2; abgebrochene Ausführung: 3; vollständig durchgeführte Messung ohne Qualitätsgate: 0, auch wenn die Lösung fachlich durchfällt. |
 
 Die neuen Cases verwenden EBT mit `WorldState` und deaktiviertem Reporter für
 öffentliche Aufrufe bzw. CLI-Prozesse. Die EBT-Auswertung wird ausdrücklich
@@ -229,7 +233,7 @@ beobachteten Fehler eines implementierten Runners.
 ## Implementierter Umfang und ergänzende Gegenproben
 
 Die ursprünglichen 34 Repository- und acht Wheel-Cases bleiben unverändert.
-Neun zusätzliche [Grenzfälle](benchmarks/phase2/test_execution_boundaries.py)
+Neun zusätzliche [Grenzfälle](../benchmarks/phase2/test_execution_boundaries.py)
 prüfen erschöpfte Werkzeugbudgets, nicht unterstützte Adapter, unabhängiges
 Wiederholen archivierter Rot-/Grün-Phasen, tatsächliche RBT-Ergebnisse, die
 Cubie-/pytest-Integrationsbedingungen, Ergebnisverzeichnisse außerhalb der
@@ -237,7 +241,7 @@ Szenarien, fehlende Evaluatorkriterien, globale Laufzeitgrenzen und private
 Evaluatorvorlagen außerhalb des sichtbaren Baums.
 
 Die Implementierung liegt unter
-[`src/qb_cubie/benchmarks`](../src/qb_cubie/benchmarks): `scaffolding/templates.py` erzeugt
+[`src/qb_cubie/benchmarks`](../../src/qb_cubie/benchmarks): `scaffolding/templates.py` erzeugt
 Vorlagen aus installierten Ressourcen, `runner.py` führt denselben öffentlichen
 Plan aus, `adapters/fake.py` provisioniert Abgaben, `execution/evaluators.py` bewertet sie und
 `reporting/results.py` schreibt das Archiv. Die internen Module trennen Prozesssteuerung,

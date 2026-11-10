@@ -1,12 +1,15 @@
 """Export installed role adapters, frozen model settings and separate smoke sets."""
 
 import json
+import shutil
 import sys
+from importlib import import_module
 from importlib.resources import as_file, files
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 from qb_cubie.benchmarks.adapters.provenance import validate_model
+from qb_cubie.benchmarks.measurement._toml import write_toml
 from qb_cubie.benchmarks.reporting._files import (
     copy_tree,
     digest,
@@ -38,6 +41,7 @@ raise SystemExit(main(args.config))
 def _observe(endpoint, model):
     """Read provider identity and load state; never pull, load or chat here."""
     def fetch(route, payload=None):
+        """Read a bounded provider metadata response without inference."""
         data = None if payload is None else json.dumps(payload).encode('utf-8')
         request = Request(endpoint + '/api/' + route, data=data, headers={'Content-Type': 'application/json'})
         with urlopen(request, timeout=10) as response:
@@ -48,45 +52,66 @@ def _observe(endpoint, model):
 
 def init_ollama(path: str | Path, *, endpoint='http://localhost:11434', model='gemma4:12b') -> dict:
     """Freeze the explicitly selected local model and export a standalone example."""
-    from ollama_agents.developer import process as developer
-    from ollama_agents.reviewer import process as reviewer
-
     path = Path(path).resolve()
     _available(path)
     endpoint = endpoint.rstrip('/')
     observed = _observe(endpoint, model)
+    models = _models(observed, model)
+    _export(path)
+    _provider(path, observed)
+    for role, metadata in models.items():
+        _role(path, role, metadata, endpoint)
+    return {'example': str(path), 'reviewer_suite': str(path / 'sets/reviewer.toml'),
+            'developer_suite': str(path / 'sets/developer.toml'), 'revision': models['reviewer']['revision']}
+
+
+def _models(observed, model):
+    """Validate the selected identity before publishing any exported files."""
     matches = [entry for entry in observed['tags']['models'] if entry['name'] == model]
     if len(matches) != 1:
         raise ValueError(f'Expected exactly one installed model named {model}; no automatic pull or fallback')
-    identity = matches[0]
-    base = {'model_id': model, 'revision': identity['digest'], 'provider': 'ollama',
+    base = {'model_id': model, 'revision': matches[0]['digest'], 'provider': 'ollama',
             'provider_version': observed['version']['version']}
     models = {}
-    for role, process in [('reviewer', reviewer), ('developer', developer)]:
-        models[role] = {**base, 'adapter_version': process.VERSION, 'prompt_sha256': process.prompt_hash(),
-                        'parameters': {'temperature': 0, 'seed': 42, 'num_ctx': 16384,
-                                       'num_predict': 2048 if role == 'reviewer' else 4096, 'think': False}}
+    for role in ('reviewer', 'developer'):
+        process = import_module(f'ollama_agents.{role}.process')
+        models[role] = _model(base, process, 2048 if role == 'reviewer' else 4096)
         validate_model(models[role])
-    # All provider checks precede publishing the example.
+    return models
+
+
+def _model(base, process, predict):
+    """Bind role prompts and explicit calibration parameters to the provider identity."""
+    return {**base, 'adapter_version': process.VERSION, 'prompt_sha256': process.prompt_hash(),
+            'parameters': {'temperature': 0, 'seed': 42, 'num_ctx': 16384,
+                           'num_predict': predict, 'think': False}}
+
+
+def _export(path):
+    """Export installed adapter helpers and scenario materials without a fake peer."""
     with as_file(files('ollama_agents')) as source:
         copy_tree(source, path / 'adapter/ollama_agents')
     with as_file(files('qb_cubie.benchmarks').joinpath('data/shipping')) as source:
         copy_tree(source, path / 'package')
     _review_sources(path / 'package')
-    # The shipping fixture's deterministic peer is unnecessary for real agents.
-    import shutil
     shutil.rmtree(path / 'package/agents')
     _write(path / 'adapter/process.py', LAUNCHER)
+    guide = files('qb_cubie.benchmarks').joinpath('data/GUIDE_Ollama-Agents.md').read_text(encoding='utf-8')
+    _write(path / 'README.md', guide)
+
+
+def _provider(path, observed):
+    """Persist raw provider metadata and installed wheel provenance together."""
     write_json(path / 'provider.json', observed)
     write_json(path / 'installation.json', {'schema_version': 1, 'wheel_sha256': wheel_hash(),
                'provider_sha256': digest(path / 'provider.json'), 'python': sys.version})
-    for role, process in [('reviewer', reviewer), ('developer', developer)]:
-        _agent(path, role, process.CAPABILITIES, models[role], endpoint)
-        _suite(path, role)
-    guide = files('qb_cubie.benchmarks').joinpath('data/GUIDE_Ollama-Agents.md').read_text(encoding='utf-8')
-    _write(path / 'README.md', guide)
-    return {'example': str(path), 'reviewer_suite': str(path / 'sets/reviewer.toml'),
-            'developer_suite': str(path / 'sets/developer.toml'), 'revision': base['revision']}
+
+
+def _role(path, role, model, endpoint):
+    """Export one role's configuration and conservative smoke selection."""
+    process = import_module(f'ollama_agents.{role}.process')
+    _agent(path, role, process.CAPABILITIES, model, endpoint)
+    _suite(path, role)
 
 
 def _agent(path, role, capabilities, model, endpoint):
@@ -97,37 +122,18 @@ def _agent(path, role, capabilities, model, endpoint):
     write_json(path / f'adapter/{role}.json', runtime)
     command = [sys.executable, '-I', 'process.py', '--role', role, '--config', f'{role}.json']
     header = {'schema_version': 1, 'id': agent_id, 'transport': 'jsonl-v1', 'cwd': '../adapter',
-              'command': command, 'capabilities': capabilities}
-    lines = [f'{key} = {json.dumps(value)}' for key, value in header.items()]
-    lines += ['\n[model]']
-    lines += [f'{key} = {json.dumps(value)}' for key, value in model.items() if key != 'parameters']
-    lines += ['\n[model.parameters]']
-    lines += [f'{key} = {json.dumps(value)}' for key, value in model['parameters'].items()]
-    _write(path / f'agents/{role}.toml', '\n'.join(lines) + '\n')
+              'command': command, 'capabilities': capabilities, 'adapter_files': ['ollama_agents']}
+    (path / 'agents').mkdir(exist_ok=True)
+    write_toml(path / f'agents/{role}.toml', {**header, 'model': model})
 
 
 def _suite(path, role):
     """Keep role selection and conservative episode limits explicit."""
     count, seconds, tools = (2, 300, 20) if role == 'reviewer' else (1, 1800, 100)
     benchmark = 'review_agent' if role == 'reviewer' else 'developer_agent'
-    _write(path / f'sets/{role}.toml', f'''schema_version = 1
-name = "ollama-{role}-smoke"
-profile = "agent-evaluation"
-repetitions = 1
-agents = ["../agents/{role}.toml"]
-output = "../results/{role}"
-
-[[sources]]
-path = "../package"
-
-[select]
-benchmarks = ["{benchmark}"]
-
-[budgets]
-wall_time_seconds = {seconds}
-tool_calls = {tools}
-
-[limits]
-max_runs = {count}
-max_total_wall_time_seconds = {count * seconds}
-''')
+    suite = {'schema_version': 1, 'name': f'ollama-{role}-smoke', 'profile': 'agent-evaluation', 'repetitions': 1,
+             'agents': [f'../agents/{role}.toml'], 'output': f'../results/{role}', 'sources': [{'path': '../package'}],
+             'select': {'benchmarks': [benchmark]}, 'budgets': {'wall_time_seconds': seconds, 'tool_calls': tools},
+             'limits': {'max_runs': count, 'max_total_wall_time_seconds': count * seconds}}
+    (path / 'sets').mkdir(exist_ok=True)
+    write_toml(path / f'sets/{role}.toml', suite)

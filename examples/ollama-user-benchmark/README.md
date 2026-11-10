@@ -45,7 +45,7 @@ Die private Abnahme und je ein gezielter Grenzmutant sind handgeschrieben und
 `author_checked`, ohne unabhängige menschliche Freigabe.
 
 Die vollständige Auswertung steht in
-[EXPERIMENT_Benchmark-10-3.md](../../docs/EXPERIMENT_Benchmark-10-3.md).
+[EXPERIMENT_Benchmark-10-3.md](../../docs/misc/EXPERIMENT_Benchmark-10-3.md).
 Unter `evidence/` liegen zwei unveränderte Ergebnisarchive, die beiden eingesetzten
 Agentenversionen und der JSON-Laufvergleich. Absolute Pfade darin bezeichnen die
 ursprünglichen Versuchsorte; relative Beleglinks bleiben verwendbar. Die Archive

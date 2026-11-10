@@ -1,10 +1,14 @@
 # Konzept: ReviewAgent und DeveloperAgent
 
-**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phasen 4–5 implementiert; unabhängige Referenzaufnahme und reale Pilotmessung ausstehend.
+**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phasen 4–5 implementiert; explorative reale Smoke-Messreihe durchgeführt. Unabhängige Referenzaufnahme und offizieller Basisdatensatz-Pilot stehen aus.
+
+Die [gemeinsame Übersicht offener Punkte](OFFENE_PUNKTE_Benchmarks-Agenten.md)
+trennt fehlende Umsetzung, praktische Nachweise und optionale Erweiterungen
+und nennt konkrete Abschlusskriterien für dieses und das Agentenkonzept.
 
 Die Benchmarks sollen Entwicklern ermöglichen, ihre eigenen Agentensysteme reproduzierbar zu prüfen, Schwächen zu lokalisieren und Änderungen zu vergleichen. ReviewAgent untersucht die Qualität nachvollziehbarer Reviews; DeveloperAgent untersucht die Entwicklung von Projekten mit Cubie und einem durch Tests geleiteten Vorgehen. Mitgelieferte Szenarien ermöglichen den Einstieg, eigene Szenarien und konfigurierbare Benchmark-Sets die Anwendung auf den jeweiligen Entwicklungsalltag.
 
-Zusätzlich konkretisiert das Konzept [GUTACHTEN.md, Abschnitt 9.3](../GUTACHTEN.md#93-produktnutzen-anschließend-gezielt-nachweisen). Ein optionales Vergleichsprofil mit gewöhnlichem pytest dient der Untersuchung von Cubies Produktnutzen. Ein einzelnes Agentensystem mit eigenen Aufgaben zu prüfen, ist ein vollständiger, eigenständiger Anwendungsfall.
+Zusätzlich konkretisiert das Konzept [GUTACHTEN.md, Abschnitt 9.3](../../GUTACHTEN.md#93-produktnutzen-anschließend-gezielt-nachweisen). Ein optionales Vergleichsprofil mit gewöhnlichem pytest dient der Untersuchung von Cubies Produktnutzen. Ein einzelnes Agentensystem mit eigenen Aufgaben zu prüfen, ist ein vollständiger, eigenständiger Anwendungsfall.
 
 Die konkreten Entwürfe der zu prüfenden Agentensysteme stehen in
 [AGENTEN_KONZEPT.md](AGENTEN_KONZEPT.md): ein Reviewer-Agent und ein
@@ -32,11 +36,11 @@ Die Messungen adressieren insbesondere 9.3.3 und 9.3.4. Sie können Schwierigkei
 
 ## 2. Ausgangslage im Repository
 
-- [EBT](../src/qb_cubie/ebt.py), `WorldState` und `TempFS` bilden den vorhandenen Prüfkern. Die [Nutzerexperimente](../tests/tests_user_workflows/TESTBERICHT.md) enthalten bereits direkte pytest-Gegenbeobachtungen sowie korrekte und fehlerhafte Datei-Workflows. Sie eignen sich als Vorlagen für die Infrastruktur, liefern aber noch keine Agentenmessung.
-- [RBT](../src/qb_cubie/rbt.py) delegiert `target` und `check` an einen `Reviewer`. Es lädt keinen Quelltext und führt kein Target aus. Ein automatisierter Agentenadapter und die Bindung von Nachweisen an Quellstände müssen ergänzt werden.
+- [EBT](../../src/qb_cubie/ebt.py), `WorldState` und `TempFS` bilden den vorhandenen Prüfkern. Die [Nutzerexperimente](../../tests/tests_user_workflows/TESTBERICHT.md) enthalten bereits direkte pytest-Gegenbeobachtungen sowie korrekte und fehlerhafte Datei-Workflows. Sie eignen sich als Vorlagen für die Infrastruktur, liefern aber noch keine Agentenmessung.
+- [RBT](../../src/qb_cubie/rbt.py) delegiert `target` und `check` an einen `Reviewer`. Es lädt keinen Quelltext und führt kein Target aus. Ein automatisierter Agentenadapter und die Bindung von Nachweisen an Quellstände müssen ergänzt werden.
 - `ReviewData` hat `passed` und ein offenes `report`-Dictionary. `RBT.run()` gibt derzeit `None` zurück. Der Benchmark erhält Ergebnisse über einen eigenen aufzeichnenden Reporter; ein Zugriff auf private RBT-Felder ist unnötig.
 - EBT-Verträge mit mehreren Eingängen teilen eine Zielmenge. Korrelierte Fälle werden deshalb einzeln parametrisiert. Ein `JsonReporter` erhebt keine fachliche Assertion: Der Benchmark prüft zusätzlich ausdrücklich `RunTrace.evaluation`.
-- Die Root-[conftest.py](../tests/conftest.py) verändert Arbeitsverzeichnis und Importpfad. Die Prüfung erzeugter Projekte muss daher in separaten Prozessen außerhalb des Cubie-Checkouts laufen und ein gebautes Wheel verwenden.
+- Die Root-[conftest.py](../../tests/conftest.py) verändert Arbeitsverzeichnis und Importpfad. Die Prüfung erzeugter Projekte muss daher in separaten Prozessen außerhalb des Cubie-Checkouts laufen und ein gebautes Wheel verwenden.
 
 Die Benchmark-Funktionalität erhält eine öffentlich dokumentierte Schnittstelle und wird zugleich in Cubies Testsuite verwendet. Sie wird als optional installierbarer Teil von `qb-cubie` mit dem Extra `benchmarks` und dem Kommando `cubie-bench` ausgeliefert. Die Installation benötigt keinen Repository-Checkout. Der Kern von EBT/RBT erhält dadurch keine Pflichtabhängigkeit auf Agentenanbieter; Änderungen am Reviewer-Protokoll sind für den ersten Durchstich nicht erforderlich.
 
@@ -329,7 +333,7 @@ Dies ist Infrastruktur des Benchmarks, keine neue Cubie-Arena. `TempFS` und `PyV
 
 ### 7.4 Konkrete Ollama-Agenten
 
-[Das Agentenkonzept](AGENTEN_KONZEPT.md) beschreibt zwei geplante Teilnehmer
+[Das Agentenkonzept](AGENTEN_KONZEPT.md) beschreibt zwei implementierte Teilnehmer
 auf Basis von `gemma4:12b` mit festgehaltenem Modelldigest. Beide verwenden den
 vorhandenen JSONL-Prozessadapter, strukturierte Modellantworten und eine
 begrenzte lokale Werkzeugschleife. Der Reviewer verändert den geprüften Stand
@@ -337,8 +341,10 @@ nicht; der Developer trennt Testentwurf, Rot, Implementierung und Refactoring.
 Referenzen und unabhängige Abnahmen bleiben außerhalb ihres Modellkontexts.
 
 Das vorhandene [Ollama-Nutzungsexperiment](EXPERIMENT_Benchmark-10-3.md)
-liefert explorative Entwicklerbelege, noch keine offizielle Pilotabnahme und
-keinen praktisch geprüften Reviewer. Für dessen Pilot müssen frei formulierte
+liefert historische explorative Entwicklerbelege. Die spätere
+[§5.5-Messreihe](EXPERIMENT_Agenten-5-5.md) prüft beide Rollen tatsächlich mit
+zwei Kalibrierungs- und fünf Messwiederholungen je öffentlicher Smoke-Aufgabe.
+Eine offizielle Pilotabnahme liegt weiterhin nicht vor. Dafür müssen frei formulierte
 Befunde unabhängig nachbewertet werden: Der aktuelle Evaluator vergleicht auch
 `mechanism` und `impact` exakt und erfüllt damit noch nicht den semantischen
 Trefferbegriff aus Abschnitt 4.2.
@@ -347,8 +353,9 @@ Für den Developer gilt zunächst ein Inkrement je Episode. Die vorhandene
 Phasenanfrage enthält weder die Vergleichsbedingung noch Testergebnisse der
 vorherigen Phase. Deshalb verwenden Cubie und pytest explizite passende
 Agentenkonfigurationen; lokale Reparaturen erfolgen vor der Phasenabgabe.
-Mehrere kontrollierte Inkremente, Testrevisionen und zusätzliche Belegarchive
-sind im Agentenkonzept als Erweiterungen gekennzeichnet. Adapterinterne
+Mehrere kontrollierte Inkremente und Testrevisionen bleiben Erweiterungen.
+Zusätzliche Adapterbelegarchive sind implementiert und zusammen mit den
+Runnerarchiven aufzubewahren. Adapterinterne
 Aufruflimits werden getrennt von den Werkzeugbudgets des Runners erfasst.
 
 ## 8. Aufnahme in pytest und CI
@@ -443,13 +450,13 @@ Die mögliche Schlussfolgerung lautet beispielsweise: „Bei den untersuchten Da
 
 ### 10.1 Öffentliche Verträge und Referenzen
 
-Die deterministischen Abnahmecases liegen unter [tests/benchmarks](../tests/benchmarks).
-Die [Kriterienzuordnung und der öffentliche Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_1.md)
+Die deterministischen Abnahmecases liegen unter [tests/benchmarks](../../tests/benchmarks).
+Die [Kriterienzuordnung und der öffentliche Schnittstellenvertrag](../../tests/docs_tmp/BENCHMARK_CASES_10_1.md)
 beschreiben Paket-/Szenariovalidierung, Agenten-/Evaluatornachrichten und
 Set-Semantik. Zwei neue Review-Fälle sowie ein Dokumentindex mit drei Episoden,
 Referenzlösungen und 17 Fehlervarianten liefern deterministische Gegenproben.
 Die öffentliche API in `qb_cubie.benchmarks` implementiert diese Verträge;
-[die Anleitung](GUIDE_Benchmark-Contracts.md) beschreibt ihre Verwendung.
+[die Anleitung](../GUIDE_Benchmark-Contracts.md) beschreibt ihre Verwendung.
 Laden und Planen führen keinen Szenario- oder Agentencode aus. Die Referenzen
 tragen weiterhin den Stand `author_checked`; eine unabhängige menschliche
 Aufnahmeprüfung steht aus. Der ausführende Durchstich folgt in Phase 2.
@@ -468,10 +475,10 @@ Paket mit zwei Review-Fällen und einer Dokumentindex-Erstentwicklung.
 Planner, Phasensteuerung, unabhängiger Evaluator und Ergebnisarchiv verwenden
 öffentliche Schnittstellen. Die Cubie-Bedingung führt EBT und RBT tatsächlich aus.
 
-Die [EBT-Cases und ihr Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_2.md)
+Die [EBT-Cases und ihr Schnittstellenvertrag](../../tests/docs_tmp/BENCHMARK_CASES_10_2.md)
 prüfen Referenzen, Mutanten, Rot-/Grün-Belege, fehlende Artefakte und Timeouts.
-Der [Wheel-Harness](../scripts/check_wheel.py) führt die Installationscases ohne
-Checkout aus. [Die Anleitung](GUIDE_Benchmark-Contracts.md) beschreibt Installation,
+Der [Wheel-Harness](../../scripts/check_wheel.py) führt die Installationscases ohne
+Checkout aus. [Die Anleitung](../GUIDE_Benchmark-Contracts.md) beschreibt Installation,
 Planung, Ausführung und Berichte. Die ursprüngliche Rotphase bleibt dokumentiert.
 
 Dieser Stand führt ausschließlich den deterministischen Fake mit
@@ -488,11 +495,11 @@ explizite Referenzvalidierung, Typ-/Tagfilter und den Vergleich archivierter
 Läufe. Der Runner kontrolliert Artefakte und beobachtet Entwicklerphasen selbst;
 Sitzungen bleiben innerhalb einer Episode erhalten und beginnen je Versuch neu.
 
-[Das Tutorial](GUIDE_Benchmark-Custom.md) und das mit `init-example` exportierbare
+[Das Tutorial](../GUIDE_Benchmark-Custom.md) und das mit `init-example` exportierbare
 Versandkostenpaket ermöglichen den Einstieg aus einem installierten Wheel.
 Das Paket enthält zwei Review-Varianten, eine Entwicklungsepisode und einen
 deterministischen JSONL-Peer. `cubie-bench guide` zeigt die installierte Anleitung.
-Die [EBT-Cases und ihr Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_3.md)
+Die [EBT-Cases und ihr Schnittstellenvertrag](../../tests/docs_tmp/BENCHMARK_CASES_10_3.md)
 prüfen den gesamten Ablauf mit einem einzigen Agenten und ohne Produktvergleich.
 
 Die lokale Ausführung setzt vertrauenswürdige Agenten und Evaluatoren voraus;
@@ -522,8 +529,8 @@ Optionale Modell-/Providerdeklarationen werden mit dem Live-Handshake abgegliche
 und archiviert; sie bleiben Angaben des Adapters, kein unabhängiger Beweis eines
 Provideraufrufs.
 
-Die [EBT-Abnahmecases und der Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_4.md)
-sowie [das Tutorial](GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
+Die [EBT-Abnahmecases und der Schnittstellenvertrag](../../tests/docs_tmp/BENCHMARK_CASES_10_4.md)
+sowie [das Tutorial](../GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
 beschreiben den implementierten Umfang. Referenzlösungen werden in allen zwölf
 Entwicklungsepisoden und beiden Bedingungen einschließlich Rot-/Grün-Prozess
 geprüft. Die deterministischen Prozess- und Fake-Agenten liefern ausschließlich
@@ -547,13 +554,13 @@ kontrollieren dessen Bindung an den ausgeführten Plan.
 
 Externe Pakete unterstützen `held_out`-Herkunftskataloge. Das pytest-Plugin
 erzwingt die ausdrückliche Freischaltung echter Episoden. Der separate
-[CI-Messjob](../.github/workflows/benchmarks.yml) verwendet ein zuvor geprüftes
+[CI-Messjob](../../.github/workflows/benchmarks.yml) verwendet ein zuvor geprüftes
 Bundle, gesperrte Abhängigkeiten und einen begrenzten manuellen Lauf. Tar-Archive
 bewahren Dateimodi und Belege auch bei Gatefehlern. Die
-[installierte Anleitung](GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
+[installierte Anleitung](../GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
 beschreibt Team-CI und die zusätzlichen Regeln für Produktmessungen.
 
-Die [EBT-Abnahmecases und der Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_5.md)
+Die [EBT-Abnahmecases und der Schnittstellenvertrag](../../tests/docs_tmp/BENCHMARK_CASES_10_5.md)
 dokumentieren die ursprüngliche Rotphase und ergänzende Integritätsprüfungen.
 Alle Gegenproben verwenden lokale deterministische Adapter und synthetische
 Aufgabenmetadaten. Sie veröffentlichen keine echten zurückgehaltenen Messfälle
@@ -568,4 +575,4 @@ Die folgenden Quellen stützen technische Umsetzungsmuster; Aufgaben, Kennzahlen
 
 - Der [SWE-bench Evaluation Harness](https://www.swebench.com/SWE-bench/reference/harness/) beschreibt eine Trennung von vorbereiteten Umgebungen, eingereichten Patches und Testauswertung. Das ist ein Bezugspunkt für die reproduzierbare externe Prüfung; eine Abhängigkeit von SWE-bench ist nicht vorgesehen.
 - pytest dokumentiert [eigene Marker und deren Registrierung](https://docs.pytest.org/en/stable/how-to/mark.html) sowie [Marker mit eigenen Kommandozeilenoptionen](https://docs.pytest.org/en/stable/example/markers.html). Darauf kann die bewusste Freischaltung echter Agentenläufe aufbauen.
-- Cubies [Vertragssemantik](GUIDE_Contract-Semantics.md), [RBT-Nutzungsmuster](GUIDE_RBT-Usage-Pattern.md) und [Qualitätsbegriffe](GUIDE_Quality-Assurance.md) definieren den lokalen Produktumfang und die Grenzen der Aussagen.
+- Cubies [Vertragssemantik](../GUIDE_Contract-Semantics.md), [RBT-Nutzungsmuster](../GUIDE_RBT-Usage-Pattern.md) und [Qualitätsbegriffe](../GUIDE_Quality-Assurance.md) definieren den lokalen Produktumfang und die Grenzen der Aussagen.

@@ -1,10 +1,14 @@
 # EBT-Abnahmecases: Basisdatensatz und Pilot (Phase 10.4)
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. **Produktfunktionen implementiert; Referenzen bleiben
 `author_checked`. Unabhängige menschliche Aufnahme und reale Modellmessung sind offen.**
 
-Die ursprünglich 55 Cases unter [benchmarks/phase4](benchmarks/phase4) konkretisieren die
-vierte Phase aus [Entwicklungsplan und Abnahme](../docs/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+Die ursprünglich 55 Cases unter [benchmarks/phase4](../benchmarks/phase4) konkretisieren die
+vierte Phase aus [Entwicklungsplan und Abnahme](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
 Sie verwenden die vorhandenen EBT-Hüllen `accepted` und `rejected` mit
 `WorldState` und gegebenenfalls `ExceptionExpectation`. Die Hüllen prüfen
 `RunTrace.evaluation` und das Urteil der einzelnen Spur ausdrücklich.
@@ -15,15 +19,15 @@ Es gibt keine `xfail`-Marker, Skips oder Modell-/Netzwerkaufrufe.
 
 | Kriterium aus dem Konzept | Cases und Gegenproben |
 | --- | --- |
-| 24 Reviews aus sechs Familien mit je zwei konformen und zwei fehlerhaften Fällen (§4.1) | [test_base_dataset.py](benchmarks/phase4/test_base_dataset.py): vollständiger Export, eindeutige IDs, genau eine primäre Familie je Review und korrekte Verteilung je Familie. Mindestens ein fehlerhafter Mehrdateienfall je Familie benennt vorhandene Kontextdateien und begründet die Kontextanforderung. |
+| 24 Reviews aus sechs Familien mit je zwei konformen und zwei fehlerhaften Fällen (§4.1) | [test_base_dataset.py](../benchmarks/phase4/test_base_dataset.py): vollständiger Export, eindeutige IDs, genau eine primäre Familie je Review und korrekte Verteilung je Familie. Mindestens ein fehlerhafter Mehrdateienfall je Familie benennt vorhandene Kontextdateien und begründet die Kontextanforderung. |
 | Drei unabhängige Datei-Projekte plus Funktionskontrolle mit jeweils drei Episoden (§5.1) | Vier Projektgruppen mit Erstentwicklung, Wartung und Diagnose. Die Kontrolle zählt nicht als Datei-Projekt. Primäre Episoden sind unabhängig auswählbar und besitzen Referenzen, Mutanten sowie Testvorlagen für beide Bedingungen. |
 | Validierte Referenzen und Mutanten (§4.2, §5.3, §6.2) | Objektive Fälle müssen ausführbar geprüft sein; Wartbarkeitsurteile bleiben als manuell zu prüfen sichtbar. Beschädigte Lösung, überlebender Mutant und Importfehler im Evaluator verhindern die Validierung. |
-| Zwei menschliche Aufnahmeprüfungen (§4.2) | [test_reference_admission.py](benchmarks/phase4/test_reference_admission.py): zwei verschiedene belegte Zustimmungen. Ablehnung gleicher Identitäten, bloßer Strings, ungeklärter Einwände und fehlender oder aus dem Szenario hinausweisender Belege. Lokale Autorreferenzen bleiben zulässig. |
+| Zwei menschliche Aufnahmeprüfungen (§4.2) | [test_reference_admission.py](../benchmarks/phase4/test_reference_admission.py): zwei verschiedene belegte Zustimmungen. Ablehnung gleicher Identitäten, bloßer Strings, ungeklärter Einwände und fehlender oder aus dem Szenario hinausweisender Belege. Lokale Autorreferenzen bleiben zulässig. |
 | Herkunft, Lizenz, Bekanntheit und unabhängige Entwürfe (§6) | Vollständiges `dataset.json` mit Herkunft, Lizenz, Domäne und Entwurfskennung. Öffentliche Fälle sind Entwicklungsfälle und potenziell bekannt. Projektvarianten teilen ihre Entwurfskennung; die vier Projekte haben verschiedene Kennungen. Alte Review-Quelldateien dürfen nicht unverändert als neue Fälle erscheinen. |
-| Ein Agent genügt; pytest-Vergleich bleibt optional (§3.1) | [test_pilot_design.py](benchmarks/phase4/test_pilot_design.py): zwei Kalibrierungs- und fünf Pilotwiederholungen mit einem Agenten, Standardprofil nur Cubie, Vergleichsprofil vollständig gepaart. Keine stille Kürzung bei überschrittenem Laufzahllimit. |
+| Ein Agent genügt; pytest-Vergleich bleibt optional (§3.1) | [test_pilot_design.py](../benchmarks/phase4/test_pilot_design.py): zwei Kalibrierungs- und fünf Pilotwiederholungen mit einem Agenten, Standardprofil nur Cubie, Vergleichsprofil vollständig gepaart. Keine stille Kürzung bei überschrittenem Laufzahllimit. |
 | Seed und ausbalancierte Laufreihenfolge (§3.2) | Derselbe Seed ergibt denselben vollständigen Plan; die zuerst ausgeführte Bedingung ist je Aufgabe über Wiederholungen ausbalanciert, bei fünf Wiederholungen mit Differenz höchstens eins. |
-| Qualität, Prozess und Projektzahl getrennt (§5.2, §9) | [test_developer_pilot.py](benchmarks/phase4/test_developer_pilot.py): fachlich korrekte Abgaben mit und ohne gültigen Prozess. Getrennte Gruppen nach Agent und Bedingung, mit Episodenzahlen und unabhängigen Projektgruppen. Kein Gesamtscore über Benchmarks. |
-| Familiengewichtung und Streuung (§4.3, §9) | [test_pilot_summary.py](benchmarks/phase4/test_pilot_summary.py): ungleich große Familien ergeben Macro-Recall 0,5 statt gepooltem Recall 0,25. Konforme Fälle erhalten keinen künstlichen Recall; undefinierte Präzision bleibt sichtbar. Manuelle Familien gehen nicht in objektive Macro-Metriken ein. Stichprobenstandardabweichung mit `n-1`; bei einer Beobachtung bleibt sie undefiniert. |
+| Qualität, Prozess und Projektzahl getrennt (§5.2, §9) | [test_developer_pilot.py](../benchmarks/phase4/test_developer_pilot.py): fachlich korrekte Abgaben mit und ohne gültigen Prozess. Getrennte Gruppen nach Agent und Bedingung, mit Episodenzahlen und unabhängigen Projektgruppen. Kein Gesamtscore über Benchmarks. |
+| Familiengewichtung und Streuung (§4.3, §9) | [test_pilot_summary.py](../benchmarks/phase4/test_pilot_summary.py): ungleich große Familien ergeben Macro-Recall 0,5 statt gepooltem Recall 0,25. Konforme Fälle erhalten keinen künstlichen Recall; undefinierte Präzision bleibt sichtbar. Manuelle Familien gehen nicht in objektive Macro-Metriken ein. Stichprobenstandardabweichung mit `n-1`; bei einer Beobachtung bleibt sie undefiniert. |
 | Kosten und Aufwand (§3.2, §7.2) | Archivierte Laufzeiten; bekannte und unbekannte Kosten getrennt. Eine bekannte Teilsumme ersetzt keine vollständige Gesamtsumme. Fehlende Kosten sind niemals null. |
 | Jeder begonnene Versuch bleibt sichtbar (§3.2) | Timeout, Budgetüberschreitung, ungültige Ausgabe und Infrastrukturfehler bleiben im Nenner begonnener Versuche und erhalten separate Statuszahlen. `not_started` bleibt geplant, zählt aber nicht als begonnen. |
 | Bewertungsstreitfälle und nachprüfbare Läufe (§6.2, §7.2) | Offene Nachbewertungen erhalten keine Qualitätsgutschrift und behalten Lauf-ID, Szenario und Belege. Veränderte Ergebnisse/Pläne, fehlende Belege und doppelt eingereichte Archive werden abgelehnt. Die Auswertung verändert Archive nicht und akzeptiert verschobene Archive. |
@@ -130,7 +134,7 @@ Prozess-Handshake allein belegt keine Modellnutzung.
 
 ## Belegmaterial und Grenzen
 
-Die [Pilot-Fixture](benchmarks/phase4/conftest.py) erweitert das bestehende externe
+Die [Pilot-Fixture](../benchmarks/phase4/conftest.py) erweitert das bestehende externe
 Versandkostenpaket ausschließlich im temporären Verzeichnis. Der echte Runner
 startet einen deterministischen JSONL-Peer und archiviert zehn Reviews: fünf
 Szenarien aus zwei Projektgruppen mit je zwei Wiederholungen. Die größere Familie
@@ -197,7 +201,7 @@ negatives Qualitätsurteil. Die weiterhin geforderte Abnahme einer sinkenden
 Erfolgszahl wurde durch diese Fixture-Korrektur nicht abgeschwächt.
 
 Der mitgelieferte Basisdatensatz liegt unter
-[`src/qb_cubie/benchmarks/data/base`](../src/qb_cubie/benchmarks/data/base).
+[`src/qb_cubie/benchmarks/data/base`](../../src/qb_cubie/benchmarks/data/base).
 Er enthält alle 36 Aufgabenmaterialien, 20 ausführbare objektive Review-Referenzen,
 vier manuelle Wartbarkeitsreferenzen und zwölf Projektabnahmen mit insgesamt
 52 Mutanten. Die Abnahmen verwenden konkrete, von der Implementierung unabhängige
@@ -211,13 +215,13 @@ Konfigurationspaket benennt die Unicode-Escapierung seiner JSON-Ausgabe im
 sichtbaren Auftrag ausdrücklich.
 
 Die sieben zusätzlichen Cases in
-[test_base_execution.py](benchmarks/phase4/test_base_execution.py) prüfen alle
+[test_base_execution.py](../benchmarks/phase4/test_base_execution.py) prüfen alle
 zwölf Projektepisoden in beiden Bedingungen, einschließlich fachlichem Rot,
 eingefrorenen Tests und anschließendem Grün. Hinzu kommen ein falsch deklariertes
 Review-Referenzurteil, ein Laufzeitfehler statt eines fachlichen Gegenbeispiels
 und die Bindung des Herkunftskatalogs an die Paketidentität.
 
-Drei Cases in [test_model_provenance.py](benchmarks/phase4/test_model_provenance.py)
+Drei Cases in [test_model_provenance.py](../benchmarks/phase4/test_model_provenance.py)
 prüfen vollständige Modellangaben, abweichende Live-Deklarationen und unvollständige
 Konfigurationen. Sie verwenden ausschließlich einen synthetischen Offline-Peer.
 Der Runner bindet optionale `[model]`-Angaben an den Handshake und archiviert
@@ -225,7 +229,7 @@ Modellkennung, Revision, Provider-/Adapterversion, Parameter und Prompt-Hash.
 Die Zusammenfassung kennzeichnet diese Angaben ausdrücklich als Adapterdeklaration;
 sie kann daraus keinen tatsächlich erfolgten Provideraufruf beweisen.
 
-Drei weitere [Integritätsfälle](benchmarks/phase4/test_pilot_integrity.py) verhindern
+Drei weitere [Integritätsfälle](../benchmarks/phase4/test_pilot_integrity.py) verhindern
 die gemeinsame Auswertung verschiedener Evaluatorversionen unter derselben
 Aufgabenkennung, unbelegte Belegverweise und erfundene Quell-/Kontexthashes.
 Vergleich und Pilotzusammenfassung verwenden dieselbe Archivprüfung. Diese prüft
@@ -233,7 +237,7 @@ auch die Eingabedateien, den Suite-Hash und die tatsächlichen archivierten Quel
 Die reine Zusammenfassung startet keinen Szenariocode.
 
 Damit umfasst Phase 10.4 **68 Repository-Cases und drei Wheel-Cases**.
-[Die Wheel-Cases](wheel/benchmark_base_installed.py) prüfen Export und Verschieben,
+[Die Wheel-Cases](../wheel/benchmark_base_installed.py) prüfen Export und Verschieben,
 Referenzvalidierung sowie einen gepaarten wiederholten Lauf mit Pilotzusammenfassung
 und gehashtem Herkunftskatalog. Der Wheel-Harness führt sie außerhalb des Checkouts
 mit dem installierten Paket und der installierten CLI aus.
@@ -244,7 +248,7 @@ verweigert stille Mischungen verschiedener Szenario-/Evaluatorstände oder
 Agentenkonfigurationen unter denselben Kennungen; neue Agentenversionen erhalten
 unterschiedliche IDs. Kein Best-of-n und kein Gesamtscore werden eingeführt.
 
-Die [installierte Anleitung](../docs/GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
+Die [installierte Anleitung](../../docs/GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
 beschreibt Export, Planung, Ausführung, Auswertung und Modelldeklaration.
 Der lokale Runner bleibt eine Umgebung für vertrauenswürdige Agenten und
 Evaluatoren. Containerisolation, harte Token-/Kostenlimits, semantisches

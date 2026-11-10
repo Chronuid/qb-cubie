@@ -1,11 +1,15 @@
 # EBT-Abnahmecases: Gemeinsamer Unterbau (§5, Schritt 1)
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. **Gemeinsamer Unterbau implementiert und offline geprüft;
 die ursprüngliche Rotphase bleibt unten dokumentiert.** Die **97 ursprünglichen
-Cases** unter [ollama_agents](ollama_agents) konkretisieren den ersten Schritt aus
-[AGENTEN_KONZEPT.md](../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+Cases** unter [ollama_agents](../ollama_agents) konkretisieren den ersten Schritt aus
+[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
 Mit zwölf ergänzenden Gegenproben bestehen jetzt **109 Cases**.
-Die Implementierung liegt unter [examples/ollama-agents](../examples/ollama-agents/README.md).
+Die Implementierung liegt unter [examples/ollama-agents](../../examples/ollama-agents/README.md).
 Das historische Ollama-Beispiel und seine Archive bleiben unverändert.
 
 Die Schnittstellen werden erst während eines Tests aufgelöst. Fehlender
@@ -18,21 +22,21 @@ abgeschwächt. Die Cases sind weder übersprungen noch als `xfail` markiert.
 
 | Kriterium und Konzeptbezug | Cases und beobachtetes Verhalten |
 | --- | --- |
-| Offline-Replays, Ollama-Client, Schemas (§2.2, §5.1) | [test_client_replays.py](ollama_agents/test_client_replays.py): korrekter POST mit festem Modell, Optionen, `stream=false`, `think=false`, Nachrichten, JSON-Schema und Timeout; validierte Aktion, Tokenwerte und Rohantwort bleiben erhalten. |
+| Offline-Replays, Ollama-Client, Schemas (§2.2, §5.1) | [test_client_replays.py](../ollama_agents/test_client_replays.py): korrekter POST mit festem Modell, Optionen, `stream=false`, `think=false`, Nachrichten, JSON-Schema und Timeout; validierte Aktion, Tokenwerte und Rohantwort bleiben erhalten. |
 | Fehlformate und Längenabbruch (§2.2, §5.1) | Ungültiges JSON/UTF-8, falsche Antworttypen, fehlende Inhalte, falsche Rolle, unvollständiger Abschluss, unbekannter Abschlussgrund, Modellwechsel, Schemafehler, Markdown, doppelte JSON-Schlüssel und nichtendliche Zahlen werden abgewiesen. `done_reason=length` scheitert auch bei syntaktisch vollständigem Aktions-JSON. Kein stilles Abschneiden, Reparieren, Typumwandeln oder zusätzlicher HTTP-Aufruf. |
 | Timeout und Fehlerklassifikation (§2.3–2.4, §5.1) | Transporttimeout → `agent_timeout`; Provider-/Transportausfall → `infrastructure_error`; Format-/Rechtefehler → `invalid_output`; ausgeschöpfte interne Grenzen → `budget_exceeded`. Nichtpositive HTTP-Zeit verhindert bereits den Transportstart. |
-| Verbotene Pfade und explizite Rechte (§2.1, §5.1) | [test_workspace_policy.py](ollama_agents/test_workspace_policy.py): absolute Pfade, Traversal, Pfadalias, nicht freigegebene private Referenzen und Archive scheitern beim Lesen, Schreiben und Hashen. Auch eine explizite Freigabeliste darf absolute oder ausbrechende Ziele nicht legitimieren. |
+| Verbotene Pfade und explizite Rechte (§2.1, §5.1) | [test_workspace_policy.py](../ollama_agents/test_workspace_policy.py): absolute Pfade, Traversal, Pfadalias, nicht freigegebene private Referenzen und Archive scheitern beim Lesen, Schreiben und Hashen. Auch eine explizite Freigabeliste darf absolute oder ausbrechende Ziele nicht legitimieren. |
 | Symlink-Eltern und erneute Prüfung (§2.1, zusätzliche Gegenproben in §5) | Sowohl Blatt- als auch Elternsymlink werden trotz ausdrücklicher Freigabe abgewiesen. Ein erst nach Erzeugung der Policy ausgetauschter Elternpfad wird vor dem Zugriff erneut geprüft. Private Sentinelbytes bleiben unverändert. |
 | Phasenrechte und unveränderte Tests (§2.1, §4.1) | Fünf explizite Freigabesätze repräsentieren `test_design`, `red`, `green`, `refactor` und Reviewer-Werkzeuge. Der Unterbau setzt die vorgegebene Dateimenge durch; die spätere automatische Auswahl durch den Rollenadapter ist hier noch nicht Gegenstand. Anweisungen im Quelltext erweitern keine Rechte. |
 | Mehrteilige Schreibfehler (§2.1, zusätzliche Gegenproben in §5) | Ein unzulässiges zweites Ziel verhindert sämtliche Änderungen. Ein injizierter I/O-Fehler bei der Veröffentlichung einer weiteren Datei stellt Originalbytes wieder her und entfernt neue Dateien und Verzeichnisse. |
 | Bytegenaue Dateihashes (§2.3, §5.1) | Erfolgreicher Mehrdateivorschlag enthält Unicode und CRLF. Die Abnahme vergleicht geschriebene Bytes und unabhängig berechnete SHA-256-Werte. Nach externer Änderung müssen Hashes neu berechnet werden. |
-| Zeit- und Aufrufbudget (§2.4, zusätzliche Gegenproben in §5) | [test_budget_ledger.py](ollama_agents/test_budget_ledger.py): feste Uhr, HTTP-/Werkzeugtimeout aus Restzeit abzüglich Runnerreserve, inklusive Aufrufgrenzen, unabhängige Modell-/Werkzeugzähler und Ablehnung ab Reservegrenze. Phasenwechsel setzt die Episodengrenzen nicht zurück. |
+| Zeit- und Aufrufbudget (§2.4, zusätzliche Gegenproben in §5) | [test_budget_ledger.py](../ollama_agents/test_budget_ledger.py): feste Uhr, HTTP-/Werkzeugtimeout aus Restzeit abzüglich Runnerreserve, inklusive Aufrufgrenzen, unabhängige Modell-/Werkzeugzähler und Ablehnung ab Reservegrenze. Phasenwechsel setzt die Episodengrenzen nicht zurück. |
 | Verbrauch und frische Sitzungen (§2.3–2.4, zusätzliche Gegenproben in §5) | No-op → Tokenzahl `0`; Kosten bleiben JSON-`null`. Alle initialen und Reparaturaufrufe werden summiert. Ein unbekannter Tokenwert macht die entsprechende Phasensumme unbekannt, ohne die andere Summe zu verlieren. Neue Instanzen teilen weder Uhrbeginn, Zähler noch Verbrauch. |
-| Kontextüberlauf und Quellenbindung (§2.4, zusätzliche Gegenproben in §5) | [test_context_boundaries.py](ollama_agents/test_context_boundaries.py): sortierter sichtbarer Bestand, Pfade/Inhalte/Hashes, erneutes Lesen geänderter Quellen, ungültiges UTF-8, verbotene explizite Nachladeziele und Quellanweisungen als Daten. Kapazität berücksichtigt Kontextmetadaten, UTF-8-Bytes, Prompt und getrennte Ausgabereserve; exakte Grenze besteht, ein Byte darüber scheitert ausdrücklich. |
-| Belegprotokoll und getrenntes Archiv (§2.3, §5.1) | [test_evidence_replays.py](ollama_agents/test_evidence_replays.py): Anfrage, Rohantwort, Aktion bzw. Validierungsfehler, Werkzeugergebnis, Dateihashes, Dauer und Verbrauch werden vollständig archiviert. Jedes Manifest wird gegen alle tatsächlichen Archivdateien unabhängig nachgehasht. |
+| Kontextüberlauf und Quellenbindung (§2.4, zusätzliche Gegenproben in §5) | [test_context_boundaries.py](../ollama_agents/test_context_boundaries.py): sortierter sichtbarer Bestand, Pfade/Inhalte/Hashes, erneutes Lesen geänderter Quellen, ungültiges UTF-8, verbotene explizite Nachladeziele und Quellanweisungen als Daten. Kapazität berücksichtigt Kontextmetadaten, UTF-8-Bytes, Prompt und getrennte Ausgabereserve; exakte Grenze besteht, ein Byte darüber scheitert ausdrücklich. |
+| Belegprotokoll und getrenntes Archiv (§2.3, §5.1) | [test_evidence_replays.py](../ollama_agents/test_evidence_replays.py): Anfrage, Rohantwort, Aktion bzw. Validierungsfehler, Werkzeugergebnis, Dateihashes, Dauer und Verbrauch werden vollständig archiviert. Jedes Manifest wird gegen alle tatsächlichen Archivdateien unabhängig nachgehasht. |
 | Begrenzte Diagnosen und frische Archive (§2.3, zusätzliche Gegenproben in §5) | Kein stdout; stderr nennt Archivkennung und Manifesthash. Mehr als 4 MiB Rohbeleg bleiben im Archiv, Diagnosen unter 64 KiB. Archive innerhalb des Workspaces oder über dorthin führende Elternsymlinks scheitern. Zwei Sitzungen behalten getrennte Belege. |
 | Zusammenspiel des Unterbaus (§5.1) | Ein kombinierter Replay führt Modellbudget, echten Client, explizite Schreibfreigabe, geschriebenen Dateistand, Verbrauch und externes Belegmanifest zusammen. Die Abnahme prüft Dateibytes und archivierte Aktion erneut unabhängig. |
-| Ergänzende Gegenproben der Implementierung | [test_transport_and_recovery.py](ollama_agents/test_transport_and_recovery.py): tatsächlicher Standardbibliothek-Transport mit ersetztem `urlopen`, eingepackter Timeout, HTTP-Ausfall und abgebrochener Response; Fehlerverbrauch und Rohantwort, verlustfreie Archivierung ungültiger UTF-8-Bytes und ungepaarter Unicode-Surrogate, Ablehnung nicht unterstützter Schemas vor Inferenz, Rücknahme einer bereits neu angelegten Datei, ungültige Textkodierung vor dem ersten Write und manipulationsgeschützte Finalisierung. |
+| Ergänzende Gegenproben der Implementierung | [test_transport_and_recovery.py](../ollama_agents/test_transport_and_recovery.py): tatsächlicher Standardbibliothek-Transport mit ersetztem `urlopen`, eingepackter Timeout, HTTP-Ausfall und abgebrochener Response; Fehlerverbrauch und Rohantwort, verlustfreie Archivierung ungültiger UTF-8-Bytes und ungepaarter Unicode-Surrogate, Ablehnung nicht unterstützter Schemas vor Inferenz, Rücknahme einer bereits neu angelegten Datei, ungültige Textkodierung vor dem ersten Write und manipulationsgeschützte Finalisierung. |
 
 ## Implementierte Schnittstelle
 
@@ -52,7 +56,7 @@ client.chat(messages=..., schema=..., timeout=...)
 
 Die Transportgrenze nimmt `urllib.request.Request` sowie das Schlüsselwort
 `timeout` entgegen und liefert HTTP-Antwortbytes. Ausschließlich diese externe
-Grenze wird durch [ReplayTransport](ollama_agents/conftest.py) ersetzt. Er
+Grenze wird durch [ReplayTransport](../ollama_agents/conftest.py) ersetzt. Er
 zeichnet Requests auf und liefert vorbereitete Antworten oder Ausnahmen; er
 enthält keine Adaptervalidierung oder Reparaturlogik. Der Client erzeugt den
 Request, dekodiert und validiert die Antwort selbst.
@@ -137,8 +141,8 @@ stdout bleibt für das spätere JSONL-Protokoll frei.
 ## Abnahme und Grenzen
 
 Die Operationsprüfungen nutzen EBT über den vorhandenen
-[`accepted`](benchmarks/contracts.py)-Helfer und den ergänzten
-[`failed`](ollama_agents/contracts.py)-Helfer. Beide prüfen das Gesamtergebnis
+[`accepted`](../benchmarks/contracts.py)-Helfer und den ergänzten
+[`failed`](../ollama_agents/contracts.py)-Helfer. Beide prüfen das Gesamtergebnis
 und `traces[0].evaluation is True`. `failed` beobachtet Status und Meldung einer
 Adapterausnahme als Rückgabe eines EBT-Targets. Unerwartete Erfolge, falsche
 Fehlerstatus und fremde Ausnahmetypen bestehen diesen Vertrag nicht.

@@ -1,14 +1,18 @@
 # EBT-Abnahmecases für Phase 10.5: Messbetrieb
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. **Produktfunktionen implementiert; die ursprüngliche
 Rotphase bleibt unten dokumentiert.** Die Cases unter
-[benchmarks/phase5](benchmarks/phase5) konkretisieren die fünfte Phase aus
-[BENCHMARK_KONZEPT.md](../docs/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+[benchmarks/phase5](../benchmarks/phase5) konkretisieren die fünfte Phase aus
+[BENCHMARK_KONZEPT.md](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
 Neue öffentliche Schnittstellen werden erst innerhalb der Cases aufgelöst.
 Ihr Fehlen erzeugt einen Testfehlschlag und verhindert nicht die Sammlung.
 
 Alle Operationsprüfungen verwenden die vorhandenen EBT-Helfer
-[`accepted` und `rejected`](benchmarks/contracts.py). Diese prüfen ausdrücklich
+[`accepted` und `rejected`](../benchmarks/contracts.py). Diese prüfen ausdrücklich
 `RunTrace.evaluation` und den einzelnen Auswertungstrace. Ergänzende Assertions
 prüfen Archive, Belegdateien und Seiteneffekte. Es gibt keine Ersatzimplementierung
 von Planner, Runner, Gates oder Freeze-Funktion in den Tests.
@@ -17,16 +21,16 @@ von Planner, Runner, Gates oder Freeze-Funktion in den Tests.
 
 | Kriterium und Bezug | Abnahmecases |
 | --- | --- |
-| Konfigurierbare Gates pro Metrik und Typ (§9, §10.5) | [test_gate_planning.py](benchmarks/phase5/test_gate_planning.py): Schwellen und Auswahl bleiben im Plan; unbekannte Metriken, Operatoren, leere/ungültige Filter, leere Populationen, doppelte IDs und unzulässige Zahlen scheitern vor dem Start. Ein Prozesscase prüft ausdrücklich, dass auch kein Fähigkeiten-Handshake stattfindet. |
-| Vollständigkeit und Qualitätsfreigabe getrennt (§7.2, §9) | [test_gate_evaluation.py](benchmarks/phase5/test_gate_evaluation.py): korrekte und falsche Reviews, exakte Schwellengrenzen, fehlende Versuche, offene Bewertungen und unbekannte Werte; ohne Gates bleibt der Lauf reine Berichterstattung. |
+| Konfigurierbare Gates pro Metrik und Typ (§9, §10.5) | [test_gate_planning.py](../benchmarks/phase5/test_gate_planning.py): Schwellen und Auswahl bleiben im Plan; unbekannte Metriken, Operatoren, leere/ungültige Filter, leere Populationen, doppelte IDs und unzulässige Zahlen scheitern vor dem Start. Ein Prozesscase prüft ausdrücklich, dass auch kein Fähigkeiten-Handshake stattfindet. |
+| Vollständigkeit und Qualitätsfreigabe getrennt (§7.2, §9) | [test_gate_evaluation.py](../benchmarks/phase5/test_gate_evaluation.py): korrekte und falsche Reviews, exakte Schwellengrenzen, fehlende Versuche, offene Bewertungen und unbekannte Werte; ohne Gates bleibt der Lauf reine Berichterstattung. |
 | Qualität, Prozess und Aufwand getrennt (§5.2, §9) | Recall-Gates für einen Fehlerfall; undefinierte Präzision und Recall bestehen selbst eine Nullschwelle nicht. Ein fachlich korrektes Projekt ohne gültiges Rot scheitert am Prozessgate. Kosten werden nur bei vollständiger Beobachtung summiert; die Obergrenze ist inklusive. |
-| Nachprüfbare Berichte und CI-Entscheidungen (§7.2, §8, §9) | [test_measurement_reporting.py](benchmarks/phase5/test_measurement_reporting.py): JSON, öffentlicher Gate-Aufruf und Markdown berichten dieselbe Entscheidung samt Schwelle, Istwert, Grund und Belegen. Exitcodes unterscheiden Konfiguration, Ausführung und Qualität. |
-| Eingefrorene Messkonfiguration und reproduzierbare Sets (§3.2, §7.2, §10.5) | [test_frozen_measurements.py](benchmarks/phase5/test_frozen_measurements.py): Seed, Reihenfolge, Budgets, Gates, Quellen, Referenzen, Agentenkonfiguration und lokaler Adaptercode werden vor dem Start gebunden. Identische Eingaben haben dieselbe Identität; jede geprüfte Änderung erzeugt eine neue. |
+| Nachprüfbare Berichte und CI-Entscheidungen (§7.2, §8, §9) | [test_measurement_reporting.py](../benchmarks/phase5/test_measurement_reporting.py): JSON, öffentlicher Gate-Aufruf und Markdown berichten dieselbe Entscheidung samt Schwelle, Istwert, Grund und Belegen. Exitcodes unterscheiden Konfiguration, Ausführung und Qualität. |
+| Eingefrorene Messkonfiguration und reproduzierbare Sets (§3.2, §7.2, §10.5) | [test_frozen_measurements.py](../benchmarks/phase5/test_frozen_measurements.py): Seed, Reihenfolge, Budgets, Gates, Quellen, Referenzen, Agentenkonfiguration und lokaler Adaptercode werden vor dem Start gebunden. Identische Eingaben haben dieselbe Identität; jede geprüfte Änderung erzeugt eine neue. |
 | Ausführung des tatsächlich eingefrorenen Stands (§7.2, §10.5) | Ein verschobenes Bundle läuft nach Löschung der ursprünglichen Eingaben. Beschädigte, fehlende, zusätzliche oder ausbrechende Dateien verhindern den Start. Ergebnisse und Adapter-Arbeitsdateien dürfen das Bundle nicht verändern. Bestehende Bundles werden nicht überschrieben. |
-| Extern bereitgestellte zurückgehaltene Aufgaben (§6.1, §6.2, §8, §10.5) | [test_held_out_material.py](benchmarks/phase5/test_held_out_material.py): separat versioniertes Paket mit `held_out`-Katalog, Herkunftsbindung, verschobenen Pfaden und unverändertem Core. Öffentliche Basisfälle dürfen nicht bloß zum ungesehenen Messmaterial umdeklariert werden. |
+| Extern bereitgestellte zurückgehaltene Aufgaben (§6.1, §6.2, §8, §10.5) | [test_held_out_material.py](../benchmarks/phase5/test_held_out_material.py): separat versioniertes Paket mit `held_out`-Katalog, Herkunftsbindung, verschobenen Pfaden und unverändertem Core. Öffentliche Basisfälle dürfen nicht bloß zum ungesehenen Messmaterial umdeklariert werden. |
 | Evaluator und Agentenexport getrennt (§5.3, §6.1) | Ein privater Evaluator-Sentinel bleibt außerhalb von Workspace, Export und JSONL-Anfragen, wird aber beim Evaluator archiviert. Ein Prozesslauf wird weiterhin ausschließlich als Infrastrukturbeleg ausgewiesen. |
-| Standardtests bleiben offline (§8, §10.5) | [test_offline_opt_in.py](benchmarks/phase5/test_offline_opt_in.py): echte pytest-Unterprozesse sammeln ohne Adapterstart und überspringen markierte Episoden ohne Freischaltung; eine Markerwahl allein genügt nicht. Fehlende Konfiguration oder Adapter sind bei Freischaltung Fehler. |
-| Eigener begrenzter Messjob (§8, §10.5) | [test_measurement_workflow.py](benchmarks/phase5/test_measurement_workflow.py): eigener manuell auslösbarer Workflow, keine Push-/PR-Auslösung, begrenzte Laufzeit, gesperrte Abhängigkeiten und Archivierung auch bei Fehlschlägen. |
+| Standardtests bleiben offline (§8, §10.5) | [test_offline_opt_in.py](../benchmarks/phase5/test_offline_opt_in.py): echte pytest-Unterprozesse sammeln ohne Adapterstart und überspringen markierte Episoden ohne Freischaltung; eine Markerwahl allein genügt nicht. Fehlende Konfiguration oder Adapter sind bei Freischaltung Fehler. |
+| Eigener begrenzter Messjob (§8, §10.5) | [test_measurement_workflow.py](../benchmarks/phase5/test_measurement_workflow.py): eigener manuell auslösbarer Workflow, keine Push-/PR-Auslösung, begrenzte Laufzeit, gesperrte Abhängigkeiten und Archivierung auch bei Fehlschlägen. |
 | Eigene CI-Nutzung und Produktmessung dokumentiert (§9, §10.5) | Die installierte Anleitung muss Gates, Freeze, Ausführung, Exitcodes, zurückgehaltene Aufgaben und die Grenzen von Produktmessungen auffindbar erklären. |
 
 ## Öffentlicher Vertrag
@@ -220,7 +224,7 @@ Die Cases laden das Plugin mit `-p` in isolierten pytest-Unterprozessen.
 Ihr Episodenkörper schreibt lediglich eine Sentineldatei. Damit werden
 Freischaltung, Skip und Fehlerpolitik ohne Provideraufruf geprüft.
 Der spätere Repository-Messlauf muss das Plugin ebenfalls ausdrücklich laden,
-beispielsweise über die Benchmark-`conftest.py`; die deterministischen
+beispielsweise über die Benchmark-`tests/conftest.py`; die deterministischen
 Abnahmecases dieser Phase tragen selbst keine Agentenmarker.
 
 Der vorgesehene eigene Workflow heißt `.github/workflows/benchmarks.yml` und
@@ -304,7 +308,7 @@ Gate- und Filtersemantik. JSON, Textausgabe und Markdown erklären Gateurteile;
 die dokumentierten Exitcodes werden durchgesetzt.
 
 Die Freeze-Implementierung liegt unter
-[`measurement`](../src/qb_cubie/benchmarks/measurement). Sie veröffentlicht das
+[`measurement`](../../src/qb_cubie/benchmarks/measurement). Sie veröffentlicht das
 Bundle erst nach erfolgreicher Aufnahme und Prüfung der Eingaben. Agenten
 werden dabei nicht gestartet. Das Manifest bindet auch Dateimodi und den
 ausführenden Cubie-Quellcode. Lokale Adapterressourcen lassen sich ausdrücklich
@@ -322,7 +326,7 @@ Bundle einschließlich seiner Manifestbytes. Vergleich, Pilotzusammenfassung
 und Gateprüfung kontrollieren diese Bindung erneut.
 
 Die elf Cases in
-[test_measurement_integrity.py](benchmarks/phase5/test_measurement_integrity.py)
+[test_measurement_integrity.py](../benchmarks/phase5/test_measurement_integrity.py)
 prüfen ergänzend deklarierte Ressourcen, Dateimodi, fünf Runtime-Gegenproben,
 verfälschte Messidentitäten, teilweise bekannte Kosten und die Portabilität
 von Bundleort und Interpreter. Zusammen mit den ursprünglichen Cases und den
@@ -331,14 +335,14 @@ ergänzten Text-, Fixture- und Workflowprüfungen umfasst Phase 10.5 jetzt
 nicht abgeschwächt.
 
 Das Plugin
-[`pytest_plugin.py`](../src/qb_cubie/benchmarks/pytest_plugin.py) ist im
+[`pytest_plugin.py`](../../src/qb_cubie/benchmarks/pytest_plugin.py) ist im
 Repository eingebunden und kann extern ausdrücklich geladen werden.
 Die zwei neuen echten Review-/Developer-Einstiegstests bleiben im Standardlauf
 übersprungen. Die gemeinsame Ergebnisfixture ist auch dann gegen ungewollten
 Start abgesichert, wenn ein eigener Test seinen Agentenmarker vergessen hat.
 
 Der separate
-[CI-Messjob](../.github/workflows/benchmarks.yml) erhält ein vorab bereitgestelltes
+[CI-Messjob](../../.github/workflows/benchmarks.yml) erhält ein vorab bereitgestelltes
 Tar-Bundle samt erwartetem Manifest-Hash. Er prüft die Identität, stellt die
 passende Python-Version bereit und installiert gesperrte Abhängigkeiten sowie
 gegebenenfalls ein separat bereitgestelltes, per Hash geprüftes Wheel.
@@ -349,13 +353,13 @@ Python-Schritte des tatsächlichen Workflows lokal mit einem echten Bundle aus
 und prüft anschließend dessen Ausführbarkeit. Die IDE meldet keine YAML-Fehler.
 Ein entfernter GitHub-Job wurde nicht ausgelöst.
 
-Die [installierte Anleitung](../docs/GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
+Die [installierte Anleitung](../../docs/GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
 beschreibt Gates, Exitcodes, Freeze, CI-Provisionierung, zurückgehaltene Pakete
 und die Voraussetzungen für Produktmessungen. Ihr mitgeliefertes Ressourcenexemplar
 ist identisch mit der Dokumentation im Repository.
 
 Vier neue
-[Wheel-Cases](wheel/benchmark_measurement_installed.py) prüfen die Installation
+[Wheel-Cases](../wheel/benchmark_measurement_installed.py) prüfen die Installation
 außerhalb des Checkouts: verschobene Fake-Messungen mit Wheelprovenienz und
 archivierter Messidentität, den Qualitäts-Exitcode, die standardmäßige
 pytest-Sperre und einen aus eingefrorenen Dateien gestarteten JSONL-Prozess

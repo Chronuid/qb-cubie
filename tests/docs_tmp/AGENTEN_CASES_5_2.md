@@ -1,8 +1,12 @@
 # EBT-Abnahmecases: Reviewer-Durchstich (§5, Schritt 2)
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. **Reviewer-Kern implementiert und offline geprüft.** Die 68 ursprünglichen Cases unter
-[ollama_agents/reviewer](ollama_agents/reviewer) konkretisieren Schritt 2 aus
-[AGENTEN_KONZEPT.md](../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+[ollama_agents/reviewer](../ollama_agents/reviewer) konkretisieren Schritt 2 aus
+[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
 Sie ergänzen die [Unterbau-Abnahme](AGENTEN_CASES_5_1.md).
 
 Alle 68 ursprünglichen Cases bestehen unverändert. Zwölf zusätzliche Gegenproben
@@ -28,12 +32,12 @@ Quellstände. `renderer.py` verwendet `escaping.escape_text`; beide Module,
 Die sichtbaren Tests prüfen Unicode und spitze Klammern. Sie bestehen bei beiden
 Quellständen; die fehlerhafte Variante darf dadurch keine automatische Freigabe
 erhalten. Die Gegenproben in
-[test_fixture_oracles.py](ollama_agents/reviewer/test_fixture_oracles.py)
+[test_fixture_oracles.py](../ollama_agents/reviewer/test_fixture_oracles.py)
 prüfen die konkreten Ein-/Ausgaben unabhängig mit EBT und führen die sichtbaren
 Testfunktionen tatsächlich aus.
 
 Die Fixtures liegen unter
-[fixtures](ollama_agents/reviewer/fixtures). Dateien mit `.txt` werden erst im
+[fixtures](../ollama_agents/reviewer/fixtures). Dateien mit `.txt` werden erst im
 Test nach Python-Dateien materialisiert; dadurch sammelt pytest die eingebetteten
 sichtbaren Beispiele nicht als Repositorytests. Nur `fixtures/visible` wird
 exportiert, für den Fehlerfall wird ausschließlich `escaping.py` ausgetauscht.
@@ -45,17 +49,17 @@ unabhängige menschliche Referenzaufnahme und keine zurückgehaltenen Messfälle
 
 | Konzeptbezug | Cases und verbindliche Beobachtung |
 | --- | --- |
-| Neue konforme/fehlerhafte Fälle (§5.2, §3.1) | [test_decisions.py](ollama_agents/reviewer/test_decisions.py): vollständiges `review_v1`, beide Kriterien, konkrete Quellen und Befunde, unveränderte Originalbytes. `pass` und `fail` können jeweils erfolgreich abgeschlossene Reviews sein. |
+| Neue konforme/fehlerhafte Fälle (§5.2, §3.1) | [test_decisions.py](../ollama_agents/reviewer/test_decisions.py): vollständiges `review_v1`, beide Kriterien, konkrete Quellen und Befunde, unveränderte Originalbytes. `pass` und `fail` können jeweils erfolgreich abgeschlossene Reviews sein. |
 | Enthaltung (§3.1–3.2, §5.2) | `abstain` bleibt im Bericht erhalten und wird weder `fail` noch `pass`. Die RBT-Gegenprobe bestätigt: Nur ausschließlich `pass` ergibt `ReviewData(passed=True)`. |
 | Vollständige Kriterien und Befunde (§3.1–3.2) | Fehlende/fremde Kriterien, unbekannte Entscheidungen, `fail` ohne Befund, Widerspruch zwischen `pass` und Befund, unbekannte Pfade/Symbole sowie leere Ursachen/Auswirkungen werden abgewiesen. |
-| Tatsächlicher vollständiger Kontext (§2.4, §3.2, §5.2) | [test_sources.py](ollama_agents/reviewer/test_sources.py): Inhalte und unabhängig berechnete Hashes sämtlicher Originaldateien müssen in den tatsächlichen HTTP-Modellnachrichten stehen. Dieselben Nachrichten müssen im Belegarchiv liegen. |
+| Tatsächlicher vollständiger Kontext (§2.4, §3.2, §5.2) | [test_sources.py](../ollama_agents/reviewer/test_sources.py): Inhalte und unabhängig berechnete Hashes sämtlicher Originaldateien müssen in den tatsächlichen HTTP-Modellnachrichten stehen. Dieselben Nachrichten müssen im Belegarchiv liegen. |
 | Quellenliste (§3.2) | Leere/partielle Quellen, fehlende `task.md`, Duplikate, privater Pfad oder `review.json` als Quelle sind ungültig. Die Reihenfolge der Quellen ist kein fachliches Kriterium; die Replays reichen die vollständige sortierte Liste ein. |
 | Quelländerung (§3.1, §5.2) | Während der Inferenz geänderte Quellen oder Aufträge, entfernte Dateien und neu hinzugefügte Dateien blockieren die Veröffentlichung. Es entsteht kein `review.json`; externe Änderungen werden nicht zurückgeschrieben. Zusätzlich weist der bestehende unabhängige Runner veränderte Quellhashes zurück. |
 | Sichtbarkeitsgrenzen (§2.1, §2.4) | Private Geschwisterdateien erscheinen nicht im Modellkontext. Symlink-Quellen und ungültiges UTF-8 scheitern vor der Inferenz. Kontextüberlauf wird als `budget_exceeded` ohne Modellaufruf gemeldet. |
-| Lokale Werkzeuge (§3.1) | [test_tools.py](ollama_agents/reviewer/test_tools.py): `list_files`, `read_file` und `search_text` liefern reale sichtbare Ergebnisse zurück ins Modell und ins Belegarchiv. |
+| Lokale Werkzeuge (§3.1) | [test_tools.py](../ollama_agents/reviewer/test_tools.py): `list_files`, `read_file` und `search_text` liefern reale sichtbare Ergebnisse zurück ins Modell und ins Belegarchiv. |
 | Testausführung in Kopie (§3.1) | `run_visible_tests` führt die sichtbaren Tests tatsächlich aus. Beide Varianten melden zwei bestandene Beispiele. Eine zusätzliche Gegenprobe verändert in der Testkopie absichtlich Quellcode und erzeugt eine Markerdatei; Originalbaum, Caches und Originalhashes bleiben unverändert. |
 | Keine Reviewer-Schreibrechte (§2.1, §3.1) | Schreibaktionen, private/absolute Leseziele und frei vorgegebene Shellkommandos sind ungültig. Anweisungen in Quellkommentaren erweitern keine Rechte. Nur der Adapter darf abschließend `review.json` veröffentlichen. |
-| Einmalige Korrektur (§2.4) | [test_recovery.py](ollama_agents/reviewer/test_recovery.py): konkreter Validierungsfehler geht an genau einen Korrekturaufruf; zweiter Fehlversuch endet ohne dritten Aufruf. Fehlantwort und gültige Abgabe bleiben archiviert. |
+| Einmalige Korrektur (§2.4) | [test_recovery.py](../ollama_agents/reviewer/test_recovery.py): konkreter Validierungsfehler geht an genau einen Korrekturaufruf; zweiter Fehlversuch endet ohne dritten Aufruf. Fehlantwort und gültige Abgabe bleiben archiviert. |
 | Fehler und Budgets (§2.3–2.4, §3.1) | Timeout → `agent_timeout`, Providerausfall → `infrastructure_error`, wiederholt ungültige Ausgabe/Längenabbruch → `invalid_output`, ausgeschöpftes Modell-/Werkzeugbudget → `budget_exceeded`. Keine Unterbrechung wird als abgeschlossene Enthaltung ausgegeben. Reparaturen teilen dieselben Grenzen. |
 | Verbrauch und Artefakte (§2.3) | Tokenverbrauch summiert Erstversuch und Reparatur; fehlende Messung bleibt `null`, Kosten bleiben `null`. Das Abschlussereignis erfüllt den vorhandenen Protokollvalidator, nennt genau `review.json` und den unabhängig nachgehashten tatsächlichen Dateistand. Die Reviewmethode schreibt nichts auf stdout. |
 | Semantisch gleichwertige Befunde (§3.3, §5.2) | Freie Formulierungen bleiben unverändert. Die unabhängige Evaluator-Gegenprobe zeigt für die deutsche Paraphrase korrekte Kriterienentscheidungen, aber exakte Precision/Recall von `0.0`. Das ist kein semantisches Urteil; das separate Nachbewertungsverfahren steht unten. |
@@ -157,7 +161,7 @@ Zuordnung werden `evaluation_status="complete"`, die offenen Indexlisten und
 `adjudicator_id` eingetragen. Originalbericht und exakte Metriken bleiben erhalten.
 
 Die deutsche Entwicklungsparaphrase in
-[semantic_paraphrase.json](ollama_agents/reviewer/fixtures/semantic_paraphrase.json)
+[semantic_paraphrase.json](../ollama_agents/reviewer/fixtures/semantic_paraphrase.json)
 beschreibt denselben fehlenden Ampersand-Ersatz und dieselbe Wirkung wie die
 englische Referenz. Sie ist ein vorab konstruiertes Zuordnungsbeispiel; eine
 unabhängige verblindete menschliche Bewertung wird hier nicht behauptet.
@@ -191,7 +195,7 @@ Wheel-Installation und echte lokale Modellläufe sind damit noch nicht geprüft.
 Die hier angelegten kleinen Quellen dienen als Grundlage der späteren Smoke-Sets.
 
 Ein separater, ausdrücklich freizuschaltender
-[EBT-Smoke mit echten Ollama-Aufrufen](live_ollama/README.md) ergänzt inzwischen
+[EBT-Smoke mit echten Ollama-Aufrufen](../live_ollama/README.md) ergänzt inzwischen
 die Offline-Abnahme. Am 10. November 2026 bestanden beide neuen Rendererfälle
 mit `gemma4:12b`; beim konformen Fall wurde eine Modellkorrektur benötigt.
 Die noch unzureichend konkrete Auswirkungsbeschreibung im Fehlerfall ist dort
@@ -205,7 +209,7 @@ Unterbau-Cases, insgesamt 194 Offline-Cases. Der echte EBT-Vertrag verlangt jetz
 auch konkrete Maskierungsbelege im Auswirkungstext; Entscheidungen und Quellen
 allein reichen für den Smoke nicht mehr aus.
 
-Ein weiterer [echter Pipeline-EBT](live_ollama/test_benchmark_rbt_live.py) verbindet
+Ein weiterer [echter Pipeline-EBT](../live_ollama/test_benchmark_rbt_live.py) verbindet
 inzwischen den öffentlichen Benchmark-Runner über den neuen JSONL-Prozess mit
 Ollama, der unabhängigen Evaluation und der tatsächlichen RBT-Aufzeichnung.
 Er prüft eine konforme Episode samt Modellmetadaten und Manifesthashes. Fünf

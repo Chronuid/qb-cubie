@@ -84,6 +84,8 @@ def provider():
 
 def replay(payload):
     """Fixed independent actions; no implementation or protocol behavior is mocked."""
+    if len(payload['messages']) == 1 and payload['messages'][0]['content'].startswith('Unscored preflight.'):
+        return {'ready': 'ready'}
     content = json.loads(payload['messages'][1]['content'])
     if 'phase' not in content:
         faulty = '> 5000' in json.dumps(content['context'])
@@ -184,3 +186,36 @@ def test_unavailable_model_fails_without_creating_an_example_or_inference(tmp_pa
     assert 'no automatic pull or fallback' in result.stderr
     assert not destination.exists()
     assert not any(route == '/api/chat' for route, _ in calls)
+
+
+def test_installed_two_plus_five_study_preserves_all_attempts_and_external_evidence(tmp_path, provider):
+    from ollama_agents.pilot.live import measure_smoke
+
+    from qb_cubie.benchmarks.reporting.archives import read_archive
+
+    endpoint, calls = provider
+    root = tmp_path / 'calibrated study'
+    study = measure_smoke(root, endpoint=endpoint, exploratory=True)
+    assert study['study_kind'] == 'exploratory' and study['human_admission'] is False
+    assert [stage['stage'] for stage in study['stages']] == ['calibration', 'calibration', 'pilot', 'pilot']
+    counts = []
+    model_calls = 0
+    for stage in study['stages']:
+        archive = root / stage['archive']
+        runs = read_archive(archive)['runs']
+        counts.append(len(runs))
+        assert stage['evidence_complete'] and all(run['status'] == 'completed' for run in runs)
+        assert all(run['quality_passed'] is True for run in runs)
+        model_calls += sum(record['model_calls'] for record in stage['evidence'])
+        if stage['stage'] == 'pilot':
+            receipt = json.loads((root / stage['bundle'] / 'measurement.json').read_bytes())['pilot']
+            assert receipt['study_kind'] == 'exploratory' and receipt['reference_admission'] == 'author_checked'
+            assert {run['repetition'] for run in runs} == {1, 2, 3, 4, 5}
+    assert counts == [4, 2, 10, 5]
+    chat = [payload for route, payload in calls if route == '/api/chat']
+    assert len(chat) == model_calls + 2  # Two separately archived unscored preflights.
+    manifests = list((root / 'adapter-evidence').glob('*/*/manifest.json'))
+    assert len(manifests) == 21
+    overall = json.loads((root / 'evidence-manifest.json').read_bytes())
+    assert all(hashlib.sha256((root / name).read_bytes()).hexdigest() == checksum
+               for name, checksum in overall['artifact_hashes'].items())

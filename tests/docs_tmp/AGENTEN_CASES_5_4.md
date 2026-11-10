@@ -1,5 +1,9 @@
 # §5.4: Installationsnachweis
 
+> Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
+> beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
+> Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
+
 Stand: 10. November 2026. Der Installationsweg ist implementiert und mit einem
 aus der Quelldistribution gebauten Wheel außerhalb des Checkouts geprüft.
 Die automatischen HTTP-Replays und die tatsächlichen Ollama-Versuche werden
@@ -9,7 +13,7 @@ Kalibrierungs- oder Pilotmessreihe.
 ## Lieferung und Wiederholung
 
 Das Wheel enthält das Beispielpaket `ollama_agents` aus
-`examples/ollama-agents/ollama_agents/`. Die Paketkonfiguration bindet diese
+`examples/ollama-agents/ollama_agents`. Die Paketkonfiguration bindet diese
 Quellen direkt ein; es gibt keine separat gepflegte Implementierungskopie.
 `cubie-bench init-ollama ZIEL` exportiert aus der Installation:
 
@@ -18,7 +22,7 @@ Quellen direkt ein; es gibt keine separat gepflegte Implementierungskopie.
 - ein Reviewer-Set mit konformem und fehlerhaftem Versandgrenzfall;
 - ein Developer-Set mit einer vollständigen Entwicklungsepisode;
 - Rohmetadaten des Providers, deren Hash und den installierten Wheel-Hash;
-- einen [eigenständigen Nutzungsleitfaden](../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md).
+- einen [eigenständigen Nutzungsleitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md).
 
 Die Prozesse bestätigen Modell-Digest, Provider-/Adapterversion, Prompt-Hash
 und Parameter im Handshake. Die Initialisierung erfasst zusätzlich Quantisierung
@@ -36,7 +40,7 @@ Python-/pytest-Pfade und führt die Installationstests außerhalb des Checkouts
 mit `-I` aus. Die Ollama-Cases werden erst im Profil `benchmarks` gestartet.
 Der lokale HTTP-Server ersetzt ausschließlich Ollama; Rollenprozesse,
 Dateiänderungen, pytest/EBT, Rot-/Grün-Beobachtung, Evaluatoren und Archive sind real.
-Es werden keine Repository-Fixtures oder Repository-`conftest.py` verwendet.
+Es werden keine Repository-Fixtures oder Repository-`tests/conftest.py` verwendet.
 
 ## Abnahmematrix
 
@@ -49,13 +53,13 @@ Es werden keine Repository-Fixtures oder Repository-`conftest.py` verwendet.
 | Veraltete Identität | `test_stale_identity_rejected_before_handshake` (2 Varianten) | Falscher Prompt-Hash oder falsche Adapterversion wird vor dem Handshake abgewiesen. |
 | Falsche Startphase | `test_wrong_first_phase_creates_no_archive` | Grün vor Testentwurf erzeugt keine Episode. |
 | Phasenzustand und Belege | `test_episode_shares_state_and_seals_on_completion_failure_or_eof` (3 Varianten) | Vollständige Folge, falsche Folge und EOF; Tests bleiben unverändert, Rot verbraucht null Tokens, Belege werden jeweils finalisiert. |
-| Konkrete Phasenrechte | `test_model_sees_test_directory_grant_and_actionable_path_correction` | Prompt nennt `tests/` und Abgabe nach fachlichem Rot; unerlaubter Root-Test erhält einen konkreten Korrekturhinweis und bleibt ungeschrieben. |
+| Konkrete Phasenrechte | `test_model_sees_test_directory_grant_and_actionable_path_correction` | Prompt nennt `..` und Abgabe nach fachlichem Rot; unerlaubter Root-Test erhält einen konkreten Korrekturhinweis und bleibt ungeschrieben. |
 | Ausführbares Dokumentationsbeispiel | `test_documented_ebt_example_produces_business_red_inside_a_test_function` | Das dem Modell gezeigte EBT-Beispiel wird für die sichtbare Aufgabe instanziiert und erzeugt fachliches Rot in zwei gesammelten Testfällen. |
 
 Die drei Wheel-Cases stehen in
-[`tests/wheel/ollama_agents_installed.py`](wheel/ollama_agents_installed.py),
+[`tests/wheel/ollama_agents_installed.py`](../wheel/ollama_agents_installed.py),
 neun Prozess-/Promptcases in
-[`tests/ollama_agents/developer/test_process.py`](ollama_agents/developer/test_process.py).
+[`tests/ollama_agents/developer/test_process.py`](../ollama_agents/developer/test_process.py).
 Mit den bisherigen 244 Offline-Cases bestehen **253 Agenten-Cases**.
 Zusätzlich bestanden die Benchmark-Regressionen (**541 bestanden, 2 übersprungen**).
 Ruff und MyPy für das Agentenbeispiel sind erfolgreich.
@@ -75,7 +79,7 @@ Die frühen Developer-Versuche sind ausdrücklich keine erfolgreichen Abnahmen:
 | Prompt | Ergebnis | Beobachtung |
 | --- | --- | --- |
 | `developer-v1` | `invalid_output`, 2 Modellaufrufe, 2023/806 Eingabe-/Ausgabetokens | Zweimal unerlaubter Root-Test `test_design.py`; keine Datei übernommen. |
-| `developer-v2` | `invalid_output`, 3 Modellaufrufe, 8809/656 Tokens | Neue Tests unter `tests/` erzeugen echtes fachliches Rot. Danach wurden Produktionscode und Nutzungshinweise noch im Testentwurf vorgeschlagen und korrekt abgewiesen. |
+| `developer-v2` | `invalid_output`, 3 Modellaufrufe, 8809/656 Tokens | Neue Tests unter `..` erzeugen echtes fachliches Rot. Danach wurden Produktionscode und Nutzungshinweise noch im Testentwurf vorgeschlagen und korrekt abgewiesen. |
 | `developer-v3` | `invalid_output`, 2 Modellaufrufe, 2742/342 Tokens | EBT-Assertions auf Modulebene verursachten einen Sammelfehler; die anschließende Abgabe ohne gültiges Rot wurde abgewiesen. |
 
 Der daraus entstandene `developer-v4` benennt die erlaubten Testpfade und die

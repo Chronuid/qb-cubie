@@ -2,7 +2,7 @@
 
 `qb_cubie.benchmarks` bietet die Datenverträge für Phase 10.1 und den
 installierbaren Offline-Durchstich aus Phase 10.2 und die Prozessanbindung aus Phase 10.3 des
-[Benchmark-Konzepts](BENCHMARK_KONZEPT.md#101-öffentliche-verträge-und-referenzen).
+[Benchmark-Konzepts](misc/BENCHMARK_KONZEPT.md#101-öffentliche-verträge-und-referenzen).
 Laden, Planen und Nachrichtenvalidierung benötigen keine zusätzlichen
 Abhängigkeiten und führen keinen Szenariocode aus. CLI und Runner sind ebenfalls
 installierbar; für die pytest-Unterprozesse wird das Extra `benchmarks` benötigt.
@@ -79,7 +79,7 @@ Die Agentenkonfiguration verwendet `command = ["builtin:fake"]`. Im Abschnitt
 `[fake]` kann `behavior = "reference"` durch `"mutant"` mit
 `mutant = "wrong-return"` ersetzt werden. Die unabhängige Abnahme muss dann
 `returns_none` ablehnen. Weitere Gegenproben beschreibt der
-[Abnahmevertrag](../tests/BENCHMARK_CASES_10_2.md#deterministische-gegenproben-des-fake-adapters).
+[Abnahmevertrag](../tests/docs_tmp/BENCHMARK_CASES_10_2.md#deterministische-gegenproben-des-fake-adapters).
 
 Die Cubie-Bedingung führt echte EBT-Agententests und RBT mit aufzeichnendem
 Reporter aus. `cubie-vs-pytest` kann dieselben deterministischen Abgaben auch mit
