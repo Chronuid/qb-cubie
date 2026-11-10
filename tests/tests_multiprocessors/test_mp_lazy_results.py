@@ -1,6 +1,7 @@
 """EBT regressions for consuming mapper results within the managed lifecycle."""
 
 import warnings
+from concurrent.futures.process import BrokenProcessPool
 
 import pytest
 
@@ -34,7 +35,7 @@ class LazyResultMapper:
     def _results(self, fn, iterables):
         for index, args in enumerate(zip(*iterables)):
             if index == self.fail_at:
-                raise RuntimeError("deferred mapper failure")
+                raise BrokenProcessPool("deferred mapper failure")
             result = fn(*args)
             self.events.append(("yield", index, self.active))
             yield result
@@ -121,7 +122,7 @@ def test_ebt_rejects_empty_input_before_mapper_setup():
 
 @pytest.mark.parametrize("fail_at", [0, 1], ids=["first-result", "after-partial-result"])
 def test_ebt_retries_with_fallback_after_lazy_result_failure(fail_at, recwarn):
-    """Deferred errors trigger fallback; partial results do not leak or duplicate."""
+    """Deferred pool loss triggers fallback; partial results do not leak."""
     failed = LazyResultProcessor(priority=100, fail_at=fail_at)
     fallback = LazyResultProcessor(priority=10)
     values = [" A ", " B ", " C "]

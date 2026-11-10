@@ -144,6 +144,10 @@ class Reporter[ResultT](Protocol):
 class Mapper(typing.ContextManager['Mapper'], Protocol):
     """
     The execution interface of the multiprocessor protocol, which also manages its own lifecycle.
+
+    Call the supplied function and preserve its exceptions across transport.
+    Do not suppress task errors or replace them with backend failures. EBT
+    ignores exception suppression from __exit__ to avoid successful empty runs.
     """
     def map(self, fn: Callable, *iterables: Iterable) -> Iterable[Any]: ...
 

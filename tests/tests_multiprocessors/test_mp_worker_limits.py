@@ -288,10 +288,7 @@ def test_explicit_limit_is_not_silently_ignored_by_legacy_processor(executors):
                  multiprocessing=True, max_workers=2)
     engine.MULTIPROCESSORS = [LegacyProcessor()]
 
-    with (
-        pytest.warns(UserWarning, match="max_workers"),
-        pytest.raises(RuntimeError, match="All Processors failed"),
-    ):
+    with pytest.raises(TypeError, match="max_workers"):
         engine.run()
 
     assert executors == []

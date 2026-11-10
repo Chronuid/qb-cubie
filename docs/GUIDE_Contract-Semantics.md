@@ -131,9 +131,31 @@ Proxies eines `multiprocessing.Manager`, etwa Events oder Barrieren in Argumente
 
 Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre eigenen Seiteneffekte, externe Ressourcen und bereits mutierte Target-Argumente werden zwischen Läufen nicht zurückgesetzt. Gleichzeitige `.run()`-Aufrufe auf derselben Instanz werden nicht unterstützt.
 
+## Backend-Fallback und Wiederholungen
+
+Bei Multiprocessing werden Task-Ausnahmen einschließlich Target-, Arena- und
+Prüffehlern ohne Backendwechsel weitergegeben. Das gilt auch dann, wenn ihr Typ
+einem Infrastrukturfehler entspricht. Konfigurationsfehler und Aufräumfehler
+lösen ebenfalls keine Wiederholung aus.
+
+Ein Fallback ist bei `OSError` oder `BrokenProcessPool` während des Poolaufbaus
+sowie bei `BrokenProcessPool` oder `pickle.PicklingError` aus Mapping oder
+Ergebnistransport zulässig. Der fehlgeschlagene Prozessor wird deaktiviert.
+Ein weiteres geeignetes Backend führt **alle Eingänge erneut** aus; partielle
+Ergebnisse werden verworfen. Die Warnung dokumentiert vollständige Wiederholung
+und mögliche doppelte Seiteneffekte. Es gibt kein Rollback und keine
+Exactly-once-Garantie. Bereits gestartete Tasks können vor dem Backendwechsel
+noch fertiglaufen. Tatsächlicher Prozessverlust lässt seine Ursache im Target
+nicht zuverlässig erkennen.
+
+Sind alle geeigneten Backends ausgefallen, bleibt die letzte Infrastruktur-
+Ausnahme als Ursache des abschließenden `RuntimeError` erhalten. Details für
+eigene Mapper und die Anforderungen an den Exception-Transport stehen im
+[Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+
 ## Bekannte Abweichungen und praktische Folgen
 
-- Multiprocessing-Fallback kann nach Ausführungsfehlern die gesamte Aufgabenmenge erneut ausführen und Seiteneffekte wiederholen. Die Workerzahl richtet sich nach den gemeldeten CPUs; zusätzliche Arena-Prozesse und pytest-xdist können die Last vervielfachen.
+- Zusätzliche Arena-Prozesse und pytest-xdist können die Last mehrerer Pools vervielfachen; `max_workers` begrenzt nur den jeweiligen EBT-Pool.
 - Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Der MyPy-Adapter akzeptiert nur die Exitcodes 0 und 1; alle anderen Prozessrückgaben lösen einen `RuntimeError` mit Exitcode, Befehl und Prozessausgaben aus. `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 
 Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Handhabung begrenzt einzelne Fehlanwendungen, macht Cubie aber nicht zu einer allgemein verlässlichen Qualitätsinstanz.

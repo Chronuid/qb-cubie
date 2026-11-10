@@ -21,7 +21,7 @@ Das `multiprocessors`-Modul ist die Architektur-Ebene hinter der parallelen Skal
 * **Abstrakte Parallelisierung:** Verteilung von $N$ unabhängigen `pre`-Zuständen auf asynchrone System-Worker, ohne die Makro-Pipeline der `EBT`-Engine mit Threading- oder Subprocess-Logik zu belasten.
 * **Auto-Routing (State Inspection):** Dynamische Analyse der übergebenen Zustände zur Laufzeit, um die Serialisierungs-Strategie zu wählen (z.B. Wechsel auf `cloudpickle`, sobald unpickelbare `lambda`-Funktionen entdeckt werden).
 * **Dependency Injection (DI) Bereitstellung:** Öffnung der Ausführungsschicht durch Protokolle, sodass Entwickler das Standard-Verhalten durch eigene Backends (wie `Celery`, `Ray` oder `joblib`) personalisieren können.
-* **Backend-Fallback:** Bei Setup- und Ausführungsfehlern kann der Manager das Backend deaktivieren und die Aufgabenmenge mit einem anderen Backend erneut ausführen. Fachliche Target-Ausnahmen sind dabei nicht zuverlässig von Infrastrukturfehlern getrennt; bereits ausgeführte Seiteneffekte können wiederholt werden.
+* **Backend-Fallback:** Nur definierte Infrastrukturfehler erlauben einen Backendwechsel. Target- und Konfigurationsfehler propagieren ohne Wiederholung. Bei einem zulässigen Fallback kann die gesamte Aufgabenmenge erneut laufen; die Warnung benennt mögliche doppelte Seiteneffekte.
 
 ---
 
@@ -43,12 +43,12 @@ Die operative Ausführung ist in drei logische Instanzen unterteilt:
 
 Der `MultiprocessManager` ist das **Zentrum der Ausführung** und arbeitet intern als fehlertoleranter Zustandsautomat. Er wird in der `_validate_multiprocess`-Phase der `EBT`-Klasse aufgerufen und zirkuliert so lange durch vier feste Zustände, bis ein finales Ergebnis (`SUCCESS`) oder ein absoluter Fehlschlag (`FAIL`) erreicht wird:
 
-1. **INITIAL:** Setzt den Ausführungskontext (`ctx`), alte Instanzen und Fehler-Logs zurück.
+1. **INITIAL:** Setzt Prozessor, Runner und Teilergebnis zurück. Die letzte Infrastruktur-Ausnahme bleibt für einen abschließenden Fehlerbericht erhalten.
 2. **RESOLVE:** Beauftragt den `Resolver`, den am höchsten priorisierten und geeigneten Prozessor aus der Registry zu ermitteln.
 3. **SETUP:** Instanziiert den `Runner` über den gewählten Prozessor.
 4. **EXECUTE:** Führt die physische Multiprocessing-Last aus.
 
-**Self-Healing:** Stürzt ein Prozessor in der `SETUP`- oder `EXECUTE`-Phase ab, fängt der Manager den Crash ab (`_degrade_and_warn`). Er warnt den Entwickler, setzt die `priority` des verursachenden Prozessors in der lokalen Registry auf `0` und erzwingt einen Rücksprung in den Zustand `INITIAL`. Die FSM weicht somit völlig autonom auf die verbleibende Chain-of-Responsibility aus.
+**Begrenzter Fallback:** Der Runner unterscheidet Fehler beim Poolaufbau, der Aufgabenbearbeitung und dem Aufräumen. Nur als Infrastrukturfehler klassifizierte Ausnahmen erreichen die Fallback-Behandlung des Managers. Dieser warnt, setzt die `priority` des Prozessors in der Registry auf `0` und kehrt nach `INITIAL` zurück. Gibt es kein geeignetes Ersatzbackend, endet der Lauf mit `RuntimeError("STATE-GUARD: All Processors failed")`; dessen Ursache ist die letzte Infrastruktur-Ausnahme. Fehler aus `check_condition()` propagieren direkt.
 
 ### Resolver
 
@@ -60,7 +60,41 @@ Der `MultiprocessResolver` ist eine **zustandslose Logik-Maschine**. Er erhält 
 
 ### Runner
 
-Der `MultiprocessRunner` ist der **Arbeiter**. Er instanziiert den vom Resolver gelieferten `Mapper` über das ContextManager-Protokoll (`with ... as mapper:`) und delegiert die Target-Ausführung an ihn.
+Der `MultiprocessRunner` ist der **Arbeiter**. Er instanziiert den vom Resolver gelieferten `Mapper` und verwaltet dessen ContextManager-Lebenszyklus (`__enter__` / `__exit__`).
+
+### Fehlerherkunft und Wiederholungssemantik
+
+| Herkunft / Phase | Verhalten |
+| --- | --- |
+| Factory oder Context-Eintritt: `OSError` oder `BrokenProcessPool` | Infrastruktur-Fallback zulässig |
+| `map()` oder Ergebnisiterator: `BrokenProcessPool` oder `pickle.PicklingError` außerhalb des Task-Aufrufs | Infrastruktur-Fallback zulässig |
+| Ausnahme innerhalb des Tasks, einschließlich Target, Arena und Ergebnisprüfung | Ursprüngliche Ausnahme weitergeben, ohne Fallback; auch bei `OSError`, `PicklingError` oder `BrokenProcessPool` |
+| Andere Backend-, Konfigurations- oder Hook-Fehler | Direkt weitergeben, ohne Fallback |
+| Aufräumfehler nach abgeschlossener Verarbeitung | Direkt weitergeben, ohne Wiederholung |
+| Aufräumfehler während eines anderen Fehlers | Primäre Ausnahme erhalten, Aufräumfehler als Notiz ergänzen; kein Fallback |
+
+Ein interner, serialisierbarer Task-Wrapper markiert die Herkunft einer Ausnahme.
+Der Elternprozess entpackt sie vor dem Context-Austritt; bei echten Workern bleibt
+der vom Executor gelieferte entfernte Traceback als Ursache verfügbar. Kann eine
+Task-Ausnahme nicht serialisiert oder rekonstruiert werden, wird ein beschreibender
+`RuntimeError` mit ursprünglichem Typ und Meldung ohne Fallback ausgegeben.
+Eigene Mapper müssen den übergebenen Task aufrufen und dessen Ausnahmen unverändert
+transportieren. Sie dürfen sie weder verschlucken noch als Backendfehler ersetzen.
+Der Runner unterdrückt Ausnahmen auch dann nicht, wenn `__exit__` einen wahren Wert liefert.
+
+Bei einem zulässigen Fallback werden partielle Ergebnisse verworfen und **alle
+Eingänge erneut ausgeführt**, sofern ein weiteres geeignetes Backend existiert.
+Die Standard-Mapper warten beim Context-Austritt auf bereits laufende Aufgaben. Ein fehlendes
+Ergebnis beweist nicht, dass der zugehörige Task noch nicht lief. Die Warnung nennt
+deshalb vollständige Wiederholung und mögliche **doppelte Seiteneffekte** auch dann,
+wenn noch kein Ergebnis empfangen wurde. Es gibt weder Rollback noch eine
+Exactly-once-Garantie; Targets mit Datei-, Netzwerk- oder Datenbankeffekten müssen
+Wiederholungen entsprechend vertragen. Das Workerlimit bleibt beim Wechsel erhalten.
+
+Die Auswahl prüft weiterhin nur die Zustände heuristisch. Allgemeine `AttributeError`
+oder `TypeError` werden auch bei vermuteten Serialisierungsproblemen nicht pauschal
+zu Fallback-Signalen. Ein tatsächlich verlorener Worker gilt als Infrastrukturfehler;
+der Manager kann nicht feststellen, ob ein Target den Prozess absichtlich beendet hat.
 
 ---
 
@@ -70,7 +104,7 @@ Der `MultiprocessRunner` ist der **Arbeiter**. Er instanziiert den vom Resolver 
 Dieses Protokoll (definiert in `protocols.py`) ist der verbindliche Vertrag für alle Parallelisierungs-Strategien. Ein valider Prozessor benötigt:
 * `priority: int`: Bestimmt die Rangfolge im Resolver.
 * `@staticmethod check_condition(pre_states, post_states) -> bool`: Entscheidet, ob der Prozessor den aktuellen Datenfluss handhaben kann.
-* `@staticmethod create_handler(n_tasks: int, *, max_workers: int | None = None) -> Mapper`: Liefert einen ContextManager mit `.map()` und berücksichtigt ein gesetztes Workerlimit. Der Manager reicht das Limit auch bei einem Backend-Fallback weiter. Ohne explizites Limit ruft der Runner die Factory nur mit `n_tasks` auf; bisherige eigene Prozessoren bleiben so nutzbar. Bei einem expliziten Limit müssen sie das Schlüsselwort unterstützen und die Grenze einhalten. Eine fehlende Unterstützung löst den bestehenden Backend-Fallback aus; das Limit wird dabei nicht verworfen.
+* `@staticmethod create_handler(n_tasks: int, *, max_workers: int | None = None) -> Mapper`: Liefert einen ContextManager mit `.map()` und berücksichtigt ein gesetztes Workerlimit. Der Manager reicht das Limit auch bei einem Backend-Fallback weiter. Ohne explizites Limit ruft der Runner die Factory nur mit `n_tasks` auf; bisherige eigene Prozessoren bleiben so nutzbar. Bei einem expliziten Limit müssen sie das Schlüsselwort unterstützen und die Grenze einhalten. Eine fehlende Unterstützung propagiert als `TypeError` ohne Fallback; das Limit wird nicht verworfen.
 
 ### PickleProcessor
 Der **Fast-Path** der Cubie-Engine (Priority `1`). 

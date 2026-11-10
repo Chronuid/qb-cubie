@@ -1,5 +1,7 @@
 from src.qb_cubie.ebt import *
 import pytest
+import errno
+from concurrent.futures.process import BrokenProcessPool
 from typing import Callable, Iterable, Any
 class MockTriggeredSignal(BaseException): pass
 
@@ -15,7 +17,7 @@ class GracefulMockProcessor:
         return self.triggers
 
     def create_handler(self, n_tasks: int):
-        if self.crash_at == "SETUP": raise ValueError(f"CRASH_SETUP_{self.mock_id}")
+        if self.crash_at == "SETUP": raise OSError(errno.EMFILE, f"CRASH_SETUP_{self.mock_id}")
         class GracefulMapper:
             def __init__(self, spy_id: str, crash: str):
                 self.spy_id = spy_id
@@ -23,7 +25,7 @@ class GracefulMockProcessor:
             def __enter__(self): return self
             def __exit__(self, exc_type, exc_val, exc_tb): pass
             def map(self, fn: Callable, *iterables: Iterable, chunksize: int = 1) -> Iterable[Any]:
-                if self.crash == "EXECUTE": raise RuntimeError(f"CRASH_EXECUTE_{self.spy_id}")
+                if self.crash == "EXECUTE": raise BrokenProcessPool(f"CRASH_EXECUTE_{self.spy_id}")
                 raise MockTriggeredSignal(f"WINNER:{self.spy_id}")
         return GracefulMapper(self.mock_id, self.crash_at)
 

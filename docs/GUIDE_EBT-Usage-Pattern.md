@@ -80,6 +80,16 @@ def test_normalize_parallel():
 
 Pickle und Loky verwenden hier höchstens zwei Worker, zusätzlich begrenzt durch die gemeldeten CPUs und die Anzahl der Eingänge. Ohne `max_workers` oder mit `None` gelten nur CPU- und Aufgabengrenze. `max_workers` muss eine positive Ganzzahl sein; `True` und `False` sind nicht zulässig. Bei unbekannter CPU-Zahl wird ein Worker verwendet. Ein Worker führt die Aufgaben weiterhin im Kindprozess aus. Die Grenze gilt je EBT-Instanz; bei pytest-xdist können mehrere solcher Pools gleichzeitig laufen. Bei `multiprocessing=False` wird kein Pool angelegt.
 
+Target-Ausnahmen werden ohne Backendwechsel weitergegeben. Nur geeignete
+Infrastrukturfehler erlauben einen Fallback auf ein weiteres geeignetes Backend.
+Dabei kann die **gesamte Eingangsliste erneut laufen**, einschließlich bereits
+ausgeführter Aufgaben. Die Warnung weist auf mögliche doppelte Seiteneffekte hin;
+Datei-, Netzwerk- und Datenbankoperationen werden nicht zurückgerollt. Das
+Workerlimit gilt auch im Ersatzbackend. Fehler beim Aufräumen oder bei der
+Konfiguration lösen keine Wiederholung aus. Die genaue Fehlerklassifikation und
+den Vertrag für eigene Backends beschreibt das
+[Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+
 ## Erlaubte und verbotene Ergebnisse
 
 ```python
