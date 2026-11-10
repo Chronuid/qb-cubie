@@ -12,7 +12,7 @@ from qb_cubie.benchmarks.planning._planning import _identity
 from qb_cubie.benchmarks.reporting._files import copy_tree, inventory, write_json
 
 
-def prepare(path, plan):
+def prepare(path, plan, *, probe_agents=True):
     """Validate executable suite inputs before creating run artifacts."""
     suite = v.read_data(path, toml=True)
     agents = _agents(path.parent, suite)
@@ -21,7 +21,8 @@ def prepare(path, plan):
     _layout(plan, scenarios)
     for run in plan["runs"]:
         _executable(run, agents[run["agent_id"]], scenarios[run["scenario_id"]])
-    _probe(agents, plan)
+    if probe_agents:
+        _probe(agents, plan)
     return {"suite": path, "agents": agents, "packages": list(dict.fromkeys(packages))}
 
 

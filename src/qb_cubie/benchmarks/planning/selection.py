@@ -8,14 +8,26 @@ FIELDS = {"ids", "exclude_ids", "benchmarks", "splits", "types_any", "types_all"
 
 def select_scenarios(scenarios, filters):
     """Return the selected scenarios once each in dependency order."""
+    _filters(scenarios, filters)
+    chosen = {s["qualified_id"]: s for s in scenarios if _matches(s, filters)}
+    v.require(bool(chosen), "selection", "empty selection")
+    return _order(chosen)
+
+
+def select_runs(runs, filters):
+    """Apply scenario filters to expanded attempts without deduplicating trials."""
+    scenarios = [{**run, "qualified_id": run["scenario_id"]} for run in runs]
+    _filters(scenarios, filters)
+    return [run for run, scenario in zip(runs, scenarios, strict=True) if _matches(scenario, filters)]
+
+
+def _filters(scenarios, filters):
+    """Validate the shared set and gate filter vocabulary."""
     v.mapping(filters, "select")
     v.require(set(filters) <= FIELDS, "select", f"unknown filters: {sorted(set(filters) - FIELDS)}")
     for field, values in filters.items():
         v.strings(values, field, nonempty=True)
         _known(scenarios, field, values)
-    chosen = {s["qualified_id"]: s for s in scenarios if _matches(s, filters)}
-    v.require(bool(chosen), "selection", "empty selection")
-    return _order(chosen)
 
 
 def _known(scenarios, field, values):

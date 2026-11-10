@@ -15,8 +15,24 @@ def read_archive(path):
     hashes = _hashes(root, manifest)
     _plan(root, manifest, result)
     _inputs(root, manifest, hashes)
+    _measurement(root, manifest)
     _evidence(root, hashes, result)
     return result
+
+
+def _measurement(root, manifest):
+    """Bind frozen measurement contents and trial semantics to the result manifest."""
+    from qb_cubie.benchmarks.measurement._bundle import portable, verify
+    checksum = manifest.get("measurement_sha256")
+    paths = manifest["inputs"].get("measurement")
+    v.require((checksum is None) == (paths is None), "measurement", "incomplete measurement provenance")
+    if paths is None:
+        return
+    v.require(len(paths) == 1, "measurement", "expected one frozen manifest")
+    path = v.contained(root, paths[0], "measurement")
+    v.require(digest(path) == checksum, "measurement.hash", "frozen manifest differs from measurement identity")
+    frozen = verify(path.parent)
+    v.require(portable(manifest["plan"]) == frozen["plan"], "measurement.plan", "execution differs from frozen plan")
 
 
 def _hashes(root, manifest):

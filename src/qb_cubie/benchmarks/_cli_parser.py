@@ -35,3 +35,14 @@ def comparison(commands):
     parser.add_argument("--after-agent")
     pilot = commands.add_parser("summarize-pilot", help="Summarize verified pilot archives without rerunning agents")
     pilot.add_argument("archives", nargs="+")
+
+
+def measurements(commands):
+    """Add portable freeze, frozen execution and read-only gate inspection commands."""
+    freeze = commands.add_parser("freeze", help="Freeze a suite and its local inputs without starting an agent")
+    freeze.add_argument("--suite", required=True)
+    freeze.add_argument("--destination", required=True)
+    run = commands.add_parser("run-frozen", help="Execute a verified frozen measurement bundle")
+    run.add_argument("bundle")
+    run.add_argument("--output", required=True)
+    commands.add_parser("evaluate-gates", help="Recompute gates from verified archived evidence").add_argument("archive")

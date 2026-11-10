@@ -360,3 +360,193 @@ die Übereinstimmung mit der Konfiguration beweist keinen tatsächlichen
 Provideraufruf. Der Bericht nennt diese Grenze ausdrücklich. Archivieren Sie
 zusätzliche Providerbelege in Ihrem Versuchsaufbau, soweit verfügbar. Die
 mitgelieferten deterministischen Beispiele liefern keine Modellleistungsnachweise.
+
+## Messbetrieb: Gates, eingefrorene Konfiguration und CI
+
+Ein Team kann einen einzelnen Agenten regelmäßig mit seinem eigenen Set prüfen.
+Ein zweiter Agent oder ein Cubie-/pytest-Vergleich ist dafür nicht erforderlich.
+Der Plan legt Aufgaben, Bedingungen, Wiederholungen, Reihenfolge und Budgets
+fest. `run` und `run-frozen` unterscheiden vollständige Ausführung und
+erreichte Qualitätsgrenzen.
+
+### Qualitätsgrenzen im Set
+
+Ergänzen Sie eine oder mehrere Gate-Tabellen in Ihrer Suite:
+
+```toml
+[[gates]]
+id = "shipping-quality"
+metric = "quality_pass_rate"
+operator = "gte"
+threshold = 1.0
+select.types_any = ["shop/shipping"]
+
+[[gates]]
+id = "developer-process"
+metric = "process_pass_rate"
+operator = "gte"
+threshold = 1.0
+select.benchmarks = ["developer_agent"]
+```
+
+`select` verwendet dieselben Typ-, Tag-, ID- und Splitfilter wie die Suite.
+Ein Gate betrachtet nur bereits geplante Versuche. Mehrfachtypen vervielfachen
+keine Beobachtung. Prozessgates betrachten Developer-Versuche; ihre Population
+darf nicht leer sein. Unbekannte Metriken, unzulässige Schwellen, doppelte IDs
+und leere Populationen werden schon vor einem Fähigkeiten-Handshake abgelehnt.
+
+Unterstützt sind `quality_pass_rate`, `process_pass_rate`, `precision`, `recall`
+und `cost`, jeweils mit `gte` oder `lte` einschließlich Gleichheit.
+Raten liegen zwischen null und eins. Präzision und Recall werden als Mittel
+der gewählten kompatiblen Einzelbeobachtungen geprüft; die familiengewichtete
+Pilotzusammenfassung bleibt eine gesonderte Auswertung. Kosten sind die Summe
+der gewählten Kostenangaben, deren Einheit Ihr Adapter konsistent halten muss.
+Ein Kostengate bewertet archivierte Kosten; es setzt keine harte
+Ausgabengrenze beim Provider durch. Der lokale Runner setzt Laufzeit und seine
+eigenen Werkzeugaufrufe durch; harte Token- oder Providerkostenlimits werden
+weiterhin nicht unterstützt.
+
+Alle Pflichtwerte müssen vorhanden und abgeschlossen bewertet sein. Fehlende
+Versuche, Timeouts, offene Nachbewertungen und undefinierte Metriken bestehen
+kein Gate. Eine fehlende Präzision ist nicht eins und eine unbekannte
+Kostenangabe ist nicht null. Ohne Gates bleibt ein vollständig ausgeführter
+Lauf reine Berichterstattung und erhält keine automatische Qualitätsfreigabe.
+
+`results.json` enthält `gate_evaluation` mit `execution_complete`, `gate_status`
+und den einzelnen Gates samt Istwert, Grund, Beobachtungszahlen und Belegen.
+`report.md` erklärt dieselben Entscheidungen mit relativen Links.
+Eine bestehende Messung lässt sich schreibgeschützt erneut prüfen:
+
+```bash
+cubie-bench evaluate-gates results/LAUF-ID --format json
+```
+
+Der CLI-Exitcode ist **0** bei vollständiger Ausführung mit bestandenen oder
+nicht konfigurierten Gates, **2** bei Konfigurationsfehlern, **3** bei
+unvollständiger/fehlerhafter Ausführung und **4** bei vollständiger Ausführung
+mit verfehlten Gates. Code 3 hat Vorrang vor Code 4. Daher kann die CI Qualität
+und Laufprobleme getrennt behandeln und trotzdem in beiden Fällen Belege sichern.
+
+### Konfiguration vor der Messung einfrieren
+
+```bash
+cubie-bench plan --suite sets/team.toml --format json
+cubie-bench freeze --suite sets/team.toml --destination frozen/team --format json
+cubie-bench run-frozen frozen/team --output results/team --format json
+```
+
+`freeze` führt weder Agenten noch Fähigkeiten-Handshakes aus. Das neue Bundle
+enthält Aufgaben, sichtbare Quellen, Evaluatorreferenzen, Herkunftskataloge,
+Agentenkonfigurationen und lokal referenzierte Adapterdateien. Zusätzliche
+lokale Helfermodule oder Ressourcen werden im Agenten-TOML ausdrücklich mit
+`adapter_files = ["helpers", "settings.json"]` angegeben. Die Pfade beziehen
+sich auf `cwd`; sie müssen darin bleiben und dürfen keine Symlinks sein.
+Nur ausdrücklich referenzierte Dateien werden übernommen. Geben Sie dort
+keine Zugangsdaten oder geheimen Konfigurationsdateien an. Interpreter,
+installierte Adapterpakete und weitere externe Dienste werden durch die
+bereitgestellte Laufumgebung bestimmt.
+Ein Adapteraufruf über Cubies eigenen Python-Interpreter wird dabei auf den
+bereitgestellten Laufzeit-Interpreter umgestellt; sein ursprünglicher absoluter
+Hostpfad wird nicht als Voraussetzung in das Bundle übernommen.
+
+Das Manifest `measurement.json` bindet die Dateiinhalte und ihre Modi,
+den aufgelösten Plan einschließlich Seed, Budgets und Gates sowie die
+Laufumgebung. Die Ausgabe von `freeze` enthält `measurement_sha256`, den Hash
+dieses Manifests. Derselbe Eingabestand erzeugt unabhängig vom Zielverzeichnis
+dieselbe Identität. Ein bestehendes Bundle wird nicht überschrieben.
+Zusätzliche, fehlende oder veränderte Dateien verhindern den späteren Start.
+
+Das Bundle kann verschoben und ohne die Originaleingaben ausgeführt werden.
+`run-frozen` arbeitet mit temporären Kopien; Ergebnisse dürfen nicht in das
+Bundle geschrieben werden. Jeder Lauf erhält ein eigenes Ergebnisverzeichnis.
+Das vollständige Bundle wird darin unter `measurement/` archiviert und das
+Laufmanifest bindet dessen Identität. Vergleich, Gateprüfung und Pilotbericht
+prüfen diese Bindung erneut. Hashes ermöglichen Nachprüfung, sind aber keine
+Signatur eines fremden Herausgebers.
+
+Python-Version, Cubie-Quellcodefingerprint und ein bekannter Wheel-Hash müssen
+zur Laufumgebung passen. Beim Quellcheckout kann `wheel_sha256` unbekannt sein.
+`dependency_lock_sha256` bleibt derzeit ausdrücklich unbekannt; das Bundle
+provisioniert keine Abhängigkeiten. Installieren Sie diese in Ihrer CI mit
+einem vorab festgelegten Lockfile oder Image. Ein Seed fixiert die Planung,
+nicht die Antworten externer Modelle.
+
+### Eigener CI-Messjob
+
+Der Repository-Workflow `.github/workflows/benchmarks.yml` wird ausdrücklich
+per `workflow_dispatch` gestartet, getrennt von Push- und Pull-Request-Tests.
+Er erwartet ein zuvor bereitgestelltes Artefakt aus demselben Repository und
+den vorab geprüften `measurement_sha256`. Verpacken Sie das Bundle als Tar,
+damit beim Artefakttransport Dateimodi erhalten bleiben:
+
+```bash
+tar -cf measurement.tar -C frozen/team .
+```
+
+Stellen Sie `measurement.tar` über einen eigenen Provisionierungsjob als
+GitHub-Artefakt bereit. Beim manuellen Start wählen Sie dessen Lauf-ID,
+Artefaktname und Manifest-Hash. Der Messjob stellt die eingefrorene
+Python-Version bereit, installiert die gesperrten Entwicklungsabhängigkeiten
+und startet `run-frozen` mit einem expliziten Ergebnisziel. Der Checkout muss
+dem eingefrorenen Cubie-Quellstand entsprechen. Bei einem aus einem Wheel
+erzeugten Bundle geben Sie zusätzlich `wheel_artifact_name` an: ein Artefakt
+aus demselben Provisionierungslauf mit genau diesem Wheel. Der Job prüft den
+Wheel-Hash und installiert es ohne erneute Abhängigkeitsauflösung.
+Provideranbindung und benötigte Dienste provisionieren Sie in Ihrer
+vertrauenswürdigen Messumgebung; sie gehören nicht als Zugangsdaten in das
+Bundle. Der Job hat ein Zeitlimit von 60 Minuten. Planen Sie Laufbudgets so,
+dass anschließend Zeit für die Archivierung bleibt.
+
+Ein `always()`-Upload bewahrt Rohdaten, Berichte und eingefrorene Konfiguration
+auch bei einem Gatefehlschlag oder abgebrochenen Lauf. Der Exitcode wird nicht
+unterdrückt. Die Belege liegen in `benchmark-evidence.tar`, damit auch beim
+Download ihre für die Integritätsprüfung relevanten Dateimodi erhalten bleiben.
+Das Archiv enthält außerdem Checkout-Commit, Lockfile und gegebenenfalls das
+bereitgestellte Wheel. Für eine andere CI gelten dieselben Schritte: geprüften Stand
+bereitstellen, Umgebung fixieren, Bundle prüfen und ausführen, Belege auch bei
+Fehlern sichern. Der lokale Runner setzt weiterhin vertrauenswürdige Agenten
+und Evaluatoren voraus; Containerisolation gemäß Konzeptabschnitt 7.3 bleibt
+gesonderte Infrastruktur.
+
+Die echte pytest-Ausführung bleibt ausdrücklich freizuschalten:
+
+```bash
+python -m pytest tests/benchmarks -m agent_benchmark \
+  --run-agent-benchmarks --suite sets/team.toml
+```
+
+Im Cubie-Repository ist das Plugin bereits eingebunden. Für eigene Tests laden
+Sie `-p qb_cubie.benchmarks.pytest_plugin` und markieren die Episoden mit
+`agent_benchmark`, zusätzlich optional `review_agent` oder `developer_agent`.
+Ohne Freischaltung werden sie übersprungen, auch bei einer Markerwahl.
+Sammlung startet keinen Adapter. Bei tatsächlicher Freischaltung führen eine
+fehlende Suite oder ein nicht verfügbarer Adapter zum pytest-Nutzungsfehler
+(pytest-Exitcode 4). Die optionale Fixture `agent_benchmark_result` führt das
+konfigurierte Set einmal je pytest-Sitzung aus.
+
+### Zurückgehaltene Aufgaben und Produktmessung
+
+Eigene zurückgehaltene Pakete werden separat versioniert und erst zur Messung
+bereitgestellt. Ihr Herkunftskatalog deklariert
+`publication_status = "held_out"`; die Szenarien haben `split = "held_out"`.
+Herkunft, Lizenz, Entwurfsgruppe und `potentially_known` bleiben explizit.
+Der Katalog geht in Paketidentität, eingefrorene Konfiguration und Archiv ein.
+Der Agent erhält den sichtbaren Auftrag und Quellen; Referenzen, Mutanten und
+zusätzliche Testdaten bleiben beim Evaluator. Diese Exporttrennung ist keine
+OS-Sicherheitsgrenze gegenüber einem bösartigen lokalen Agenten.
+
+Veröffentlichte Basisfälle bleiben potenziell bekanntes Entwicklungsmaterial.
+Eine bloße Änderung ihres Splits macht sie nicht zu ungesehenen Messfällen.
+Auch eine Deklaration `potentially_known = false` beweist keine Unbekanntheit.
+Die mitgelieferten Testfixtures simulieren diese Metadaten und veröffentlichen
+keinen tatsächlichen privaten Messdatensatz.
+
+Für eine bestätigende Produktmessung folgen auf unabhängige menschliche
+Referenzaufnahme und einen realen Pilot vorab festgelegte primäre Kennzahlen,
+ein praktisch relevanter Mindestvorteil beim Aufwand und eine tolerierte
+Qualitätsabweichung. Diese Festlegungen werden vor Sichtung neuer
+zurückgehaltener Ergebnisse eingefroren. Qualität, Prozess und Aufwand bleiben
+getrennt; Wiederholungen erhöhen nicht die Zahl unabhängiger Projekte.
+Ein grünes Team-Gate oder ein deterministischer Fake-Lauf ersetzt diesen
+Produktnachweis nicht. Die Grenzen und offenen methodischen Abnahmen aus dem
+Benchmark-Konzept gelten weiter.

@@ -9,21 +9,28 @@ from qb_cubie.benchmarks.reporting._files import (
     wheel_hash,
     write_json,
 )
+from qb_cubie.benchmarks.reporting.gates import assess, render
 
 
-def save(root, plan, inputs, runs):
+def save(root, plan, inputs, runs, metadata=None):
     """Persist results, linked evidence and the resolved run manifest."""
-    result = {"schema_version": 1, "run_id": root.name, "output": str(root), "runs": runs}
+    result = {"schema_version": 1, "run_id": root.name, "output": str(root), "runs": runs,
+              "gate_evaluation": assess(plan, runs)}
     write_json(root / "results.json", result)
     _report(root / "report.md", result)
-    manifest = {"schema_version": 1, "run_id": root.name, "plan": plan, "inputs": inputs,
+    manifest = _manifest(root, plan, inputs, runs)
+    write_json(root / "manifest.json", {**manifest, **(metadata or {})})
+    return result
+
+
+def _manifest(root, plan, inputs, runs):
+    """Bind archived inputs and generated reports to the resolved execution plan."""
+    return {"schema_version": 1, "run_id": root.name, "plan": plan, "inputs": inputs,
                 "started_at": min(run["started_at"] for run in runs), "finished_at": max(run["finished_at"] for run in runs),
                 "suite_sha256": digest(root / inputs["suite"][0]),
                 "resolved_plan_sha256": digest(root / inputs["plan"][0]),
                 "python_version": platform.python_version(), "wheel_sha256": wheel_hash(),
                 "artifact_hashes": inventory(root)}
-    write_json(root / "manifest.json", manifest)
-    return result
 
 
 def _report(path, result):
@@ -33,6 +40,7 @@ def _report(path, result):
              "[Manifest](manifest.json) · [JSON results](results.json)", ""]
     for run in result["runs"]:
         lines.extend(_section(run))
+    lines.extend(render(result["gate_evaluation"]))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

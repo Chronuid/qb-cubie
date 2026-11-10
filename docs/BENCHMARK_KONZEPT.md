@@ -1,6 +1,6 @@
 # Konzept: ReviewAgent und DeveloperAgent
 
-**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phase 4 implementiert; unabhängige Referenzaufnahme und reale Pilotmessung ausstehend.
+**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phasen 4–5 implementiert; unabhängige Referenzaufnahme und reale Pilotmessung ausstehend.
 
 Die Benchmarks sollen Entwicklern ermöglichen, ihre eigenen Agentensysteme reproduzierbar zu prüfen, Schwächen zu lokalisieren und Änderungen zu vergleichen. ReviewAgent untersucht die Qualität nachvollziehbarer Reviews; DeveloperAgent untersucht die Entwicklung von Projekten mit Cubie und einem durch Tests geleiteten Vorgehen. Mitgelieferte Szenarien ermöglichen den Einstieg, eigene Szenarien und konfigurierbare Benchmark-Sets die Anwendung auf den jeweiligen Entwicklungsalltag.
 
@@ -499,6 +499,37 @@ geprüft. Die deterministischen Prozess- und Fake-Agenten liefern ausschließlic
 Infrastrukturbelege. Referenzen bleiben `author_checked`; die unabhängige
 menschliche Aufnahme und reale Pilotmessung stehen weiterhin aus. Die
 Produktfunktionen sind implementiert, die methodische Pilotabnahme ist offen.
+
+### 10.5 Messbetrieb
+
+Die Produktfunktionen sind implementiert: Sets können Qualitäts-, Prozess-,
+Reviewmetrik- und Kostengates deklarieren. Planung validiert sie vor dem
+Adapterstart; JSON, Markdown und CLI trennen vollständige Ausführung von
+erreichten Schwellen. `evaluate_gates` prüft gespeicherte Archive erneut.
+
+`freeze_suite` und `cubie-bench freeze` binden den aufgelösten Plan, Budgets,
+Seed, Gates, Szenarien, Referenzen und lokale Adapterdateien an eine portable
+Messidentität. `run_frozen_suite` und `cubie-bench run-frozen` prüfen Inhalte,
+Modi und bekannte Laufumgebungsdaten und führen temporäre Kopien aus.
+Das Ergebnisarchiv bewahrt das vollständige Bundle; Vergleich und Auswertung
+kontrollieren dessen Bindung an den ausgeführten Plan.
+
+Externe Pakete unterstützen `held_out`-Herkunftskataloge. Das pytest-Plugin
+erzwingt die ausdrückliche Freischaltung echter Episoden. Der separate
+[CI-Messjob](../.github/workflows/benchmarks.yml) verwendet ein zuvor geprüftes
+Bundle, gesperrte Abhängigkeiten und einen begrenzten manuellen Lauf. Tar-Archive
+bewahren Dateimodi und Belege auch bei Gatefehlern. Die
+[installierte Anleitung](GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
+beschreibt Team-CI und die zusätzlichen Regeln für Produktmessungen.
+
+Die [EBT-Abnahmecases und der Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_5.md)
+dokumentieren die ursprüngliche Rotphase und ergänzende Integritätsprüfungen.
+Alle Gegenproben verwenden lokale deterministische Adapter und synthetische
+Aufgabenmetadaten. Sie veröffentlichen keine echten zurückgehaltenen Messfälle
+und liefern keinen Agentenleistungsnachweis. Unabhängige Referenzaufnahme,
+reale Pilotmessung und Containerisolation stehen weiterhin aus. Harte
+Token-/Providerkostenlimits und automatisches Provisionieren beliebiger
+Adapterabhängigkeiten sind weiterhin nicht Teil des lokalen Runners.
 
 ## 11. Methodische Bezugspunkte
 

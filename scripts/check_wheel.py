@@ -78,6 +78,8 @@ def main():
                     str(tests / "benchmark_custom_installed.py"))
                 run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config),
                     str(tests / "benchmark_base_installed.py"))
+                run("-m", "pytest", "-q", "--import-mode=importlib", "-c", str(config),
+                    str(tests / "benchmark_measurement_installed.py"))
 
 
 if __name__ == "__main__":

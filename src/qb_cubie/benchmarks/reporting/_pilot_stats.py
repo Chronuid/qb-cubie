@@ -73,12 +73,12 @@ def family(run):
 def family_stats(runs):
     """Summarize each family without substituting values for missing metrics."""
     return {name: {"assessment": "manual" if name == "maintainability" else "executable",
-                   **{metric: stats([_metric(run, metric) for run in runs if family(run) == name])
+                   **{metric: stats([metric_value(run, metric) for run in runs if family(run) == name])
                       for metric in ("precision", "recall")}}
             for name in sorted({family(run) for run in runs})}
 
 
-def _metric(run, name):
+def metric_value(run, name):
     """Read only fully evaluated, compatible per-scenario ratio metrics."""
     if not evaluated(run):
         return None

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytest_plugins = ["qb_cubie.benchmarks.pytest_plugin"]
+
 # conftest.py is located in /tests, so the parent directory is your project root
 PROJECT_ROOT = Path(__file__).parent.parent
 # 1. Override the IDE's right-click behavior: force the CWD to the project root

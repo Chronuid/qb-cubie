@@ -1,0 +1,124 @@
+name: Benchmark measurement
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: Repository workflow run providing the reviewed frozen bundle
+        required: true
+        type: string
+      artifact_name:
+        description: Artifact containing measurement.tar with the frozen bundle at its root
+        required: true
+        type: string
+      measurement_sha256:
+        description: Reviewed SHA-256 of measurement.json
+        required: true
+        type: string
+      wheel_artifact_name:
+        description: Optional artifact containing the exact wheel used to freeze the bundle
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  measurement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download reviewed frozen inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: provisioned
+      - name: Restore frozen file modes
+        run: |
+          python - <<'PY'
+          import tarfile
+          from pathlib import Path
+          Path('frozen').mkdir()
+          with tarfile.open('provisioned/measurement.tar') as archive:
+              archive.extractall('frozen', filter='data')
+          PY
+      - name: Verify approved measurement identity
+        id: identity
+        env:
+          MEASUREMENT_SHA256: ${{ inputs.measurement_sha256 }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          import json
+          import re
+          from pathlib import Path
+          actual = hashlib.sha256(Path('frozen/measurement.json').read_bytes()).hexdigest()
+          if actual != os.environ['MEASUREMENT_SHA256']:
+              raise SystemExit('Frozen measurement differs from approved identity')
+          manifest = json.loads(Path('frozen/measurement.json').read_text())
+          root = Path('frozen').resolve()
+          if any(path.is_symlink() for path in root.rglob('*')):
+              raise SystemExit('Frozen symlinks are unsupported')
+          for name, mode in manifest['modes'].items():
+              target = (root / name).resolve()
+              if Path(name).is_absolute() or not target.is_relative_to(root) or type(mode) is not int or not 0 <= mode <= 0o777:
+                  raise SystemExit('Invalid frozen file mode or path')
+              target.chmod(mode)
+          version = manifest['runtime']['python_version']
+          if not re.fullmatch(r'3\.[0-9]+\.[0-9]+', version):
+              raise SystemExit('Invalid frozen Python version')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'python_version={version}\n')
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.identity.outputs.python_version }}
+      - name: Install uv
+        run: python -m pip install uv==0.11.3
+      - name: Install locked measurement environment
+        run: uv sync --locked --group dev --python python
+      - name: Download matching wheel when supplied
+        if: ${{ inputs.wheel_artifact_name != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.wheel_artifact_name }}
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: wheel-runtime
+      - name: Verify and install the frozen wheel when required
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+          expected = json.loads(Path('frozen/measurement.json').read_text())['runtime']['wheel_sha256']
+          if expected is not None:
+              wheels = list(Path('wheel-runtime').glob('qb_cubie-*.whl'))
+              if len(wheels) != 1 or hashlib.sha256(wheels[0].read_bytes()).hexdigest() != expected:
+                  raise SystemExit('Provide the exact frozen wheel artifact')
+              subprocess.run(['uv', 'pip', 'install', '--python', '.venv/bin/python', '--no-deps', '--reinstall', str(wheels[0])], check=True)
+          PY
+      - name: Execute frozen measurement and enforce gates
+        run: uv run --no-sync cubie-bench run-frozen frozen --output benchmark-results --format json
+      - name: Pack evidence preserving file modes
+        if: ${{ always() }}
+        run: |
+          git rev-parse HEAD > measurement-commit.txt
+          tar -cf benchmark-evidence.tar --ignore-failed-read benchmark-results frozen wheel-runtime measurement-commit.txt pyproject.toml uv.lock
+      - name: Preserve reports and original frozen configuration
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-measurement-${{ github.run_id }}
+          path: |
+            benchmark-evidence.tar
+            provisioned/measurement.tar
+          if-no-files-found: warn
+          retention-days: 30

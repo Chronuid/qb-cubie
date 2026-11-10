@@ -4,6 +4,7 @@ from pathlib import Path
 
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.planning._planning import agents, expand, limits, sources
+from qb_cubie.benchmarks.planning.gates import validate_gates
 from qb_cubie.benchmarks.planning.selection import select_scenarios
 
 
@@ -19,7 +20,8 @@ def plan_suite(path: str | Path) -> dict:
     bounds = limits(suite.get("limits", {}), len(runs), sum(r["budgets"]["wall_time_seconds"] for r in runs))
     return v.snapshot({"schema_version": 1, "name": suite["name"], "profile": suite["profile"],
             "output": str((path.parent / suite["output"]).resolve()), "runs": runs,
-            "packages": packages, "seed": suite.get("seed"), **bounds})
+            "packages": packages, "seed": suite.get("seed"),
+            "gates": validate_gates(suite.get("gates", []), runs), **bounds})
 
 
 def _suite(suite):
