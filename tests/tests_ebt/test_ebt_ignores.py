@@ -1,5 +1,6 @@
 import subprocess, sys
 from pathlib import Path
+import pytest
 from src.qb_cubie.ebt import EBT
 from src.qb_cubie.protocols import WorldState
 from src.qb_cubie.arenas.tempfs import TempFS
@@ -11,6 +12,15 @@ from src.qb_cubie.arenas.pyvenv import PyVenv
 
 BASE_ARENA = "tests/.arenas/empty_venv"
 COWSAY_ARENA = "tests/.arenas/cowsay_env"
+
+
+@pytest.fixture
+def reference_fs(tmp_path):
+    """FS ignore probes need ordinary files, not external venv interpreter links."""
+    reference = tmp_path / "reference"
+    reference.mkdir()
+    (reference / "seed.txt").write_text("unchanged input", encoding="utf-8")
+    return str(reference)
 
 # ======================================================================================================================
 # TARGETS (The Mutators)
@@ -46,14 +56,14 @@ def install_package(package: str) -> bool:
 # 1. BASELINE (Standard Validation)
 # ======================================================================================================================
 
-def test_standard_fs_critical_red():
+def test_standard_fs_critical_red(reference_fs):
     """Verifies: A newly created, non-ignored file correctly fails the FS byte-diff."""
     EBT(
         target=create_critical_file,
-        pre=WorldState(arena=TempFS(), fs={".": BASE_ARENA}),
+        pre=WorldState(arena=TempFS(), fs={".": reference_fs}),
         post=WorldState(
             returns=True,
-            fs={".": BASE_ARENA} # Asserting against the FS explicitly
+            fs={".": reference_fs} # Asserting against the FS explicitly
         ),
         expect=False # Test must fail because 'important.txt' is strictly evaluated
     ).run()
@@ -63,15 +73,15 @@ def test_standard_fs_critical_red():
 # 2. CONFIGURATION OVERRIDES
 # ======================================================================================================================
 
-def test_custom_fs_ignores_green():
+def test_custom_fs_ignores_green(reference_fs):
     """Verifies: Injecting a custom file into FS_IGNORES causes the engine to bypass it during diffing."""
     ebt_run = EBT(
         target=create_custom_log,
-        pre=WorldState(arena=TempFS(), fs={".": BASE_ARENA}),
+        pre=WorldState(arena=TempFS(), fs={".": reference_fs}),
         post=WorldState(
             arena=TempFS(),
             returns=True,
-            fs={".": BASE_ARENA} # Expecting clean base FS
+            fs={".": reference_fs} # Expecting clean base FS
         )
     )
     ebt_run.FS_IGNORES = {"custom_log.txt"} # The custom log is explicitly ignored
@@ -97,14 +107,14 @@ def test_empty_arena_ignores_red():
 # 3. TOPOLOGICAL RECURSION
 # ======================================================================================================================
 
-def test_fs_ignore_deep_directory_green():
+def test_fs_ignore_deep_directory_green(reference_fs):
     """Verifies: Adding a top-level directory to FS_IGNORES cascades down to all deeply nested artifacts."""
     ebt_run = EBT(
         target=create_deep_build_artifacts,
-        pre=WorldState(arena=TempFS(), fs={".": BASE_ARENA}),
+        pre=WorldState(arena=TempFS(), fs={".": reference_fs}),
         post=WorldState(
             returns=True,
-            fs={".": BASE_ARENA}
+            fs={".": reference_fs}
         )
     )
     ebt_run.FS_IGNORES = {"build"}
@@ -115,18 +125,18 @@ def test_fs_ignore_deep_directory_green():
 # 4. QUANTIFIER INTERACTION
 # ======================================================================================================================
 
-def test_fs_ignores_with_forall_green():
+def test_fs_ignores_with_forall_green(reference_fs):
     """Verifies: The logical AND (∀) holds true even if each iteration produces individually ignored side-effects."""
     ebt_run = EBT(
         target=create_custom_log,
         pre=[
-            WorldState(args=(1,), arena=TempFS(), fs={".": BASE_ARENA}),
-            WorldState(args=(2,), arena=TempFS(), fs={".": BASE_ARENA}),
-            WorldState(args=(3,), arena=TempFS(), fs={".": BASE_ARENA})
+            WorldState(args=(1,), arena=TempFS(), fs={".": reference_fs}),
+            WorldState(args=(2,), arena=TempFS(), fs={".": reference_fs}),
+            WorldState(args=(3,), arena=TempFS(), fs={".": reference_fs})
         ],
         post=WorldState(
             returns=True,
-            fs={".": BASE_ARENA}
+            fs={".": reference_fs}
         )
     )
     ebt_run.FS_IGNORES = {"custom_log.txt"}
@@ -137,14 +147,14 @@ def test_fs_ignores_with_forall_green():
 # 5. INVERTED EXPECTATION (expect=False)
 # ======================================================================================================================
 
-def test_fs_ignores_with_expect_false_red():
+def test_fs_ignores_with_expect_false_red(reference_fs):
     """Verifies: Ignored files do not bypass the assertion engine if a negative expectation is strictly declared."""
     ebt_run = EBT(
         target=create_custom_log,
         pre=WorldState(arena=TempFS()),
         post=WorldState(
             returns=True,
-            fs={".": BASE_ARENA}
+            fs={".": reference_fs}
         ),
         expect=False
     )

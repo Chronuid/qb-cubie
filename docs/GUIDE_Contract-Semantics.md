@@ -105,9 +105,33 @@ Leere Unterverzeichnisse werden beim rekursiven Vergleich nicht erfasst. Die Exi
 
 Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Unterschiedliche Quellen mit gleichem Basename führen vor Arena-Aufbau und Target-Ausführung zu `ValueError`. Die Meldung nennt Zustandsfeld, Index, Zielnamen und beide Quellen. Verwende für solche Fälle explizite, unterschiedliche Zielpfade, etwa `{"left/config.json": "a/config.json", "right/config.json": "b/config.json"}`. Wiederholungen desselben Pfads sind erlaubt; der Pfadvergleich erfolgt lexikalisch mit `pathlib.Path`, ohne Auflösung von Symlinks oder `..`.
 
-Arena-Zielpfade werden derzeit nicht auf den Workspace begrenzt: Absolute Pfade und `..` können außerhalb schreiben. Verwende kontrollierte relative Pfade ohne `..`.
+Die Hydrierung von `pre.fs` begrenzt Schreibziele auf den Workspace. Absolute
+Zielpfade, ausbrechende `..`-Komponenten und Symlinks oder Verzeichnis-Junctions,
+die Schreibzugriffe nach außen umleiten, führen zu `ValueError`. Die Meldung nennt
+das betroffene Mapping. Das gilt für EBT und direkte `arena.run()`-Aufrufe,
+unabhängig von `expect=False` und `reporter=None`. Das Target startet bei einem
+Hydrierungsfehler nicht; diese Aufrufe räumen den Workspace auch im Fehlerfall auf.
+Bereits kopierte Workspace-Inhalte werden nicht atomar zurückgerollt.
+
+Dateiquellen dürfen absolut oder relativ zum Host-CWD angegeben werden und müssen
+vertrauenswürdig sein. Als Quelle ausdrücklich angegebene Symlinks werden beim
+Kopieren dereferenziert. Symlinks innerhalb kopierter Verzeichnisbäume bleiben
+erhalten, sofern sie auch am Ziel innerhalb des Workspace aufgelöst werden können.
+Das gilt ebenfalls für interne Links auf noch nicht existierende Dateien.
+Ausbrechende oder zyklische Linkketten werden vor Target-Ausführung abgewiesen;
+auch spätere Mappings dürfen frühere Links nicht nach außen umlenken. Die Prüfung
+gilt für die FS-Hydrierung, nicht für `post.fs`-Vergleiche oder Target-Dateizugriffe.
+Die separat geklonte PyVenv-Basis bleibt eine vertrauenswürdige Eingabe; ihre
+Interpreter-Links werden nicht pauschal verboten, aber auch nicht als Schreibziele
+nach außen zugelassen.
 
 `TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation. Import-Phantome verändern Importbedingungen und können Fehler verdecken.
+
+Die Arenen sind für vertrauenswürdige Konfigurationen, Targets und Rückgaben
+vorgesehen. Die Pfadprüfung schützt vor Fehlkonfigurationen beim Kopieren; sie
+schützt nicht gegen konkurrierende Manipulationen des Dateisystems. Nicht
+vertrauenswürdiger generierter Code benötigt eine separate Sicherheitsgrenze mit
+eigenen Zugriffsrechten. MessagePack ändert diese Anforderung nicht.
 
 Beide Arenen unterstützen unter POSIX die optionalen Limits `timeout` (Sekunden)
 und `max_output_bytes` (gemeinsames stdout/stderr-Budget). Ohne explizite Limits

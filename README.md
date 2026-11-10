@@ -118,6 +118,12 @@ Typen, Unions, reguläre Ausdrücke und Prädikate können anstelle fester Rück
 
 `TempFS` führt Targets mit dem Host-Interpreter in einem Kindprozess mit temporärem Arbeitsverzeichnis aus. `PyVenv` verwendet eine kopierte virtuelle Umgebung. Beide Prozesse besitzen weiterhin die Rechte des aufrufenden Benutzers und bieten **keine OS-Sicherheitsgrenze**. Sie eignen sich für vertrauenswürdigen Code. `DockerArena` und `VmArena` sind [Entwürfe](./docs/feature-drafts/virtualization/README.md) und gehören nicht zur öffentlichen API.
 
+Die Hydrierung von `pre.fs` begrenzt Schreibziele auf den Workspace und weist
+absolute Ziele, Pfadausbrüche und nach außen führende Links mit `ValueError` ab.
+Hostquellen, Konfigurationen, Targets und Rückgaben müssen dennoch vertrauenswürdig
+sein. Die [Pfadprüfung](./docs/GUIDE_Arena-Management.md#pfadgrenzen-der-hydrierung)
+ersetzt keine Sicherheitsgrenze für nicht vertrauenswürdigen Code.
+
 Ein vollständiges Beispiel für eine Dateitransformation steht im [EBT-Nutzungshandbuch](./docs/GUIDE_EBT-Usage-Pattern.md). Für `fs`-Prüfungen muss eine Arena explizit angegeben werden.
 
 ## Review-Based Testing (RBT)

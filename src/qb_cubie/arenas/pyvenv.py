@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from ..protocols import IPCC, WorldState
+from ._hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 from ._requirements import _environment_python, _requirements_satisfied
 from .codecs import MSGspecCodec
@@ -18,7 +19,10 @@ from .codecs import MSGspecCodec
 CURRENT_DIR = Path(__file__).parent
 class PyVenv:
     """
-    Executes targets as isolated arena runner within ephemeral, virtual Python environments.
+    Executes targets in a child process using an ephemeral virtual Python environment.
+
+    Hydration destinations are confined to the workspace. Targets retain host
+    OS rights; sources, base environments, targets and IPC results must be trusted.
 
     Optional POSIX limits: timeout in seconds and a shared stdout/stderr budget
     in bytes. Neither limit includes environment provisioning or cloning.
@@ -122,13 +126,7 @@ class PyVenv:
         if self.workspace_path is None or self._config_state is None:
             raise RuntimeError("STATE-GUARD: 'workspace_path' or '_config_state' is missing.")
         if not self._config_state.fs: return
-        for target_rel_path, host_source_path in self._config_state.fs.items():
-            source = Path(host_source_path)
-            target = self.workspace_path / target_rel_path
-            if not source.exists(): raise FileNotFoundError(f"Host path not found: {source}")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if source.is_dir(): shutil.copytree(source, target, symlinks=True, dirs_exist_ok=True)
-            else: shutil.copy2(source, target)
+        hydrate_workspace(self.workspace_path, self._config_state.fs)
 
     def _ensure_codec_requirements(self, base_env_path: Path) -> None:
         """Validates codec dependencies without installing or modifying the base."""

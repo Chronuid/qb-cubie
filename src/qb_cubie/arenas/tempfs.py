@@ -11,6 +11,7 @@ from typing import Any
 import cloudpickle
 
 from ..protocols import WorldState
+from ._hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 
 
@@ -21,6 +22,9 @@ class TempFS:
     The caller's CWD is never changed. Targets, arguments and results must be
     cloudpickle-serializable; target mutations of host Python objects are not
     shared back. Use a separate arena instance for each active lifecycle.
+
+    Hydration destinations are confined to the workspace. This does not restrict
+    target OS rights: inputs, targets and Cloudpickle results must be trusted.
 
     Optional POSIX limits: timeout in seconds and a combined stdout/stderr
     budget in bytes. Output-limited runs replay output after exit.
@@ -145,10 +149,4 @@ class TempFS:
         if self.workspace_path is None or self._config_state is None: raise RuntimeError(
             "STATE-GUARD: 'workspace_path' or '_config_state' is missing.")
         if not self._config_state.fs: return
-        for target_rel_path, host_source_path in self._config_state.fs.items():
-            source = Path(host_source_path)
-            target = self.workspace_path / target_rel_path
-            if not source.exists(): raise FileNotFoundError(f"Host path for FS mapping not found: {source}")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if source.is_dir(): shutil.copytree(source, target, symlinks=True, dirs_exist_ok=True)
-            else: shutil.copy2(source, target)
+        hydrate_workspace(self.workspace_path, self._config_state.fs)

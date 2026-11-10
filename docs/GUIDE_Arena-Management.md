@@ -20,6 +20,31 @@ EBT prüft den Workspace vor dem Aufräumen. IPC-Dateien liegen außerhalb diese
 
 Target-Exceptions werden mit einem Hinweis auf den Kindprozess-Traceback weitergegeben. Beendet sich der Kindprozess ohne vollständiges Ergebnis, meldet TempFS einen `RuntimeError`. EBT versucht auch bei Ausnahmen aufzuräumen. Das beseitigt den temporären Workspace, aber keine Seiteneffekte außerhalb dieses Verzeichnisses.
 
+## Pfadgrenzen der Hydrierung
+
+`TempFS` und `PyVenv` erlauben für `pre.fs` relative Ziele innerhalb des Workspace,
+etwa `{"nested/input.txt": "/host/fixtures/input.txt"}`. Hostquellen dürfen absolut
+oder relativ zum Host-CWD angegeben werden und werden kopiert. Absolute Ziele und
+ausbrechende `..`-Pfade werden mit `ValueError` und dem betroffenen Mapping
+abgewiesen. Das gilt auch für direkte `arena.run()`-Aufrufe. Bei einem Fehler
+startet das Target nicht; EBT und `arena.run()` räumen den Workspace auf.
+
+Die Prüfung erfasst auch rekursive Kopien, vorhandene Ziel-Symlinks und
+Verzeichnis-Junctions sowie Links in kopierten Bäumen. Relative interne Links
+bleiben erhalten, einschließlich interner Links auf noch nicht existierende
+Dateien. Linkketten werden nach Abschluss aller Mappings erneut geprüft;
+ausbrechende und zyklische Ketten sind ungültig. Die vertrauenswürdige PyVenv-Basis
+darf weiterhin Interpreter-Links nach außen enthalten. Die Hydrierung darf durch
+solche Links keine Hostdateien verändern.
+
+Diese Kopiergrenze entzieht Targets keine Rechte. Quellen, Konfigurationen,
+Basisumgebungen, Targets und IPC-Rückgaben müssen vertrauenswürdig sein. Targets
+können weiterhin absolute Hostpfade, geerbte Umgebungsvariablen und Netzwerkzugänge
+nutzen. Die Prüfung bietet keinen Schutz vor gleichzeitig manipulierten
+Dateisystempfaden und ist keine Ausführungsumgebung für nicht vertrauenswürdigen
+generierten Code. Details stehen in der
+[Semantikreferenz](GUIDE_Contract-Semantics.md#dateisystem-und-arenen).
+
 ## PyVenv: kopierte virtuelle Umgebung
 
 `PyVenv(env_path)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
