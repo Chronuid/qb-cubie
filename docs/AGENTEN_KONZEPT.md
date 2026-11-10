@@ -1,7 +1,8 @@
 # Konzept: lokale Reviewer- und Developer-Agenten
 
-**Stand:** 10. November 2026. **Status:** Entwurf; keine Implementierung oder
-neue Modellmessung durch dieses Dokument.
+**Stand:** 10. November 2026. **Status:** Gemeinsamer Unterbau (§5, Schritt 1)
+implementiert und offline geprüft; Rollenadapter und Modellmessungen weiterhin
+geplant.
 
 Dieses Dokument konkretisiert die Agentenseite des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md), insbesondere Abschnitte 4, 5 und 7.
@@ -359,11 +360,11 @@ Qualität und Prozesskonformität bestimmt weiterhin der unabhängige Runner.
 
 ## 5. Umsetzung und Abnahme
 
-Die geplante Umsetzung liegt als eigenständiges Beispiel unter
-`examples/ollama-agents/` mit gemeinsamem Adapterunterbau, zwei Rollen,
-versionierten Prompts, Agenten-TOMLs und getrennten Smoke-Sets. Dieser Pfad ist
-ein Lieferziel und existiert durch den Entwurf noch nicht. Das historische
-Nutzerbeispiel und seine Archive bleiben als Vergleichsbasis bestehen.
+Der gemeinsame Adapterunterbau liegt als eigenständiges Beispiel unter
+[`examples/ollama-agents/`](../examples/ollama-agents/README.md).
+Zwei Rollen, versionierte Prompts, Agenten-TOMLs und getrennte Smoke-Sets folgen
+in den weiteren Schritten. Das historische Nutzerbeispiel und seine Archive
+bleiben als Vergleichsbasis bestehen.
 
 | Schritt | Lieferung | Abnahmekriterium |
 | --- | --- | --- |
@@ -372,6 +373,12 @@ Nutzerbeispiel und seine Archive bleiben als Vergleichsbasis bestehen.
 | 3. Developer-Durchstich | Testentwurf, eingefrorene Tests, lokale Grün-Reparaturen, Dokumentation | Gültiges Rot einschließlich `pytest.raises`; korrigierbarer Implementierungsfehler; falsches Testorakel und verbotene Teständerung werden sichtbar. |
 | 4. Installationsnachweis | Beispiel und Agentenkonfigurationen aus installiertem Wheel | Handshake, Planung und beide Smoke-Sets laufen außerhalb des Checkouts; Modellmetadaten und interne Aufrufe sind nachprüfbar. |
 | 5. Kalibrierung und Pilot | Zwei Kalibrierungs-, danach fünf Messwiederholungen je Bedingung auf ausgewähltem Set | Parameter vorher eingefroren; alle begonnenen Versuche enthalten; offizielle Referenzen unabhängig aufgenommen. |
+
+Für Schritt 1 dokumentiert die
+[EBT-Kriterienmatrix mit Schnittstellenvertrag](../tests/AGENTEN_CASES_5_1.md)
+die ursprüngliche Rotphase und die implementierte Abnahme. Alle 97 ursprünglichen
+Cases und zwölf ergänzende Gegenproben unter `tests/ollama_agents/` bestehen
+offline. Diese Replays belegen den Unterbau, keine Modellleistung.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,
