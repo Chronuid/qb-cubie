@@ -1,5 +1,4 @@
 import dataclasses
-import filecmp
 import uuid
 import time
 import re
@@ -14,6 +13,7 @@ from .multiprocessors import _validate_max_workers
 from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation
 from .reporter import PytestReporter
 from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
+from ._files import same_contents
 
 # ========== EXAMPLE-BASED-TESTING =====================================================================================
 
@@ -481,7 +481,7 @@ class EBT:
         if host_path.is_file() and arena_path.is_file():
             # Diff entries are relative to the compared object. A single file
             # denotes itself, independently of its host reference's basename.
-            if not filecmp.cmp(arena_path, host_path, shallow=False):
+            if not same_contents(arena_path, host_path):
                 return {"modified": ["."]}
             return None
         return {"error": "Topology mismatch (file vs dir)."}
@@ -634,7 +634,7 @@ class EBT:
         modified = []
         for path in sorted(expected.keys() & actual.keys()):
             exp, act = expected[path], actual[path]
-            if exp.is_dir() != act.is_dir() or (exp.is_file() and not filecmp.cmp(act, exp, shallow=False)):
+            if exp.is_dir() != act.is_dir() or (exp.is_file() and not same_contents(act, exp)):
                 modified.append(str(path))
         return modified
 

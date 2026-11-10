@@ -24,7 +24,7 @@ EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung vo
 
 Der Aufruf ist synchron. EBT wartet Coroutine-Targets nicht automatisch ab; bei Bedarf muss ein synchroner Wrapper die asynchrone Ausführung übernehmen. Ohne Arena läuft das Callable im aufrufenden Prozess und dessen Zustand bleibt zwischen Eingangsschritten erhalten.
 
-Bekannte Fehler betreffen unter anderem nicht geprüfte `None`-Rückgaben, leere Zustandslisten und die Wiederverwendung einer EBT-Instanz. Frühere Traces können nach einem weiteren Lauf verändert werden. Die vollständigen Einschränkungen stehen in der zentralen Referenz; diese Übersicht verspricht keine unveränderliche Historie oder allgemeine Korrektheit.
+Explizites `returns=None` verlangt eine None-Rückgabe; ausgelassenes `returns` lässt die Rückgabe offen. Leere Zustandslisten werden vor der Ausführung abgelehnt. Jeder Lauf setzt die Laufdaten zurück und erzeugt unabhängige historische Traces. Target-Seiteneffekte und bereits veränderte Eingaben werden dabei nicht zurückgesetzt. Die vollständigen Einschränkungen stehen in der zentralen Referenz; erfolgreiche Beispiele beweisen keine allgemeine Korrektheit.
 
 ## Weiterführende Dokumentation
 

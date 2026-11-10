@@ -9,6 +9,7 @@ import importlib.metadata
 import json
 import os
 import pkgutil
+import subprocess
 import sys
 import venv
 from pathlib import Path
@@ -117,3 +118,33 @@ def test_linter_runtime_dependencies():
     assert qb_cubie.CstLinter([]).check("value = 1\n") == []
     diagnostics = qb_cubie.AstLinter(qb_cubie.Pylint()).check("print(undefined_wheel_name)\n")
     assert any(diagnostic.rule_id == "E0602" for diagnostic in diagnostics)
+
+
+@pytest.mark.parametrize("invalid", [True, False], ids=["assignment-error", "clean-file"])
+def test_mypy_with_native_absolute_file_path(tmp_path, invalid):
+    source = (tmp_path / "absolute path with spaces.py").resolve()
+    source.write_text("value: int = " + ("'wrong'" if invalid else "42") + "\n", encoding="utf-8")
+    case = EBT(target=qb_cubie.MyPy().check, pre=WorldState(args=(source,)),
+               post=WorldState(returns=lambda diagnostics: (
+                   len(diagnostics) == 1 and diagnostics[0].rule_id == "assignment"
+                   and diagnostics[0].severity == "error" and diagnostics[0].line == 1
+                   and Path(diagnostics[0].file_path) == source
+               ) if invalid else diagnostics == []))
+    if os.environ["QB_CUBIE_WHEEL_PROFILE"] == "core":
+        with pytest.raises(RuntimeError, match="qb-cubie\\[linters\\]"):
+            case.run()
+        assert case.run_trace is None
+    else:
+        assert case.run().evaluation is True
+
+
+@pytest.mark.parametrize("missing", ["tkinter", "_tkinter"])
+@pytest.mark.parametrize("feature", [
+    "guard", "imports", "ebt", "tempfs", "headless", "gui-unavailable",
+])
+def test_installed_core_without_tk(tmp_path, feature, missing):
+    process = subprocess.run(
+        [sys.executable, "-I", str(Path(__file__).with_name("tk_contract.py")), feature, missing],
+        cwd=tmp_path, capture_output=True, text=True, timeout=20, check=False,
+    )
+    assert process.returncode == 0, process.stdout + process.stderr

@@ -24,7 +24,7 @@ def forbid_gui_and_unexpected_input(monkeypatch):
     def unexpected_input(*args, **kwargs):
         pytest.fail("An automated review must not read terminal input")
 
-    monkeypatch.setattr(rbt.tk, "Tk", unexpected_gui)
+    monkeypatch.setattr(rbt, "_load_tk", unexpected_gui)
     monkeypatch.setattr(rbt.HumanReviewer, "_run_gui", unexpected_gui)
     monkeypatch.setattr("builtins.input", unexpected_input)
 

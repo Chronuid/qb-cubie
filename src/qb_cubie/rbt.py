@@ -1,10 +1,26 @@
-import tkinter as tk
-from typing import Any, Optional
+from __future__ import annotations
+
+import importlib
+from typing import Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import tkinter as tk
 
 from .protocols import Reporter, ReviewData, Reviewer
 from .reporter import PytestReporter
 
 _DEFAULT_REPORTER = PytestReporter()
+
+
+def _load_tk():
+    """Load the optional GUI dependency with an actionable installation error."""
+    try:
+        return importlib.import_module("tkinter")
+    except ImportError as error:
+        raise RuntimeError(
+            "HumanReviewer requires tkinter/Tk. Install Python with Tk support "
+            "(for example python3-tk on Linux) before starting a graphical review."
+        ) from error
 
 
 # ========== REVIEW-BASED-TESTING ======================================================================================
@@ -128,6 +144,7 @@ class HumanReviewer:
 
     def _run_gui(self) -> None:
         """Initializes and starts the blocking GUI window."""
+        tk = _load_tk()
         self._root = tk.Tk()
         self._root.title("RBT - Manual Check")
         self._root.attributes("-topmost", True)
@@ -136,6 +153,7 @@ class HumanReviewer:
 
     def _build_widgets(self) -> None:
         """Constructs the visual UI elements for the window."""
+        tk = _load_tk()
         if self._root is None:
             raise RuntimeError("GUI Error: Root window is not initialized.")
         if self._target:
@@ -148,6 +166,7 @@ class HumanReviewer:
 
     def _build_buttons(self) -> None:
         """Creates the confirmation buttons for the binary decision."""
+        tk = _load_tk()
         frame = tk.Frame(self._root)
         frame.pack(pady=10)
         tk.Button(frame, text="Pass", bg="green", fg="white", command=self._on_pass).pack(side=tk.LEFT, padx=20)

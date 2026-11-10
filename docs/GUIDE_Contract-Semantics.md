@@ -140,6 +140,8 @@ Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnis
 
 Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft. Metadaten, Rechte und Symlink-Identität werden nicht verglichen; Symlinks werden entsprechend dem aufgelösten Datei-/Verzeichnistyp behandelt, unaufgelöste Links nicht erfasst. `FS_IGNORES` filtert Pfadsegmente samt Teilbaum. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.
 
+Dateiinhalte werden bei jedem Vergleich neu in begrenzten Byteblöcken gelesen. Es gibt keinen persistenten, von Größe oder mtime abhängigen Vergleichscache. Das gilt für Einzeldateien, Verzeichnisbäume und Arena-Vergleiche. Gleichzeitig veränderte Dateien werden dadurch nicht zu einer atomaren Momentaufnahme; Referenzen müssen während des Vergleichs stabil bleiben.
+
 Sammlungen von Hostpfaden werden nach Basename zusammengeführt. Unterschiedliche Quellen mit gleichem Basename führen vor Arena-Aufbau und Target-Ausführung zu `ValueError`. Die Meldung nennt Zustandsfeld, Index, Zielnamen und beide Quellen. Verwende für solche Fälle explizite, unterschiedliche Zielpfade, etwa `{"left/config.json": "a/config.json", "right/config.json": "b/config.json"}`. Wiederholungen desselben Pfads sind erlaubt; der Pfadvergleich erfolgt lexikalisch mit `pathlib.Path`, ohne Auflösung von Symlinks oder `..`.
 
 Die Hydrierung von `pre.fs` begrenzt Schreibziele auf den Workspace. Absolute

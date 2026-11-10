@@ -8,6 +8,8 @@ Dieses Dokument ersetzt das Gutachten vom 9. November 2026. Es bewertet den aktu
 
 **Nachtrag zur Umsetzung von 9.1:** B1–B5 wurden anschließend im Produktivcode korrigiert und durch [ausführbare Vertragsfälle](tests/CONTRACT_CASES_9_1.md) abgesichert. Die folgenden Befunde und Untersuchungsergebnisse dokumentieren weiterhin den oben genannten untersuchten Commit; sie sind keine erneute Bewertung des korrigierten Arbeitsstands. Die aktuelle Vertragssemantik und verbleibenden Einschränkungen stehen im README und in den Handbüchern.
 
+**Nachtrag zur Umsetzung von 9.2:** Kernfunktionen laden Tk nicht mehr; Dateiinhalte werden ohne persistenten Vergleichscache geprüft. PyVenv passt unterstützte POSIX-Python-Einstiegsskripte an den Klon an und lehnt nicht unterstützte Launcher vor dem Target-Aufruf ab. Native Windows-Konsolenlauncher sind ausdrücklich ausgeschlossen. Die drei historischen Testdateien wurden für die Standardsammlung umbenannt; der generative Prozess-Test behält 100 Beispiele und verwendet eine lokale Ausnahme von der Hypothesis-Zeitfrist. Dokumentationskorrekturen und die neue Abnahme stehen in den [Vertragsfällen zu 9.2](tests/CONTRACT_CASES_9_2.md). Die nachfolgenden historischen Befunde bleiben als Ausgangsstand erhalten.
+
 ## 1. Gesamturteil
 
 Cubie hat einen tragfähigen Kern als Werkzeug für deklarative Akzeptanztests, besonders für Datei-Workflows. Eingaben, erwartete Rückgaben und Dateisystemergebnisse gemeinsam zu beschreiben, kann wiederholte Testeinrichtung und Vergleichslogik vereinfachen. Die technische Substanz geht deutlich über ein Konzeptprojekt hinaus.
@@ -208,7 +210,7 @@ Zwölf Tests wurden übersprungen, unter anderem eine manuelle GUI-Prüfung, die
 
 ### 7.2 Vierzehn Tests werden regulär nicht eingesammelt
 
-Die Dateien [mp_hypothesis.py](tests/tests_multiprocessors/mp_hypothesis.py), [tests_mypy.py](tests/tests_linter/tests_mypy.py) und [tests_linter.py](tests/tests_linter/tests_linter.py) entsprechen nicht den Standard-Dateinamenmustern der Testsammlung. Eine abweichende Sammlungskonfiguration oder reguläre Einbindung dieser Dateien wurde nicht gefunden.
+Die damaligen Dateien [mp_hypothesis.py](tests/tests_multiprocessors/test_mp_hypothesis.py), [tests_mypy.py](tests/tests_linter/test_mypy.py) und [tests_linter.py](tests/tests_linter/test_linter.py) entsprachen nicht den Standard-Dateinamenmustern der Testsammlung. Eine abweichende Sammlungskonfiguration oder reguläre Einbindung dieser Dateien wurde zum Untersuchungszeitpunkt nicht gefunden. Die Links führen inzwischen zu den für 9.2 umbenannten Dateien.
 
 Die ausdrückliche Sammlung dieser drei Dateien ergab 14 Tests. Sie sind nicht in den 1180 regulär eingesammelten Fällen enthalten; ihre erfolgreiche Ausführung wird hier nicht behauptet. Darunter befinden sich generative Tests, die für ungewöhnliche Datenstrukturen hilfreich sein könnten.
 

@@ -15,7 +15,8 @@ def calculate_sum(a: int, b: int) -> int:
     return a + "b"  # TypeError: int + str
 """
     def validate_diagnostics(diagnostics: list) -> bool:
-        if len(diagnostics) != 1: return False
+        if len(diagnostics) != 1:
+            return False
         d = diagnostics[0]
         return d.file_path == "<string>" and d.severity == "error" and d.line == 3
     EBT(
@@ -51,7 +52,8 @@ def test_mypy_cross_module_inference(cross_module_fs: Path):
     und meldet einen Fehler, weil `user_id` als `int` deklariert ist.
     """
     def validate_cross_module(diagnostics: list) -> bool:
-        if not diagnostics: return False
+        if not diagnostics:
+            return False
         d = diagnostics[0]
         return "main.py" in d.file_path and d.rule_id == "assignment"
     EBT(

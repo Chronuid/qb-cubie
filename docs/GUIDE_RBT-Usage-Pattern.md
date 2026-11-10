@@ -30,6 +30,8 @@ Schließen des Fensters ohne Pass-/Fail-Klick ergibt
 `ReviewData(passed=False, report={})`. Auch bei Wiederverwendung werden eine
 vorherige Freigabe und ein alter Bericht nicht übernommen.
 
+Kernimport, EBT und `HeadlessReviewer` benötigen kein Tk. `HumanReviewer` lädt `tkinter` erst beim Start der GUI. Fehlt `tkinter` oder dessen native Tk-Erweiterung, meldet dieser Aufruf einen `RuntimeError` mit Installationshinweis, beispielsweise auf `python3-tk` unter Linux. Eine verfügbare grafische Umgebung wird zusätzlich benötigt.
+
 Ein String-Target wird unverändert weitergereicht; andere Objekte werden über `__name__` beziehungsweise `str()` bezeichnet. RBT ruft das Target nicht auf, importiert keine Zielmodule und lädt keinen Quelltext. Ohne Target erhält der Reviewer `None`; eine automatische Untersuchung des gesamten Projekts findet nicht statt.
 
 ## Eigene automatisierte Reviewer

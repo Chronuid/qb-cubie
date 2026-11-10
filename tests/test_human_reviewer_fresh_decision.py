@@ -49,7 +49,7 @@ def gui_sessions(monkeypatch):
         def build_widgets(self):
             self._text_widget = SimpleNamespace(get=lambda *args: self._root.text)
 
-        monkeypatch.setattr("qb_cubie.rbt.tk.Tk", create_window)
+        monkeypatch.setattr("qb_cubie.rbt._load_tk", lambda: SimpleNamespace(Tk=create_window))
         monkeypatch.setattr(HumanReviewer, "_build_widgets", build_widgets)
         return windows, pending
 

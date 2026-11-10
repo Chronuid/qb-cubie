@@ -1,5 +1,5 @@
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 from src.qb_cubie.ebt import EBT
 from src.qb_cubie.protocols import WorldState
 from src.qb_cubie.multiprocessors import StateInspector
@@ -114,12 +114,6 @@ def test_stateinspector_safe_callables_allow_fast_path():
 def global_func(): pass
 
 @st.composite
-def unpicklable_callable(draw):
-    def local_closure(): pass
-    return draw(st.sampled_from([lambda x: x, local_closure]))
-
-
-@st.composite
 def generated_state_with_expectation(draw):
     safe_leaves = st.one_of(st.integers(), st.text(), st.none(), st.just(global_func))
     recursive_tree = st.recursive(
@@ -141,10 +135,14 @@ def generated_state_with_expectation(draw):
     if is_poisoned:
         poison = draw(unpicklable_callable())
         target_field = draw(st.sampled_from(["returns", "args", "fs", "kwargs"]))
-        if target_field == "returns": state.returns = poison
-        elif target_field == "args": state.args = (poison,)  # Tuple
-        elif target_field == "fs": state.fs = {"vergiftete_datei.py": poison}
-        elif target_field == "kwargs": state.kwargs = {"vergiftetes_kwarg": poison}
+        if target_field == "returns":
+            state.returns = poison
+        elif target_field == "args":
+            state.args = (poison,)
+        elif target_field == "fs":
+            state.fs = {"vergiftete_datei.py": poison}
+        elif target_field == "kwargs":
+            state.kwargs = {"vergiftetes_kwarg": poison}
     return state, is_poisoned
 
 
@@ -164,9 +162,6 @@ def test_state_inspector_metamorphic_ebt(data_and_oracle):
 ####### ===================  HYPOTHESIS-GEN | PYTEST-PARAM  | CUBIE-VALID  ==================================== ########
 ########## -------------------------------------------------------------------------------------------------- ##########
 
-from hypothesis import given, settings, strategies as st
-from src.qb_cubie import WorldState
-
 # ==========  HYPOTHESIS-GENERATION  |  DYNAMISCHE EXPLORATION  ========================================================
 @st.composite
 def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
@@ -185,41 +180,47 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
         max_leaves=max_depth  # <-- Skalierbare Tiefe
     )
     # 2. BREITE DER TESTLISTEN (Menge der States)
-    num_states = draw(st.integers(min_value=1, max_value=max_width))
+    # Bound independent dimensions so process tests explore trees rather than
+    # multiplying state count, field count and recursive width without a budget.
+    num_states = draw(st.integers(min_value=1, max_value=min(max_width, 5)))
+    max_fields = min(max_width, 3)
     pre_states = []
     # Das globale Orakel für den gesamten Batch
     is_batch_poisoned = False
     for _ in range(num_states):
         state = WorldState(
             returns=draw(recursive_tree),
-            fs=draw(st.dictionaries(st.text(), recursive_tree, max_size=max_width)),
+            fs=draw(st.dictionaries(st.text(), recursive_tree, max_size=max_fields)),
             args=draw(st.tuples(recursive_tree)),
-            kwargs=draw(st.dictionaries(st.text(), recursive_tree, max_size=max_width))
+            kwargs=draw(st.dictionaries(st.text(), recursive_tree, max_size=max_fields))
         )
         # 3. ZWANGS-INJEKTION (Das Gift)
         if draw(st.booleans()):
             is_batch_poisoned = True
             poison = draw(unpicklable_callable())
             target_field = draw(st.sampled_from(["returns", "args", "fs", "kwargs"]))
-            if target_field == "returns": state.returns = poison
-            elif target_field == "args": state.args = (poison,)
-            elif target_field == "fs": state.fs = {"vergiftet.py": poison}
-            elif target_field == "kwargs": state.kwargs = {"vergiftetes_kwarg": poison}
+            if target_field == "returns":
+                state.returns = poison
+            elif target_field == "args":
+                state.args = (poison,)
+            elif target_field == "fs":
+                state.fs = {"vergiftet.py": poison}
+            elif target_field == "kwargs":
+                state.kwargs = {"vergiftetes_kwarg": poison}
         pre_states.append(state)
     return pre_states, is_batch_poisoned
 
 
 # ==========  PYTEST-PARAMETRISIERUNG  |   KARTESISCHE-PRODUKTE  =======================================================
-settings.register_profile("smoke", max_examples=100)
-settings.register_profile("deep", max_examples=1000)
-settings.register_profile("stress", max_examples=5000, deadline=None)
-settings.load_profile("smoke")
 @pytest.mark.parametrize("width, depth", [
         (2, 5),      # Stufe 1: Flacher Baum
         (10, 20),    # Stufe 2: Tiefer Wald
         (50, 100),   # Stufe 3: Schwarzwald
     ]
 )
+# This is a correctness property with real worker startup, not a 200 ms benchmark.
+# Keep all 100 generated examples; apply the deadline exemption only to this test.
+@settings(max_examples=100, deadline=None)
 @given(data=st.data())
 def test_state_inspector_scalable_matrix(width, depth, data):
     pre_states_list, expected_result = data.draw(scalable_fuzzing_batch(max_width=width, max_depth=depth))

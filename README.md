@@ -161,17 +161,17 @@ Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit
 
 ## Bekannte Einschränkungen
 
-Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](./tests/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Weiterhin gelten:
+Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](./tests/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Abschnitt 9.2 ergänzt den Kernbetrieb ohne Tk, aktuelle Dateivergleiche und einen geprüften Unterstützungsumfang für kopierte Konsolenskripte. Weiterhin gelten:
 
 - **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten ihre Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Referenzdateien werden ebenfalls nicht archiviert.
 - **PyVenv-Importhilfen:** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes pytest unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; relevante Laufzeitaufrufe benötigen die echte Bibliothek. Die Importbedingungen bleiben Teil des Testvertrags.
-- **Tk-Abhängigkeit:** Bereits der Paketimport benötigt `tkinter`, auch wenn ausschließlich EBT genutzt wird.
-- **Kopierte Umgebungen:** Konsolenskripte in einer PyVenv-Kopie können wegen absoluter Interpreterpfade weiterhin die Basisumgebung verwenden. `VIRTUAL_ENV` allein belegt nicht, welcher Interpreter einen solchen Aufruf ausführt.
-- **Dateivergleich:** Wiederholte Vergleiche derselben Pfade können bei unveränderter Dateigröße und Änderungszeit auf veraltete `filecmp`-Cache-Ergebnisse zurückgreifen. Frische Workspace-Pfade reduzieren diese Gefahr.
+- **Grafischer Reviewer:** Nur der Start der GUI benötigt `tkinter` und eine grafische Umgebung. Ohne Tk bleiben Paketimport, EBT und Headless-RBT verfügbar; der GUI-Aufruf gibt einen Installationshinweis.
+- **Kopierte Umgebungen:** Übliche POSIX-Python-Einstiegsskripte werden auf den Klon angepasst. Nicht unterstützte Launcher werden vor Target-Ausführung abgelehnt; insbesondere sind zusätzliche native Windows-`.exe`-Launcher ausgeschlossen. Beliebige absolute Paket- oder Anwendungspfade werden nicht umgeschrieben. Den unterstützten Umfang beschreibt das [Arena-Handbuch](./docs/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
+- **Dateivergleich:** Inhalte werden bei jedem Vergleich ohne persistenten Vergleichscache neu gelesen. Gleichzeitig laufende Schreibzugriffe ergeben weiterhin keine atomare Momentaufnahme.
 
 Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-Aufrufe setzen die EBT-Laufdaten zurück. Das setzt weder Target-Seiteneffekte noch bereits veränderte Argumente zurück. `WorldState(returns=None)` erwartet ausdrücklich `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Mehrere Eingänge teilen dieselbe Zielmenge; korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge. Ein `JsonReporter` persistiert Ergebnisse, erhebt aber selbst keine fachliche Assertion. Die genaue Vertragsbedeutung steht in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
 
-Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen. Drei Testdateien mit insgesamt 14 zusätzlich einsammelbaren Fällen werden aufgrund ihrer Dateinamen beim normalen pytest-Lauf derzeit nicht berücksichtigt. Details stehen im [Gutachten, Abschnitt 7](./GUTACHTEN.md#7-testbasis-paketierung-und-dokumentation).
+Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](./tests/CONTRACT_CASES_9_2.md).
 
 ---
 

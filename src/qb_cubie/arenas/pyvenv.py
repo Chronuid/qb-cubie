@@ -13,6 +13,7 @@ from ..protocols import IPCC, WorldState
 from ._hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 from ._requirements import _environment_python, _requirements_satisfied
+from ._relocation import relocate_scripts
 from .codecs import MSGspecCodec
 
 # ========== PYVENV-ARENA ==============================================================================================
@@ -85,6 +86,7 @@ class PyVenv(_ArenaState):
         self.workspace_path = workspace
         self.virtual_path = workspace / ".venv"
         shutil.copytree(base_env, str(self.virtual_path), symlinks=True)
+        relocate_scripts(base_env, self.virtual_path)
         self._hydrate()
 
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
