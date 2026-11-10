@@ -1,0 +1,5 @@
+from escaping import escape_text
+
+
+def render(text):
+    return "<span>" + escape_text(text) + "</span>"

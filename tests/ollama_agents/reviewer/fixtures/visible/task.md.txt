@@ -1,0 +1,13 @@
+# Text für ein Span-Element rendern
+
+`renderer.render(text)` nimmt Unicode-Text entgegen und gibt genau ein
+`<span>…</span>` ohne weitere Attribute oder zusätzliche Leerzeichen zurück.
+
+* `markup_escaping`: Im Textinhalt müssen `&`, `<` und `>` genau einmal zu
+  `&amp;`, `&lt;` und `&gt;` maskiert werden. Auch bereits wie Entities aussehende
+  Eingaben sind gewöhnlicher Text: `&amp;` wird zu `&amp;amp;`.
+* `unicode_preserved`: Alle anderen Zeichen, einschließlich Umlauten, Emoji,
+  Leerzeichen und Zeilenumbrüchen, bleiben erhalten. Anführungszeichen werden
+  im Textinhalt unverändert ausgegeben.
+
+Die vorhandenen Tests sind Beispiele und keine vollständige Vertragsprüfung.

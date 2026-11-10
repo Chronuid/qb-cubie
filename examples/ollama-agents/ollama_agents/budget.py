@@ -48,8 +48,8 @@ class BudgetLedger:
         """Reset only phase usage while preserving episode counters and deadline."""
         self._input, self._output = 0, 0
 
-    def _claim(self, kind):
-        """Check both remaining episode time and the selected internal call limit."""
+    def remaining(self):
+        """Check the episode deadline without consuming an internal call."""
         now = _duration(self._clock(), "episode clock", signed=True)
         if now < self._last:
             raise infrastructure("Episode clock must be monotonic")
@@ -57,6 +57,11 @@ class BudgetLedger:
         remaining = self._duration - (now - self._started) - self._reserve
         if remaining <= 0:
             raise AdapterError("budget_exceeded", "Episode time budget exhausted; runner reserve reached")
+        return remaining
+
+    def _claim(self, kind):
+        """Check both remaining episode time and the selected internal call limit."""
+        remaining = self.remaining()
         if self._calls[kind] >= self._limits[kind]:
             raise AdapterError("budget_exceeded", f"Internal {kind} call budget limit reached")
         self._calls[kind] += 1

@@ -1,0 +1,9 @@
+from renderer import render
+
+
+def test_plain_unicode():
+    assert render("Grüße 🌍") == "<span>Grüße 🌍</span>"
+
+
+def test_angle_brackets():
+    assert render("<tag>") == "<span>&lt;tag&gt;</span>"

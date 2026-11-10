@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "criterion_results": {"markup_escaping": "fail", "unicode_preserved": "pass"},
+  "findings": [{
+    "criterion_id": "markup_escaping",
+    "path": "escaping.py",
+    "symbol": "escape_text",
+    "mechanism": "Das kaufmännische Und wird nicht maskiert.",
+    "impact": "A&B erscheint unverändert im Span statt als A&amp;B."
+  }],
+  "sources": ["escaping.py", "renderer.py", "task.md", "tests/test_renderer.py"]
+}

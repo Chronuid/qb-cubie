@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "provenance": "Authored deterministic development fixture; not a blinded human reference or held-out measurement.",
+  "conform": {
+    "criterion_results": {"markup_escaping": "pass", "unicode_preserved": "pass"},
+    "findings": []
+  },
+  "faulty": {
+    "criterion_results": {"markup_escaping": "fail", "unicode_preserved": "pass"},
+    "findings": [{
+      "criterion_id": "markup_escaping",
+      "path": "escaping.py",
+      "symbol": "escape_text",
+      "mechanism": "Ampersands are copied without escaping before the markup replacements.",
+      "impact": "Rendering A&B produces <span>A&B</span> instead of <span>A&amp;B</span>."
+    }]
+  }
+}

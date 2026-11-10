@@ -1,8 +1,9 @@
 # Konzept: lokale Reviewer- und Developer-Agenten
 
 **Stand:** 10. November 2026. **Status:** Gemeinsamer Unterbau (§5, Schritt 1)
-implementiert und offline geprüft; Rollenadapter und Modellmessungen weiterhin
-geplant.
+und Reviewer-Kern (§5, Schritt 2) implementiert und offline geprüft;
+Reviewer-JSONL-Anschluss im echten EBT-Smoke geprüft; Developer-Rollenprozess,
+Wheel-Nachweise und Modellmessreihen weiterhin geplant.
 
 Dieses Dokument konkretisiert die Agentenseite des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md), insbesondere Abschnitte 4, 5 und 7.
@@ -379,6 +380,16 @@ Für Schritt 1 dokumentiert die
 die ursprüngliche Rotphase und die implementierte Abnahme. Alle 97 ursprünglichen
 Cases und zwölf ergänzende Gegenproben unter `tests/ollama_agents/` bestehen
 offline. Diese Replays belegen den Unterbau, keine Modellleistung.
+
+Für Schritt 2 liegen die
+[EBT-Abnahmecases für den Reviewer-Durchstich](../tests/AGENTEN_CASES_5_2.md)
+vor: zwei neue kleine Quellstände, Enthaltung, Quellenänderungen, tatsächliche
+Kontext-/Werkzeugbelege und die getrennte semantische Nachbewertung.
+Der Reviewer-Kern unter `examples/ollama-agents/reviewer.py` erfüllt alle
+68 ursprünglichen Cases. Mit 22 weiteren Gegenproben bestehen 90 Reviewer-Cases
+und die 109 Unterbau-Cases offline. Der zusätzliche echte Pipeline-EBT weist den Reviewer-JSONL-Anschluss mit
+Modellmetadaten, unabhängiger Evaluation und RBT-Aufzeichnung für einen konformen
+Fall nach. Wheel-Installation und vollständige Smoke-Sets bleiben offen.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,

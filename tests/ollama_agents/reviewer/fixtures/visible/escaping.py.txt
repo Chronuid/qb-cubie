@@ -1,0 +1,2 @@
+def escape_text(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
