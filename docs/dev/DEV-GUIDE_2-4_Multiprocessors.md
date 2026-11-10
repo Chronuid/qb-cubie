@@ -70,7 +70,7 @@ Der `MultiprocessRunner` ist der **Arbeiter**. Er instanziiert den vom Resolver 
 Dieses Protokoll (definiert in `protocols.py`) ist der verbindliche Vertrag für alle Parallelisierungs-Strategien. Ein valider Prozessor benötigt:
 * `priority: int`: Bestimmt die Rangfolge im Resolver.
 * `@staticmethod check_condition(pre_states, post_states) -> bool`: Entscheidet, ob der Prozessor den aktuellen Datenfluss handhaben kann.
-* `@staticmethod create_handler(n_tasks: int) -> Mapper`: Liefert ein Objekt zurück, das das `ContextManager`-Protokoll erfüllt und eine `.map()` Methode besitzt. Hier greifen auch Laufzeit-Heuristiken, wie etwa das dynamische Berechnen der optimalen `chunksize` basierend auf `os.cpu_count()` und der Menge der Tasks.
+* `@staticmethod create_handler(n_tasks: int, *, max_workers: int | None = None) -> Mapper`: Liefert einen ContextManager mit `.map()` und berücksichtigt ein gesetztes Workerlimit. Der Manager reicht das Limit auch bei einem Backend-Fallback weiter. Ohne explizites Limit ruft der Runner die Factory nur mit `n_tasks` auf; bisherige eigene Prozessoren bleiben so nutzbar. Bei einem expliziten Limit müssen sie das Schlüsselwort unterstützen und die Grenze einhalten. Eine fehlende Unterstützung löst den bestehenden Backend-Fallback aus; das Limit wird dabei nicht verworfen.
 
 ### PickleProcessor
 Der **Fast-Path** der Cubie-Engine (Priority `1`). 
@@ -94,7 +94,7 @@ Die Architektur ist strikt nach dem Open-Closed-Prinzip gestaltet. Um ein eigene
 Der Mapper kapselt die physische Interaktion mit dem Backend. Hier werden architektonische Herausforderungen wie Teardown und Chunking isoliert gelöst.
 
 * **Lebenszyklus-Kapselung:** Durch das `__enter__` und `__exit__` Protokoll wird sichergestellt, dass externe Verbindungen oder Subprozesse (wie `pool.shutdown()`) auch bei Exceptions in der EBT-Pipeline abgeräumt werden.
-* **Laufzeit-Heuristiken (Chunking):** Der Mapper erhält bei Instanziierung `n_tasks`. Dies ermöglicht es ihm, intelligente Heuristiken anzuwenden. Beispielsweise berechnen `PickleMapper` und `LokyMapper` die Task-Blöcke (`chunksize = max(1, n_tasks // (os.cpu_count() * 4))`), um den IPC-Overhead durch chunking zu reduzieren.
+* **Laufzeit-Heuristiken (Chunking):** `PickleMapper` und `LokyMapper` begrenzen die Workerzahl auf `min(os.cpu_count() or 1, n_tasks)` und gegebenenfalls `max_workers`. Die Task-Blöcke richten sich nach der effektiven Workerzahl: `chunksize = max(1, n_tasks // (n_worker * 4))`. Ein Pool benötigt mindestens eine Aufgabe.
 * **Das Mapping-Interface:** Die `.map()`-Methode nimmt das auszuführende Target und die entpackten `WorldState`-Iterables entgegen und liefert die Ergebnisse an die EBT-Engine zurück.
 
 ```python
@@ -127,6 +127,8 @@ class RayMapper:
 ### Schritt 2: Den Prozessor (Hook) definieren
 
 Der eigentliche Prozessor agiert primär als Filter oder Trigger (Hook) und als Factory für den Mapper. Die Methode `create_handler` reicht hierbei lediglich die Task-Anzahl an die Mapper-Instanz weiter. Das eigentliche Routing durch die Responsibility Chain wird durch die Kombination aus Priorität und der `check_condition`-Funktion umgesetzt.
+
+Das folgende vereinfachte Ray-Beispiel zeigt die bisherige Schnittstelle ohne Benutzerlimit. Für die Nutzung mit `EBT(max_workers=...)` muss die Factory zusätzlich `max_workers` annehmen und der Mapper die Parallelität des Backends entsprechend begrenzen.
 
 * **Der Hook (Spezifischer Trigger):** mit spezifischen `check_condition` (z.B. Scannen der `pre_states` nach einem bestimmten Datentyp oder einer spezifischen Arena), kann man Prozessoren bauen, die nur bei ganz bestimmten Testfällen eingreifen.
 * **Priority-Chain** man kann die spezifischen Trigger breiter setzen und über die priority die Evaluation des Objekts in der Kette beeinflussen. Setzt man eine sehr hohe Priorität für einen Multiprocessor, überwiegt dieser in seiner Wertung für die Auswahl gegenüberen weniger hoch priorisierten Multiprocessors in der Registry, insofern beide check_condition-Prüfungen zutreffen.
@@ -182,7 +184,9 @@ Sollte ein absoluter Blackbox-Modus nötig sein, in dem die nativen Fallbacks ph
 ---
 ## Betriebsgrenzen
 
-Die Workerzahl richtet sich nach den gemeldeten CPUs und wird derzeit weder durch die Aufgabenzahl noch durch ein Benutzerlimit begrenzt. Zusammen mit pytest-xdist und Arena-Unterprozessen kann dies erhebliche Überbelegung verursachen. Fallback ist keine Exactly-once-Garantie: Die gesamte Aufgabenmenge kann erneut laufen, auch wenn zuvor einzelne Targets schon Seiteneffekte erzeugt haben. Die heuristische Backend-Auswahl garantiert weder Serialisierbarkeit aller Targets noch Ausführungsisolation. Siehe [Vertragssemantik](../GUIDE_Contract-Semantics.md).
+Pickle und Loky begrenzen die Workerzahl je Lauf auf CPUs, Eingangszustände und das optionale `EBT(max_workers=...)`-Limit. Ohne erkennbare CPU-Zahl wird ein Worker verwendet. `max_workers=1` erhält die Ausführung im Kindprozess. Die Grenze gilt pro EBT-Instanz; pytest-xdist-Worker und Arena-Unterprozesse erhalten kein gemeinsames Ressourcenbudget. Für diese Kombinationen muss das Benutzerlimit entsprechend gewählt werden.
+
+Fallback ist keine Exactly-once-Garantie: Die gesamte Aufgabenmenge kann erneut laufen, auch wenn zuvor einzelne Targets schon Seiteneffekte erzeugt haben. Die heuristische Backend-Auswahl garantiert weder Serialisierbarkeit aller Targets noch Ausführungsisolation. Siehe [Vertragssemantik](../GUIDE_Contract-Semantics.md).
 
 ---
 

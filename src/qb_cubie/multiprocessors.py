@@ -9,6 +9,23 @@ try:
 except ImportError:  LOKY_AVAILABLE = False
 
 
+def _validate_max_workers(max_workers: int | None) -> None:
+    if max_workers is None:
+        return
+    if isinstance(max_workers, bool) or not isinstance(max_workers, int):
+        raise TypeError("max_workers must be a positive integer or None")
+    if max_workers < 1:
+        raise ValueError("max_workers must be a positive integer or None")
+
+
+def _worker_count(n_tasks: int, max_workers: int | None) -> int:
+    _validate_max_workers(max_workers)
+    if n_tasks < 1:
+        raise ValueError("n_tasks must be positive before creating a process pool")
+    workers = min(os.cpu_count() or 1, n_tasks)
+    return min(workers, max_workers) if max_workers is not None else workers
+
+
 ########################################################################################################################
 ####### =======================  MULTIPROCESSOR (PROTOCOL) - IMPLEMENTATIONS  ================================== #######
 ########## -------------------------------------------------------------------------------------------------- ##########
@@ -20,8 +37,8 @@ class PickleMapper:
     """
     The pickle-specific mapper - acts up with lambdas and locals but is otherwise pretty fast.
     """
-    def __init__(self, n_tasks: int):
-        self.n_worker = os.cpu_count() or 1
+    def __init__(self, n_tasks: int, *, max_workers: int | None = None):
+        self.n_worker = _worker_count(n_tasks, max_workers)
         self.chunksize = max(1, n_tasks // (self.n_worker * 4))
         self.executor = ProcessPoolExecutor(max_workers=self.n_worker)
     def __enter__(self) -> 'PickleMapper':
@@ -41,8 +58,8 @@ class PickleProcessor:
     def check_condition(pre_states: list, post_states: list) -> bool:
         return not StateInspector.has_unpicklable_callables(pre_states, post_states)
     @staticmethod
-    def create_handler(n_tasks: int) -> Mapper:
-        return PickleMapper(n_tasks)
+    def create_handler(n_tasks: int, *, max_workers: int | None = None) -> Mapper:
+        return PickleMapper(n_tasks, max_workers=max_workers)
 
 
 # ========== LOKY PROCESSOR ========================================================================================== #
@@ -51,8 +68,8 @@ class LokyMapper:
     """
     The Loky-specific mapper - uses cloudpickle serialization for dynamic predicates (lambdas and locals).
     """
-    def __init__(self, n_tasks: int):
-        self.n_worker = os.cpu_count() or 1
+    def __init__(self, n_tasks: int, *, max_workers: int | None = None):
+        self.n_worker = _worker_count(n_tasks, max_workers)
         self.chunksize = max(1, n_tasks // (self.n_worker * 4))
         self.executor = get_reusable_executor(
             max_workers=self.n_worker,
@@ -83,9 +100,9 @@ class LokyProcessor:
         return needs_loky and LOKY_AVAILABLE
 
     @staticmethod
-    def create_handler(n_tasks: int) -> LokyMapper:
+    def create_handler(n_tasks: int, *, max_workers: int | None = None) -> LokyMapper:
         if not LOKY_AVAILABLE: raise RuntimeError("LokyProcessor was called without the Loky module installed.")
-        return LokyMapper(n_tasks)
+        return LokyMapper(n_tasks, max_workers=max_workers)
 
 
 # ========== STATE INSPECTOR ========================================================================================= #
@@ -124,12 +141,16 @@ class MultiprocessManager:
             pre_states: list,
             post_states: list,
             task_func: Callable,
-            processors: List['Multiprocessor']
+            processors: List['Multiprocessor'],
+            *,
+            max_workers: int | None = None
     ):
+        _validate_max_workers(max_workers)
         self._pre_states = pre_states
         self._post_states = post_states
         self._task_func = task_func
         self._processors = processors
+        self._max_workers = max_workers
         self.dispatcher = {  #'δ'
             S.INITIAL: self._state_initial,
             S.RESOLVE: self._state_resolve,
@@ -195,7 +216,8 @@ class MultiprocessManager:
         return MultiprocessRunner(
             handler=processor,
             pre_states=self._pre_states,
-            task_func=self._task_func
+            task_func=self._task_func,
+            max_workers=self._max_workers
         )
 
     def _degrade_and_warn(self, processor, phase: str, error: Exception):
@@ -264,15 +286,22 @@ class MultiprocessRunner:
             self,
             handler: Multiprocessor,
             pre_states: list,
-            task_func: Callable
+            task_func: Callable,
+            *,
+            max_workers: int | None = None
     ):
+        _validate_max_workers(max_workers)
         self._handler = handler
         self._pre_states = pre_states
         self._task_func = task_func
+        self._max_workers = max_workers
         self._n_tasks = len(pre_states)
         self._indices = list(range(self._n_tasks))
     def execute(self) -> Iterable:
-        with self._handler.create_handler(n_tasks=self._n_tasks) as mapper:
+        # Preserve legacy custom factories when no explicit limit was requested.
+        # With a limit, require backend support rather than silently ignoring it.
+        options = {} if self._max_workers is None else {"max_workers": self._max_workers}
+        with self._handler.create_handler(n_tasks=self._n_tasks, **options) as mapper:
             # Consume results here so deferred errors reach the manager's fallback.
             return list(mapper.map(
                 self._task_func,

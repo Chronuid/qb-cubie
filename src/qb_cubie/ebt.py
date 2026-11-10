@@ -4,6 +4,7 @@ from multiprocessing.managers import BaseProxy
 from pathlib import Path
 from typing import Union, Set, get_origin, get_args, Optional
 from .multiprocessors import *
+from .multiprocessors import _validate_max_workers
 from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED
 from .reporter import PytestReporter
 
@@ -59,6 +60,10 @@ class EBTContext:
 class EBT:
     """
     Runs concrete examples against result patterns; the Hoare triple is a structural analogy, not a proof.
+
+    With multiprocessing enabled, max_workers optionally caps each built-in
+    pool in addition to CPU and input counts. None adds no user limit; a
+    positive integer is required otherwise. The cap applies per EBT instance.
     """
     def __init__(
             self,
@@ -71,8 +76,12 @@ class EBT:
             reporter: Reporter[RunTrace] | None = PytestReporter(),
             multiprocessing: bool = False,
             multiprocessors: Optional[List['Multiprocessor']] = None,
-            tags = None
+            tags = None,
+            *,
+            max_workers: int | None = None
         ):
+        _validate_max_workers(max_workers)
+        self.max_workers = max_workers
         self.tags = tags
         self.target = target
         self.arena = arena
@@ -124,6 +133,7 @@ class EBT:
     def _arrange(self) -> None:
         """Validates and normalizes the states passed to the pipeline."""
         __tracebackhide__ = True
+        _validate_max_workers(self.max_workers)
         self.pre = self._ensure_list(self.pre, "pre")
         self.post = self._ensure_list(self.post, "post")
         normalized = [
@@ -177,7 +187,8 @@ class EBT:
             pre_states=self.pre,
             post_states=self.post,
             task_func=task_func,
-            processors=self.MULTIPROCESSORS
+            processors=self.MULTIPROCESSORS,
+            max_workers=self.max_workers
         )
         raw_results = manager.execute()
         if isinstance(raw_results, Exception): raise raw_results

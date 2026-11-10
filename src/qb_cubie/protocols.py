@@ -158,8 +158,12 @@ class Multiprocessor(Protocol):
         """The hook-case under review. Evaluates whether this processor is responsible."""
         ...
 
-    def create_handler(self, n_tasks: int) -> Mapper:
-        """Returns the mapper instance as interface- and execution-layer (which is itself a context manager)."""
+    def create_handler(self, n_tasks: int, *, max_workers: int | None = None) -> Mapper:
+        """Return a context-managed mapper respecting an optional worker limit.
+
+        Legacy factories taking only n_tasks are called without max_workers
+        when EBT has no explicit limit. An explicit limit requires support.
+        """
         ...
 
 # ========== VM-ARENA-PROTOCOLS ========================================================================================

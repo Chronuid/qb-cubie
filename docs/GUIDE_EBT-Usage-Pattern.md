@@ -58,6 +58,28 @@ def test_normalize():
 
 Jeder dieser drei Eingänge wird einmal ausgeführt. Ohne Arena laufen die Aufrufe im aufrufenden Prozess und teilen dessen Zustand. Diese Liste begründet keine Aussage über alle anderen Strings.
 
+## Parallelität begrenzen
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def normalize_parallel(text):
+    return text.strip().lower()
+
+
+def test_normalize_parallel():
+    EBT(
+        target=normalize_parallel,
+        pre=[WorldState(args=(text,)) for text in [" TEXT ", "text", "TeXt"]],
+        post=WorldState(returns="text"),
+        multiprocessing=True,
+        max_workers=2,
+    ).run()
+```
+
+Pickle und Loky verwenden hier höchstens zwei Worker, zusätzlich begrenzt durch die gemeldeten CPUs und die Anzahl der Eingänge. Ohne `max_workers` oder mit `None` gelten nur CPU- und Aufgabengrenze. `max_workers` muss eine positive Ganzzahl sein; `True` und `False` sind nicht zulässig. Bei unbekannter CPU-Zahl wird ein Worker verwendet. Ein Worker führt die Aufgaben weiterhin im Kindprozess aus. Die Grenze gilt je EBT-Instanz; bei pytest-xdist können mehrere solcher Pools gleichzeitig laufen. Bei `multiprocessing=False` wird kein Pool angelegt.
+
 ## Erlaubte und verbotene Ergebnisse
 
 ```python

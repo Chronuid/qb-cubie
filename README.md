@@ -10,7 +10,7 @@ Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 
 ---
 
-qb-cubie ist experimentell. Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.
+qb-cubie ist experimentell. Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
 Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 
 ---

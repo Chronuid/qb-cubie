@@ -12,7 +12,7 @@
 
 ## Konstruktor und Konfiguration
 
-`EBT(target, arena=None, pre=None, post=None, expect=True, custom_id=None, reporter=PytestReporter(), multiprocessing=False, multiprocessors=None, tags=None)` ist das öffentliche Interface.
+`EBT(target, arena=None, pre=None, post=None, expect=True, custom_id=None, reporter=PytestReporter(), multiprocessing=False, multiprocessors=None, tags=None, *, max_workers=None)` ist das öffentliche Interface.
 
 `target` muss ohne Arena oder mit `TempFS` ein Callable sein; zusätzliche String-Referenzen werden durch den `PyVenv`-Codec aufgelöst. `pre` und `post` akzeptieren `WorldState`, nichtleere Listen davon oder `None`. `_ensure_list(None)` erzeugt `[WorldState()]`; leere Listen führen zu `ValueError`, andere Typen und ungültige Einträge zu `TypeError` mit Feldname und gegebenenfalls Index. Eine `ConventionMap` oder Inferenz primitiver Werte in `args`, `kwargs` oder `returns` existiert nicht.
 
@@ -23,6 +23,8 @@
 `reporter=None` unterbindet Reporter-Assertions. Fehler beim Aufbau, bei der Target-Ausführung oder im Vergleich bleiben möglich. `tags` speichert Metadaten; daraus entstehen keine pytest-Marken. `custom_id` fließt in `_run_id` ein, die beim Konstruktoraufruf und nicht bei jedem `.run()` erzeugt wird.
 
 `multiprocessing=True` delegiert Aufgaben an den `MultiprocessManager`. Übergebene `multiprocessors` werden zur Standardliste aus `PickleProcessor` und `LokyProcessor` hinzugefügt. Ein ausschließlicher eigener Backend-Satz erfordert das explizite Setzen von `engine.MULTIPROCESSORS` vor dem Lauf. Details stehen im [Multiprocessing-Handbuch](DEV-GUIDE_2-4_Multiprocessors.md).
+
+`max_workers` akzeptiert `None` oder eine positive Ganzzahl; boolesche Werte und andere Typen führen zu `TypeError`, Zahlen kleiner als eins zu `ValueError`. Die Prüfung erfolgt beim Anlegen und vor jedem Lauf, auch bei sequenzieller Ausführung. Pickle und Loky verwenden höchstens `min(os.cpu_count() or 1, len(pre), max_workers)` Worker; bei `None` entfällt die Benutzergrenze. Die Berechnung erfolgt je Lauf. `post`-Zustände erhöhen die Aufgabenzahl nicht. Ein Limit von eins nutzt weiterhin einen Kindprozess; bei `multiprocessing=False` wird kein Pool angelegt. Das Limit gilt je EBT-Instanz, auch bei pytest-xdist.
 
 ## Pipeline
 
