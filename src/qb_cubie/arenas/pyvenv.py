@@ -1,10 +1,17 @@
-import os, subprocess, sys, tempfile, shutil, uuid
+import locale
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import uuid
 from pathlib import Path
-from typing import Any, Optional, List
-from .codecs import MSGspecCodec
-from ..protocols import IPCC, WorldState
-from ._requirements import _environment_python, _requirements_satisfied
+from typing import Any, List, Optional
 
+from ..protocols import IPCC, WorldState
+from ._process import run_process, validate_limits
+from ._requirements import _environment_python, _requirements_satisfied
+from .codecs import MSGspecCodec
 
 # ========== PYVENV-ARENA ==============================================================================================
 
@@ -12,14 +19,23 @@ CURRENT_DIR = Path(__file__).parent
 class PyVenv:
     """
     Executes targets as isolated arena runner within ephemeral, virtual Python environments.
+
+    Optional POSIX limits: timeout in seconds and a shared stdout/stderr budget
+    in bytes. Neither limit includes environment provisioning or cloning.
     """
     def __init__(
             self,
             env_path: str = str(CURRENT_DIR / "arena_envs" / "empty_test_env"),
             codec: Optional[IPCC] = None,
             decontams: Optional[List] = None,
-            custom_id: str | None = None
+            custom_id: str | None = None,
+            *,
+            timeout: float | None = None,
+            max_output_bytes: int | None = None,
     ):
+        validate_limits(timeout, max_output_bytes)
+        self.timeout = timeout
+        self.max_output_bytes = max_output_bytes
         self.codec = codec or MSGspecCodec()
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
@@ -41,9 +57,12 @@ class PyVenv:
     def run(self, target: Any, args: tuple, kwargs: dict, state: Optional[WorldState] = None) -> Any:
         """Encapsulates the entire lifecycle of the arena for standalone invocations."""
         __tracebackhide__ = True
-        self.setup(state or WorldState())
-        try: return self.execute(target, args, kwargs)
-        finally: self.teardown()
+        try:
+            self.setup(state or WorldState())
+            return self.execute(target, args, kwargs)
+        finally:
+            if self.workspace_path is not None:
+                self.teardown()
 
     def setup(self, state: WorldState) -> None:
         """Creates an ephemeral clone of the virtual environment based on the configured state."""
@@ -67,6 +86,8 @@ class PyVenv:
         __tracebackhide__ = True
         self._get_python_exe()
         self._prepare_env()
+        self._actual_returns = None
+        self._process = None
         self._actual_returns = self._run_in_subprocess(target, args, kwargs)
         return self._actual_returns
 
@@ -226,13 +247,18 @@ class PyVenv:
         if self._python_exe is None or self._env_vars is None or self.workspace_path is None:
             raise RuntimeError("STATE-GUARD: Python executable, environment, or workspace is missing.")
         cmd_args = [str(self._python_exe), "-c", script]
-        self._process = subprocess.run(
+        self._process = run_process(
             cmd_args,
             env=self._env_vars,
             cwd=self.workspace_path,
             capture_output=True,
-            text=True
+            timeout=self.timeout, max_output_bytes=self.max_output_bytes,
         )
+        encoding = locale.getpreferredencoding(False)
+        for channel in ("stdout", "stderr"):
+            payload = getattr(self._process, channel)
+            text = payload.decode(encoding, errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+            setattr(self._process, channel, text)
         self._raise_arena_error()
 
     def _raise_arena_error(self):

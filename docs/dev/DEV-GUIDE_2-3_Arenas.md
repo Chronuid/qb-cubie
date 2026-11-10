@@ -52,7 +52,14 @@ Pickle/Cloudpickle-Deserialisierung kann Code ausführen. MessagePack reduziert 
 
 `custom_id` fließt in `arena_id` mit einem achtstelligen UUID-Anteil ein. Temporäre Verzeichnisse erhalten zusätzlich von `tempfile.mkdtemp` erzeugte Namen. Die IDs helfen bei der Zuordnung; sie sind kein Beweis absoluter Eindeutigkeit.
 
-Es gibt keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puffert die gesamte Standardausgabe und Fehlerausgabe. Dateiziele werden nicht auf den Workspace begrenzt; absolute Pfade und `..` können außerhalb schreiben. Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
+Beide Arenen delegieren an `_process.run_process()`. Die optionalen POSIX-Limits
+`timeout` und `max_output_bytes` begrenzen Runner-Laufzeit und gemeinsame
+stdout/stderr-Ausgabe. Die Überwachung liest beide Pipes gleichzeitig und beendet
+bei Abbruch die eigene Prozessgruppe mit SIGTERM/SIGKILL. Ohne Limits bleibt das
+bisherige Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte
+Ausgabe. Siehe [Arena-Handbuch](../GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
+Dateiziele werden nicht auf den Workspace begrenzt; absolute Pfade und `..` können
+außerhalb schreiben. Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
 Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.
 

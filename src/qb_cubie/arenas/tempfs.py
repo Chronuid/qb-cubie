@@ -1,7 +1,6 @@
 import multiprocessing
 import pickle
 import shutil
-import subprocess
 import sys
 import tempfile
 import uuid
@@ -12,6 +11,7 @@ from typing import Any
 import cloudpickle
 
 from ..protocols import WorldState
+from ._process import run_process, validate_limits
 
 
 class TempFS:
@@ -21,11 +21,20 @@ class TempFS:
     The caller's CWD is never changed. Targets, arguments and results must be
     cloudpickle-serializable; target mutations of host Python objects are not
     shared back. Use a separate arena instance for each active lifecycle.
+
+    Optional POSIX limits: timeout in seconds and a combined stdout/stderr
+    budget in bytes. Output-limited runs replay output after exit.
     """
     def __init__(
             self,
-            custom_id: str | None = None
+            custom_id: str | None = None,
+            *,
+            timeout: float | None = None,
+            max_output_bytes: int | None = None,
     ):
+        validate_limits(timeout, max_output_bytes)
+        self.timeout = timeout
+        self.max_output_bytes = max_output_bytes
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.workspace_path: Path | None = None
@@ -80,11 +89,19 @@ class TempFS:
                 pickle.dump((import_paths, bytes(multiprocessing.current_process().authkey)), stream)
                 cloudpickle.dump((target, args, kwargs), stream)
             runner = Path(__file__).with_name("_tempfs_runner.py").resolve()
-            process = subprocess.run(
+            process = run_process(
                 [sys.executable, str(runner), str(input_path), str(output_path)],
                 cwd=self.workspace_path,
-                check=False,
+                timeout=self.timeout, max_output_bytes=self.max_output_bytes,
             )
+            if self.max_output_bytes is not None:
+                for stream, payload in ((sys.stdout, process.stdout), (sys.stderr, process.stderr)):
+                    if hasattr(stream, "buffer"):
+                        stream.buffer.write(payload)
+                        stream.buffer.flush()
+                    else:
+                        stream.write(payload.decode(errors="replace"))
+                        stream.flush()
             if process.returncode != 0 or not output_path.is_file():
                 raise RuntimeError(
                     f"TempFS target process exited with code {process.returncode} "

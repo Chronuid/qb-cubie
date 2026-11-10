@@ -44,19 +44,6 @@ Die Vorstellung, Tests würden mögliche Implementierungen eingrenzen, ist als D
 
 Für Datei-Workflows können deklarierte Vorlagen wiederholte Einrichtung und Vergleichslogik vereinfachen. Bei einfachen Funktionen ist eine gewöhnliche pytest-Assertion oft kürzer. Ein allgemeiner Produktivitätsgewinn ist bislang nicht empirisch belegt. Arenen dürfen dabei nur für vertrauenswürdigen Code eingesetzt werden: Die vorhandenen Implementierungen bieten keine OS-Sicherheitsgrenze.
 
-## Abgleich mit dem Gutachten
-
-| Kritik im Gutachten | Anpassung der Definitionen und Anleitungen |
-| --- | --- |
-| 3.1–3.2: Suchraum, Hoare-Logik und unbelegte Garantien | Produktdefinition als deklaratives Testwerkzeug; Beobachtung, Abdeckung und Beweis ausdrücklich getrennt; Essays als konzeptionell eingeordnet. |
-| 3.3: Quantoren und Würfelbeispiel | Endliche Aggregationsregel samt rein negativen Mustern definiert; fehlende Paarzuordnung und fehlende Verteilungsprüfung erläutert. |
-| 4 und 7.2: RBT und Einstieg | Vollständiger EBT-Quickstart mit `.run()`; korrekter RBT-Import; Standardreviewer, Quellenbeschaffung und fehlender LLM-Adapter klargestellt. |
-| 5.2–5.4: Vergleichs- und Modellierungsgrenzen | `None`, leere Listen, Instanzwiederverwendung, Argumententpackung, Regex, Container, FS-Kollisionen und leere Verzeichnisse dokumentiert; nicht vorhandene Kurzformen und Felder entfernt. |
-| 6.1–6.3: Arenen und Betrieb | Hostrechte, Pfadgrenzen, Codecs, Import-Phantome, fehlende Timeouts, Basisinstallation und mögliche Aufgabenwiederholung beschrieben. |
-| 7.2: Widersprüchliche Detailbeschreibungen | Zentrale Semantikreferenz eingeführt und mit Nutzungs- und Entwicklerhandbüchern verknüpft; implementiertes Verhalten von Entwürfen getrennt. |
-
-Die Änderungen betreffen Dokumentation und beschreibende Docstrings. Die im Gutachten priorisierten Reparaturen des Prüfkerns, der Installation und der Betriebsgrenzen bleiben eigenständige Implementierungsaufgaben.
-
 ---
 
 ---

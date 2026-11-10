@@ -72,13 +72,64 @@ Die Wahl hängt von den **übertragenen** Targets, Argumenten und Rückgaben ab.
 
 Pickle und Cloudpickle können bei der Deserialisierung Code ausführen. MessagePack vermeidet diesen konkreten Mechanismus, entzieht dem Target aber keine Hostrechte und schützt nicht vor gefälschten Ergebnissen. `CloudpickleCodec(isolation=1)` aktiviert derzeit nur einen leeren Platzhalter und schafft keine zusätzliche Dependency-Isolation.
 
+## Laufzeit und Ausgabe begrenzen
+
+Beide Arenen akzeptieren die optionalen Schlüsselwortargumente `timeout`
+(positive, endliche Sekunden) und `max_output_bytes` (nichtnegative ganze Zahl).
+`None` deaktiviert das jeweilige Limit; standardmäßig sind beide deaktiviert.
+Beispielsweise führt diese Arena jeden Target-Aufruf mit höchstens fünf Sekunden
+Laufzeit und zusammen 64 KiB stdout/stderr aus:
+
+```python
+from qb_cubie import EBT, TempFS, WorldState
+
+EBT(
+    target=lambda: "fertig",
+    arena=TempFS(timeout=5, max_output_bytes=65536),
+    post=WorldState(returns="fertig"),
+).run()
+```
+
+Für eine vorbereitete Umgebung gilt entsprechend
+`PyVenv(".arenas/my_env", timeout=5, max_output_bytes=65536)`.
+Die Limits gelten auch bei direktem `arena.run(...)`. Die Frist beginnt vor dem
+Start des Runner-Prozesses und umfasst dessen Ausführung und das Schreiben der
+IPC-Rückgabe; Aufbau, Hydrierung, Klonen und Deserialisierung im Elternprozess
+sind nicht eingeschlossen. Jeder Eingang erhält eine eigene Frist.
+
+Das Ausgabelimit zählt rohe Bytes beider Streams gemeinsam, einschließlich
+nativer Ausgabe und Ausgabe von Nachkommen mit geerbten Kanälen. Genau das
+Budget ist erlaubt; `0` erlaubt nur stille Targets. Die Kanäle werden gleichzeitig
+gelesen, und mit aktivem Ausgabelimit bleibt die Puffergröße proportional zum
+Budget. TempFS gibt erfasste Ausgabe erst nach Prozessende weiter; PyVenv hält
+sie für seine Fehlerdiagnose vor. Bei Überschreitung wird die Ausgabe verworfen
+und eine kurze Fehlermeldung zurückgegeben.
+
+Ein Timeout löst `TimeoutError` aus, eine Ausgabeüberschreitung `RuntimeError`.
+Auch `EBT(expect=False)` wandelt solche Abbrüche nicht in einen Erfolg um.
+Die Überwachung beendet bei Abbruch die eigene Prozessgruppe mit `SIGTERM`
+und nach bis zu 0,2 Sekunden mit `SIGKILL`. Das gilt auch bei unterbrochener
+Überwachung und wenn der Runner bereits beendet ist, aber Nachkommen die Pipes
+offen halten. Die Arena räumt anschließend Workspace und IPC-Dateien auf.
+Die Beendigung und das Aufräumen können zusätzlich zur Frist Zeit benötigen.
+
+Die neuen Limits erfordern POSIX-Prozessgruppen (Linux/macOS); auf Windows
+werden gesetzte Limits vor der Ausführung mit `NotImplementedError` abgelehnt.
+Aufrufe ohne Limits behalten ihr bisheriges Verhalten auf allen Plattformen.
+Gezielt aus der Prozessgruppe ausgebrochene Prozesse werden nicht erfasst.
+Dateiausgabe, IPC-Dateigröße und Speicher des Targets werden nicht begrenzt.
+
 ## Grenzen von Isolation und Reproduzierbarkeit
 
 Targets können absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare Netzwerkzugänge nutzen. Hydrierungsziele werden nicht auf den Workspace begrenzt: Verwende kontrollierte relative Pfade ohne `..`. Auch eine versehentliche absolute Pfadangabe kann außerhalb schreiben.
 
 `PyVenv` kann ausgewählte Imports durch Phantom-Objekte ersetzen. Diese Importanpassung verändert die Testbedingungen und kann Fehler verdecken; sie entzieht keine Rechte. `PATH` und `VIRTUAL_ENV` wählen eine Umgebung aus, sie erzwingen keine OS-Isolation.
 
-Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist; ein hängendes Target kann den Lauf blockieren. `PyVenv` puffert stdout und stderr vollständig. Zusätzliche Worker, pytest-xdist und Arena-Unterprozesse können die Ressourcenlast vervielfachen. Der Multiprocessing-Fallback kann Aufgaben nach Fehlern erneut ausführen und Seiteneffekte wiederholen.
+Ohne explizite Limits kann ein hängendes Target den Lauf blockieren; `PyVenv`
+puffert dann stdout und stderr vollständig. Zusätzliche Worker, pytest-xdist und
+Arena-Unterprozesse können die Ressourcenlast vervielfachen. Der
+Multiprocessing-Fallback kann Aufgaben nach Fehlern erneut ausführen und
+Seiteneffekte wiederholen.
 
 `DockerArena` und `VmArena` sind nicht implementiert und nicht Teil der öffentlichen API. Die [Virtualisierungsentwürfe](feature-drafts/virtualization/README.md) beschreiben geplante Funktionen. Aussagen daraus gelten nicht für die vorhandenen Arenen.
 

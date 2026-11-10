@@ -300,7 +300,7 @@ def test_process_start_failure_cleans_workspace_and_ipc(tmp_path, monkeypatch, r
     def fail_to_start(*args, **kwargs):
         raise OSError("process could not start")
 
-    monkeypatch.setattr(tempfs.subprocess, "run", fail_to_start)
+    monkeypatch.setattr(tempfs, "run_process", fail_to_start)
     arena = RecordingTempFS()
     with pytest.raises(OSError, match="process could not start"):
         arena.run(lambda: True, (), {})

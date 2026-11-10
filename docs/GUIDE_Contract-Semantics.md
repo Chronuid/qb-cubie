@@ -109,7 +109,15 @@ Arena-Zielpfade werden derzeit nicht auf den Workspace begrenzt: Absolute Pfade 
 
 `TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation. Import-Phantome verändern Importbedingungen und können Fehler verdecken.
 
-Beide Arenen haben keine konfigurierbare Target-Ausführungsfrist. `PyVenv` puffert stdout/stderr vollständig und kann fehlende Codec-Pakete in der Basisumgebung nachinstallieren. Damit sind Netz- und Schreiboperationen während des Setups möglich.
+Beide Arenen unterstützen unter POSIX die optionalen Limits `timeout` (Sekunden)
+und `max_output_bytes` (gemeinsames stdout/stderr-Budget). Ohne explizite Limits
+bleiben Laufzeit und Ausgabepufferung unbegrenzt. Überschreitungen propagieren
+als `TimeoutError` beziehungsweise `RuntimeError`, auch bei `EBT(expect=False)`.
+Die Überwachung beendet bei Abbruch die Prozessgruppe und räumt anschließend
+Workspace und IPC-Dateien auf. Details und Plattformgrenzen stehen im
+[Arena-Handbuch](GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
+`PyVenv.setup()` prüft Codec-Pakete ausschließlich lesend; fehlende Pakete müssen
+vorher ausdrücklich provisioniert werden.
 
 ## Wiederholte Läufe und historische Ergebnisse
 
