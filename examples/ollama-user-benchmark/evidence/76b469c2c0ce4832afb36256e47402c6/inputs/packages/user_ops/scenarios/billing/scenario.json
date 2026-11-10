@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "billing",
+  "benchmark": "developer_agent",
+  "title": "billing",
+  "group_id": "billing",
+  "split": "development",
+  "types": [
+    "business_rules"
+  ],
+  "tags": [
+    "boundary",
+    "ollama"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "rounding",
+    "invalid"
+  ],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  },
+  "requires": []
+}

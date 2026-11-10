@@ -1,0 +1,51 @@
+{
+  "cases": [
+    {
+      "failures": [],
+      "name": "test_expired_valid_true"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_valid_false"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_equal_true"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_negative_age"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_negative_retention"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_negative_both"
+    }
+  ],
+  "command": [
+    "/tmp/cubie-user-env/bin/python",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--import-mode=importlib",
+    "--confcutdir=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/refactor/snapshot",
+    "-c",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/refactor/snapshot/pytest.ini",
+    "--junitxml=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/refactor/observation.xml",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/refactor/snapshot/tests"
+  ],
+  "finished_at": 1794291313.561403,
+  "returncode": 0,
+  "started_at": 1794291313.1636424,
+  "stderr": "",
+  "stdout": "......                                                                   [100%]\n6 passed in 0.03s\n",
+  "test_outcome": "passed",
+  "timed_out": false
+}

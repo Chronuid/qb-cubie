@@ -1,0 +1,230 @@
+{
+  "artifact_hashes": {
+    "episodes/0001/evaluation/observation.json": "365b4cc468fe8df26ba3d1374c429b2791048d940acf48e504f261be7a7afdbe",
+    "episodes/0001/evaluation/observation.xml": "1238543599e41dc04f0ff1e8c8a3232943a8917babf44fb50c9ecdab82c7c9fd",
+    "episodes/0001/evaluation/submitted/billing.py": "2c9a8957d3e512ab02c3fb9a6633ad6f96c54ee81b3eeab5363747e2542f0138",
+    "episodes/0001/evaluation/submitted/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0001/evaluation/submitted/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/evaluation/submitted/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0001/evaluation/test_acceptance.py": "0ff7f29103102231fa8db0fed76899c317103c04546ca7920634c146388bd630",
+    "episodes/0001/evaluator-request.json": "875486940337e2191687f5d76d5a7edda700e083180e0c6cde93f643b150bdf7",
+    "episodes/0001/export.json": "ceb599d9e61a1a700d90fe0295bf338808c3a5aab40a8ef9c628b55876813938",
+    "episodes/0001/green/observation.json": "6e33f592fe968e90b66431fe20def993797b49437bd9832c2c67b8f5490bee04",
+    "episodes/0001/green/observation.xml": "3e8d0eafe9925ea5e6e28b79d66f9eba920648937368c38b54e7f9f0937ade2f",
+    "episodes/0001/green/snapshot/billing.py": "2c9a8957d3e512ab02c3fb9a6633ad6f96c54ee81b3eeab5363747e2542f0138",
+    "episodes/0001/green/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0001/green/snapshot/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/green/snapshot/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0001/red/observation.json": "06451d9b4247011b2d9e62d461b7e37d5e9dbc7125208b9898735ff830d829c8",
+    "episodes/0001/red/observation.xml": "365aafff80043dc5ba4e982e9cffc4d2a60dbf7d1e1a272831f7c3c9c186e74f",
+    "episodes/0001/red/snapshot/billing.py": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "episodes/0001/red/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0001/red/snapshot/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/red/snapshot/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0001/refactor/observation.json": "6c03bb4e8d41194520223fee6efd528a338df669967a5e0e89f543f8615eacf3",
+    "episodes/0001/refactor/observation.xml": "c31da49f75ec5fabaf69a011cc307cbea05eecaae991d73baeb6dd699b8cb18b",
+    "episodes/0001/refactor/snapshot/billing.py": "2c9a8957d3e512ab02c3fb9a6633ad6f96c54ee81b3eeab5363747e2542f0138",
+    "episodes/0001/refactor/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0001/refactor/snapshot/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/refactor/snapshot/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0001/result.json": "7d17c8db9c2df4b5ac61f4caf3aed0c10ba37fd6bf2557c8feb1c25124d8e823",
+    "episodes/0001/source/billing.py": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "episodes/0001/source/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/test_design/observation.json": "4b4ecaafd61d2280bd4d9764232956262ce32c0ba37f4338b69cda0c72da1d00",
+    "episodes/0001/test_design/snapshot/billing.py": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "episodes/0001/test_design/snapshot/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/test_design/snapshot/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0001/transport/requests.jsonl": "d9698e972bfd46d06f2f6c0019983230423e4a73e47bfa1798ac34a7da2d0f7f",
+    "episodes/0001/transport/responses.jsonl": "75fbddd4cda282b393d9b861cf50f1881f5dd00c928bb79a7e35515e169b785c",
+    "episodes/0001/transport/stderr.log": "35407b218e48325c58ead8c00f674d9fafe77c3d314dd25350a359f29bdcde59",
+    "episodes/0001/workspace/billing.py": "2c9a8957d3e512ab02c3fb9a6633ad6f96c54ee81b3eeab5363747e2542f0138",
+    "episodes/0001/workspace/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/workspace/tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60",
+    "episodes/0002/evaluation/observation.json": "85b40b7ac7bc49c6c771e343c875c716c8760422973233199cc165ed56abfb9d",
+    "episodes/0002/evaluation/observation.xml": "a813719c88fa9d439d36b00c0676f3594a5c681f8f7863c563120af3031627e1",
+    "episodes/0002/evaluation/submitted/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0002/evaluation/submitted/retention.py": "2c60807fb4a47b57920121b253b55331a7aa0f3f061ae93f3c5fb92ebeeb7ed1",
+    "episodes/0002/evaluation/submitted/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/evaluation/submitted/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "episodes/0002/evaluation/test_acceptance.py": "d010b229442176ee02b5f8ddf7e96a52b371377cc20b558b13e12af5488998f9",
+    "episodes/0002/evaluator-request.json": "ccf2b98fcff2ae152a8b1b902e02752db3f0b11b09259c0f0772d209b34ccb50",
+    "episodes/0002/export.json": "91ea40a8d082dccc70fcca73e91f679e803f623484d021131ab49a838ae9c08c",
+    "episodes/0002/green/observation.json": "1def4dc5b9bb075e64f1e6e5dfee6580dc04e6e5479af5c3a8efa42853ce1b24",
+    "episodes/0002/green/observation.xml": "9fb7e5997b7887ad9ef32ccbc431bd2c7e44255f680250f8641c11f0cccdda66",
+    "episodes/0002/green/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0002/green/snapshot/retention.py": "2c60807fb4a47b57920121b253b55331a7aa0f3f061ae93f3c5fb92ebeeb7ed1",
+    "episodes/0002/green/snapshot/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/green/snapshot/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "episodes/0002/red/observation.json": "d1c0f174cbb4b5a5d1cd11dbe58f823c9bf18fd97a70a060e0c0013ec3f95359",
+    "episodes/0002/red/observation.xml": "1fda4474c24a5b3d8de62e9044a46f194e5d91d90fc72c5a461436e3b43cba5f",
+    "episodes/0002/red/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0002/red/snapshot/retention.py": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "episodes/0002/red/snapshot/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/red/snapshot/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "episodes/0002/refactor/observation.json": "7ce53afe2460ab451165e36194c008272ebc3f4fd8915f24582a49d7c37ab443",
+    "episodes/0002/refactor/observation.xml": "ba6904f7e7be1689074515ec732c6b55e2b8ad93baf8abec0eb31d10b000edef",
+    "episodes/0002/refactor/snapshot/pytest.ini": "07e12af78809b103a9e003b9bf24f9718928fa263046b37bf3ebc9ebbf802ceb",
+    "episodes/0002/refactor/snapshot/retention.py": "2c60807fb4a47b57920121b253b55331a7aa0f3f061ae93f3c5fb92ebeeb7ed1",
+    "episodes/0002/refactor/snapshot/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/refactor/snapshot/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "episodes/0002/result.json": "682963886fbaf91a58ed4db03806a5eb155ff65986351dfc2c52647faf6d24e2",
+    "episodes/0002/source/retention.py": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "episodes/0002/source/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/test_design/observation.json": "4b4ecaafd61d2280bd4d9764232956262ce32c0ba37f4338b69cda0c72da1d00",
+    "episodes/0002/test_design/snapshot/retention.py": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "episodes/0002/test_design/snapshot/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/test_design/snapshot/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "episodes/0002/transport/requests.jsonl": "3b2e1623ffa38c74ec880347d2ec4f979018efc4eccd22027f6c1b809332445d",
+    "episodes/0002/transport/responses.jsonl": "98f27b14b90ee1a9236d643d1af16b69f3ecc73294dc84072809a20e458652f3",
+    "episodes/0002/transport/stderr.log": "fa6ae5aeea9c38c7d490ec1d208acdd46ac67e8a3429af5d062f7e56d94bc137",
+    "episodes/0002/workspace/retention.py": "2c60807fb4a47b57920121b253b55331a7aa0f3f061ae93f3c5fb92ebeeb7ed1",
+    "episodes/0002/workspace/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/workspace/tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1",
+    "inputs/agents/ollama-user.toml": "31dc358a110bd6314251fd5b9c422269b358031bf33658be51422720c963d564",
+    "inputs/packages/user_ops/package.json": "f5a650df0ccf47e6546d47626ae6f22ab3c56ed4b242dc72196f3492b9c0bc10",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/acceptance.py.txt": "0ff7f29103102231fa8db0fed76899c317103c04546ca7920634c146388bd630",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/mutant.py.txt": "22ff3298d4a0ddaddb96e696e77d89eba31613f2c4b43545fdcfe1a431f682ea",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/reference.json": "78f990d5e1a4490283a7c4c717fc6a8e738263dcdefb9673580f1ea56c15a14d",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/solution.py.txt": "e3c5b2f42b97f40a4ef1bcb1b9d1ca9b97ff816f1115832e8c215a87fc530759",
+    "inputs/packages/user_ops/scenarios/billing/scenario.json": "f4dcbb07d6398d71e22dbe18c6997136919a039024da901001488322b226a8ef",
+    "inputs/packages/user_ops/scenarios/billing/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "inputs/packages/user_ops/scenarios/billing/visible/billing.py.txt": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/acceptance.py.txt": "d010b229442176ee02b5f8ddf7e96a52b371377cc20b558b13e12af5488998f9",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/mutant.py.txt": "a88acdd422dfc8ece0c47a17a5406d08da01b42264aaabe16fcee676105c2111",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/reference.json": "cde9e14836590d4e760d52c364974f90826ed22d0b7d3310824f681363b82e4c",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/solution.py.txt": "604493a544e2e59f3bcd4b0d33f21a9bb8921198705348b67cfae8cc524e60ff",
+    "inputs/packages/user_ops/scenarios/retention/scenario.json": "3ddf0f4a2c964343f7317353ff0e9e53c7610e66f0c12462c60e81bf3dcd364f",
+    "inputs/packages/user_ops/scenarios/retention/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "inputs/packages/user_ops/scenarios/retention/visible/retention.py.txt": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "inputs/plan.json": "312dfcd9b8c9f469c6c36452a220aa11365b1b1f66ff0421e47747995bf08bdc",
+    "inputs/suite.toml": "9a7844bbf4a205672b021fe3e1b4ade123ba0f5c023fd5eefc9aeaf217e36005",
+    "report.md": "b8b1fc5bc87d36a5ad5426ec707af09bbd7a353b5fb465c780722b893c1ba15c",
+    "results.json": "f667a2b9f3f64284f5bb0e58ae36c849ed1ffacf196d70f321b9b743e6a9c757"
+  },
+  "finished_at": "2026-11-10T06:15:13.936934+00:00",
+  "inputs": {
+    "agent": [
+      "inputs/agents/ollama-user.toml"
+    ],
+    "packages": [
+      "inputs/packages/user_ops/package.json",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/acceptance.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/mutant.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/reference.json",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/solution.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/scenario.json",
+      "inputs/packages/user_ops/scenarios/billing/task.md",
+      "inputs/packages/user_ops/scenarios/billing/visible/billing.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/acceptance.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/mutant.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/reference.json",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/solution.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/scenario.json",
+      "inputs/packages/user_ops/scenarios/retention/task.md",
+      "inputs/packages/user_ops/scenarios/retention/visible/retention.py.txt"
+    ],
+    "plan": [
+      "inputs/plan.json"
+    ],
+    "suite": [
+      "inputs/suite.toml"
+    ]
+  },
+  "plan": {
+    "max_runs": 2,
+    "max_total_wall_time_seconds": 600,
+    "name": "user-ops",
+    "output": "/tmp/cubie-user-external/results",
+    "packages": [
+      {
+        "namespace": "user_ops",
+        "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+        "version": "1.0.0"
+      }
+    ],
+    "profile": "agent-evaluation",
+    "runs": [
+      {
+        "agent_id": "ollama-user",
+        "benchmark": "developer_agent",
+        "budgets": {
+          "tool_calls": 20,
+          "wall_time_seconds": 300
+        },
+        "condition": "cubie",
+        "evaluator": {
+          "kind": "builtin.pytest_project_v1",
+          "reference": "evaluator/reference.json"
+        },
+        "group_id": "billing",
+        "package": {
+          "namespace": "user_ops",
+          "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+          "version": "1.0.0"
+        },
+        "repetition": 1,
+        "required_capabilities": [
+          "cancel",
+          "phased_submission",
+          "tool_calls",
+          "wall_time",
+          "workspace_changes"
+        ],
+        "scenario_id": "user_ops/billing",
+        "split": "development",
+        "tags": [
+          "boundary",
+          "ollama"
+        ],
+        "types": [
+          "business_rules"
+        ]
+      },
+      {
+        "agent_id": "ollama-user",
+        "benchmark": "developer_agent",
+        "budgets": {
+          "tool_calls": 20,
+          "wall_time_seconds": 300
+        },
+        "condition": "cubie",
+        "evaluator": {
+          "kind": "builtin.pytest_project_v1",
+          "reference": "evaluator/reference.json"
+        },
+        "group_id": "retention",
+        "package": {
+          "namespace": "user_ops",
+          "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+          "version": "1.0.0"
+        },
+        "repetition": 1,
+        "required_capabilities": [
+          "cancel",
+          "phased_submission",
+          "tool_calls",
+          "wall_time",
+          "workspace_changes"
+        ],
+        "scenario_id": "user_ops/retention",
+        "split": "development",
+        "tags": [
+          "boundary",
+          "ollama"
+        ],
+        "types": [
+          "business_rules"
+        ]
+      }
+    ],
+    "schema_version": 1,
+    "total_wall_time_seconds": 600
+  },
+  "python_version": "3.14.3",
+  "resolved_plan_sha256": "312dfcd9b8c9f469c6c36452a220aa11365b1b1f66ff0421e47747995bf08bdc",
+  "run_id": "0553435a98a04a74a1634504eaf18465",
+  "schema_version": 1,
+  "started_at": "2026-11-10T06:14:19.956410+00:00",
+  "suite_sha256": "9a7844bbf4a205672b021fe3e1b4ade123ba0f5c023fd5eefc9aeaf217e36005",
+  "wheel_sha256": "b3081743f2736a53a7940d2c3dc174614d6a76cd4defaec23c30d0a68f922518"
+}

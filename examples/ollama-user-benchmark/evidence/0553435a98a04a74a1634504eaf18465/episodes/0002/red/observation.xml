@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="6" time="0.052" timestamp="2026-11-10T07:15:09.488438+01:00" hostname="symphonie"><testcase classname="tests.test_project" name="test_expired_valid_true" time="0.001"><failure message="AssertionError: assert False is True&#10; +  where False = RunTrace(run_id='cubie_run_ebt_f180e367fb5c49b795a683592c1726e8', target='expired', expect=True, arena=None, traces=[E...919e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00020131701603531837).evaluation">def test_expired_valid_true():
+        trace = EBT(target=expired, pre=WorldState(args=(10, 5)), post=WorldState(returns=True), reporter=None).run()
+&gt;       assert trace.evaluation is True
+E       AssertionError: assert False is True
+E        +  where False = RunTrace(run_id='cubie_run_ebt_f180e367fb5c49b795a683592c1726e8', target='expired', expect=True, arena=None, traces=[E...919e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00020131701603531837).evaluation
+
+tests/test_project.py:7: AssertionError</failure></testcase><testcase classname="tests.test_project" name="test_expired_valid_false" time="0.000" /><testcase classname="tests.test_project" name="test_expired_equal_true" time="0.000"><failure message="AssertionError: assert False is True&#10; +  where False = RunTrace(run_id='cubie_run_ebt_3155e634e966497e9ca013f0b2588537', target='expired', expect=True, arena=None, traces=[E...673e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00013393201516009867).evaluation">def test_expired_equal_true():
+        trace = EBT(target=expired, pre=WorldState(args=(5, 5)), post=WorldState(returns=True), reporter=None).run()
+&gt;       assert trace.evaluation is True
+E       AssertionError: assert False is True
+E        +  where False = RunTrace(run_id='cubie_run_ebt_3155e634e966497e9ca013f0b2588537', target='expired', expect=True, arena=None, traces=[E...673e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00013393201516009867).evaluation
+
+tests/test_project.py:15: AssertionError</failure></testcase><testcase classname="tests.test_project" name="test_expired_negative_age" time="0.000"><failure message="Failed: DID NOT RAISE ValueError">def test_expired_negative_age():
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_project.py:18: Failed</failure></testcase><testcase classname="tests.test_project" name="test_expired_negative_retention" time="0.000"><failure message="Failed: DID NOT RAISE ValueError">def test_expired_negative_retention():
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_project.py:22: Failed</failure></testcase><testcase classname="tests.test_project" name="test_expired_negative_both" time="0.000"><failure message="Failed: DID NOT RAISE ValueError">def test_expired_negative_both():
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_project.py:26: Failed</failure></testcase></testsuite></testsuites>

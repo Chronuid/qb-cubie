@@ -1,0 +1,120 @@
+{
+  "agent_id": "ollama-user",
+  "agent_kind": "process",
+  "agent_version": "1.0.0",
+  "benchmark": "developer_agent",
+  "budgets": {
+    "tool_calls": 20,
+    "wall_time_seconds": 300
+  },
+  "condition": "cubie",
+  "context_sha256": "f0891f51b0ddf5779eb25d38eb076ad06622f542493b267ecf66ccb90f1c6771",
+  "criterion_results": {
+    "boundary": "pass",
+    "invalid": "pass"
+  },
+  "evaluation_status": "complete",
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  },
+  "evaluator_id": "builtin.pytest_project_v1",
+  "evaluator_version": "1.0.0",
+  "evidence": [
+    "episodes/0002/evaluation/observation.json",
+    "episodes/0002/evaluation/observation.xml"
+  ],
+  "export_manifest": "episodes/0002/export.json",
+  "finished_at": "2026-11-10T06:15:13.936934+00:00",
+  "group_id": "retention",
+  "metrics": [],
+  "model_id": null,
+  "package": {
+    "namespace": "user_ops",
+    "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+    "version": "1.0.0"
+  },
+  "phases": [
+    {
+      "evidence": [
+        "episodes/0002/test_design/observation.json"
+      ],
+      "phase": "test_design",
+      "snapshot": "episodes/0002/test_design/snapshot",
+      "test_outcome": "not_executed",
+      "test_tree_sha256": "74061d3b419435cfa9b930c3d5c6b8c0c79a67fbb8f436c6a1bf26b165c56f41"
+    },
+    {
+      "evidence": [
+        "episodes/0002/red/observation.json",
+        "episodes/0002/red/observation.xml"
+      ],
+      "phase": "red",
+      "production_changed": false,
+      "snapshot": "episodes/0002/red/snapshot",
+      "test_outcome": "test_error",
+      "test_tree_sha256": "74061d3b419435cfa9b930c3d5c6b8c0c79a67fbb8f436c6a1bf26b165c56f41",
+      "tests_changed": false
+    },
+    {
+      "evidence": [
+        "episodes/0002/green/observation.json",
+        "episodes/0002/green/observation.xml"
+      ],
+      "phase": "green",
+      "production_changed": false,
+      "snapshot": "episodes/0002/green/snapshot",
+      "test_outcome": "passed",
+      "test_tree_sha256": "74061d3b419435cfa9b930c3d5c6b8c0c79a67fbb8f436c6a1bf26b165c56f41",
+      "tests_changed": false
+    },
+    {
+      "evidence": [
+        "episodes/0002/refactor/observation.json",
+        "episodes/0002/refactor/observation.xml"
+      ],
+      "phase": "refactor",
+      "production_changed": false,
+      "snapshot": "episodes/0002/refactor/snapshot",
+      "test_outcome": "passed",
+      "test_tree_sha256": "74061d3b419435cfa9b930c3d5c6b8c0c79a67fbb8f436c6a1bf26b165c56f41",
+      "tests_changed": false
+    }
+  ],
+  "process_passed": false,
+  "process_reason": "No observed assertion failure in red phase",
+  "quality_passed": true,
+  "reason": null,
+  "repetition": 1,
+  "required_capabilities": [
+    "cancel",
+    "phased_submission",
+    "tool_calls",
+    "wall_time",
+    "workspace_changes"
+  ],
+  "run_id": "0553435a98a04a74a1634504eaf18465-0002",
+  "scenario_id": "user_ops/retention",
+  "schema_version": 1,
+  "source_tree_sha256": "f0891f51b0ddf5779eb25d38eb076ad06622f542493b267ecf66ccb90f1c6771",
+  "split": "development",
+  "started_at": "2026-11-10T06:14:56.748047+00:00",
+  "status": "completed",
+  "submitted_tree_sha256": "611081b7032b4cdad88fdc9f26c59e89adfa4025b1a7dbec74c3166cea80597c",
+  "tags": [
+    "boundary",
+    "ollama"
+  ],
+  "task_sha256": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+  "task_version": "1.0.0",
+  "tool_calls": 4,
+  "types": [
+    "business_rules"
+  ],
+  "usage": {
+    "cost": null,
+    "input_tokens": 1045,
+    "output_tokens": 369
+  },
+  "workspace": "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/workspace"
+}

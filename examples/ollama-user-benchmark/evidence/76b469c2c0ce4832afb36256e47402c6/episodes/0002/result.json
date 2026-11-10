@@ -1,0 +1,64 @@
+{
+  "agent_id": "ollama-user",
+  "agent_kind": "process",
+  "agent_version": "1.0.0",
+  "benchmark": "developer_agent",
+  "budgets": {
+    "tool_calls": 20,
+    "wall_time_seconds": 300
+  },
+  "condition": "cubie",
+  "context_sha256": "f0891f51b0ddf5779eb25d38eb076ad06622f542493b267ecf66ccb90f1c6771",
+  "criterion_results": {},
+  "evaluation_status": "not_evaluated",
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  },
+  "evaluator_id": "builtin.pytest_project_v1",
+  "evaluator_version": "1.0.0",
+  "evidence": [],
+  "export_manifest": "episodes/0002/export.json",
+  "finished_at": "2026-11-10T06:13:57.721483+00:00",
+  "group_id": "retention",
+  "metrics": [],
+  "model_id": null,
+  "package": {
+    "namespace": "user_ops",
+    "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+    "version": "1.0.0"
+  },
+  "quality_passed": false,
+  "reason": "Agent closed stdout without an event (exit 1)",
+  "repetition": 1,
+  "required_capabilities": [
+    "cancel",
+    "phased_submission",
+    "tool_calls",
+    "wall_time",
+    "workspace_changes"
+  ],
+  "run_id": "76b469c2c0ce4832afb36256e47402c6-0002",
+  "scenario_id": "user_ops/retention",
+  "source_tree_sha256": "f0891f51b0ddf5779eb25d38eb076ad06622f542493b267ecf66ccb90f1c6771",
+  "split": "development",
+  "started_at": "2026-11-10T06:13:55.334576+00:00",
+  "status": "infrastructure_error",
+  "submitted_tree_sha256": "f0891f51b0ddf5779eb25d38eb076ad06622f542493b267ecf66ccb90f1c6771",
+  "tags": [
+    "boundary",
+    "ollama"
+  ],
+  "task_sha256": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+  "task_version": "1.0.0",
+  "tool_calls": 0,
+  "types": [
+    "business_rules"
+  ],
+  "usage": {
+    "cost": null,
+    "input_tokens": null,
+    "output_tokens": null
+  },
+  "workspace": "/tmp/cubie-user-external/results/76b469c2c0ce4832afb36256e47402c6/episodes/0002/workspace"
+}

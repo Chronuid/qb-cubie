@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "AssertionError: assert False is True\n +  where False = RunTrace(run_id='cubie_run_ebt_f180e367fb5c49b795a683592c1726e8', target='expired', expect=True, arena=None, traces=[E...919e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00020131701603531837).evaluation",
+          "text": "def test_expired_valid_true():\n        trace = EBT(target=expired, pre=WorldState(args=(10, 5)), post=WorldState(returns=True), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_f180e367fb5c49b795a683592c1726e8', target='expired', expect=True, arena=None, traces=[E...919e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00020131701603531837).evaluation\n\ntests/test_project.py:7: AssertionError"
+        }
+      ],
+      "name": "test_expired_valid_true"
+    },
+    {
+      "failures": [],
+      "name": "test_expired_valid_false"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "AssertionError: assert False is True\n +  where False = RunTrace(run_id='cubie_run_ebt_3155e634e966497e9ca013f0b2588537', target='expired', expect=True, arena=None, traces=[E...673e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00013393201516009867).evaluation",
+          "text": "def test_expired_equal_true():\n        trace = EBT(target=expired, pre=WorldState(args=(5, 5)), post=WorldState(returns=True), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_3155e634e966497e9ca013f0b2588537', target='expired', expect=True, arena=None, traces=[E...673e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00013393201516009867).evaluation\n\ntests/test_project.py:15: AssertionError"
+        }
+      ],
+      "name": "test_expired_equal_true"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "Failed: DID NOT RAISE ValueError",
+          "text": "def test_expired_negative_age():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:18: Failed"
+        }
+      ],
+      "name": "test_expired_negative_age"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "Failed: DID NOT RAISE ValueError",
+          "text": "def test_expired_negative_retention():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:22: Failed"
+        }
+      ],
+      "name": "test_expired_negative_retention"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "Failed: DID NOT RAISE ValueError",
+          "text": "def test_expired_negative_both():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:26: Failed"
+        }
+      ],
+      "name": "test_expired_negative_both"
+    }
+  ],
+  "command": [
+    "/tmp/cubie-user-env/bin/python",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--import-mode=importlib",
+    "--confcutdir=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/red/snapshot",
+    "-c",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/red/snapshot/pytest.ini",
+    "--junitxml=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/red/observation.xml",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/red/snapshot/tests"
+  ],
+  "finished_at": 1794291309.5904727,
+  "returncode": 1,
+  "started_at": 1794291309.184064,
+  "stderr": "",
+  "stdout": "F.FFFF                                                                   [100%]\n=================================== FAILURES ===================================\n___________________________ test_expired_valid_true ____________________________\n\n    def test_expired_valid_true():\n        trace = EBT(target=expired, pre=WorldState(args=(10, 5)), post=WorldState(returns=True), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_f180e367fb5c49b795a683592c1726e8', target='expired', expect=True, arena=None, traces=[E...919e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00020131701603531837).evaluation\n\ntests/test_project.py:7: AssertionError\n___________________________ test_expired_equal_true ____________________________\n\n    def test_expired_equal_true():\n        trace = EBT(target=expired, pre=WorldState(args=(5, 5)), post=WorldState(returns=True), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_3155e634e966497e9ca013f0b2588537', target='expired', expect=True, arena=None, traces=[E...673e-05, diffs={'returns': {'expected': 'True', 'actual': False}})], evaluation=False, duration=0.00013393201516009867).evaluation\n\ntests/test_project.py:15: AssertionError\n__________________________ test_expired_negative_age ___________________________\n\n    def test_expired_negative_age():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:18: Failed\n_______________________ test_expired_negative_retention ________________________\n\n    def test_expired_negative_retention():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:22: Failed\n__________________________ test_expired_negative_both __________________________\n\n    def test_expired_negative_both():\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_project.py:26: Failed\n=========================== short test summary info ============================\nFAILED tests/test_project.py::test_expired_valid_true - AssertionError: asser...\nFAILED tests/test_project.py::test_expired_equal_true - AssertionError: asser...\nFAILED tests/test_project.py::test_expired_negative_age - Failed: DID NOT RAI...\nFAILED tests/test_project.py::test_expired_negative_retention - Failed: DID N...\nFAILED tests/test_project.py::test_expired_negative_both - Failed: DID NOT RA...\n5 failed, 1 passed in 0.05s\n",
+  "test_outcome": "test_error",
+  "timed_out": false
+}

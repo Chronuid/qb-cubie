@@ -1,0 +1,18 @@
+{
+  "artifact_hashes": {
+    "retention.py": "2c60807fb4a47b57920121b253b55331a7aa0f3f061ae93f3c5fb92ebeeb7ed1",
+    "task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "tests/test_project.py": "951c0264f9bba8b63f7914713742f1ba0e934939b9a907b3467c8ea2c5ee83a1"
+  },
+  "criteria": [
+    "boundary",
+    "invalid"
+  ],
+  "evaluator_id": "builtin.pytest_project_v1",
+  "evaluator_version": "1.0.0",
+  "reference_workspace": "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/inputs/packages/user_ops/scenarios/retention",
+  "run_id": "0553435a98a04a74a1634504eaf18465-0002",
+  "scenario_id": "user_ops/retention",
+  "schema_version": 1,
+  "submitted_workspace": "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/evaluation/submitted"
+}

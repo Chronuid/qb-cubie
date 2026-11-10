@@ -1,0 +1,11 @@
+{
+  "criteria": [
+    "boundary",
+    "invalid"
+  ],
+  "files": [
+    "retention.py",
+    "task.md"
+  ],
+  "task": "Implement retention.expired(age_days, retention_days) for a backup cleanup service. Nonnegative integer ages expire at age_days >= retention_days. Negative age or negative retention raises ValueError. Return bool.\nSubmit executable EBT tests using qb_cubie.EBT and WorldState before implementation. Preserve tests through red, green and refactor.\n"
+}

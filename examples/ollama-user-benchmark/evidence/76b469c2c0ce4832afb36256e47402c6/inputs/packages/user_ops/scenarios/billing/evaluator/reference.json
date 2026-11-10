@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "solution": "evaluator/solution.py.txt",
+  "mutants": {
+    "rounding-boundary": "evaluator/mutant.py.txt"
+  },
+  "criterion_results": {
+    "rounding": "pass",
+    "invalid": "pass"
+  },
+  "mutant_criteria": {
+    "rounding-boundary": [
+      "rounding"
+    ]
+  },
+  "acceptance_tests": "evaluator/acceptance.py.txt",
+  "submission_module": "billing.py"
+}

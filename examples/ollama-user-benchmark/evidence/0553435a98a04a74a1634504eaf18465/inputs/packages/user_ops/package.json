@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "namespace": "user_ops",
+  "version": "1.0.0",
+  "license": "MIT",
+  "provenance": "Original user experiment; author_checked references, no independent review.",
+  "scenarios": [
+    "scenarios/retention/scenario.json",
+    "scenarios/billing/scenario.json"
+  ]
+}

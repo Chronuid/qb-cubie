@@ -1,0 +1,4 @@
+def expired(age_days, retention_days):
+    if age_days < 0 or retention_days < 0:
+        raise ValueError("negative duration")
+    return age_days > retention_days

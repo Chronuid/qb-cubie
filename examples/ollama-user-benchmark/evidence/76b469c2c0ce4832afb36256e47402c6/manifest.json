@@ -1,0 +1,168 @@
+{
+  "artifact_hashes": {
+    "episodes/0001/export.json": "ceb599d9e61a1a700d90fe0295bf338808c3a5aab40a8ef9c628b55876813938",
+    "episodes/0001/result.json": "4ea642028a4807c61933be5abea8e946599d485866c5af25802cba813528012b",
+    "episodes/0001/source/billing.py": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "episodes/0001/source/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0001/transport/requests.jsonl": "293c11ac2038992c3720b5e7a4ebb2b78061bc42d41c81d4951b6f906abe5bdc",
+    "episodes/0001/transport/responses.jsonl": "3ca985e79122d47e8bc17ffa4253537596c187929ff80a5934ff78bb176cf53e",
+    "episodes/0001/transport/stderr.log": "fea8fabf31f9e2c5a0e0b4cbf01cba7cf466c644c28e5fa76a473c7f4bde2457",
+    "episodes/0001/workspace/billing.py": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "episodes/0001/workspace/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "episodes/0002/export.json": "91ea40a8d082dccc70fcca73e91f679e803f623484d021131ab49a838ae9c08c",
+    "episodes/0002/result.json": "50f593f7f6052ea849471fa3702775589a24ae756a3f8eb6e95d8c4d4bcde751",
+    "episodes/0002/source/retention.py": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "episodes/0002/source/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "episodes/0002/transport/requests.jsonl": "737f171c7be6419a67b84009c5e912247a9d1f0c398b9ff580dc31d588687cc2",
+    "episodes/0002/transport/responses.jsonl": "3ca985e79122d47e8bc17ffa4253537596c187929ff80a5934ff78bb176cf53e",
+    "episodes/0002/transport/stderr.log": "b2412eec3be3251dfd5babe9af2f06b13d6f2d166883db103b7ce220d0e4162e",
+    "episodes/0002/workspace/retention.py": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "episodes/0002/workspace/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "inputs/agents/ollama-user.toml": "31dc358a110bd6314251fd5b9c422269b358031bf33658be51422720c963d564",
+    "inputs/packages/user_ops/package.json": "f5a650df0ccf47e6546d47626ae6f22ab3c56ed4b242dc72196f3492b9c0bc10",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/acceptance.py.txt": "0ff7f29103102231fa8db0fed76899c317103c04546ca7920634c146388bd630",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/mutant.py.txt": "22ff3298d4a0ddaddb96e696e77d89eba31613f2c4b43545fdcfe1a431f682ea",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/reference.json": "78f990d5e1a4490283a7c4c717fc6a8e738263dcdefb9673580f1ea56c15a14d",
+    "inputs/packages/user_ops/scenarios/billing/evaluator/solution.py.txt": "e3c5b2f42b97f40a4ef1bcb1b9d1ca9b97ff816f1115832e8c215a87fc530759",
+    "inputs/packages/user_ops/scenarios/billing/scenario.json": "f4dcbb07d6398d71e22dbe18c6997136919a039024da901001488322b226a8ef",
+    "inputs/packages/user_ops/scenarios/billing/task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "inputs/packages/user_ops/scenarios/billing/visible/billing.py.txt": "ffb3023d85ef28cc9838a09e267ab7ea19ccd58ac5d10f6165a179de4850a42b",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/acceptance.py.txt": "d010b229442176ee02b5f8ddf7e96a52b371377cc20b558b13e12af5488998f9",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/mutant.py.txt": "a88acdd422dfc8ece0c47a17a5406d08da01b42264aaabe16fcee676105c2111",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/reference.json": "cde9e14836590d4e760d52c364974f90826ed22d0b7d3310824f681363b82e4c",
+    "inputs/packages/user_ops/scenarios/retention/evaluator/solution.py.txt": "604493a544e2e59f3bcd4b0d33f21a9bb8921198705348b67cfae8cc524e60ff",
+    "inputs/packages/user_ops/scenarios/retention/scenario.json": "3ddf0f4a2c964343f7317353ff0e9e53c7610e66f0c12462c60e81bf3dcd364f",
+    "inputs/packages/user_ops/scenarios/retention/task.md": "d7047330ffbf50706a8be808e693e41ec64b547b27e068bedb870ed342ff4085",
+    "inputs/packages/user_ops/scenarios/retention/visible/retention.py.txt": "4a82bbb88eea9e7b9ea2face6c2f8cb591a3af30f015660b94ca6b214846a317",
+    "inputs/plan.json": "312dfcd9b8c9f469c6c36452a220aa11365b1b1f66ff0421e47747995bf08bdc",
+    "inputs/suite.toml": "9a7844bbf4a205672b021fe3e1b4ade123ba0f5c023fd5eefc9aeaf217e36005",
+    "report.md": "deb839417f729b6cb18a433b2dc14305ea9bdd5022aa9c8c10aa955c4bec9d16",
+    "results.json": "f58f31948ad4a3fe684ed5f5cd6be2cc5c5de8c97ed30ee80d293443a86e7a60"
+  },
+  "finished_at": "2026-11-10T06:13:57.721483+00:00",
+  "inputs": {
+    "agent": [
+      "inputs/agents/ollama-user.toml"
+    ],
+    "packages": [
+      "inputs/packages/user_ops/package.json",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/acceptance.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/mutant.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/reference.json",
+      "inputs/packages/user_ops/scenarios/billing/evaluator/solution.py.txt",
+      "inputs/packages/user_ops/scenarios/billing/scenario.json",
+      "inputs/packages/user_ops/scenarios/billing/task.md",
+      "inputs/packages/user_ops/scenarios/billing/visible/billing.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/acceptance.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/mutant.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/reference.json",
+      "inputs/packages/user_ops/scenarios/retention/evaluator/solution.py.txt",
+      "inputs/packages/user_ops/scenarios/retention/scenario.json",
+      "inputs/packages/user_ops/scenarios/retention/task.md",
+      "inputs/packages/user_ops/scenarios/retention/visible/retention.py.txt"
+    ],
+    "plan": [
+      "inputs/plan.json"
+    ],
+    "suite": [
+      "inputs/suite.toml"
+    ]
+  },
+  "plan": {
+    "max_runs": 2,
+    "max_total_wall_time_seconds": 600,
+    "name": "user-ops",
+    "output": "/tmp/cubie-user-external/results",
+    "packages": [
+      {
+        "namespace": "user_ops",
+        "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+        "version": "1.0.0"
+      }
+    ],
+    "profile": "agent-evaluation",
+    "runs": [
+      {
+        "agent_id": "ollama-user",
+        "benchmark": "developer_agent",
+        "budgets": {
+          "tool_calls": 20,
+          "wall_time_seconds": 300
+        },
+        "condition": "cubie",
+        "evaluator": {
+          "kind": "builtin.pytest_project_v1",
+          "reference": "evaluator/reference.json"
+        },
+        "group_id": "billing",
+        "package": {
+          "namespace": "user_ops",
+          "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+          "version": "1.0.0"
+        },
+        "repetition": 1,
+        "required_capabilities": [
+          "cancel",
+          "phased_submission",
+          "tool_calls",
+          "wall_time",
+          "workspace_changes"
+        ],
+        "scenario_id": "user_ops/billing",
+        "split": "development",
+        "tags": [
+          "boundary",
+          "ollama"
+        ],
+        "types": [
+          "business_rules"
+        ]
+      },
+      {
+        "agent_id": "ollama-user",
+        "benchmark": "developer_agent",
+        "budgets": {
+          "tool_calls": 20,
+          "wall_time_seconds": 300
+        },
+        "condition": "cubie",
+        "evaluator": {
+          "kind": "builtin.pytest_project_v1",
+          "reference": "evaluator/reference.json"
+        },
+        "group_id": "retention",
+        "package": {
+          "namespace": "user_ops",
+          "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+          "version": "1.0.0"
+        },
+        "repetition": 1,
+        "required_capabilities": [
+          "cancel",
+          "phased_submission",
+          "tool_calls",
+          "wall_time",
+          "workspace_changes"
+        ],
+        "scenario_id": "user_ops/retention",
+        "split": "development",
+        "tags": [
+          "boundary",
+          "ollama"
+        ],
+        "types": [
+          "business_rules"
+        ]
+      }
+    ],
+    "schema_version": 1,
+    "total_wall_time_seconds": 600
+  },
+  "python_version": "3.14.3",
+  "resolved_plan_sha256": "312dfcd9b8c9f469c6c36452a220aa11365b1b1f66ff0421e47747995bf08bdc",
+  "run_id": "76b469c2c0ce4832afb36256e47402c6",
+  "schema_version": 1,
+  "started_at": "2026-11-10T06:13:37.402823+00:00",
+  "suite_sha256": "9a7844bbf4a205672b021fe3e1b4ade123ba0f5c023fd5eefc9aeaf217e36005",
+  "wheel_sha256": "b3081743f2736a53a7940d2c3dc174614d6a76cd4defaec23c30d0a68f922518"
+}

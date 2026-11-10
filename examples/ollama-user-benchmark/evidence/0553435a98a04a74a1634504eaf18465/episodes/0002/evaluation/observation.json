@@ -1,0 +1,35 @@
+{
+  "cases": [
+    {
+      "failures": [],
+      "name": "test_boundary"
+    },
+    {
+      "failures": [],
+      "name": "test_invalid"
+    }
+  ],
+  "command": [
+    "/tmp/cubie-user-env/bin/python",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--import-mode=importlib",
+    "--confcutdir=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/evaluation/submitted",
+    "-c",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/evaluation/submitted/pytest.ini",
+    "--junitxml=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/evaluation/observation.xml",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0002/evaluation/test_acceptance.py"
+  ],
+  "finished_at": 1794291313.9360132,
+  "returncode": 0,
+  "started_at": 1794291313.5786557,
+  "stderr": "",
+  "stdout": "..                                                                       [100%]\n2 passed in 0.01s\n",
+  "test_outcome": "passed",
+  "timed_out": false
+}

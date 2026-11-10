@@ -1,0 +1,18 @@
+{
+  "artifact_hashes": {
+    "billing.py": "2c9a8957d3e512ab02c3fb9a6633ad6f96c54ee81b3eeab5363747e2542f0138",
+    "task.md": "2b7f7139518ec59d0ba9811e97fb276731d8767ffa16b0ec28cb2f07705c5396",
+    "tests/test_project.py": "f8f68efd1d2918034b77e3fc27cc686a6809e9fbe9875892e74914f2f5352f60"
+  },
+  "criteria": [
+    "rounding",
+    "invalid"
+  ],
+  "evaluator_id": "builtin.pytest_project_v1",
+  "evaluator_version": "1.0.0",
+  "reference_workspace": "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/inputs/packages/user_ops/scenarios/billing",
+  "run_id": "0553435a98a04a74a1634504eaf18465-0001",
+  "scenario_id": "user_ops/billing",
+  "schema_version": 1,
+  "submitted_workspace": "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0001/evaluation/submitted"
+}

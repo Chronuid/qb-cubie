@@ -1,0 +1,67 @@
+{
+  "cases": [
+    {
+      "failures": [],
+      "name": "test_billable_minutes_zero"
+    },
+    {
+      "failures": [],
+      "name": "test_billable_minutes_exact_minute"
+    },
+    {
+      "failures": [],
+      "name": "test_billable_minutes_rounded_up"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "AssertionError: assert False is True\n +  where False = RunTrace(run_id='cubie_run_ebt_9b995377b30e478c882649e65c2adc6d', target='billable_minutes', expect=True, arena=None, ...: {'expected': '16666666666666666', 'actual': 16666666666666667}})], evaluation=False, duration=0.00013620598474517465).evaluation",
+          "text": "def test_billable_minutes_large_value():\n        large_val = 10**18\n        trace = EBT(target=billable_minutes, pre=WorldState(args=(large_val,)), post=WorldState(returns=10**18 // 60), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_9b995377b30e478c882649e65c2adc6d', target='billable_minutes', expect=True, arena=None, ...: {'expected': '16666666666666666', 'actual': 16666666666666667}})], evaluation=False, duration=0.00013620598474517465).evaluation\n\ntests/test_project.py:20: AssertionError"
+        }
+      ],
+      "name": "test_billable_minutes_large_value"
+    },
+    {
+      "failures": [
+        {
+          "kind": "failure",
+          "message": "AssertionError: assert False is True\n +  where False = RunTrace(run_id='cubie_run_ebt_afec5a7f70dd477bb27628b34843936e', target='billable_minutes', expect=True, arena=None, ...: {'expected': '20000000000000000', 'actual': 20000000000000001}})], evaluation=False, duration=0.00014936999650672078).evaluation",
+          "text": "def test_billable_minutes_large_rounded_up():\n        large_val = 10**18 + 30\n        # (10**18 + 30) // 60 = 16666666666666666\n        # (10**18 + 30 + 59) // 60 = 16666666666666667\n        # Since 10**18 is divisible by 60, 10**18 + 30 should round up to 16666666666666667\n        # Wait, 10**18 / 60 = 16666666666666666.666...\n        # Let's use a simpler large number: 1200000000000000000 (divisible by 60)\n        # 1200000000000000000 + 1 should round up.\n        val = 1200000000000000000 + 1\n        trace = EBT(target=billable_minutes, pre=WorldState(args=(val,)), post=WorldState(returns=20000000000000000), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_afec5a7f70dd477bb27628b34843936e', target='billable_minutes', expect=True, arena=None, ...: {'expected': '20000000000000000', 'actual': 20000000000000001}})], evaluation=False, duration=0.00014936999650672078).evaluation\n\ntests/test_project.py:32: AssertionError"
+        }
+      ],
+      "name": "test_billable_minutes_large_rounded_up"
+    },
+    {
+      "failures": [],
+      "name": "test_billable_minutes_negative"
+    },
+    {
+      "failures": [],
+      "name": "test_billable_minutes_small_positive"
+    }
+  ],
+  "command": [
+    "/tmp/cubie-user-env/bin/python",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--import-mode=importlib",
+    "--confcutdir=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0001/green/snapshot",
+    "-c",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0001/green/snapshot/pytest.ini",
+    "--junitxml=/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0001/green/observation.xml",
+    "/tmp/cubie-user-external/results/0553435a98a04a74a1634504eaf18465/episodes/0001/green/snapshot/tests"
+  ],
+  "finished_at": 1794291295.9743114,
+  "returncode": 1,
+  "started_at": 1794291295.5604115,
+  "stderr": "",
+  "stdout": "...FF..                                                                  [100%]\n=================================== FAILURES ===================================\n______________________ test_billable_minutes_large_value _______________________\n\n    def test_billable_minutes_large_value():\n        large_val = 10**18\n        trace = EBT(target=billable_minutes, pre=WorldState(args=(large_val,)), post=WorldState(returns=10**18 // 60), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_9b995377b30e478c882649e65c2adc6d', target='billable_minutes', expect=True, arena=None, ...: {'expected': '16666666666666666', 'actual': 16666666666666667}})], evaluation=False, duration=0.00013620598474517465).evaluation\n\ntests/test_project.py:20: AssertionError\n____________________ test_billable_minutes_large_rounded_up ____________________\n\n    def test_billable_minutes_large_rounded_up():\n        large_val = 10**18 + 30\n        # (10**18 + 30) // 60 = 16666666666666666\n        # (10**18 + 30 + 59) // 60 = 16666666666666667\n        # Since 10**18 is divisible by 60, 10**18 + 30 should round up to 16666666666666667\n        # Wait, 10**18 / 60 = 16666666666666666.666...\n        # Let's use a simpler large number: 1200000000000000000 (divisible by 60)\n        # 1200000000000000000 + 1 should round up.\n        val = 1200000000000000000 + 1\n        trace = EBT(target=billable_minutes, pre=WorldState(args=(val,)), post=WorldState(returns=20000000000000000), reporter=None).run()\n>       assert trace.evaluation is True\nE       AssertionError: assert False is True\nE        +  where False = RunTrace(run_id='cubie_run_ebt_afec5a7f70dd477bb27628b34843936e', target='billable_minutes', expect=True, arena=None, ...: {'expected': '20000000000000000', 'actual': 20000000000000001}})], evaluation=False, duration=0.00014936999650672078).evaluation\n\ntests/test_project.py:32: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_project.py::test_billable_minutes_large_value - AssertionEr...\nFAILED tests/test_project.py::test_billable_minutes_large_rounded_up - Assert...\n2 failed, 5 passed in 0.05s\n",
+  "test_outcome": "assertion_failure",
+  "timed_out": false
+}

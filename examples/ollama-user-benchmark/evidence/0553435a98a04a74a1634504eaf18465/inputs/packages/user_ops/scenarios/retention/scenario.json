@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "retention",
+  "benchmark": "developer_agent",
+  "title": "retention",
+  "group_id": "retention",
+  "split": "development",
+  "types": [
+    "business_rules"
+  ],
+  "tags": [
+    "boundary",
+    "ollama"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "boundary",
+    "invalid"
+  ],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  },
+  "requires": []
+}

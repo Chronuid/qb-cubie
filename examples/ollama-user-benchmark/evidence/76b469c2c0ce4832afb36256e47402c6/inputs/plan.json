@@ -1,0 +1,90 @@
+{
+  "max_runs": 2,
+  "max_total_wall_time_seconds": 600,
+  "name": "user-ops",
+  "output": "/tmp/cubie-user-external/results",
+  "packages": [
+    {
+      "namespace": "user_ops",
+      "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+      "version": "1.0.0"
+    }
+  ],
+  "profile": "agent-evaluation",
+  "runs": [
+    {
+      "agent_id": "ollama-user",
+      "benchmark": "developer_agent",
+      "budgets": {
+        "tool_calls": 20,
+        "wall_time_seconds": 300
+      },
+      "condition": "cubie",
+      "evaluator": {
+        "kind": "builtin.pytest_project_v1",
+        "reference": "evaluator/reference.json"
+      },
+      "group_id": "billing",
+      "package": {
+        "namespace": "user_ops",
+        "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+        "version": "1.0.0"
+      },
+      "repetition": 1,
+      "required_capabilities": [
+        "cancel",
+        "phased_submission",
+        "tool_calls",
+        "wall_time",
+        "workspace_changes"
+      ],
+      "scenario_id": "user_ops/billing",
+      "split": "development",
+      "tags": [
+        "boundary",
+        "ollama"
+      ],
+      "types": [
+        "business_rules"
+      ]
+    },
+    {
+      "agent_id": "ollama-user",
+      "benchmark": "developer_agent",
+      "budgets": {
+        "tool_calls": 20,
+        "wall_time_seconds": 300
+      },
+      "condition": "cubie",
+      "evaluator": {
+        "kind": "builtin.pytest_project_v1",
+        "reference": "evaluator/reference.json"
+      },
+      "group_id": "retention",
+      "package": {
+        "namespace": "user_ops",
+        "sha256": "6b25c101e8adb25f80dad637b095b8321f7e544d2ad134d9bc3bd090245bf52d",
+        "version": "1.0.0"
+      },
+      "repetition": 1,
+      "required_capabilities": [
+        "cancel",
+        "phased_submission",
+        "tool_calls",
+        "wall_time",
+        "workspace_changes"
+      ],
+      "scenario_id": "user_ops/retention",
+      "split": "development",
+      "tags": [
+        "boundary",
+        "ollama"
+      ],
+      "types": [
+        "business_rules"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "total_wall_time_seconds": 600
+}

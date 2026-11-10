@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="7" time="0.052" timestamp="2026-11-10T07:14:55.860531+01:00" hostname="symphonie"><testcase classname="tests.test_project" name="test_billable_minutes_zero" time="0.001" /><testcase classname="tests.test_project" name="test_billable_minutes_exact_minute" time="0.001" /><testcase classname="tests.test_project" name="test_billable_minutes_rounded_up" time="0.000" /><testcase classname="tests.test_project" name="test_billable_minutes_large_value" time="0.001"><failure message="AssertionError: assert False is True&#10; +  where False = RunTrace(run_id='cubie_run_ebt_9b995377b30e478c882649e65c2adc6d', target='billable_minutes', expect=True, arena=None, ...: {'expected': '16666666666666666', 'actual': 16666666666666667}})], evaluation=False, duration=0.00013620598474517465).evaluation">def test_billable_minutes_large_value():
+        large_val = 10**18
+        trace = EBT(target=billable_minutes, pre=WorldState(args=(large_val,)), post=WorldState(returns=10**18 // 60), reporter=None).run()
+&gt;       assert trace.evaluation is True
+E       AssertionError: assert False is True
+E        +  where False = RunTrace(run_id='cubie_run_ebt_9b995377b30e478c882649e65c2adc6d', target='billable_minutes', expect=True, arena=None, ...: {'expected': '16666666666666666', 'actual': 16666666666666667}})], evaluation=False, duration=0.00013620598474517465).evaluation
+
+tests/test_project.py:20: AssertionError</failure></testcase><testcase classname="tests.test_project" name="test_billable_minutes_large_rounded_up" time="0.000"><failure message="AssertionError: assert False is True&#10; +  where False = RunTrace(run_id='cubie_run_ebt_afec5a7f70dd477bb27628b34843936e', target='billable_minutes', expect=True, arena=None, ...: {'expected': '20000000000000000', 'actual': 20000000000000001}})], evaluation=False, duration=0.00014936999650672078).evaluation">def test_billable_minutes_large_rounded_up():
+        large_val = 10**18 + 30
+        # (10**18 + 30) // 60 = 16666666666666666
+        # (10**18 + 30 + 59) // 60 = 16666666666666667
+        # Since 10**18 is divisible by 60, 10**18 + 30 should round up to 16666666666666667
+        # Wait, 10**18 / 60 = 16666666666666666.666...
+        # Let's use a simpler large number: 1200000000000000000 (divisible by 60)
+        # 1200000000000000000 + 1 should round up.
+        val = 1200000000000000000 + 1
+        trace = EBT(target=billable_minutes, pre=WorldState(args=(val,)), post=WorldState(returns=20000000000000000), reporter=None).run()
+&gt;       assert trace.evaluation is True
+E       AssertionError: assert False is True
+E        +  where False = RunTrace(run_id='cubie_run_ebt_afec5a7f70dd477bb27628b34843936e', target='billable_minutes', expect=True, arena=None, ...: {'expected': '20000000000000000', 'actual': 20000000000000001}})], evaluation=False, duration=0.00014936999650672078).evaluation
+
+tests/test_project.py:32: AssertionError</failure></testcase><testcase classname="tests.test_project" name="test_billable_minutes_negative" time="0.000" /><testcase classname="tests.test_project" name="test_billable_minutes_small_positive" time="0.000" /></testsuite></testsuites>

@@ -1,0 +1,17 @@
+schema_version = 1
+name = "user-ops"
+profile = "agent-evaluation"
+repetitions = 1
+agents = ["agent.toml"]
+output = "results"
+[[sources]]
+path = "package"
+[budgets]
+wall_time_seconds = 300
+tool_calls = 20
+[limits]
+max_runs = 2
+max_total_wall_time_seconds = 600
+[select]
+types_any = ["business_rules"]
+tags_all = ["boundary"]

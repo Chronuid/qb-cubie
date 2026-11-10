@@ -1,0 +1,6 @@
+schema_version = 1
+id = "ollama-user"
+transport = "jsonl-v1"
+command = ["/tmp/cubie-user-env/bin/python", "-I", "agent.py"]
+cwd = "."
+capabilities = ["workspace_changes", "phased_submission", "wall_time", "cancel", "tool_calls"]
