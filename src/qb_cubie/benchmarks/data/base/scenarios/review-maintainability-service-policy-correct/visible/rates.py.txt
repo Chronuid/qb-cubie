@@ -1,0 +1,1 @@
+RATES={"standard":100,"express":250}

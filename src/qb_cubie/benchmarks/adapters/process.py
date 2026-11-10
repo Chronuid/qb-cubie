@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 from qb_cubie.benchmarks.adapters._transport import JsonlProcess
+from qb_cubie.benchmarks.adapters.provenance import handshake_model, validate_model
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.execution._process import ExecutionError
 
@@ -27,6 +28,8 @@ def validate_config(agent):
     v.command(agent.get("command"))
     v.strings(agent.get("capabilities"), "agent.capabilities")
     v.text(agent.get("cwd", "."), "agent.cwd")
+    if "model" in agent:
+        validate_model(agent["model"])
 
 
 def handshake(peer, agent, required=()):
@@ -39,7 +42,7 @@ def handshake(peer, agent, required=()):
     missing = (set(required) | set(agent["capabilities"])) - set(actual)
     v.require(not missing, "capabilities", f"process is missing {sorted(missing)}")
     return {"schema_version": 1, "valid": True, **{key: answer[key]
-            for key in ("agent_id", "agent_version", "capabilities")}}
+            for key in ("agent_id", "agent_version", "capabilities")}, **handshake_model(agent, answer)}
 
 
 def probe(agent, cwd, required=()):

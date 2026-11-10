@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-maintainability-format-registry-correct",
+  "benchmark": "review_agent",
+  "title": "document-rendering: format-registry (conforming)",
+  "group_id": "review-format-registry",
+  "split": "development",
+  "types": [
+    "maintainability"
+  ],
+  "tags": [
+    "document-rendering",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "shared_extension_point"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

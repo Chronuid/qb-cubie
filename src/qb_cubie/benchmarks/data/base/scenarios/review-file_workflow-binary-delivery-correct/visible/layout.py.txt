@@ -1,0 +1,2 @@
+def filename(stem):
+    return stem + ".bin"

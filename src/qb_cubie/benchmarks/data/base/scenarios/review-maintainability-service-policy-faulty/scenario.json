@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-maintainability-service-policy-faulty",
+  "benchmark": "review_agent",
+  "title": "delivery-pricing: service-policy (defect)",
+  "group_id": "review-service-policy",
+  "split": "development",
+  "types": [
+    "maintainability"
+  ],
+  "tags": [
+    "delivery-pricing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "single_pricing_policy"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-test_quality-mutation-probe-correct",
+  "benchmark": "review_agent",
+  "title": "subscriptions: mutation-probe (conforming)",
+  "group_id": "review-mutation-probe",
+  "split": "development",
+  "types": [
+    "test_quality"
+  ],
+  "tags": [
+    "subscriptions",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "detect_disabled_mutant"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

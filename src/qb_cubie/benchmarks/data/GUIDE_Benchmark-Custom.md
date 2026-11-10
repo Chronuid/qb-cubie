@@ -227,3 +227,136 @@ Geänderte Auswahl, Materialien oder Budgets werden sichtbar gemeldet.
 Metrikdifferenzen sind `after - before`; fehlende Messungen, offene Bewertungen
 und undefinierte Präzision/Recall bleiben `null`. Es gibt keinen künstlichen
 Gesamtscore über Review und Entwicklung.
+
+## Basisdatensatz und Pilot
+
+`base-v1` enthält 24 Reviews aus sechs Familien und vier unabhängig entworfene
+Projekte mit je drei separat auswählbaren Episoden. Abrechnungs-Export,
+Konfigurationspaket und Dokumentindex verwenden Dateien; die Funktionskontrolle
+prüft korrelierte Eingabe-/Erwartungspaare. Alle Fälle sind öffentliche
+Entwicklungsfälle und potenziell bekannt. Referenzen stehen auf `author_checked`;
+die Aufnahme durch zwei Menschen und reale Pilotmessergebnisse stehen aus.
+
+Exportieren und prüfen Sie die installierten Materialien:
+
+```bash
+cubie-bench init-base ./scenarios/base
+cubie-bench validate ./scenarios/base --check-references
+cubie-bench list --package ./scenarios/base
+```
+
+Die Referenzprüfung führt vertrauenswürdige Szenarioprogramme in temporären
+Arbeitsverzeichnissen aus. Objektive Reviews werden durch eigene pytest-Tests
+gegen das jeweilige Referenzurteil geprüft; Developer-Lösungen müssen bestehen
+und ihre Mutanten an den benannten Kriterien scheitern. Manuelle
+Wartbarkeitsurteile bleiben `manual_required`. Die Programmprüfung ersetzt keine
+menschliche Aufnahme. `dataset.json` dokumentiert Herkunft, Lizenz, Domäne und
+Entwurfsgruppen und wird zusammen mit den Aufgaben gehasht und archiviert.
+
+Erstellen Sie ein Set für Ihren bereits konfigurierten Prozessadapter:
+
+```bash
+cubie-bench init-suite ./sets/pilot.toml --preset smoke \
+  --agent ./agents/current.toml --package ./scenarios/base
+```
+
+`--preset smoke` erzeugt hier die Set-Vorlage für das ausdrücklich angegebene
+Paket. Passen Sie Auswahl, Wiederholungen und Grenzen vor der Ausführung an.
+Ein begrenztes Review-Set kann beispielsweise so aussehen:
+
+```toml
+schema_version = 1
+name = "base-review-pilot"
+profile = "agent-evaluation"
+repetitions = 5
+seed = 17
+agents = ["../agents/current.toml"]
+output = "../results/pilot"
+
+[[sources]]
+path = "../scenarios/base"
+
+[select]
+ids = ["base-v1/review-correctness-warehouse-correct", "base-v1/review-correctness-warehouse-faulty"]
+
+[budgets]
+wall_time_seconds = 300
+tool_calls = 20
+
+[limits]
+max_runs = 10
+max_total_wall_time_seconds = 3000
+```
+
+Zwei Wiederholungen eignen sich für die Kalibrierung, fünf sind der vorgesehene
+Pilotumfang. Diese Zahlen sind keine Schätzung statistischer Aussagekraft.
+`seed` ordnet Projektgruppen reproduzierbar, berücksichtigt explizite Vorgänger
+und balanciert beim Profil `cubie-vs-pytest` die zuerst ausgeführte Bedingung je
+Aufgabe aus. Modellantworten bleiben möglicherweise nichtdeterministisch.
+Der Vergleich verdoppelt die Laufzahl; setzen Sie die globalen Grenzen passend.
+Der Plan wird bei unzureichenden Grenzen abgelehnt und niemals gekürzt.
+Ohne `seed` bleibt die bisherige deterministische Ausführungsreihenfolge erhalten.
+
+```bash
+cubie-bench plan --suite ./sets/pilot.toml --format json
+cubie-bench run --suite ./sets/pilot.toml
+cubie-bench summarize-pilot ./results/pilot/RUN_ID
+cubie-bench summarize-pilot ./results/pilot/RUN_ID --format json
+```
+
+`summarize-pilot` liest ausschließlich vollständige Archive. Mehrere Pfade sind
+zulässig; dieselbe Versuch-ID darf nicht doppelt vorkommen. Geänderte Quellen,
+Evaluatoren, Budgets oder Agentenkonfigurationen unter denselben Kennungen werden
+als inkompatibel abgelehnt. Eine geänderte Agentenkonfiguration benötigt eine
+andere Agenten-ID. Eigenständige Wiederholungsversuche mit neuen Lauf-IDs bleiben
+als zusätzliche Versuche erhalten. Erstversuche werden nicht überschrieben.
+
+Der Bericht trennt Benchmark, Agent und Bedingung sowie fachliche Qualität und
+beobachteten Entwicklerprozess. Wiederholungen erhöhen nicht die Zahl unabhängiger
+Projektgruppen. Review-Metriken werden erst je Familie und dann gleichgewichtet
+über definierte objektive Familienmittel aggregiert. Wartbarkeitsurteile bleiben
+separat. Fehlende Werte bleiben `null`; Streuung ist die
+Stichprobenstandardabweichung und bei nur einer Beobachtung undefiniert.
+
+Alle begonnenen Versuche bleiben im Nenner der deskriptiven Erfolgsquote.
+Infrastrukturfehler werden separat ausgewiesen. `not_started` zählt nur als
+geplant. Offene Bewertungen erhalten keine Qualitätsgutschrift; ihre Belege
+bleiben unter `pending_adjudications` auffindbar. Kostenberichte unterscheiden
+bekannte Teilsummen von vollständigen Gesamtsummen. Der Adapter legt die
+Kosteneinheit fest; unbekannte Kosten werden nicht als kostenlose Ausführung
+ausgegeben. Harte Token-/Kostenlimits bleiben im lokalen Runner ununterstützt.
+
+### Modellkonfiguration nachweisen
+
+Ein Prozessadapter ohne Modellangaben bleibt eine Infrastrukturbeobachtung.
+Für einen nachvollziehbaren Modellversuch kann die Agentenkonfiguration folgende
+vollständige Deklaration enthalten; ersetzen Sie die Beispielwerte durch die
+verwendete Konfiguration:
+
+```toml
+[model]
+model_id = "my-model"
+revision = "immutable-model-revision-or-digest"
+provider = "my-provider"
+provider_version = "recorded-provider-version"
+adapter_version = "my-adapter-1"
+prompt_sha256 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+[model.parameters]
+temperature = 0.0
+```
+
+Der JSONL-Handshake muss dasselbe Objekt unter `model` zurückgeben, einschließlich
+`parameters`. Abweichende oder unvollständige Deklarationen werden vor einer
+Aufgabenanfrage abgelehnt. Der Runner archiviert Konfiguration, rohen Handshake
+und `model_provenance` pro Versuch. `model_id` wird nur aus dieser übereinstimmenden
+Deklaration übernommen. Ein Abbruch nach erfolgreichem Handshake bewahrt sie und
+bereits gemeldete Nutzungswerte.
+
+Die Zusammenfassung kennzeichnet passende Prozessversuche als `agent_evaluation`,
+gemischte Archive als `mixed` und reine Fakes oder Prozesse ohne Modellnachweis
+als `infrastructure_only`. Die Angaben bleiben eine Deklaration des Adapters;
+die Übereinstimmung mit der Konfiguration beweist keinen tatsächlichen
+Provideraufruf. Der Bericht nennt diese Grenze ausdrücklich. Archivieren Sie
+zusätzliche Providerbelege in Ihrem Versuchsaufbau, soweit verfügbar. Die
+mitgelieferten deterministischen Beispiele liefern keine Modellleistungsnachweise.

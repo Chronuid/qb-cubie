@@ -1,0 +1,58 @@
+from pathlib import Path
+import pytest
+from config_bundle import merge_packages
+
+DATA = [{'inputs': {'alpha/app.json': b'{"port":10,"label":"first"}', 'beta/app.json': b'{"port":20}', 'beta/other.json': b'{"name":"\\u03bb"}'}, 'priority': ['beta', 'alpha'], 'expected': {'app.json': b'{"label":"first","port":10}\n', 'other.json': b'{"name":"\\u03bb"}\n'}}, {'inputs': {}, 'priority': None, 'expected': {}}]
+
+
+def observation(root, item):
+    source_root=root/'inputs'
+    source_root.mkdir()
+    for name,content in item['inputs'].items():
+        path=source_root/name
+        path.parent.mkdir(parents=True,exist_ok=True)
+        path.write_bytes(content)
+    source=source_root
+    output=root/'out'
+    try:
+        returned=merge_packages(source,output,priority=item["priority"])
+    except NotImplementedError:
+        returned='unimplemented'
+    tree={p.relative_to(output).as_posix():p.read_bytes() for p in output.rglob('*') if p.is_file()}
+    inputs={p.relative_to(source_root).as_posix():p.read_bytes() for p in source_root.rglob('*') if p.is_file()}
+    return {'tree':tree,'returned':returned,'inputs':inputs}
+
+@pytest.fixture(params=DATA)
+def observed(tmp_path, request):
+    item=request.param
+    return observation(tmp_path,item),item
+
+def test_merge(observed):
+    actual,item=observed
+    assert actual['tree']==item['expected']
+
+def test_exact_tree(observed):
+    actual,item=observed
+    assert set(actual['tree'])==set(item['expected'])
+
+def test_returns_none(observed):
+    actual,item=observed
+    assert actual['returned'] is None
+
+def test_preserve_inputs(observed):
+    actual,item=observed
+    assert actual['inputs']==item['inputs']
+
+def test_priority(observed):
+    actual,item=observed
+    assert actual['tree']==item['expected']
+
+def test_schema(tmp_path):
+    source=tmp_path/'in'
+    (source/'layer').mkdir(parents=True)
+    (source/'layer'/'app.json').write_text('{"port":7}',encoding='utf-8')
+    with pytest.raises(ValueError,match='schema'):
+        merge_packages(source,tmp_path/'bad',schema={'name'})
+    assert not (tmp_path/'bad').exists()
+    assert merge_packages(source,tmp_path/'good',schema={'port'}) is None
+    assert (tmp_path/'good'/'app.json').read_bytes()==b'{"port":7}\n'

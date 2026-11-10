@@ -1,0 +1,7 @@
+cache={}
+
+def total(values):
+    key=tuple(values)
+    if key not in cache:
+        cache[key]=sum(values)
+    return cache[key]

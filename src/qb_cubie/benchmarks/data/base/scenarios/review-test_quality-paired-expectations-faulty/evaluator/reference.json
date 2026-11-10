@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "correlated_pairs": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "correlated_pairs",
+      "path": "routing_checks.py",
+      "symbol": "accepts",
+      "mechanism": "Expected outputs form one shared target set instead of input-bound pairs.",
+      "impact": "A function swapping both routing destinations passes.",
+      "counterexample": {
+        "candidate": {
+          "A": "west",
+          "B": "east"
+        },
+        "expected": false,
+        "actual": true
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

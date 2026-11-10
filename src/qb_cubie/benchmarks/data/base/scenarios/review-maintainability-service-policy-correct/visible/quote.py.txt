@@ -1,0 +1,4 @@
+from rates import RATES
+
+def quote(service):
+    return RATES[service]

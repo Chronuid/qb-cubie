@@ -19,7 +19,7 @@ def plan_suite(path: str | Path) -> dict:
     bounds = limits(suite.get("limits", {}), len(runs), sum(r["budgets"]["wall_time_seconds"] for r in runs))
     return v.snapshot({"schema_version": 1, "name": suite["name"], "profile": suite["profile"],
             "output": str((path.parent / suite["output"]).resolve()), "runs": runs,
-            "packages": packages, **bounds})
+            "packages": packages, "seed": suite.get("seed"), **bounds})
 
 
 def _suite(suite):
@@ -29,3 +29,5 @@ def _suite(suite):
     v.choice(suite.get("profile"), {"agent-evaluation", "cubie-vs-pytest"}, "profile")
     v.number(suite.get("repetitions"), "repetitions", positive=True, integer=True)
     v.budgets(suite.get("budgets", {}))
+    if "seed" in suite:
+        v.require(type(suite["seed"]) is int, "seed", "expected an integer")

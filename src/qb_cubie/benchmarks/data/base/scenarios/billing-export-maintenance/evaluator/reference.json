@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "solution": "evaluator/solution.py.txt",
+  "mutants": {
+    "wrong-return": "evaluator/mutants/wrong-return.py.txt",
+    "wrong-filter": "evaluator/mutants/wrong-filter.py.txt",
+    "round-down": "evaluator/mutants/round-down.py.txt",
+    "missing-manifest": "evaluator/mutants/missing-manifest.py.txt"
+  },
+  "mutant_criteria": {
+    "wrong-return": [
+      "returns_none"
+    ],
+    "wrong-filter": [
+      "export_rows",
+      "manifest"
+    ],
+    "round-down": [
+      "export_rows",
+      "manifest"
+    ],
+    "missing-manifest": [
+      "manifest",
+      "exact_tree"
+    ]
+  },
+  "criterion_results": {
+    "export_rows": "pass",
+    "manifest": "pass",
+    "exact_tree": "pass",
+    "returns_none": "pass",
+    "source_unchanged": "pass"
+  },
+  "acceptance_tests": "evaluator/acceptance.py.txt",
+  "agent_tests": "evaluator/agent_test.py.txt",
+  "pytest_agent_tests": "evaluator/pytest_agent_test.py.txt",
+  "submission_module": "invoice_export.py"
+}

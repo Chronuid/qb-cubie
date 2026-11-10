@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "active_stock": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "active_stock",
+      "path": "stock_policy.py",
+      "symbol": "included",
+      "mechanism": "The predicate includes inactive inventory.",
+      "impact": "Inactive units are offered as available stock.",
+      "counterexample": {
+        "rows": [
+          {
+            "units": 9,
+            "reserved": 0,
+            "active": false
+          }
+        ],
+        "expected": 0,
+        "actual": 9
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "warehouse.py",
+    "stock_policy.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use.",
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

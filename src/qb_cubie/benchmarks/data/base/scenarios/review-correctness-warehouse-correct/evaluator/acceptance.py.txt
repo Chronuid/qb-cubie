@@ -1,0 +1,7 @@
+from warehouse import available
+import pytest
+
+@pytest.mark.parametrize('rows,expected', [([],0), ([{'units':7,'reserved':2,'active':True}],5), ([{'units':9,'reserved':0,'active':False}],0), ([{'units':4,'reserved':4,'active':True}],0)])
+def test_active_stock(rows, expected):
+    actual=available(rows)
+    assert type(actual) is int and actual==expected

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-correctness-warehouse-correct",
+  "benchmark": "review_agent",
+  "title": "inventory: warehouse (conforming)",
+  "group_id": "review-warehouse",
+  "split": "development",
+  "types": [
+    "correctness"
+  ],
+  "tags": [
+    "inventory",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "active_stock"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

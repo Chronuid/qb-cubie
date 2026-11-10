@@ -3,7 +3,10 @@
 from qb_cubie.benchmarks.adapters.process import validate_agent
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.contracts.validation import list_package, validate_package
+from qb_cubie.benchmarks.reporting._pilot_text import render
 from qb_cubie.benchmarks.reporting.comparison import compare_runs
+from qb_cubie.benchmarks.reporting.pilot import summarize_pilot
+from qb_cubie.benchmarks.scaffolding.base import init_base_package
 from qb_cubie.benchmarks.scaffolding.custom import (
     init_agent,
     init_example,
@@ -19,10 +22,12 @@ def dispatch(args):
                "validate-agent": lambda: validate_agent(args.path),
                "init-scenario": lambda: init_scenario(args.path, args.benchmark),
                "init-example": lambda: init_example(args.path),
+               "init-base": lambda: init_base_package(args.path),
                "guide": guide,
                "init-suite": lambda: _suite(args),
                "validate": lambda: validate_package(args.path, args.check_references),
                "list": lambda: list_package(args.package),
+               "summarize-pilot": lambda: summarize_pilot(args.archives),
                "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent)}
     return actions[args.command](), 0
 
@@ -46,6 +51,8 @@ def text(result):
     """Render comparison scope, discovery and validation in plain language."""
     if "guide" in result:
         return result["guide"]
+    if "groups" in result:
+        return render(result)
     if "scope" in result:
         return "\n".join([f"Comparison: {result['scope']}", *result["warnings"],
                           *[_comparison_pair(p) for p in result["pairs"]]])

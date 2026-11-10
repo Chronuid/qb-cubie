@@ -1,0 +1,8 @@
+from pathlib import Path
+
+def publish(source, output):
+    data=Path(source).read_bytes()
+    root=Path(output)
+    root.mkdir()
+    (root / "report.txt").write_bytes(data)
+    Path(source).write_bytes(b"")

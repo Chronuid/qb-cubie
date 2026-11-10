@@ -1,0 +1,4 @@
+from copy import deepcopy
+
+def capture(settings):
+    return deepcopy(settings)

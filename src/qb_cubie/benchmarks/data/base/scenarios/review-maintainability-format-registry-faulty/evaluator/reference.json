@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "shared_extension_point": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "shared_extension_point",
+      "path": "render.py",
+      "symbol": "export",
+      "mechanism": "Export reconstructs its own formatter table instead of using the shared registry.",
+      "impact": "A formatter registered for preview remains unavailable to export until a second edit.",
+      "counterexample": {
+        "change": "register json formatter",
+        "expected": 1,
+        "actual": 2
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "formats.py",
+    "render.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use."
+}

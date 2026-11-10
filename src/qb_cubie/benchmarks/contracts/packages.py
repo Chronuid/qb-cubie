@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from qb_cubie.benchmarks.contracts import _validation as v
+from qb_cubie.benchmarks.contracts.catalogs import validate_catalog
 from qb_cubie.benchmarks.contracts.references import validate_reference
 
 
@@ -14,6 +15,7 @@ def load_package(path: str | Path) -> dict:
     paths = v.strings(package.get("scenarios"), "scenarios", nonempty=True)
     scenarios = [_scenario(root, name, package["namespace"]) for name in paths]
     _groups(scenarios)
+    validate_catalog(root, package, scenarios)
     return {**package, "scenarios": scenarios}
 
 

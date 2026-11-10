@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "pure-calculation-diagnosis",
+  "benchmark": "developer_agent",
+  "title": "pure-calculation: diagnosis",
+  "group_id": "pure-calculation",
+  "split": "development",
+  "types": [
+    "diagnosis"
+  ],
+  "tags": [
+    "membership-billing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "exact_total",
+    "integer_type"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

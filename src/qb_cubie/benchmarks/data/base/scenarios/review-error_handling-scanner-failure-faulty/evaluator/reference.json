@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "tool_failure_visible": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "tool_failure_visible",
+      "path": "tool.py",
+      "symbol": "invoke",
+      "mechanism": "OSError is swallowed and replaced with an empty diagnostic list.",
+      "impact": "A failed tool is reported as a successful scan without findings.",
+      "counterexample": {
+        "callback": "raises OSError",
+        "expected": "OSError",
+        "actual": []
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "scanner.py",
+    "tool.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use.",
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

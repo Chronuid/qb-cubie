@@ -124,6 +124,15 @@ def _copy_package(source, target, package):
         copy_tree(directory, target / name)
         copied.append(name)
     shutil.copy2(source / "package.json", target / "package.json")
+    _copy_catalog(source, target, package)
+
+
+def _copy_catalog(source, target, package):
+    """Archive an optional declared provenance catalog alongside its package."""
+    if "dataset" in package:
+        destination = target / package["dataset"]
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(v.contained(source, package["dataset"], "dataset"), destination)
 
 
 def _layout(plan, scenarios):

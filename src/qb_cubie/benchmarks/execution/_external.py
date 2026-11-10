@@ -28,6 +28,7 @@ def perform(context):
         context["peer"] = peer
         identity = handshake(peer, agent, context["run"]["required_capabilities"])
         context["agent_version"] = identity["agent_version"]
+        context["model_provenance"] = identity.get("model_provenance")
         result = _review(context) if context["run"]["benchmark"] == "review_agent" else _develop(context)
         return {**result, "agent_version": identity["agent_version"], "usage": context["usage"]}
 
@@ -38,10 +39,10 @@ def exchange(context, phase):
     event = context["peer"].exchange(request)
     v.require(event.get("type") == "event", "type", "expected event")
     validate_agent_event(event, request)
+    context["usage"] = _usage(context.get("usage"), event["usage"])
     if event["status"] != "completed":
         raise ExecutionError(event["status"], event["reason"])
     _artifacts(context, event)
-    context["usage"] = _usage(context.get("usage"), event["usage"])
     return event
 
 

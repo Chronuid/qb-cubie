@@ -1,0 +1,2 @@
+def build_catalog(source, destination, exclude=()):
+    raise NotImplementedError("document catalog")

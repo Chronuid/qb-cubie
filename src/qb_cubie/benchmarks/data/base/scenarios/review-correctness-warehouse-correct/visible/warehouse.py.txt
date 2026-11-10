@@ -1,0 +1,4 @@
+from stock_policy import included
+
+def available(rows):
+    return sum(row["units"] - row["reserved"] for row in rows if included(row))

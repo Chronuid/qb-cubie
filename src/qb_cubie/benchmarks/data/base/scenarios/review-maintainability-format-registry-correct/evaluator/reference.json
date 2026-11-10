@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "shared_extension_point": "pass"
+  },
+  "findings": [],
+  "required_context": [
+    "formats.py",
+    "render.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use."
+}

@@ -1,0 +1,14 @@
+import json
+from pathlib import Path
+
+
+def merge_packages(source, destination, priority=None, schema=None):
+    paths=sorted(Path(source).glob('*/*.json'),key=lambda path:path.relative_to(source).as_posix())
+    merged={}
+    for path in paths:
+        merged.setdefault(path.name,{}).update(json.loads(path.read_text(encoding='utf-8')))
+    output=Path(destination)
+    output.mkdir()
+    for name,values in merged.items():
+        (output/name).write_text(json.dumps(values,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+    return 1

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "configuration-package-maintenance",
+  "benchmark": "developer_agent",
+  "title": "configuration-package: maintenance",
+  "group_id": "configuration-package",
+  "split": "development",
+  "types": [
+    "maintenance",
+    "file_workflow"
+  ],
+  "tags": [
+    "configuration",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "merge",
+    "exact_tree",
+    "returns_none",
+    "preserve_inputs",
+    "priority",
+    "schema"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

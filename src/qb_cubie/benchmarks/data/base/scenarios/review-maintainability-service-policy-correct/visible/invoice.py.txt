@@ -1,0 +1,4 @@
+from rates import RATES
+
+def invoice(service,units):
+    return RATES[service]*units

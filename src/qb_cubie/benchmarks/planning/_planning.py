@@ -4,6 +4,7 @@ import hashlib
 
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.contracts.packages import load_package
+from qb_cubie.benchmarks.planning.order import trials
 
 DEFAULTS = {"review_agent": {"wall_time_seconds": 300, "tool_calls": 20},
             "developer_agent": {"wall_time_seconds": 1800, "tool_calls": 100}}
@@ -38,6 +39,8 @@ def _identity(root, package):
     """Identify all declared package material with a deterministic digest."""
     manifests = [root / "package.json"]
     paths = set(manifests)
+    if "dataset" in package:
+        paths.add(v.contained(root, package["dataset"], "dataset"))
     for scenario in package["scenarios"]:
         directory = root / scenario["manifest"]
         paths.update(directory.parent.rglob("*"))
@@ -74,9 +77,8 @@ def expand(scenarios, configured_agents, suite):
     runs = []
     for agent in configured_agents:
         for repetition in range(1, suite["repetitions"] + 1):
-            for condition in conditions:
-                for scenario in scenarios:
-                    runs.append(_run(scenario, agent, repetition, condition, suite))
+            for scenario, condition in trials(scenarios, conditions, suite, repetition):
+                runs.append(_run(scenario, agent, repetition, condition, suite))
     return runs
 
 

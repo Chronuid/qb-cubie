@@ -1,0 +1,29 @@
+from pathlib import Path
+import pytest
+from document_catalog import build_catalog
+
+DATA = [{'inputs': {'z.txt': b'last\x00\xff', 'a.txt': b'first', 'data.csv': b'a,b\n', 'sub/deep.txt': b'nested', 'private/no.txt': b'private', 'index.txt': b'input index'}, 'expected': {'index.txt': b'a.txt\ndata.csv\nindex.txt\nz.txt\n', 'files/a.txt': b'first', 'files/data.csv': b'a,b\n', 'files/index.txt': b'input index', 'files/z.txt': b'last\x00\xff'}}, {'inputs': {}, 'expected': {'index.txt': b''}}]
+
+
+def observation(root, item):
+    source_root=root/'inputs'
+    source_root.mkdir()
+    for name,content in item['inputs'].items():
+        path=source_root/name
+        path.parent.mkdir(parents=True,exist_ok=True)
+        path.write_bytes(content)
+    source=source_root
+    output=root/'out'
+    try:
+        returned=build_catalog(source,output)
+    except NotImplementedError:
+        returned='unimplemented'
+    tree={p.relative_to(output).as_posix():p.read_bytes() for p in output.rglob('*') if p.is_file()}
+    inputs={p.relative_to(source_root).as_posix():p.read_bytes() for p in source_root.rglob('*') if p.is_file()}
+    return {'tree':tree,'returned':returned,'inputs':inputs}
+
+
+AGENT_DATA = [{'inputs': {'z.txt': b'last\x00\xff', 'a.txt': b'first', 'data.csv': b'a,b\n', 'sub/deep.txt': b'nested', 'private/no.txt': b'private', 'index.txt': b'input index'}, 'expected': {'index.txt': b'a.txt\ndata.csv\nindex.txt\nz.txt\n', 'files/a.txt': b'first', 'files/data.csv': b'a,b\n', 'files/index.txt': b'input index', 'files/z.txt': b'last\x00\xff'}}]
+@pytest.mark.parametrize('item',AGENT_DATA)
+def test_complete_contract(tmp_path,item):
+    assert observation(tmp_path,item)=={'tree':item['expected'],'returned':None,'inputs':item['inputs']}

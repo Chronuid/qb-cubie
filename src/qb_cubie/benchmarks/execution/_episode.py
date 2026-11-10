@@ -111,6 +111,8 @@ def _finish(context, result):
     result["agent_kind"] = "fake" if context["agent"]["command"] == ["builtin:fake"] else "process"
     if result["agent_kind"] == "process":
         result.update(agent_version=context.get("agent_version"), usage=context.get("usage", dict(fake.USAGE)))
+        result.update(model_provenance=context.get("model_provenance"),
+                      model_id=(context.get("model_provenance") or {}).get("model_id"))
     result["finished_at"] = now()
     result["submitted_tree_sha256"] = tree_hash(context["workspace"])
     result["tool_calls"] = context["tool_calls"]

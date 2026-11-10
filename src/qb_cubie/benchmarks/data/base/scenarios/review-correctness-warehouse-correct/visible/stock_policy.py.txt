@@ -1,0 +1,2 @@
+def included(row):
+    return row["active"] is True

@@ -1,0 +1,6 @@
+import pytest
+from reservation import fits
+
+@pytest.mark.parametrize('args,expected',[((10,7,3),True),((10,7,4),False),((0,0,0),True),((10,2,1),True)])
+def test_inclusive_capacity(args, expected):
+    assert fits(*args) is expected

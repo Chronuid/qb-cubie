@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "invalid_input_visible": "pass"
+  },
+  "findings": [],
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

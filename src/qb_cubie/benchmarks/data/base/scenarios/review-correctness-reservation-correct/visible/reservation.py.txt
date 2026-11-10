@@ -1,0 +1,3 @@
+def fits(capacity, booked, requested):
+    remaining = capacity - booked
+    return not (requested > remaining)

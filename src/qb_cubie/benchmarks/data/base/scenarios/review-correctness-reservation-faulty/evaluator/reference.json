@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "inclusive_capacity": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "inclusive_capacity",
+      "path": "reservation.py",
+      "symbol": "fits",
+      "mechanism": "A strict comparison excludes exact capacity.",
+      "impact": "A valid reservation filling the last seats is rejected.",
+      "counterexample": {
+        "args": [
+          10,
+          7,
+          3
+        ],
+        "expected": true,
+        "actual": false
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

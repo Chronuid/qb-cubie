@@ -1,0 +1,4 @@
+RATES={"standard":100,"express":250}
+
+def quote(service):
+    return RATES[service]

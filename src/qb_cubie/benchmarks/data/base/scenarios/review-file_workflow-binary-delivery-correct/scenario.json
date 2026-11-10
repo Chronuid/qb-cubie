@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-file_workflow-binary-delivery-correct",
+  "benchmark": "review_agent",
+  "title": "media: binary-delivery (conforming)",
+  "group_id": "review-binary-delivery",
+  "split": "development",
+  "types": [
+    "file_workflow"
+  ],
+  "tags": [
+    "media",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "exact_binary_tree"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

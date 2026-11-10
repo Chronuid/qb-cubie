@@ -1,0 +1,24 @@
+import csv
+import json
+from decimal import Decimal, ROUND_HALF_UP, localcontext
+from io import StringIO
+from pathlib import Path
+
+
+def export_invoices(source, destination):
+    rows=list(csv.DictReader(StringIO(Path(source).read_text(encoding='utf-8'))))
+    paid=[row for row in rows if row['status']!='paid' and row['cancelled']!='true']
+    output=Path(destination)
+    output.mkdir()
+    total=0
+    with (output/'paid.csv').open('w',encoding='utf-8',newline='') as stream:
+        writer=csv.writer(stream,lineterminator='\n')
+        writer.writerow(['id','cents','category'])
+        for row in sorted(paid,key=lambda row:row['id']):
+            with localcontext() as context:
+                context.prec=max(28,len(row['amount'])+4)
+                cents=int((Decimal(row['amount'])*100).quantize(Decimal('1'),rounding=ROUND_HALF_UP))
+            writer.writerow([row['id'],cents,row['category']])
+            total+=cents
+    manifest={'count':len(paid),'total_cents':total}
+    (output/'manifest.json').write_text(json.dumps(manifest,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')

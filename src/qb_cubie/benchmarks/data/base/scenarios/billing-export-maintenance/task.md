@@ -1,0 +1,5 @@
+# billing-export: maintenance
+
+Read UTF-8 CSV columns id,status,amount,cancelled,category. Quoted fields may contain commas and newlines. Amounts are finite nonnegative decimal strings without exponent notation. Export only paid rows that are not cancelled (cancelled != true), sorted by id. Convert decimal euro amounts to integer cents with ROUND_HALF_UP, without binary floats. Write paid.csv with header id,cents,category and LF line endings, plus manifest.json containing count and total_cents. The manifest is canonical JSON (sorted keys, no separator spaces, one terminal LF). No other output files are permitted. Empty/header-only input produces just the header and a zero-count manifest. Return None. Include the original category as the third CSV column.
+
+Public API: `invoice_export.export_invoices(source, destination)`. Preserve the input material. Deliver production code, executable tests and a short README. Submit tests before implementation; demonstrate business red, then green, then refactor without weakening the frozen tests. Return types and the complete specified output tree are part of acceptance.

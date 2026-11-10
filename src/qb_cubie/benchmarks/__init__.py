@@ -11,7 +11,9 @@ from qb_cubie.benchmarks.contracts.protocols import (
 from qb_cubie.benchmarks.contracts.validation import list_package, validate_package
 from qb_cubie.benchmarks.planning.planner import plan_suite
 from qb_cubie.benchmarks.reporting.comparison import compare_runs
+from qb_cubie.benchmarks.reporting.pilot import summarize_pilot
 from qb_cubie.benchmarks.runner import run_suite
+from qb_cubie.benchmarks.scaffolding.base import init_base_package
 from qb_cubie.benchmarks.scaffolding.custom import (
     init_agent,
     init_example,
@@ -23,6 +25,7 @@ from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
 __all__ = [
     "compare_runs",
     "init_agent",
+    "init_base_package",
     "init_example",
     "init_scenario",
     "init_smoke_suite",
@@ -31,6 +34,7 @@ __all__ = [
     "load_package",
     "plan_suite",
     "run_suite",
+    "summarize_pilot",
     "validate_agent",
     "validate_agent_event",
     "validate_agent_request",

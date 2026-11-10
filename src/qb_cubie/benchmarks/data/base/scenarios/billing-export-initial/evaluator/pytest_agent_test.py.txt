@@ -1,0 +1,26 @@
+from pathlib import Path
+import pytest
+from invoice_export import export_invoices
+
+DATA = [{'source': 'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n'}, 'expected': {'paid.csv': b'id,cents\nb,1\nc,250\n', 'manifest.json': b'{"count":2,"total_cents":251}\n'}}, {'source': 'id,status,amount,cancelled,category\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\n'}, 'expected': {'paid.csv': b'id,cents\n', 'manifest.json': b'{"count":0,"total_cents":0}\n'}}, {'source': 'id,status,amount,cancelled,category\nx,paid,90071992547409.93,false,large\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nx,paid,90071992547409.93,false,large\n'}, 'expected': {'paid.csv': b'id,cents\nx,9007199254740993\n', 'manifest.json': b'{"count":1,"total_cents":9007199254740993}\n'}}]
+
+
+def observation(root, item):
+    source_root=root/'inputs'
+    source_root.mkdir()
+    source=source_root/'source.csv'
+    source.write_text(item['source'],encoding='utf-8')
+    output=root/'out'
+    try:
+        returned=export_invoices(source,output)
+    except NotImplementedError:
+        returned='unimplemented'
+    tree={p.relative_to(output).as_posix():p.read_bytes() for p in output.rglob('*') if p.is_file()}
+    inputs={p.relative_to(source_root).as_posix():p.read_bytes() for p in source_root.rglob('*') if p.is_file()}
+    return {'tree':tree,'returned':returned,'inputs':inputs}
+
+
+AGENT_DATA = [{'source': 'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n'}, 'expected': {'paid.csv': b'id,cents\nb,1\nc,250\n', 'manifest.json': b'{"count":2,"total_cents":251}\n'}}]
+@pytest.mark.parametrize('item',AGENT_DATA)
+def test_complete_contract(tmp_path,item):
+    assert observation(tmp_path,item)=={'tree':item['expected'],'returned':None,'inputs':item['inputs']}

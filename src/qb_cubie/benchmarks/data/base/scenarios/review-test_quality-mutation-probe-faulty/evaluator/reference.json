@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "detect_disabled_mutant": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "detect_disabled_mutant",
+      "path": "samples.py",
+      "symbol": "CASES",
+      "mechanism": "Only enabled subscriptions are tested.",
+      "impact": "The all-subscriptions mutant survives the acceptance tests.",
+      "counterexample": {
+        "candidate": "sum all rows",
+        "expected": false,
+        "actual": true
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "checks.py",
+    "samples.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use.",
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

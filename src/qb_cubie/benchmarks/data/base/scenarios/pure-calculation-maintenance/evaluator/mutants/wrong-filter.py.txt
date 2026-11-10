@@ -1,0 +1,2 @@
+def net_total(rows):
+    return sum(max(0,cents-discount) for enabled,cents,discount in rows if not enabled)

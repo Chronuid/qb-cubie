@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "id": "document-index-maintenance",
+  "benchmark": "developer_agent",
+  "title": "document-index: maintenance",
+  "group_id": "document-index",
+  "split": "development",
+  "types": [
+    "maintenance",
+    "file_workflow"
+  ],
+  "tags": [
+    "documents",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "copies",
+    "sorted_index",
+    "exact_tree",
+    "returns_none",
+    "preserve_inputs"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

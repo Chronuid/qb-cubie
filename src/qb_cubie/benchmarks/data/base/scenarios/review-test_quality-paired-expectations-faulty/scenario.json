@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-test_quality-paired-expectations-faulty",
+  "benchmark": "review_agent",
+  "title": "routing: paired-expectations (defect)",
+  "group_id": "review-paired-expectations",
+  "split": "development",
+  "types": [
+    "test_quality"
+  ],
+  "tags": [
+    "routing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "correlated_pairs"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

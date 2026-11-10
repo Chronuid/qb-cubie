@@ -1,0 +1,2 @@
+def merge_packages(source, destination, priority=None, schema=None):
+    raise NotImplementedError("configuration package")

@@ -1,0 +1,2 @@
+def fits(capacity, booked, requested):
+    return booked + requested < capacity

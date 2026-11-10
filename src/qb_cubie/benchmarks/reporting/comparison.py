@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from qb_cubie.benchmarks.contracts import _validation as v
-from qb_cubie.benchmarks.reporting._files import digest
+from qb_cubie.benchmarks.reporting.archives import read_archive
 
 IDENTITY = ("scenario_id", "condition", "repetition", "benchmark", "package", "budgets",
             "evaluator_id", "evaluator_version", "source_tree_sha256", "task_sha256", "context_sha256")
@@ -13,7 +13,7 @@ IDENTITY = ("scenario_id", "condition", "repetition", "benchmark", "package", "b
 def compare_runs(before: str | Path, after: str | Path, *, before_agent=None, after_agent=None) -> dict:
     """Compare compatible trials without restarting agents or modifying archives."""
     try:
-        return _compare(_index(_archive(before), before_agent), _index(_archive(after), after_agent))
+        return _compare(_index(read_archive(before), before_agent), _index(read_archive(after), after_agent))
     except (KeyError, TypeError, IndexError) as error:
         raise ValueError(f"archive: malformed run manifest or results: {error}") from error
 
@@ -26,35 +26,6 @@ def _compare(left, right):
         "Selection or execution conditions differ: only common trials with identical package, evaluator, sources and budgets are compared."]
     return {"schema_version": 1, "scope": scope, "warnings": warnings,
             "pairs": [_pair(left[key], right[key]) for key in common]}
-
-
-def _archive(path):
-    """Check archived bytes and bind all trial records to the saved plan."""
-    root = Path(path).resolve()
-    result = v.read_data(root / "results.json")
-    manifest = v.read_data(root / "manifest.json")
-    v.require(result.get("run_id") == manifest.get("run_id"), "run_id", "result does not match manifest")
-    hashes = v.mapping(manifest.get("artifact_hashes"), "manifest.artifact_hashes")
-    v.require("results.json" in hashes, "manifest", "results.json is not hashed")
-    for name, checksum in hashes.items():
-        v.require(digest(v.contained(root, name, "manifest.artifact_hashes")) == checksum,
-                  "manifest.hash", f"archived bytes changed: {name}")
-    _plan(root, manifest, result)
-    return result
-
-
-def _plan(root, manifest, result):
-    """Verify the stored plan and each result's resolved trial identity."""
-    name, = manifest["inputs"]["plan"]
-    path = v.contained(root, name, "manifest.plan")
-    v.require(digest(path) == manifest.get("resolved_plan_sha256"), "manifest.plan", "plan hash mismatch")
-    plan = v.read_data(path)
-    v.require(plan == manifest.get("plan"), "manifest.plan", "stored plan differs")
-    runs = result.get("runs")
-    v.require(type(runs) is list and len(runs) == len(plan["runs"]), "runs", "trial count differs from plan")
-    for run, planned in zip(runs, plan["runs"], strict=True):
-        v.mapping(run, "runs")
-        v.require(all(run.get(key) == value for key, value in planned.items()), "runs", "trial differs from plan")
 
 
 def _index(result, agent):

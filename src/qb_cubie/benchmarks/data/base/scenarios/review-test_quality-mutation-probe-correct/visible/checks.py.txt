@@ -1,0 +1,4 @@
+from samples import CASES
+
+def verify(candidate):
+    return all(candidate(rows)==expected for rows,expected in CASES)

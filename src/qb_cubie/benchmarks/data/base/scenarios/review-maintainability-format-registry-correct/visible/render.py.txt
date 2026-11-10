@@ -1,0 +1,7 @@
+from formats import FORMATTERS
+
+def preview(value,kind):
+    return FORMATTERS[kind](value)
+
+def export(value,kind):
+    return FORMATTERS[kind](value).encode("utf-8")

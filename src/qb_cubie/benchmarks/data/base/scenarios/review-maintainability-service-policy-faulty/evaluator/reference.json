@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "single_pricing_policy": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "single_pricing_policy",
+      "path": "invoice.py",
+      "symbol": "RATES",
+      "mechanism": "The service rate table is duplicated across quote and invoice modules.",
+      "impact": "Adding a service requires two coordinated policy edits and risks inconsistent invoices.",
+      "counterexample": {
+        "change": "add economy service",
+        "expected": 1,
+        "actual": 2
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "quote.py",
+    "invoice.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use."
+}

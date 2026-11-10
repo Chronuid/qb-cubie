@@ -1,0 +1,14 @@
+from net_amount import net_total
+import pytest
+
+DATA=[([], 0), ([(True, 15, 3)], 12), ([(False, 90, 0)], 0), ([(True, 5, 2), (False, 90, 0)], 3), ([(True, 9007199254740993, 0)], 9007199254740993), ([(True, 5, 9)], 0)]
+def observed(rows):
+    try:
+        return net_total(rows)
+    except NotImplementedError:
+        return None
+
+@pytest.mark.parametrize('rows,expected',DATA)
+def test_correlated_contract(rows,expected):
+    actual=observed(rows)
+    assert type(actual) is int and actual==expected

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-state_lifecycle-frozen-settings-correct",
+  "benchmark": "review_agent",
+  "title": "configuration: frozen-settings (conforming)",
+  "group_id": "review-frozen-settings",
+  "split": "development",
+  "types": [
+    "state_lifecycle"
+  ],
+  "tags": [
+    "configuration",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "frozen_state"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

@@ -3,7 +3,7 @@
 
 def authoring(commands):
     """Add agent, scenario, validation and discovery commands."""
-    for name in ("init-agent", "validate-agent", "init-scenario", "init-example", "validate"):
+    for name in ("init-agent", "validate-agent", "init-scenario", "init-example", "init-base", "validate"):
         parser = commands.add_parser(name)
         parser.add_argument("path")
         if name == "init-scenario":
@@ -33,3 +33,5 @@ def comparison(commands):
     parser.add_argument("after")
     parser.add_argument("--before-agent")
     parser.add_argument("--after-agent")
+    pilot = commands.add_parser("summarize-pilot", help="Summarize verified pilot archives without rerunning agents")
+    pilot.add_argument("archives", nargs="+")

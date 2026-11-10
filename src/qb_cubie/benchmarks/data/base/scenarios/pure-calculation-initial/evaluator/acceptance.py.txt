@@ -1,0 +1,12 @@
+from net_amount import net_total
+import pytest
+
+DATA=[([], 0), ([(True, 15, 3)], 12), ([(False, 90, 0)], 0), ([(True, 5, 2), (False, 90, 0)], 3), ([(True, 9007199254740993, 0)], 9007199254740993)]
+
+@pytest.mark.parametrize('rows,expected',DATA)
+def test_exact_total(rows,expected):
+    assert net_total(rows)==expected
+
+@pytest.mark.parametrize('rows,expected',DATA)
+def test_integer_type(rows,expected):
+    assert type(net_total(rows)) is int

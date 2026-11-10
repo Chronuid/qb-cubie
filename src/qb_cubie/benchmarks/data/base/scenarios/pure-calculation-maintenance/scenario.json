@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "pure-calculation-maintenance",
+  "benchmark": "developer_agent",
+  "title": "pure-calculation: maintenance",
+  "group_id": "pure-calculation",
+  "split": "development",
+  "types": [
+    "maintenance"
+  ],
+  "tags": [
+    "membership-billing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "exact_total",
+    "integer_type"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

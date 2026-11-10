@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "single_pricing_policy": "pass"
+  },
+  "findings": [],
+  "required_context": [
+    "rates.py",
+    "quote.py",
+    "invoice.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use."
+}

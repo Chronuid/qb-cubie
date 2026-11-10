@@ -1,0 +1,16 @@
+from pathlib import Path
+from fnmatch import fnmatchcase
+
+
+def build_catalog(source, destination, exclude=()):
+    root=Path(source)
+    paths=[path for path in root.iterdir() if path.is_file()]
+    chosen=sorted((path.relative_to(root).as_posix(),path) for path in paths)
+    output=Path(destination)
+    output.mkdir()
+    for name,path in chosen:
+        target=output/'files'/name
+        target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_bytes(path.read_bytes())
+    (output/'index.txt').write_text(''.join(name+'\n' for name,_ in chosen),encoding='utf-8')
+    return 1

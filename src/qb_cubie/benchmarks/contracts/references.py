@@ -1,16 +1,14 @@
 """Validate independent reference metadata and its declared material."""
 
 from qb_cubie.benchmarks.contracts import _validation as v
+from qb_cubie.benchmarks.contracts.admission import validate_admission
 
 
 def validate_reference(root, scenario, reference):
     """Validate reference coverage without executing reference programs."""
     v.decisions(reference.get("criterion_results"), scenario["criteria"])
     v.choice(reference.get("validation_status"), {"author_checked", "independently_checked"}, "validation_status")
-    reviews = reference.get("human_reviews")
-    v.require(type(reviews) is list, "human_reviews", "expected a list")
-    if reference["validation_status"] == "independently_checked":
-        v.require(len(reviews) >= 2, "human_reviews", "two independent reviews are required")
+    validate_admission(root, scenario, reference)
     if scenario["benchmark"] == "review_agent":
         _review(root, scenario, reference)
     else:
@@ -29,6 +27,18 @@ def _review(root, scenario, reference):
         _finding(root, scenario, finding)
         covered.add(finding["criterion_id"])
     v.require(covered == failed, "findings", f"missing failure references: {sorted(failed - covered)}")
+    _review_material(root, scenario, reference)
+
+
+def _review_material(root, scenario, reference):
+    """Check optional executable evidence and required visible context."""
+    if "acceptance_tests" in reference:
+        _private(root, scenario, reference["acceptance_tests"], "acceptance_tests")
+    if "required_context" in reference:
+        paths = v.strings(reference["required_context"], "required_context", nonempty=True)
+        for path in paths:
+            v.contained(root / scenario["visible"], path, "required_context")
+        v.text(reference.get("context_reason"), "context_reason")
 
 
 def _finding(root, scenario, finding):

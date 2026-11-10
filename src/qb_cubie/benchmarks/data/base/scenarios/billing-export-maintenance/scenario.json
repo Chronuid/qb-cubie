@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "id": "billing-export-maintenance",
+  "benchmark": "developer_agent",
+  "title": "billing-export: maintenance",
+  "group_id": "billing-export",
+  "split": "development",
+  "types": [
+    "maintenance",
+    "file_workflow"
+  ],
+  "tags": [
+    "billing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "export_rows",
+    "manifest",
+    "exact_tree",
+    "returns_none",
+    "source_unchanged"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

@@ -1,0 +1,47 @@
+from pathlib import Path
+import pytest
+from invoice_export import export_invoices
+
+DATA = [{'source': 'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nb,paid,0.005,false,B\na,unpaid,99.00,false,U\nc,paid,2.50,true,C\n'}, 'expected': {'paid.csv': b'id,cents,category\nb,1,B\n', 'manifest.json': b'{"count":1,"total_cents":1}\n'}}, {'source': 'id,status,amount,cancelled,category\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\n'}, 'expected': {'paid.csv': b'id,cents,category\n', 'manifest.json': b'{"count":0,"total_cents":0}\n'}}, {'source': 'id,status,amount,cancelled,category\nx,paid,90071992547409.93,false,large\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nx,paid,90071992547409.93,false,large\n'}, 'expected': {'paid.csv': b'id,cents,category\nx,9007199254740993,large\n', 'manifest.json': b'{"count":1,"total_cents":9007199254740993}\n'}}]
+DATA.extend([{'source': 'id,status,amount,cancelled,category\n"a\nb",paid,1.00,false,"first\nsecond"\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\n"a\nb",paid,1.00,false,"first\nsecond"\n'}, 'expected': {'paid.csv': b'id,cents,category\n"a\nb",100,"first\nsecond"\n', 'manifest.json': b'{"count":1,"total_cents":100}\n'}}, {'source': 'id,status,amount,cancelled,category\nx,paid,12345678901234567890123456789012345678901234567890.005,false,large\n', 'inputs': {'source.csv': b'id,status,amount,cancelled,category\nx,paid,12345678901234567890123456789012345678901234567890.005,false,large\n'}, 'expected': {'paid.csv': b'id,cents,category\nx,1234567890123456789012345678901234567890123456789001,large\n', 'manifest.json': b'{"count":1,"total_cents":1234567890123456789012345678901234567890123456789001}\n'}}])
+
+
+def observation(root, item):
+    source_root=root/'inputs'
+    source_root.mkdir()
+    source=source_root/'source.csv'
+    source.write_text(item['source'],encoding='utf-8')
+    output=root/'out'
+    try:
+        returned=export_invoices(source,output)
+    except NotImplementedError:
+        returned='unimplemented'
+    tree={p.relative_to(output).as_posix():p.read_bytes() for p in output.rglob('*') if p.is_file()}
+    inputs={p.relative_to(source_root).as_posix():p.read_bytes() for p in source_root.rglob('*') if p.is_file()}
+    return {'tree':tree,'returned':returned,'inputs':inputs}
+
+@pytest.fixture(params=DATA)
+def observed(tmp_path, request):
+    item=request.param
+    return observation(tmp_path,item),item
+
+def test_export_rows(observed):
+    actual,item=observed
+    assert actual['tree'].get('paid.csv')==item['expected']['paid.csv']
+
+def test_manifest(observed):
+    actual,item=observed
+    assert actual['tree'].get('manifest.json')==item['expected']['manifest.json']
+
+def test_exact_tree(observed):
+    actual,item=observed
+    assert set(actual['tree'])=={'paid.csv','manifest.json'}
+
+def test_returns_none(observed):
+    actual,item=observed
+    assert actual['returned'] is None
+
+def test_source_unchanged(observed):
+    actual,item=observed
+    assert actual['inputs']==item['inputs']
+

@@ -1,0 +1,10 @@
+import pytest
+from report import publish
+
+@pytest.mark.parametrize('content',[b'',b'original\x00\xff'])
+def test_preserve_source(tmp_path, content):
+    source=tmp_path/'source.dat'
+    source.write_bytes(content)
+    assert publish(source,tmp_path/'out') is None
+    assert source.read_bytes()==content
+    assert {p.name:p.read_bytes() for p in (tmp_path/'out').iterdir()}=={'report.txt':content}

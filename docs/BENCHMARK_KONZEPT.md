@@ -1,6 +1,6 @@
 # Konzept: ReviewAgent und DeveloperAgent
 
-**Stand:** 10. November 2026. **Status:** Phasen 1–3 implementiert, weitere Phasen geplant; keine Agenten-Messergebnisse.
+**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phase 4 implementiert; unabhängige Referenzaufnahme und reale Pilotmessung ausstehend.
 
 Die Benchmarks sollen Entwicklern ermöglichen, ihre eigenen Agentensysteme reproduzierbar zu prüfen, Schwächen zu lokalisieren und Änderungen zu vergleichen. ReviewAgent untersucht die Qualität nachvollziehbarer Reviews; DeveloperAgent untersucht die Entwicklung von Projekten mit Cubie und einem durch Tests geleiteten Vorgehen. Mitgelieferte Szenarien ermöglichen den Einstieg, eigene Szenarien und konfigurierbare Benchmark-Sets die Anwendung auf den jeweiligen Entwicklungsalltag.
 
@@ -470,6 +470,35 @@ Werkzeugbudgets erfassen Runner-Aufrufe, keine internen Werkzeuge eines
 externen Dienstes. Der Review-Evaluator vergleicht strukturierte Referenzfelder
 und ist kein allgemeiner semantischer Reviewer. Das Beispiel liefert keinen
 Agentenleistungsnachweis; Referenzen bleiben `author_checked`.
+
+### 10.4 Basisdatensatz und Pilot
+
+`init_base_package` und `cubie-bench init-base` exportieren das installierte
+Paket `base-v1`: 24 Reviews aus sechs Familien sowie drei Datei-Projekte und
+eine Funktionskontrolle mit je drei separat auswählbaren Episoden. Alle Fälle
+haben neue Implementierungen, sichtbare Aufträge, Referenzen und Herkunftsangaben.
+Die zwölf Entwicklungsepisoden enthalten insgesamt 52 kuratierte Mutanten und
+fachlich entsprechende Cubie-/pytest-Testvorlagen. Objektive Review-Referenzen
+werden ebenfalls ausführbar geprüft; Wartbarkeitsurteile bleiben manuell.
+
+Sets unterstützen einen archivierten Seed und eine ausbalancierte Reihenfolge
+unter Beachtung expliziter Episodenvorgänger. `summarize_pilot` und
+`cubie-bench summarize-pilot` prüfen archivierte Inhalte und trennen Qualität,
+Prozess, Familiengewichtung, unabhängige Projektgruppen, Streuung, unbekannte
+Kosten und offene Nachbewertungen. Kopierte Versuche oder inkompatible Aufgaben-,
+Evaluator- und Agentenstände werden nicht unbemerkt zusammengezählt.
+Optionale Modell-/Providerdeklarationen werden mit dem Live-Handshake abgeglichen
+und archiviert; sie bleiben Angaben des Adapters, kein unabhängiger Beweis eines
+Provideraufrufs.
+
+Die [EBT-Abnahmecases und der Schnittstellenvertrag](../tests/BENCHMARK_CASES_10_4.md)
+sowie [das Tutorial](GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
+beschreiben den implementierten Umfang. Referenzlösungen werden in allen zwölf
+Entwicklungsepisoden und beiden Bedingungen einschließlich Rot-/Grün-Prozess
+geprüft. Die deterministischen Prozess- und Fake-Agenten liefern ausschließlich
+Infrastrukturbelege. Referenzen bleiben `author_checked`; die unabhängige
+menschliche Aufnahme und reale Pilotmessung stehen weiterhin aus. Die
+Produktfunktionen sind implementiert, die methodische Pilotabnahme ist offen.
 
 ## 11. Methodische Bezugspunkte
 

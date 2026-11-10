@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-state_lifecycle-memo-key-faulty",
+  "benchmark": "review_agent",
+  "title": "telemetry: memo-key (defect)",
+  "group_id": "review-memo-key",
+  "split": "development",
+  "types": [
+    "state_lifecycle"
+  ],
+  "tags": [
+    "telemetry",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "input_bound_cache"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

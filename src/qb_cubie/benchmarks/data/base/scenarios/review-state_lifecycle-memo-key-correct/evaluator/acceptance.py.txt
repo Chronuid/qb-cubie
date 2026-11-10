@@ -1,0 +1,7 @@
+from memo import total
+
+def test_input_bound_cache():
+    assert total((2,))==2
+    assert total((9,))==9
+    assert total(())==0
+    assert total((2,))==2

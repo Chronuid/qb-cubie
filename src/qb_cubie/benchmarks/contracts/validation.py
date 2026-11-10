@@ -37,7 +37,25 @@ def _validate(root, scenario, execute):
               "reference_passed": None, "mutants": [], "reference_check": "structural_only"}
     if execute and scenario["benchmark"] == "developer_agent":
         result.update(_project(base, scenario, reference))
+    elif execute:
+        result.update(_review(base, scenario, reference))
     return result
+
+
+def _review(base, scenario, reference):
+    """Execute objective review checks without promoting human admission."""
+    if "maintainability" in scenario["types"]:
+        return {"reference_check": "manual_required"}
+    if "acceptance_tests" not in reference:
+        return {}
+    with tempfile.TemporaryDirectory(prefix="cubie-review-reference-") as directory:
+        root = Path(directory)
+        workspace = root / "submitted"
+        workspace.mkdir()
+        _export({"base": base, "scenario": scenario}, workspace)
+        actual = _observe(root, workspace, base / reference["acceptance_tests"], scenario, business_only=True)
+    v.require(actual == reference["criterion_results"], scenario["id"], "review reference differs from executable evidence")
+    return {"reference_passed": True, "reference_check": "executed"}
 
 
 def _project(base, scenario, reference):
@@ -67,7 +85,7 @@ def _check(base, scenario, reference, module):
         return _observe(root, workspace, tests, scenario)
 
 
-def _observe(root, workspace, tests, scenario):
+def _observe(root, workspace, tests, scenario, *, business_only=False):
     """Classify reference execution errors rather than accepting broken tests."""
     acceptance = root / "test_acceptance.py"
     shutil.copyfile(tests, acceptance)
@@ -76,13 +94,15 @@ def _observe(root, workspace, tests, scenario):
         observed = observe(context, workspace, acceptance, root / "observation.json")
     except (ExecutionError, OSError) as error:
         raise ValueError(f"{scenario['id']}: reference execution: {error}") from error
-    _executed(observed, scenario["id"])
+    _executed(observed, scenario["id"], business_only=business_only)
     return criteria(observed, scenario["criteria"])
 
 
-def _executed(observed, identifier):
+def _executed(observed, identifier, *, business_only=False):
     """Accept test-body failures while excluding collection, fixture and skip errors."""
     failures = [failure for case in observed["cases"] for failure in case["failures"]]
     v.require(bool(observed["cases"]) and observed["returncode"] in {0, 1}
               and all(failure["kind"] == "failure" for failure in failures),
               identifier, "reference tests did not execute normally")
+    v.require(not business_only or observed["test_outcome"] in {"passed", "assertion_failure"},
+              identifier, "review reference requires business failures, not execution errors")

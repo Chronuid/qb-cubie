@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "validation_status": "author_checked",
+  "human_reviews": [],
+  "criterion_results": {
+    "frozen_state": "fail"
+  },
+  "findings": [
+    {
+      "criterion_id": "frozen_state",
+      "path": "snapshot.py",
+      "symbol": "capture",
+      "mechanism": "A shallow copy retains the original nested list.",
+      "impact": "A supposedly frozen job changes when caller settings are edited.",
+      "counterexample": {
+        "mutation": "append late to settings.paths",
+        "expected": {
+          "paths": [
+            "first"
+          ]
+        },
+        "actual": {
+          "paths": [
+            "first",
+            "late"
+          ]
+        }
+      },
+      "allowed_alternatives": [
+        "Equivalent localization at the call site with the same mechanism and consequence."
+      ]
+    }
+  ],
+  "required_context": [
+    "job.py",
+    "snapshot.py"
+  ],
+  "context_reason": "The public entry point delegates the criterion-relevant policy or data to the other named source; review both definitions and their use.",
+  "acceptance_tests": "evaluator/acceptance.py.txt"
+}

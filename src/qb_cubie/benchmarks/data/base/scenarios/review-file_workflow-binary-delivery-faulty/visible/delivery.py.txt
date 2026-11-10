@@ -1,0 +1,8 @@
+from pathlib import Path
+from layout import filename
+
+def emit(destination, payloads):
+    root=Path(destination)
+    root.mkdir()
+    for stem, data in payloads.items():
+        (root / filename(stem)).write_bytes(data)

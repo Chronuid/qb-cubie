@@ -1,0 +1,4 @@
+from tool import invoke
+
+def scan(callback):
+    return invoke(callback)

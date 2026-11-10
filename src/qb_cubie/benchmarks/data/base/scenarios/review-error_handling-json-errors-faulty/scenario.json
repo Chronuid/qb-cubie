@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-error_handling-json-errors-faulty",
+  "benchmark": "review_agent",
+  "title": "configuration: json-errors (defect)",
+  "group_id": "review-json-errors",
+  "split": "development",
+  "types": [
+    "error_handling"
+  ],
+  "tags": [
+    "configuration",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "invalid_input_visible"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

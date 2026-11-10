@@ -1,0 +1,2 @@
+def net_total(rows):
+    return float(sum(cents-discount for enabled,cents,discount in rows if enabled))

@@ -11,6 +11,9 @@ Der Runner unterstützt den eingebauten Fake und externe JSONL-Prozesse.
 beschreibt Vorlagen, Fähigkeitenaustausch, Referenzprüfung und Laufvergleich.
 Mit `cubie-bench guide` ist es auch im installierten Wheel verfügbar.
 Der Fake und der exportierbare Beispielprozess benötigen keinen Modellzugang.
+Der [Basisdatensatz und die Pilotfunktionen aus Phase 10.4](GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
+ergänzen `init_base_package`/`init-base`, ausführbare Review-Referenzprüfungen,
+reproduzierbare Reihenfolgen und `summarize_pilot`/`summarize-pilot`.
 
 ## Installieren und ausführen
 

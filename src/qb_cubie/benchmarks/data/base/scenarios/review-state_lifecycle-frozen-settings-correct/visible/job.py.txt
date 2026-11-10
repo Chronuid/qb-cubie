@@ -1,0 +1,5 @@
+from snapshot import capture
+
+def start(settings):
+    saved=capture(settings)
+    return lambda: saved

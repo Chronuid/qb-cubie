@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-file_workflow-source-preservation-correct",
+  "benchmark": "review_agent",
+  "title": "reporting: source-preservation (conforming)",
+  "group_id": "review-source-preservation",
+  "split": "development",
+  "types": [
+    "file_workflow"
+  ],
+  "tags": [
+    "reporting",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "preserve_source"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

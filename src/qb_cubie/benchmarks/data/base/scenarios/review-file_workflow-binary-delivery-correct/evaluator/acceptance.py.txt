@@ -1,0 +1,8 @@
+from delivery import emit
+import pytest
+
+@pytest.mark.parametrize('files',[{}, {'frame': b'\x00\xff', 'empty': b''}])
+def test_exact_binary_tree(tmp_path, files):
+    root=tmp_path/'out'
+    assert emit(root, files) is None
+    assert {p.name:p.read_bytes() for p in root.iterdir()} == {name+'.bin':content for name,content in files.items()}

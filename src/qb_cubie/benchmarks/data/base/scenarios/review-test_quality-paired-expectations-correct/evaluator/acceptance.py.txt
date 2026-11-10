@@ -1,0 +1,5 @@
+from routing_checks import accepts
+
+def test_correlated_pairs():
+    assert accepts(lambda value:{'A':'east','B':'west'}[value]) is True
+    assert accepts(lambda value:{'A':'west','B':'east'}[value]) is False

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-correctness-reservation-correct",
+  "benchmark": "review_agent",
+  "title": "ticketing: reservation (conforming)",
+  "group_id": "review-reservation",
+  "split": "development",
+  "types": [
+    "correctness"
+  ],
+  "tags": [
+    "ticketing",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "inclusive_capacity"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

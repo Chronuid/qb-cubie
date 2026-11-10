@@ -1,0 +1,5 @@
+PAIRS=[("A","east"),("B","west")]
+
+def accepts(candidate):
+    expected={result for _,result in PAIRS}
+    return all(candidate(value) in expected for value,_ in PAIRS)

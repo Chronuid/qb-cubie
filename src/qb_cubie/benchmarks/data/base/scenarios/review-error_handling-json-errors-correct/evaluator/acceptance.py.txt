@@ -1,0 +1,8 @@
+import pytest
+from parser import parse
+
+def test_invalid_input_visible():
+    assert parse('{}')=={}
+    assert parse('null') is None
+    with pytest.raises(ValueError):
+        parse('{broken')

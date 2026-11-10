@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "id": "configuration-package-initial",
+  "benchmark": "developer_agent",
+  "title": "configuration-package: initial",
+  "group_id": "configuration-package",
+  "split": "development",
+  "types": [
+    "initial_development",
+    "file_workflow"
+  ],
+  "tags": [
+    "configuration",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "merge",
+    "exact_tree",
+    "returns_none",
+    "preserve_inputs"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.pytest_project_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

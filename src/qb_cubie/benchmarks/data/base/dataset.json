@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "publication_status": "public",
+  "cases": {
+    "review-correctness-warehouse-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-warehouse",
+      "domain": "inventory",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-correctness-warehouse-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-warehouse",
+      "domain": "inventory",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-correctness-reservation-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-reservation",
+      "domain": "ticketing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-correctness-reservation-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-reservation",
+      "domain": "ticketing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-file_workflow-binary-delivery-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-binary-delivery",
+      "domain": "media",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-file_workflow-binary-delivery-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-binary-delivery",
+      "domain": "media",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-file_workflow-source-preservation-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-source-preservation",
+      "domain": "reporting",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-file_workflow-source-preservation-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-source-preservation",
+      "domain": "reporting",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-state_lifecycle-frozen-settings-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-frozen-settings",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-state_lifecycle-frozen-settings-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-frozen-settings",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-state_lifecycle-memo-key-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-memo-key",
+      "domain": "telemetry",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-state_lifecycle-memo-key-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-memo-key",
+      "domain": "telemetry",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-error_handling-scanner-failure-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-scanner-failure",
+      "domain": "diagnostics",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-error_handling-scanner-failure-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-scanner-failure",
+      "domain": "diagnostics",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-error_handling-json-errors-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-json-errors",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-error_handling-json-errors-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-json-errors",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-test_quality-mutation-probe-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-mutation-probe",
+      "domain": "subscriptions",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-test_quality-mutation-probe-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-mutation-probe",
+      "domain": "subscriptions",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-test_quality-paired-expectations-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-paired-expectations",
+      "domain": "routing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-test_quality-paired-expectations-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-paired-expectations",
+      "domain": "routing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "review-maintainability-service-policy-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-service-policy",
+      "domain": "delivery-pricing",
+      "potentially_known": true,
+      "assessment": "manual"
+    },
+    "review-maintainability-service-policy-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-service-policy",
+      "domain": "delivery-pricing",
+      "potentially_known": true,
+      "assessment": "manual"
+    },
+    "review-maintainability-format-registry-correct": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-format-registry",
+      "domain": "document-rendering",
+      "potentially_known": true,
+      "assessment": "manual"
+    },
+    "review-maintainability-format-registry-faulty": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "review-format-registry",
+      "domain": "document-rendering",
+      "potentially_known": true,
+      "assessment": "manual"
+    },
+    "billing-export-initial": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "billing-export",
+      "domain": "billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "billing-export-maintenance": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "billing-export",
+      "domain": "billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "billing-export-diagnosis": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "billing-export",
+      "domain": "billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "configuration-package-initial": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "configuration-package",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "configuration-package-maintenance": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "configuration-package",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "configuration-package-diagnosis": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "configuration-package",
+      "domain": "configuration",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "document-index-initial": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "document-index",
+      "domain": "documents",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "document-index-maintenance": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "document-index",
+      "domain": "documents",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "document-index-diagnosis": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "document-index",
+      "domain": "documents",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "pure-calculation-initial": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "pure-calculation",
+      "domain": "membership-billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "pure-calculation-maintenance": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "pure-calculation",
+      "domain": "membership-billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    },
+    "pure-calculation-diagnosis": {
+      "origin": "New implementation authored for base-v1, AI-assisted; human admission pending.",
+      "license": "MIT",
+      "design_id": "pure-calculation",
+      "domain": "membership-billing",
+      "potentially_known": true,
+      "assessment": "executable"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+from job import start
+
+def test_frozen_state():
+    settings={'paths':['first']}
+    get=start(settings)
+    settings['paths'].append('late')
+    other=start({'paths':['other']})
+    assert get()=={'paths':['first']}
+    assert other()=={'paths':['other']}

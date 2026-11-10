@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "review-error_handling-scanner-failure-faulty",
+  "benchmark": "review_agent",
+  "title": "diagnostics: scanner-failure (defect)",
+  "group_id": "review-scanner-failure",
+  "split": "development",
+  "types": [
+    "error_handling"
+  ],
+  "tags": [
+    "diagnostics",
+    "public-development"
+  ],
+  "task": "task.md",
+  "visible": "visible",
+  "criteria": [
+    "tool_failure_visible"
+  ],
+  "requires": [],
+  "evaluator": {
+    "kind": "builtin.review_reference_v1",
+    "reference": "evaluator/reference.json"
+  }
+}

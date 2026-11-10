@@ -1,0 +1,4 @@
+RATES={"standard":100,"express":250}
+
+def invoice(service,units):
+    return RATES[service]*units
