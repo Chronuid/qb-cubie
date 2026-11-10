@@ -13,12 +13,14 @@ from qb_cubie.benchmarks.scaffolding.custom import (
     init_scenario,
     init_suite,
 )
+from qb_cubie.benchmarks.scaffolding.ollama import init_ollama
 from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
 
 
 def dispatch(args):
     """Execute a command using the same public API as Python clients."""
     actions = {"init-agent": lambda: init_agent(args.path),
+               "init-ollama": lambda: init_ollama(args.path, endpoint=args.endpoint, model=args.model),
                "validate-agent": lambda: validate_agent(args.path),
                "init-scenario": lambda: init_scenario(args.path, args.benchmark),
                "init-example": lambda: init_example(args.path),

@@ -3,8 +3,9 @@
 **Stand:** 10. November 2026. **Status:** Gemeinsamer Unterbau (§5, Schritt 1)
 und Reviewer-Kern (§5, Schritt 2) implementiert und offline geprüft;
 Reviewer-JSONL-Anschluss im echten EBT-Smoke geprüft; Developer-Kern (§5, Schritt 3)
-implementiert und offline geprüft; Developer-Rollenprozess,
-Wheel-Nachweise und Modellmessreihen weiterhin geplant.
+implementiert und offline geprüft; Developer-Rollenprozess und Wheel-Nachweis
+(§5, Schritt 4) implementiert. Tatsächliche Installations-Smokes und ihre
+Ergebnisse sind im §5.4-Nachweis dokumentiert; Modellmessreihen bleiben geplant.
 
 Dieses Dokument konkretisiert die Agentenseite des
 [Benchmark-Konzepts](BENCHMARK_KONZEPT.md), insbesondere Abschnitte 4, 5 und 7.
@@ -147,7 +148,8 @@ Große Belege liegen in einem separaten Adapterarchiv außerhalb des sichtbaren
 Workspaces; stderr enthält dessen Kennung und Hashmanifest. Dieses Archiv muss
 zusammen mit dem Runnerarchiv aufbewahrt werden. So überschreitet die
 Belegführung nicht die vorhandene stderr-Grenze von 4 MiB. Dieser zusätzliche
-Archivexport ist geplante Adapterfunktion, kein heute vorhandener Runnerdienst.
+Archivexport wird durch den Adapter umgesetzt und zusammen mit den Runnerbelegen
+aufbewahrt.
 
 `usage` meldet pro Phase die Summe aller Modellaufrufe einschließlich Reparaturen.
 Ein No-op ohne Aufruf meldet einen Tokenverbrauch von `0`; eine fehlende Messung
@@ -364,8 +366,8 @@ Qualität und Prozesskonformität bestimmt weiterhin der unabhängige Runner.
 
 Der gemeinsame Adapterunterbau liegt als eigenständiges Beispiel unter
 [`examples/ollama-agents/`](../examples/ollama-agents/README.md).
-Zwei Rollen, versionierte Prompts, Agenten-TOMLs und getrennte Smoke-Sets folgen
-in den weiteren Schritten. Das historische Nutzerbeispiel und seine Archive
+Beide Rollen, versionierte Prompts, Agenten-TOMLs und getrennte Smoke-Sets sind
+über den Wheel-Export verfügbar. Das historische Nutzerbeispiel und seine Archive
 bleiben als Vergleichsbasis bestehen.
 
 | Schritt | Lieferung | Abnahmekriterium |
@@ -390,7 +392,7 @@ Der Reviewer-Kern unter `examples/ollama-agents/reviewer.py` erfüllt alle
 68 ursprünglichen Cases. Mit 22 weiteren Gegenproben bestehen 90 Reviewer-Cases
 und die 109 Unterbau-Cases offline. Der zusätzliche echte Pipeline-EBT weist den Reviewer-JSONL-Anschluss mit
 Modellmetadaten, unabhängiger Evaluation und RBT-Aufzeichnung für einen konformen
-Fall nach. Wheel-Installation und vollständige Smoke-Sets bleiben offen.
+Fall nach. Wheel-Installation und vollständige Smoke-Sets ergänzt Schritt 4.
 
 Für Schritt 3 dokumentieren die
 [EBT-Abnahmecases für den Developer-Durchstich](../tests/AGENTEN_CASES_5_3.md)
@@ -399,7 +401,25 @@ den expliziten Adaptervertrag: 36 ursprüngliche Cases prüfen fachliches Rot in
 ein falsches Testorakel und verbotene Teständerungen. Der Developer-Kern unter
 `examples/ollama-agents/developer.py` erfüllt alle 36 Cases und neun zusätzliche
 Gegenproben. Mit den bisherigen 199 Offline-Agenten-Cases bestehen 244 Cases.
-Der Developer-Prozessanschluss, Wheel-Nachweis und echte Developer-Smokes bleiben offen.
+Der Developer-Prozessanschluss, Wheel-Nachweis und echte Developer-Smokes sind
+Gegenstand des anschließenden Schritts 4.
+
+Für Schritt 4 dokumentiert der
+[Installationsnachweis mit Abnahmematrix](../tests/AGENTEN_CASES_5_4.md)
+den Export über `cubie-bench init-ollama`: Das Wheel enthält die Beispielbibliothek,
+beide JSONL-Rollenprozesse, einen exportierbaren Leitfaden, eingefrorene
+Agentenkonfigurationen und getrennte Reviewer-/Developer-Smoke-Sets.
+Handshake und Planung benötigen keine Inferenz. Modell-Digest, Ollama-Version,
+Quantisierung, Prompt-Hash, Parameter und Wheel-Hash werden festgehalten.
+Der Developer-Prozess erhält Zustand, Budget und eingefrorene Tests über alle
+vier Phasen und finalisiert Belege bei Abschluss, Fehler oder EOF.
+Die Wheel-Cases laufen außerhalb des Checkouts mit echtem Runner, tatsächlichen
+Testprozessen und lokalem HTTP-Replay; die echten Modellversuche werden separat
+ausgewiesen. Im tatsächlichen Installationslauf bestehen beide Reviewer-
+Kriterienentscheidungen und die vollständige Developer-Episode einschließlich
+unabhängiger Qualitäts- und Prozessabnahme. Beim fehlerhaften Review bleibt die
+bekannte Grenze des exakten Finding-Abgleichs sichtbar. Der Nachweis ersetzt
+weder Kalibrierung noch Pilotbewertung.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,

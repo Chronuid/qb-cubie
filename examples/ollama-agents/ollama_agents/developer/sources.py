@@ -79,7 +79,8 @@ class DeveloperSources:
             permitted = (is_test(name) and name not in self.originals if phase == 'test_design'
                          else name in self.production or name in self.docs)
             if not permitted:
-                raise invalid(f'File not allowed in phase {phase}: {name}')
+                detail = ' Create new Python tests below tests/, e.g. tests/test_contract.py; preserve originals.' if phase == 'test_design' else ''
+                raise invalid(f'File not allowed in phase {phase}: {name}.{detail}')
         return list(files)
 
     def freeze(self):

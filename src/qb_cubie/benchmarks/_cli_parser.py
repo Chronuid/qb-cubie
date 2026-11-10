@@ -3,6 +3,10 @@
 
 def authoring(commands):
     """Add agent, scenario, validation and discovery commands."""
+    ollama = commands.add_parser("init-ollama", help="Export installed Ollama roles and freeze local model metadata")
+    ollama.add_argument("path")
+    ollama.add_argument("--endpoint", default="http://localhost:11434")
+    ollama.add_argument("--model", default="gemma4:12b")
     for name in ("init-agent", "validate-agent", "init-scenario", "init-example", "init-base", "validate"):
         parser = commands.add_parser(name)
         parser.add_argument("path")

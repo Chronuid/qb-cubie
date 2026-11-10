@@ -1,6 +1,6 @@
-# Unterbau, Reviewer- und Developer-Kern für lokale Ollama-Agenten
+# Lokale Ollama-Agenten aus Checkout und Wheel
 
-Dieses eigenständige Beispiel implementiert Schritt 1 sowie die Rollenkerne aus Schritt 2 und 3 von
+Dieses Beispiel implementiert den Unterbau, beide Rollenkerne und den Installationsweg aus Schritt 1 bis 4 von
 [AGENTEN_KONZEPT.md](../../docs/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
 Der gemeinsame Unterbau und der Reviewer verwenden die Python-Standardbibliothek;
 der Developer nutzt zusätzlich den installierten Cubie-Testausführer und pytest.
@@ -20,8 +20,31 @@ unverändert.
 | `AdapterError` | `ValueError` mit `status` und gegebenenfalls Rohantwort und Verbrauch. |
 
 Die Implementierung liegt im Paket `ollama_agents/`. Der Reviewer-Kern komponiert die Dienste. Sie führen keine Modellkorrekturschleifen
-aus und starten keine frei erzeugten Shellbefehle. Reviewer-/Developer-Prozesse,
-Prompts, Agenten-TOMLs und Smoke-Sets folgen in den nächsten Konzeptschritten.
+aus und starten keine frei erzeugten Shellbefehle. Beide Rollen besitzen einen
+JSONL-Prozessanschluss. Das installierte Wheel exportiert über `cubie-bench init-ollama`
+die Adapter, eingefrorene Agenten-TOMLs und getrennte Rollen-Smoke-Sets.
+
+## Aus installiertem Wheel (§5.4)
+
+```bash
+python -m pip install '/absoluter/pfad/qb_cubie-0.0.3-py3-none-any.whl[benchmarks]'
+cubie-bench init-ollama ./ollama-demo
+cd ollama-demo
+cubie-bench validate-agent agents/reviewer.toml
+cubie-bench validate-agent agents/developer.toml
+cubie-bench plan --suite sets/reviewer.toml
+cubie-bench plan --suite sets/developer.toml
+# Echte Modellaufrufe:
+cubie-bench run --suite sets/reviewer.toml
+cubie-bench run --suite sets/developer.toml
+```
+
+`init-ollama` liest lokale Modellmetadaten ohne Inferenz und friert Digest,
+Ollama-Version, Parameter, Adapterversion und Prompt-Hash ein. `--endpoint` und
+`--model` wählen Server und Modell explizit. Das Ziel darf noch nicht existieren.
+Der vollständige [installierte Leitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md)
+wird als `README.md` mitexportiert. [Abnahme und tatsächliche Läufe](../../tests/AGENTEN_CASES_5_4.md)
+trennen deterministische Wheel-Replays von echten Modell-Smokes.
 
 ## Offline verwenden
 
@@ -213,7 +236,7 @@ Die [Reviewer-Kriterienmatrix](../../tests/AGENTEN_CASES_5_2.md) dokumentiert
 90 bestandene Reviewer-Cases einschließlich 22 ergänzender Gegenproben.
 Zusammen mit den 109 Unterbau-Cases bestehen 199 Offline-Cases. Der JSONL-Prozess
 mit Handshake und Modellmetadaten ist im zusätzlichen Pipeline-EBT unten geprüft.
-Exportierbare vollständige Smoke-Sets und der Wheel-Nachweis bleiben offen. Menschliche semantische Nachbewertung folgt
+Die vollständigen Smoke-Sets und der Wheel-Nachweis sind in §5.4 ergänzt. Menschliche semantische Nachbewertung folgt
 dem dort dokumentierten Verfahren; der bestehende Evaluator vergleicht weiterhin
 exakte Finding-Felder.
 
@@ -256,7 +279,7 @@ konforme Episode mit dem echten Benchmark-Runner aus. Seine EBT-Abnahme prüft
 unabhängige Evaluation, RBT-Aufzeichnung und die Identität beider Berichte.
 Aufruf und Grenzen stehen in der [Live-Testbeschreibung](../../tests/live_ollama/README.md).
 Dieser Prozessanschluss ersetzt den zuvor noch offenen JSONL-Nachweis für den
-Reviewer; Wheel-Installation und vollständige Rollen-Smoke-Sets bleiben offen.
+Reviewer. Die Wheel-Installation und vollständigen Rollen-Smoke-Sets sind oben beschrieben.
 
 ## Developer-Kern (§5.3)
 
@@ -265,14 +288,19 @@ Reviewer; Wheel-Installation und vollständige Rollen-Smoke-Sets bleiben offen.
 über `develop(request)` nacheinander reguläre v1-Developer-Anfragen entgegen und
 liefert pro Anfrage genau ein Abschlussereignis als Dictionary. Der Aufrufer
 übernimmt dessen JSONL-Ausgabe und finalisiert das externe EvidenceWriter-Archiv
-nach der letzten Phase oder einem Abbruch. Ein eigener Developer-JSONL-Prozess
-und zugehörige Agenten-TOMLs bleiben Folgearbeit.
+nach der letzten Phase oder einem Abbruch. `developer_process.py --config runtime.json`
+übernimmt dies als JSONL-Prozess; sein implementierter Vertrag wird auch aus dem
+installierten Wheel exportiert.
 
 Die Konstruktorparameter entsprechen dem Reviewer, ergänzt um `mode="cubie"`
 oder `mode="pytest"`. Für den Developer sind anfänglich 1800 Sekunden,
 12 Modellaufrufe, 40 interne Werkzeugaufrufe und `num_predict=4096` vorgesehen.
 Budget und Adapter werden pro Episode einmal angelegt. Modus, Promptstand
-`developer-v1` und Werkzeugbeschreibung müssen vor Messungen eingefroren werden.
+`developer-v4` und Werkzeugbeschreibung müssen vor Messungen eingefroren werden.
+Dieser Prompt verlangt ausdrücklich neue Tests unter `tests/` und nach
+beobachtetem fachlichem Rot `submit_phase`, bevor der Runner Grün anfordert.
+Das Cubie-Dokumentationspaket zeigt EBT innerhalb einer parametrisierten
+pytest-Testfunktion, damit ein erwartetes Rot keinen Sammelfehler erzeugt.
 
 Die Implementierung liegt unter `ollama_agents/developer/`: `adapter.py` steuert
 Phasen und Reparaturen, `sources.py` vergibt Dateirechte und überwacht den
@@ -304,5 +332,6 @@ Korrekturchance pro Phase. Budgetabbrüche werden separat gemeldet.
 
 Die [Developer-Kriterienmatrix](../../tests/AGENTEN_CASES_5_3.md) dokumentiert die
 36 ursprünglichen Abnahmecases und neun ergänzende Gegenproben. Diese Offline-
-Replays prüfen die Adapterfunktion, keine Modellleistung. Echte Developer-Smokes,
-Wheel-Installation und private unabhängige Abnahmen stehen weiterhin aus.
+Replays prüfen die Adapterfunktion, keine Modellleistung. Der Installationsweg
+ergänzt Prozessgegenproben und beide Smoke-Sets mit unabhängiger Runner-Abnahme.
+Die tatsächlichen Modell-Läufe und deren Grenzen stehen im §5.4-Nachweis.

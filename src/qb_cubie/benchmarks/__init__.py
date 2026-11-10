@@ -22,6 +22,7 @@ from qb_cubie.benchmarks.scaffolding.custom import (
     init_scenario,
     init_suite,
 )
+from qb_cubie.benchmarks.scaffolding.ollama import init_ollama
 from qb_cubie.benchmarks.scaffolding.templates import init_smoke_suite
 
 __all__ = [
@@ -31,6 +32,7 @@ __all__ = [
     "init_agent",
     "init_base_package",
     "init_example",
+    "init_ollama",
     "init_scenario",
     "init_smoke_suite",
     "init_suite",
