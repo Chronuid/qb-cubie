@@ -206,10 +206,10 @@ class EBT:
         return EBTContext(
             target=self.target,
             arena=self.arena,
-            post_states=self.post,
+            post_states=_snapshot(self.post),
             run_id=self._run_id,
-            fs_ignores=self.FS_IGNORES,
-            arena_ignores=self.ARENA_IGNORES,
+            fs_ignores=set(self.FS_IGNORES),
+            arena_ignores=set(self.ARENA_IGNORES),
         )
 
     def _validate_singleprocess(self) -> None:
@@ -264,7 +264,7 @@ class EBT:
         recorded_pre, recorded_posts = _snapshot((pre_state, ctx.post_states))
         outcome = EBT._execute_step(
             pre_state, ctx.target, arena,
-            capture_exceptions=any(post.raises is not None for post in ctx.post_states),
+            capture_exceptions=any(post.raises is not None for post in recorded_posts),
         )
         traces = EBT._task_traces(pre_idx, recorded_pre, recorded_posts, outcome, ctx, started)
         return _snapshot((outcome, traces))
@@ -275,12 +275,11 @@ class EBT:
         outcome: WorldState, ctx: EBTContext, started: float,
     ) -> list[EvaluationTrace]:
         traces = []
-        for post, recorded_post in zip(ctx.post_states, recorded_posts):
+        for post in recorded_posts:
             trace = EBT._evaluate_step(
                 pre_idx=pre_idx, t_step_start=started, ctx=ctx,
                 pre_state=recorded_pre, post_state=post, outcome=outcome,
             )
-            trace.post = recorded_post
             traces.append(trace)
         return traces
 

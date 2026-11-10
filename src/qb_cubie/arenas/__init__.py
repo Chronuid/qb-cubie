@@ -13,7 +13,7 @@
 #     Handles inter-process  communication serialization, payload extraction, and runner script generation.
 #
 # Phantom Middleware / Hooks:
-#     Intercepts module imports during execution to silently absorb or block specified decontamination.
+#     Provides explicit import placeholders and limited pytest declarations; runtime calls fail.
 
 from . import arena_envs, codecs, phantom_hook, pyvenv, tempfs
 from .codecs import MSGspecCodec, CloudpickleCodec, PickleCodec

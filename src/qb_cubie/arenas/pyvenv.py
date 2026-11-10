@@ -60,9 +60,7 @@ class PyVenv(_ArenaState):
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
         self.env_path = Path(env_path)
         super().__init__()
-        self._decontams = ["pytest", "_pytest", "loky"]
-        if decontams:
-            self._decontams.extend(decontams)
+        self._decontams = list(decontams or [])
 
 
     # ----- Services ---------------------------------------------------------------------------------------------------

@@ -25,6 +25,11 @@ def test_logging_review():
 
 Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `qb_cubie.rbt` ausdrücklich injiziert werden.
 
+`HumanReviewer` beginnt jeden Aufruf ohne Entscheidung und mit leerem Bericht.
+Schließen des Fensters ohne Pass-/Fail-Klick ergibt
+`ReviewData(passed=False, report={})`. Auch bei Wiederverwendung werden eine
+vorherige Freigabe und ein alter Bericht nicht übernommen.
+
 Ein String-Target wird unverändert weitergereicht; andere Objekte werden über `__name__` beziehungsweise `str()` bezeichnet. RBT ruft das Target nicht auf, importiert keine Zielmodule und lädt keinen Quelltext. Ohne Target erhält der Reviewer `None`; eine automatische Untersuchung des gesamten Projekts findet nicht statt.
 
 ## Eigene automatisierte Reviewer

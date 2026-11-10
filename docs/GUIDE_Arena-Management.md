@@ -148,7 +148,7 @@ Dateiausgabe, IPC-Dateigröße und Speicher des Targets werden nicht begrenzt.
 
 Targets können absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare Netzwerkzugänge nutzen. Hydrierungsziele werden nicht auf den Workspace begrenzt: Verwende kontrollierte relative Pfade ohne `..`. Auch eine versehentliche absolute Pfadangabe kann außerhalb schreiben.
 
-`PyVenv` kann ausgewählte Imports durch Phantom-Objekte ersetzen. Diese Importanpassung verändert die Testbedingungen und kann Fehler verdecken; sie entzieht keine Rechte. `PATH` und `VIRTUAL_ENV` wählen eine Umgebung aus, sie erzwingen keine OS-Isolation.
+`PyVenv(decontams=[...])` ersetzt ausschließlich die ausdrücklich genannten Module durch Import-Platzhalter. Deren Aufruf, Kontextmanager-Nutzung oder Wahrheitswertprüfung scheitert mit `TypeError`; relevante Prüfungen können dadurch nicht stillschweigend verschwinden. Standardmäßig werden installierte Abhängigkeiten unverändert geladen. Fehlt pytest, unterstützt eine begrenzte Hilfe `fixture`, `mark` und `param` im Modulrumpf beim Laden von Testmodulen. Sie wird vor dem Target-Aufruf aus dem Importcache entfernt; gebundene Platzhalter verweigern Laufzeitaufrufe. Für echte pytest-Aufrufe muss pytest in der Basis installiert sein. Diese Importanpassungen entziehen keine Rechte. `PATH` und `VIRTUAL_ENV` wählen eine Umgebung aus, sie erzwingen keine OS-Isolation.
 
 Ohne explizite Limits kann ein hängendes Target den Lauf blockieren; `PyVenv`
 puffert dann stdout und stderr vollständig. Zusätzliche Worker, pytest-xdist und

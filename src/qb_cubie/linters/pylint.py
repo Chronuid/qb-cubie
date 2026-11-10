@@ -34,7 +34,7 @@ class Pylint:
         cmd = self._build_command(target)
         process = self._execute_subprocess(cmd, target)
         self._guard_process_success(process, cmd)
-        return self._parse_json(process.stdout)
+        return self._read_analysis(process, cmd)
 
     def _build_command(self, target: Union[str, Path]) -> List[str]:
         """Constructs the CLI command with robust regex exclusion paths and rule disables."""
@@ -49,9 +49,23 @@ class Pylint:
 
     def _parse_json(self, stdout: str) -> List[LinterDiagnostic]:
         """Parse structured Pylint output into uniform diagnostics."""
-        if not stdout.strip():
-            return []
-        return [self._diagnostic(error) for error in json.loads(stdout)]
+        payload = json.loads(stdout)
+        required = {"path", "message-id", "line", "column", "message", "type"}
+        if not isinstance(payload, list) or any(
+            not isinstance(item, dict) or not required.issubset(item) for item in payload
+        ):
+            raise ValueError("Expected a JSON list of Pylint diagnostics.")
+        return [self._diagnostic(error) for error in payload]
+
+    def _read_analysis(self, process: subprocess.CompletedProcess, cmd: List[str]) -> List[LinterDiagnostic]:
+        """Reject missing or malformed analysis evidence."""
+        try:
+            diagnostics = self._parse_json(process.stdout)
+        except (ValueError, TypeError) as error:
+            raise self._process_error(process, cmd, "Invalid JSON analysis") from error
+        if process.returncode and not diagnostics:
+            raise self._process_error(process, cmd, "Diagnostic status without diagnostics")
+        return diagnostics
 
     def _diagnostic(self, error: dict) -> LinterDiagnostic:
         return LinterDiagnostic(
@@ -81,8 +95,13 @@ class Pylint:
 
     @staticmethod
     def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:
-        """Guards against silent failures or hard crashes of the linter."""
-        if process.returncode != 0 and not process.stdout.strip() and process.stderr.strip():
-            raise RuntimeError(
-                f"Linter 'Pylint' crashed or is missing.\nCommand: {' '.join(cmd)}\nStderr: {process.stderr.strip()}"
-            )
+        """Accept only success or combinations of the five diagnostic status bits."""
+        if process.returncode < 0 or process.returncode & ~31:
+            raise Pylint._process_error(process, cmd, "Invalid process status")
+
+    @staticmethod
+    def _process_error(process: subprocess.CompletedProcess, cmd: List[str], reason: str) -> RuntimeError:
+        return RuntimeError(
+            f"Linter 'Pylint' failed with exit code {process.returncode}: {reason}.\n"
+            f"Command: {' '.join(cmd)}\nStdout: {process.stdout}\nStderr: {process.stderr}"
+        )

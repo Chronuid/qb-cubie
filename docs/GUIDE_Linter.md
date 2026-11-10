@@ -41,7 +41,15 @@ diagnostics_file = linter.check(Path("src/main.py"))
 
 Ausschlussmuster begrenzen den Analyseumfang, aber keine Zugriffsrechte. `AstLinter` behandelt derzeit bereits die Existenz einer beliebigen `pyproject.toml` als native Konfiguration. Dadurch können `DEFAULT_EXCLUDES` auch ohne passende Backend-Konfiguration entfallen; das Ausschlussset des CST-Backends ist anfangs leer. Prüfe den tatsächlich analysierten Umfang und konfiguriere benötigte Ausschlüsse ausdrücklich. Pylints `--ignore-paths` ist ein Dateifilter und keine OS-Sicherheitsgrenze.
 
-Eine leere Diagnoseliste bedeutet nur, dass der Adapter keine Diagnosen zurückgegeben hat. Der MyPy-Adapter akzeptiert Exitcode 0 (erfolgreiche Analyse) und 1 (Diagnosen). Alle anderen Exitcodes, einschließlich negativer Signal-Codes und Exitcode 2 ohne Ausgabe, lösen einen `RuntimeError` mit Exitcode, Befehl sowie vollständigem stdout und stderr aus. Der Fehler propagiert auch durch `AstLinter` und EBT; er wird nicht als leere Diagnoseliste ausgewertet.
+Eine leere Diagnoseliste beschreibt ausschließlich den gewählten Analyseumfang.
+Beide CLI-Adapter prüfen Prozessstatus und Ausgabe, bevor sie Diagnosen liefern:
+
+- MyPy akzeptiert Exitcode 0 und 1. Bei 1 muss mindestens eine Fehlerdiagnose erkannt werden. Jede nichtleere Ausgabezeile muss dem Diagnoseformat entsprechen; unverstandene Zeilen führen auch bei teilweise erkannten Diagnosen zum Fehler. Unix-, UNC- und Windows-Laufwerkspfade werden mit optionaler Spaltennummer unterstützt.
+- Pylint akzeptiert Exitcode 0 sowie Kombinationen der Diagnosebits 1, 2, 4, 8 und 16. Signalabbrüche, Usage-Bit 32 und unbekannte Statusbits werden abgelehnt, auch bei bereits ausgegebenen Teilbefunden. Die Ausgabe muss eine JSON-Liste strukturierter Diagnosen sein. Nur bei Exitcode 0 ist eine leere Liste zulässig; leere oder beschädigte Ausgabe ist kein Analyseergebnis.
+
+Verletzungen dieser Verträge lösen einen `RuntimeError` mit Exitcode, Befehl,
+stdout und stderr aus. Der Fehler propagiert auch durch `AstLinter` und EBT;
+`expect=False` wandelt ihn nicht in einen Erfolg um.
 
 ### 1.3 Analyse von In-Memory Strings (LLM-Outputs)
 

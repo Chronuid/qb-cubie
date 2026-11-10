@@ -9,7 +9,7 @@ class MyPy:
     """Implements the Linter protocol to execute Mypy and parse its stdout."""
 
     _MYPY_REGEX = re.compile(
-        r"^(?P<path>[^:]+):"
+        r"^(?P<path>.+?):"
         r"(?P<line>\d+):"
         r"(?:(?P<col>\d+):)?\s*(?P<severity>error|note|warning):"
         r"\s*(?P<msg>.*?)\s*(?:\[(?P<code>.*)])?$"
@@ -32,7 +32,13 @@ class MyPy:
         cmd = self._build_command(target)
         process = self._execute_subprocess(cmd, target)
         self._guard_process_success(process, cmd)
-        return self._parse_stdout(process.stdout)
+        try:
+            diagnostics = self._parse_stdout(process.stdout)
+        except ValueError as error:
+            raise self._process_error(process, cmd, "Unrecognized analysis output") from error
+        if process.returncode == 1 and not any(item.severity == "error" for item in diagnostics):
+            raise self._process_error(process, cmd, "Error status without recognized error diagnostics")
+        return diagnostics
 
     def _build_command(self, target: Union[str, Path]) -> List[str]:
         exe_cmd = self._resolve_executable()
@@ -43,11 +49,15 @@ class MyPy:
         return cmd
 
     def _parse_stdout(self, stdout: str) -> List[LinterDiagnostic]:
-        return [
-            self._diagnostic(match.groupdict())
-            for line in stdout.splitlines()
-            if (match := self._MYPY_REGEX.match(line)) is not None
-        ]
+        diagnostics = []
+        for line in stdout.splitlines():
+            if not line.strip():
+                continue
+            match = self._MYPY_REGEX.match(line)
+            if match is None:
+                raise ValueError(f"Unrecognized Mypy diagnostic: {line}")
+            diagnostics.append(self._diagnostic(match.groupdict()))
+        return diagnostics
 
     def _diagnostic(self, groups: dict) -> LinterDiagnostic:
         return LinterDiagnostic(
@@ -77,9 +87,11 @@ class MyPy:
     def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:
         """Accept only successful analysis (0) or reported diagnostics (1)."""
         if process.returncode not in (0, 1):
-            raise RuntimeError(
-                f"Linter 'Mypy' failed with exit code {process.returncode}.\n"
-                f"Command: {' '.join(cmd)}\n"
-                f"Stdout: {process.stdout}\n"
-                f"Stderr: {process.stderr}"
-            )
+            raise MyPy._process_error(process, cmd, "Invalid process status")
+
+    @staticmethod
+    def _process_error(process: subprocess.CompletedProcess, cmd: List[str], reason: str) -> RuntimeError:
+        return RuntimeError(
+            f"Linter 'Mypy' failed with exit code {process.returncode}: {reason}.\n"
+            f"Command: {' '.join(cmd)}\nStdout: {process.stdout}\nStderr: {process.stderr}"
+        )

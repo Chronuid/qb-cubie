@@ -4,7 +4,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern. Änderungen an der Dokumentation beheben diese Fehler nicht. Die Befunde stammen aus dem [Gutachten vom 9. November 2026](../GUTACHTEN.md), insbesondere Abschnitte 3, 5–7.
+Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.3, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
 
 ---
 
@@ -162,7 +162,17 @@ Die separat geklonte PyVenv-Basis bleibt eine vertrauenswürdige Eingabe; ihre
 Interpreter-Links werden nicht pauschal verboten, aber auch nicht als Schreibziele
 nach außen zugelassen.
 
-`TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation. Import-Phantome verändern Importbedingungen und können Fehler verdecken.
+`TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation.
+
+`PyVenv(decontams=[...])` ersetzt ausschließlich ausdrücklich benannte Module.
+Phantom-Aufrufe, Kontextmanager und Wahrheitswertprüfungen lösen `TypeError` aus.
+Installierte Abhängigkeiten werden standardmäßig unverändert importiert.
+Fehlt pytest, erlaubt eine begrenzte Importhilfe `fixture`, `mark` und `param`
+im Modulrumpf, damit unabhängige Targets aus Testmodulen geladen werden können.
+Diese Hilfe wird vor dem Target-Aufruf aus dem Importcache entfernt; lokale
+Laufzeitimports sehen wieder die tatsächlichen Abhängigkeiten. Bereits im
+Testmodul gebundene Platzhalter verweigern Laufzeitaufrufe. Importhilfen sind
+keine Implementierung der ersetzten Bibliothek und entziehen keine OS-Rechte.
 
 Die Arenen sind für vertrauenswürdige Konfigurationen, Targets und Rückgaben
 vorgesehen. Die Pfadprüfung schützt vor Fehlkonfigurationen beim Kopieren; sie
@@ -187,6 +197,17 @@ Jeder `.run()`-Aufruf beginnt mit einer neuen Lauf-ID, leeren Traces und Outcome
 Zustandslisten werden beim Aufbau der EBT-Instanz und vor jedem Lauf geprüft. FS-Kurzformen werden vor jedem Lauf auf Namenskollisionen geprüft. Damit werden auch nachträgliche Konfigurationsänderungen validiert. Konfigurationsfehler propagieren unabhängig von `expect=False` und `reporter=None`.
 
 Die Vorzustände werden vor der Target-Ausführung erfasst. Aufgezeichnete Zustände, verschachtelte Rückgabewerte, Diffs und die Arena-Metadaten werden mittels `deepcopy` von den gelieferten Objekten getrennt. Diese Objekte müssen tief kopierbar sein; Kopierfehler werden weitergegeben. Spätere Läufe und Änderungen an den ursprünglichen Daten verändern zurückgegebene Ergebnisse nicht. Die Ergebnis-Dataclasses sind weiterhin durch den Empfänger veränderbar. Workspace-Pfade sind keine archivierten Dateiinhalte.
+
+Die gemeinsame Zielmenge wird nach der Zustandsnormalisierung und vor dem ersten
+Target-Aufruf tief kopiert. Alle Eingänge eines Laufs verwenden diesen Stand.
+Vor jedem Aufruf wird daraus die Vergleichserwartung erzeugt, die auch im Trace
+steht. Änderungen an den ursprünglichen Post-Zuständen während der Ausführung
+ändern weder die Vergleichsmatrix noch die Erwartungen dieses Laufs.
+Prädikate erhalten den originalen Rückgabewert vor dessen historischer Kopie;
+Identitätsprüfungen bleiben dadurch möglich. Funktionen werden von `deepcopy`
+als Referenz übernommen: Closures, globale Variablen und externe Ressourcen
+werden nicht eingefroren. Benutzerdefinierte Kopierlogik und veränderliche
+Prädikate müssen entsprechend kontrolliert werden.
 
 Proxies eines `multiprocessing.Manager`, etwa Events oder Barrieren in Argumenten, werden im Trace durch unveränderliche Referenzdaten (`resource_type`, `resource_id`) ersetzt. Das Target erhält weiterhin die lebenden Proxies. Der Trace dokumentiert deren Identität, nicht den veränderlichen Zustand des entfernten Objekts, und benötigt später keine Verbindung zum Manager.
 
@@ -250,7 +271,7 @@ eigene Mapper und die Anforderungen an den Exception-Transport stehen im
 ## Bekannte Abweichungen und praktische Folgen
 
 - Zusätzliche Arena-Prozesse und pytest-xdist können die Last mehrerer Pools vervielfachen; `max_workers` begrenzt nur den jeweiligen EBT-Pool.
-- Eine leere Linter-Diagnoseliste beweist keine Fehlerfreiheit. Der MyPy-Adapter akzeptiert nur die Exitcodes 0 und 1; alle anderen Prozessrückgaben lösen einen `RuntimeError` mit Exitcode, Befehl und Prozessausgaben aus. `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
+- Eine leere Linter-Diagnoseliste beweist keine allgemeine Fehlerfreiheit. Die Adapter prüfen Prozessstatus und Ausgabe gemäß dem [Linter-Handbuch](GUIDE_Linter.md). `AstLinter` wertet bereits eine beliebige `pyproject.toml` als native Konfiguration und kann dadurch Standardausschlüsse auslassen.
 
 Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Handhabung begrenzt einzelne Fehlanwendungen, macht Cubie aber nicht zu einer allgemein verlässlichen Qualitätsinstanz.
 

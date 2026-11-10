@@ -161,12 +161,11 @@ Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit
 
 ## Bekannte Einschränkungen
 
-Der aktuelle Stand kann weiterhin falsche Erfolge oder irreführende Diagnosen liefern. Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) beschreibt die Gegenproben, ihre Aussagegrenzen und priorisierte Verbesserungen:
+Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](./tests/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Weiterhin gelten:
 
-- **Veränderliche Erwartungen:** EBT vergleicht nach der Target-Ausführung gegen die ursprünglichen, veränderlichen Zielmuster. Ändert das Target eine Erwartung, können Bewertung und aufgezeichneter Vertrag auseinanderlaufen. Halte Erwartungen von veränderlichen Target-Daten getrennt und ändere sie nicht während eines Laufs.
-- **PyVenv-Import-Phantome:** Ersatzmodule können relevante Aufrufe wirkungslos machen, einschließlich `pytest.fail()`. Prüfe die tatsächlich verwendeten Abhängigkeiten; ein Erfolg unter diesen Ersatzbedingungen bestätigt nicht ohne Weiteres das Verhalten mit den echten Bibliotheken.
-- **Linter-Diagnosen:** Ein Pylint-Abbruch ohne Ausgabe kann als leere Diagnoseliste erscheinen. Der MyPy-Parser verwirft Meldungen mit absoluten Windows-Laufwerkspfaden. Eine leere Liste ist unter diesen Bedingungen keine verlässliche Grundlage für eine Qualitätsschranke.
-- **Reviewer und Tk:** Ein wiederverwendeter `HumanReviewer` kann beim Schließen ohne neue Entscheidung eine alte Freigabe übernehmen. Verwende vorerst eine neue Instanz je grafischer Prüfung. Außerdem benötigt bereits der Paketimport `tkinter`, auch wenn ausschließlich EBT genutzt wird.
+- **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten ihre Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Referenzdateien werden ebenfalls nicht archiviert.
+- **PyVenv-Importhilfen:** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes pytest unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; relevante Laufzeitaufrufe benötigen die echte Bibliothek. Die Importbedingungen bleiben Teil des Testvertrags.
+- **Tk-Abhängigkeit:** Bereits der Paketimport benötigt `tkinter`, auch wenn ausschließlich EBT genutzt wird.
 - **Kopierte Umgebungen:** Konsolenskripte in einer PyVenv-Kopie können wegen absoluter Interpreterpfade weiterhin die Basisumgebung verwenden. `VIRTUAL_ENV` allein belegt nicht, welcher Interpreter einen solchen Aufruf ausführt.
 - **Dateivergleich:** Wiederholte Vergleiche derselben Pfade können bei unveränderter Dateigröße und Änderungszeit auf veraltete `filecmp`-Cache-Ergebnisse zurückgreifen. Frische Workspace-Pfade reduzieren diese Gefahr.
 

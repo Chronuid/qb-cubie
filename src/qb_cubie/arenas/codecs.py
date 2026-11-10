@@ -226,7 +226,7 @@ _PICKLE_RUNNER = """
             try:
                 with open({in_path}, 'rb') as f:
                     decontams = pickle.load(f)
-                    with _cubie_phantom.activate_hook(decontams):
+                    with _cubie_phantom.activate_hook(decontams) as imports:
                         t, a, k, capture = pickle.load(f)
                         if isinstance(t, str):
                             import importlib
@@ -238,6 +238,7 @@ _PICKLE_RUNNER = """
                             mod = importlib.import_module(module_name)
                             t = mod
                             for part in qualname.split('.'): t = getattr(t, part)
+                        imports.finish()
                         status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
                         try:
                             res = t(*a, **k)
@@ -304,7 +305,7 @@ _CLOUDPICKLE_RUNNER = """
                 args = data.get("args", ())
                 kwargs = data.get("kwargs", {{}})
                 # ----- 2. Activate hook and prepare target in the arena vacuum -----
-                with _cubie_phantom.activate_hook(decontams):
+                with _cubie_phantom.activate_hook(decontams) as imports:
                     # --- Resolve late-binding string targets ---
                     if isinstance(target, str):
                         if ":" in target: module_name, qualname = target.split(":", 1)
@@ -314,6 +315,7 @@ _CLOUDPICKLE_RUNNER = """
                             qualname = parts[-1]
                         target = importlib.import_module(module_name)
                         for part in qualname.split('.'): target = getattr(target, part)
+                    imports.finish()
                     # ----- 3. Execute -----
                     capture = data.get("capture_exception", False)
                     status = "CAPTURED_SUCCESS" if capture else "SUCCESS"

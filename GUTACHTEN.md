@@ -6,6 +6,8 @@
 
 Dieses Dokument ersetzt das Gutachten vom 9. November 2026. Es bewertet den aktuellen Code und unterscheidet bestätigte Fehler, dokumentierte Entwurfsentscheidungen und gutachterliche Einschätzungen. Die neue Bewertung behebt keine Implementierungsfehler.
 
+**Nachtrag zur Umsetzung von 9.1:** B1–B5 wurden anschließend im Produktivcode korrigiert und durch [ausführbare Vertragsfälle](tests/CONTRACT_CASES_9_1.md) abgesichert. Die folgenden Befunde und Untersuchungsergebnisse dokumentieren weiterhin den oben genannten untersuchten Commit; sie sind keine erneute Bewertung des korrigierten Arbeitsstands. Die aktuelle Vertragssemantik und verbleibenden Einschränkungen stehen im README und in den Handbüchern.
+
 ## 1. Gesamturteil
 
 Cubie hat einen tragfähigen Kern als Werkzeug für deklarative Akzeptanztests, besonders für Datei-Workflows. Eingaben, erwartete Rückgaben und Dateisystemergebnisse gemeinsam zu beschreiben, kann wiederholte Testeinrichtung und Vergleichslogik vereinfachen. Die technische Substanz geht deutlich über ein Konzeptprojekt hinaus.

@@ -116,6 +116,10 @@ class HumanReviewer:
         """Carries out the manual review process."""
         self._target = target
         self._check = check
+        self._passed = False
+        self._report_text = ""
+        self._root = None
+        self._text_widget = None
         self._run_gui()
         report_payload = {"text": self._report_text} if self._report_text else {}
         return ReviewData(passed=self._passed, report=report_payload)
