@@ -161,7 +161,18 @@ Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit
 
 ## Bekannte Einschränkungen
 
-Der aktuelle Prüfkern kann falsche Erfolge melden: Leere Zustandslisten können ungeprüft bestehen, und wiederholtes `.run()` auf derselben EBT-Instanz vermischt Ergebnisse. Verwende pro Lauf eine neue Instanz und nichtleere, explizite Verträge. `WorldState(returns=None)` erwartet explizit `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Weitere Grenzen und deren genaue Bedeutung stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md); die Befunde erläutert das [Gutachten](./GUTACHTEN.md).
+Der aktuelle Stand kann weiterhin falsche Erfolge oder irreführende Diagnosen liefern. Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) beschreibt die Gegenproben, ihre Aussagegrenzen und priorisierte Verbesserungen:
+
+- **Veränderliche Erwartungen:** EBT vergleicht nach der Target-Ausführung gegen die ursprünglichen, veränderlichen Zielmuster. Ändert das Target eine Erwartung, können Bewertung und aufgezeichneter Vertrag auseinanderlaufen. Halte Erwartungen von veränderlichen Target-Daten getrennt und ändere sie nicht während eines Laufs.
+- **PyVenv-Import-Phantome:** Ersatzmodule können relevante Aufrufe wirkungslos machen, einschließlich `pytest.fail()`. Prüfe die tatsächlich verwendeten Abhängigkeiten; ein Erfolg unter diesen Ersatzbedingungen bestätigt nicht ohne Weiteres das Verhalten mit den echten Bibliotheken.
+- **Linter-Diagnosen:** Ein Pylint-Abbruch ohne Ausgabe kann als leere Diagnoseliste erscheinen. Der MyPy-Parser verwirft Meldungen mit absoluten Windows-Laufwerkspfaden. Eine leere Liste ist unter diesen Bedingungen keine verlässliche Grundlage für eine Qualitätsschranke.
+- **Reviewer und Tk:** Ein wiederverwendeter `HumanReviewer` kann beim Schließen ohne neue Entscheidung eine alte Freigabe übernehmen. Verwende vorerst eine neue Instanz je grafischer Prüfung. Außerdem benötigt bereits der Paketimport `tkinter`, auch wenn ausschließlich EBT genutzt wird.
+- **Kopierte Umgebungen:** Konsolenskripte in einer PyVenv-Kopie können wegen absoluter Interpreterpfade weiterhin die Basisumgebung verwenden. `VIRTUAL_ENV` allein belegt nicht, welcher Interpreter einen solchen Aufruf ausführt.
+- **Dateivergleich:** Wiederholte Vergleiche derselben Pfade können bei unveränderter Dateigröße und Änderungszeit auf veraltete `filecmp`-Cache-Ergebnisse zurückgreifen. Frische Workspace-Pfade reduzieren diese Gefahr.
+
+Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-Aufrufe setzen die EBT-Laufdaten zurück. Das setzt weder Target-Seiteneffekte noch bereits veränderte Argumente zurück. `WorldState(returns=None)` erwartet ausdrücklich `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Mehrere Eingänge teilen dieselbe Zielmenge; korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge. Ein `JsonReporter` persistiert Ergebnisse, erhebt aber selbst keine fachliche Assertion. Die genaue Vertragsbedeutung steht in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
+
+Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen. Drei Testdateien mit insgesamt 14 zusätzlich einsammelbaren Fällen werden aufgrund ihrer Dateinamen beim normalen pytest-Lauf derzeit nicht berücksichtigt. Details stehen im [Gutachten, Abschnitt 7](./GUTACHTEN.md#7-testbasis-paketierung-und-dokumentation).
 
 ---
 
