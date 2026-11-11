@@ -1,0 +1,4332 @@
+{
+  "schema_version": 1,
+  "catalog_version": 2,
+  "review_date": "2026-11-11",
+  "source": "/home/symphonie/PycharmProjects/devagent-comp/gemma-4-developer-agent/tasks.jsonl",
+  "source_sha256": "e4b3fd60f69dbc2b9213e54eeb9636db78aefe92c1d06269d73d9f5f8f3c8ad6",
+  "source_count": 129,
+  "reviewed_count": 39,
+  "original_candidate_count": 15,
+  "additional_reviewed_count": 24,
+  "pilot_reserved_ids": [
+    "fastapi_9425",
+    "requests_6589",
+    "requests_6757",
+    "rich_3278",
+    "rich_3296"
+  ],
+  "technical_admission": "No real task has been admitted; eligible means eligible for admission work only.",
+  "taxonomy": {
+    "parsing_encoding": "Parser, Normalisierung, Escaping und Byte-/Zeichenbehandlung",
+    "api_schema": "API-Verträge, Aliase, HTTP-Metadaten und JSON-Schema",
+    "python_protocols": "Deskriptoren, Duck Typing, Dataclasses und Hashbarkeit",
+    "terminal_rendering": "Text-, Style-, Layout- und Promptdarstellung im Speicher",
+    "exceptions_diagnostics": "Exception-Verhalten, Fehlermeldungen und Serialisierung",
+    "filesystem_configuration": "Dateibasierte Konfiguration und Umgebungsvariablen",
+    "lifecycle_state": "Ressourcen-, Verbindungs- und Prozesslebenszyklen",
+    "unicode_algorithms": "Zellbreiten, Grapheme und algorithmische Randfälle"
+  },
+  "tasks": [
+    {
+      "id": "fastapi_11194",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix validation error when `File` is declared after `Form` parameter",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c1a501044887afff511e059bc146104e9129781d87f4f94ad4eaca5049f147d9",
+      "source_text_sha256": {
+        "problem_statement": "e7e1f699804253b082c3fdfa77900c9f2e8fb3daeb2c33ce4e1ff6203e647906",
+        "patch": "be47d4f8a4e3381f703a80a1c6923a3b1602d47751b374e8be72f4d0d276f56d",
+        "test_patch": "ee6fbcdd1a992c3cfe87249df79e78ddaf8f8dab92fad6c6ad7207c23bbf053e"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_file_and_form_order_issue_9116.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 90,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_11194",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_11355",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix evaluating stringified annotations in Python 3.10",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c7ed337325b4d39a360ab28680edd7754407fdb964e513a180ca2eeda9564cc7",
+      "source_text_sha256": {
+        "problem_statement": "a0befe396e4c57ae07f1e3f5a5973c717c48c899f1eb043bb46f1f3fb0804bee",
+        "patch": "95e165a76126a0d9dcd11a4e4f402bebbf9e1a5059e2e2b792289846bbc730dd",
+        "test_patch": "57622afdd78c2432b41cd30547d8367e1518177494f57685bc38a8e08ee0d40e"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_stringified_annotations_simple.py"
+      ],
+      "production_changed_lines": 11,
+      "test_changed_lines": 26,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_11355",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_12942",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix tagged discriminated union not recognized as body field",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "73ce21ce58160718e99ad3d2fd5df3ce2291b9c7a95473cad08ee03934eff4a8",
+      "source_text_sha256": {
+        "problem_statement": "96145ac0590e35b3548c08e6d8340ee8109dde73199f27270cde2515f941d17d",
+        "patch": "ce812717fa5da8ac8a7403adb5278d50545fe110392b0e112f69ee827ffe3d3c",
+        "test_patch": "a541458dc33b1dae0497b6f9acbbea7da4a92a9467fc25573bcbd07b64844a9f"
+      },
+      "production_paths": [
+        "fastapi/_compat.py"
+      ],
+      "test_paths": [
+        "tests/test_union_body_discriminator.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 188,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_12942",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_13207",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix OpenAPI schema support for computed fields when using `separate_input_output_schemas=False`",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "6e7baecfdbb90b96cf3af4bbb32d57bb3fdfcc6f0a21759d7c346687e0651815",
+      "source_text_sha256": {
+        "problem_statement": "546aee84525162a2347a4592b386b424bec7225ab34ae9591a0e83928dcac3a6",
+        "patch": "315e0525ae8ed8545e8b81d87eee3ed09aaf06778fc5b01374004a97acb1c3fe",
+        "test_patch": "2664def03b5a1394458ac123da3d8b8cd186384497d74ec8ad6fd290bd4038a1"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_computed_fields.py"
+      ],
+      "production_changed_lines": 14,
+      "test_changed_lines": 7,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "computed_field_schema",
+      "review_notes": "Computed Fields bei separate_input_output_schemas=False; benötigt passende Pydantic-v2-Version und Prüfung beider Schalterwerte.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_13537",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix support for form values with empty strings interpreted as missing (`None` if that's the default), for compatibility with HTML forms",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c9b00978d39e13ae4b66cf986d6c1d4b5d8d0d10d78cbf3784e6ad76b9cbba01",
+      "source_text_sha256": {
+        "problem_statement": "d1fdccf2ed7b7e54d9c814c808ad41b6f9951ee7205ccba25d3eed72e977a15d",
+        "patch": "175ccb4c591b96556da196d5e1171e0f44b42f52e274ba93f7086f54835a89de",
+        "test_patch": "10474d1c31b03bef8a0190981e5e01f4af5fd1ad6f9269c9cfbdaf4c2e64a8be"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_form_default.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 35,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "empty_form_default",
+      "review_notes": "Leere Formstrings als fehlende optionale Werte behandeln; URL-encoded und Multipart, python-multipart im Image nötig.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_13713",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add OpenAPI `external_docs` parameter to `FastAPI`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "8f8c15e0e0347aadbedfdf3c73a096f5a051d9316de2355963938a82db036e29",
+      "source_text_sha256": {
+        "problem_statement": "f03866dd735b8707ce601ce1a4b1de5457fdb7ff570b62de1628a68f4539f1c6",
+        "patch": "58bae4982628d98a31b88ed413bede139caca85982790c25275431cd08c59032",
+        "test_patch": "97f21130dd312078a48feff0ce27f9068383c6f7a5de50c9ca6a67241699b43e"
+      },
+      "production_paths": [
+        "fastapi/applications.py",
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/main.py",
+        "tests/test_application.py"
+      ],
+      "production_changed_lines": 31,
+      "test_changed_lines": 11,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_13713",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_13786",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Use `401` status code in security classes when credentials are missing",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c3e387328cab59e8bf196efd5a191bc922d68f8c62bd1fcdced5392d57fabfd4",
+      "source_text_sha256": {
+        "problem_statement": "cf006d5816e4d773abff38f81cee767da2c1991de1f887aac0a865493a457df8",
+        "patch": "25376a28b27ac376247662757f0ce52f7cfd4de0101740a80a754ce93cf0d137",
+        "test_patch": "dac27052a539cad653dbdfabcc996bc0e4cf90d32f2b7de5fbb641c4dd4109e0"
+      },
+      "production_paths": [
+        "docs_src/authentication_error_status_code/tutorial001_an.py",
+        "docs_src/authentication_error_status_code/tutorial001_an_py39.py",
+        "docs_src/security/tutorial003.py",
+        "docs_src/security/tutorial003_an.py",
+        "docs_src/security/tutorial003_an_py310.py",
+        "docs_src/security/tutorial003_an_py39.py",
+        "docs_src/security/tutorial003_py310.py",
+        "fastapi/security/api_key.py",
+        "fastapi/security/http.py",
+        "fastapi/security/oauth2.py",
+        "fastapi/security/open_id_connect_url.py"
+      ],
+      "test_paths": [
+        "tests/test_security_api_key_cookie.py",
+        "tests/test_security_api_key_cookie_description.py",
+        "tests/test_security_api_key_header.py",
+        "tests/test_security_api_key_header_description.py",
+        "tests/test_security_api_key_query.py",
+        "tests/test_security_api_key_query_description.py",
+        "tests/test_security_http_base.py",
+        "tests/test_security_http_base_description.py",
+        "tests/test_security_http_basic_optional.py",
+        "tests/test_security_http_basic_realm.py",
+        "tests/test_security_http_basic_realm_description.py",
+        "tests/test_security_http_bearer.py",
+        "tests/test_security_http_bearer_description.py",
+        "tests/test_security_http_digest.py",
+        "tests/test_security_http_digest_description.py",
+        "tests/test_security_oauth2.py",
+        "tests/test_security_openid_connect.py"
+      ],
+      "production_changed_lines": 259,
+      "test_changed_lines": 74,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_13786",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_13920",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for PEP695 `TypeAliasType`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "a74024f91299f9401d35d9f9451f6288b11e785d73daa74ef28de60022b630b7",
+      "source_text_sha256": {
+        "problem_statement": "0f8ceaaa05488cf58be29de5f297311f705fd5cce34123f950ba724d8f43ee03",
+        "patch": "aa182f0a2e43275e1ff80a46fc88c6cc35d0cba70fcc7498e61e6fb58765ed21",
+        "test_patch": "e21a5b19230e33584583b9ed88855d4ea57f47c859a9a263c4642fd0252eca89"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_pep695.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 27,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_13920",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14077",
+      "repo": "fastapi/fastapi",
+      "title": "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "2492074bf8f2e77d069a4a89191482495d4fe4f3443300610498e4d003c808b1",
+      "source_text_sha256": {
+        "problem_statement": "d0fd1a8c5e99e28c621f6d032842b81819f6499b98946431a30f60dfc653b97b",
+        "patch": "88c88562bec5dd4136c1f02466138e710a41ada647343be4c9107b61a90a73a6",
+        "test_patch": "949012d32db4b9997e4c015cecd474c9337a7fa0c4088dd537cf2efea7f159c5"
+      },
+      "production_paths": [
+        "docs_src/handling_errors/tutorial005.py",
+        "fastapi/exception_handlers.py",
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_enforce_once_required_parameter.py"
+      ],
+      "production_changed_lines": 11,
+      "test_changed_lines": 2,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14077",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14099",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix support for `StreamingResponse`s with dependencies with `yield` or `UploadFile`s, close after the response is done",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "1e9a372185666c187a7cc48e23a85953b38fba18533219765916303801ac7a46",
+      "source_text_sha256": {
+        "problem_statement": "8b2aed5ea65819509ef1652310c94c4d04ec1cf32f9a4971aaa5f65685dd6846",
+        "patch": "a661142fe29137353dcde1b1fe4ffb721b256795326483708b4990f9809382b2",
+        "test_patch": "0fffb07506d1135bc99a5231373e748adcf312b00e9ca7b15ec64d18e849a2ca"
+      },
+      "production_paths": [
+        "docs_src/dependencies/tutorial013_an_py310.py",
+        "docs_src/dependencies/tutorial014_an_py310.py",
+        "fastapi/applications.py",
+        "fastapi/middleware/asyncexitstack.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_after_yield_raise.py",
+        "tests/test_dependency_after_yield_streaming.py",
+        "tests/test_dependency_after_yield_websockets.py",
+        "tests/test_dependency_contextmanager.py",
+        "tests/test_route_scope.py",
+        "tests/test_tutorial/test_dependencies/test_tutorial008c.py"
+      ],
+      "production_changed_lines": 477,
+      "test_changed_lines": 293,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14099",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14186",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix internal Pydantic v1 compatibility (warnings) for Python 3.14 and Pydantic 2.12.1",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "a22051a8d66bf1614ed60308bd417ac352666ee03b1b70c0e07e5d7ce0fb0a29",
+      "source_text_sha256": {
+        "problem_statement": "a2aac9540aab34f8eb4506caf47cd6d9b7c81eb3ea5b489f0d144bff8d4bf3db",
+        "patch": "f207e1ab06f8f0100180a9877918159198d97d40cc2530fe0fb41dd6b84e3601",
+        "test_patch": "96bf760d1b55f721b380d2dcb5ea66fd08d5aaba50d3ab7414a626d79673bcb2"
+      },
+      "production_paths": [
+        "fastapi/_compat/__init__.py",
+        "fastapi/_compat/main.py",
+        "fastapi/_compat/may_v1.py",
+        "fastapi/_compat/shared.py",
+        "fastapi/_compat/v1.py",
+        "fastapi/_compat/v2.py",
+        "fastapi/dependencies/utils.py",
+        "fastapi/encoders.py",
+        "fastapi/temp_pydantic_v1_params.py",
+        "fastapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_compat.py",
+        "tests/test_get_model_definitions_formfeed_escape.py",
+        "tests/test_response_model_as_return_annotation.py"
+      ],
+      "production_changed_lines": 364,
+      "test_changed_lines": 21,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14186",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14246",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix separation of schemas with nested models introduced in 0.119.0",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "9951d7d8e1967b7f7cafc8a61c01907098dfcae0ab28e8f9cff38d792b927ca2",
+      "source_text_sha256": {
+        "problem_statement": "b37958a355083366a701d129df61e636e1dcb088e19200ba7d4cd1840e1fae5e",
+        "patch": "430ea38bcf45e603342e5ad282895d5254101b67dbd0e6a5833bda4442afd740",
+        "test_patch": "b0d6cbc0b7dd8899ee0e0ea955a874ad9d802c082515ddb7951cbf6304abed7a"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_no_schema_split.py",
+        "tests/test_pydantic_v1_v2_multifile/test_multifile.py"
+      ],
+      "production_changed_lines": 28,
+      "test_changed_lines": 218,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14246",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14258",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Show a clear error on attempt to include router into itself",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "0dd71685f74cecb573e12f607bad4f324ebdf3c6bec0c737eca53858356823f3",
+      "source_text_sha256": {
+        "problem_statement": "81736899f2891d336671bf1f7a726d25907619f4efe17669eee7a16f21dbed3d",
+        "patch": "813186895bb07ef156f864c9c36998d01d864e07f9f5d26b038f2f19ca38a578",
+        "test_patch": "2c0b8bd156596dc8b83cc7cd670a8307f7df233296181a96cd98e66c48d4e0d1"
+      },
+      "production_paths": [
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_router_circular_import.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 12,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "exceptions_diagnostics",
+      "change_kind": "diagnostics",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "router_self_include",
+      "review_notes": "Selbstinklusion eines Routers verhindern und Meldung ausgeben. Ausgangsstand kann RecursionError statt AssertionError erzeugen; aktuelle Assertion-Rot-Zulassung vorher prüfen.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14262",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for dependencies with scopes, support `scope=\"request\"` for dependencies with `yield` that exit before the response is sent",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "1be59057f2e5e2918d01ca4c6fd811c1d0d5b0588c5bbb7cea72bdeb15ed2aee",
+      "source_text_sha256": {
+        "problem_statement": "63bfaef6461b9744eaf3a4ff2a1961b752638263ba8bd5c413761f5412255102",
+        "patch": "9506a12744157367f7f1837fb6aa2ad6da5b702418a5e549762f5eb68ae9dbe7",
+        "test_patch": "0d7d188da3b72907ae6b9d09dd922f316cc374b8fa035ad1733ddec1142c77f3"
+      },
+      "production_paths": [
+        "docs_src/dependencies/tutorial008e.py",
+        "docs_src/dependencies/tutorial008e_an.py",
+        "docs_src/dependencies/tutorial008e_an_py39.py",
+        "fastapi/dependencies/models.py",
+        "fastapi/dependencies/utils.py",
+        "fastapi/exceptions.py",
+        "fastapi/param_functions.py",
+        "fastapi/params.py",
+        "fastapi/routing.py",
+        "fastapi/types.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_yield_scope.py",
+        "tests/test_dependency_yield_scope_websockets.py",
+        "tests/test_tutorial/test_dependencies/test_tutorial008e.py"
+      ],
+      "production_changed_lines": 266,
+      "test_changed_lines": 412,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14262",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14266",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix security schemes in OpenAPI when added at the top level app",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "f2e28b4a860538a3317628adc818adcd9aad6681f9f9078b0e8f2aef0329d4bd",
+      "source_text_sha256": {
+        "problem_statement": "13b58b9f5058c1effbfc894eed03d0afc5f610a3fc6dd070d73fb4456dec01e2",
+        "patch": "3288b717aa9ce79db158f404bf7b4556193dc677cd25592e2ee1bcb9cff371b5",
+        "test_patch": "d6b1bed21e72a0d5f0a9e3793e99f65c1da9eaff7529b5f2bedfd9dfa1f10bd4"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_top_level_security_scheme_in_openapi.py"
+      ],
+      "production_changed_lines": 18,
+      "test_changed_lines": 60,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14266",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14297",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix optional sequence handling in `serialize sequence value` with Pydantic V2",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "9dd8cfc9301b1e338800be6a9e3e1a4bf13634b595cbad06128a53ff4552ed15",
+      "source_text_sha256": {
+        "problem_statement": "55c911d665e9b00a79f5db7c5a1bb75ded6307f7719b061ef0799bacd0b6fdd5",
+        "patch": "5ba7b8de8100de3c89fa3d98351af5b1f19025f4ebcfaf190a5ec009dc9d7732",
+        "test_patch": "2adf1618a39794512e39fca96825c2a2c418c821dfbbb4f937a56c83cf0c35bb"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_compat.py",
+        "tests/test_optional_file_list.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 54,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14297",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14301",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix `Depends(func, scope='function')` for top level (parameterless) dependencies",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "edc92902bc0e33fffce003bc71da57316e978a7db038813bef76f18af3435889",
+      "source_text_sha256": {
+        "problem_statement": "9e0561a96bc1d0f71ff75b7291c8ab1733155c3dfc47e4fe45ee4924d30efdd2",
+        "patch": "aeecbe076f3f40685958f347bdcb77761b9c0fbfecdeebc76460974971554be9",
+        "test_patch": "3f47514189cf15d62970dfdc9a40d86227c4b2fff16dedf052d49dec7582d3f4"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_yield_scope.py"
+      ],
+      "production_changed_lines": 5,
+      "test_changed_lines": 64,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14301",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14303",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix parsing extra `Form` parameter list",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3bb4dd2f37193da5cad64bd68f0e766bf11969219c9d610f79a03aae71b8e64a",
+      "source_text_sha256": {
+        "problem_statement": "c770e6b69a1d6ef58d359766f38949adc41ab470b7847ed8029247ca817a3700",
+        "patch": "bc37cbfd2bdabc8180b59cf254debde20dd5decc9e00a60da8cc2e7f343c1054",
+        "test_patch": "db1f2c9f0d6f40dbe6a62f9e76b0e76896a990e85a18d7b3740bf778b7855f07"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_forms_single_model.py"
+      ],
+      "production_changed_lines": 8,
+      "test_changed_lines": 47,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14303",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14306",
+      "repo": "fastapi/fastapi",
+      "title": "🚸  Improve tracebacks by adding endpoint metadata",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7221a963f911f5a0f3ee434246da115d536f2cf00aca22d3c0380b0badf7b162",
+      "source_text_sha256": {
+        "problem_statement": "9367475725d871081fa67bd15290ba3aad1e750386e0b53d5602f87ef4974275",
+        "patch": "f1445f1d7d9fc1671ad4b5894728639f88bf0a115020dee6ebb6783e53fd55bc",
+        "test_patch": "b63c0fcf9c172645da6190597e9a50c300ef2e03e2d7d72ef80b4e801a455619"
+      },
+      "production_paths": [
+        "fastapi/exceptions.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_validation_error_context.py"
+      ],
+      "production_changed_lines": 137,
+      "test_changed_lines": 168,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14306",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14349",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix handling of JSON Schema attributes named \"$ref\"",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ce007357af8df80eeadb211f1d4ad97a46e53331c919aa06dccc6208dc0d4b58",
+      "source_text_sha256": {
+        "problem_statement": "1fbf508c07a8009596cc18f3dbd3029a20a81656d5b0b7674bd82fd17834c3f4",
+        "patch": "633963037538f23c2207a6e3f69a2af43900da5b5492acc83fc024f195166a6d",
+        "test_patch": "99d855d8f2ba582670c80f2ef60c4f18ec5a2bdc0837bc226dd3ab6b440d640d"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_schema_ref_pydantic_v2.py"
+      ],
+      "production_changed_lines": 12,
+      "test_changed_lines": 72,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "pydantic_ref_remapping",
+      "review_notes": "Feld mit Alias $ref darf nicht als Schema-Referenzstring behandelt werden; benötigt inline_snapshot und passende Pydantic-Konfiguration.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14356",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix parsing extra non-body parameter list",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7aa9d5df8eb80aa0ece43b4efd025d9a3be9f2d8ef867a1208d7170824dd85b9",
+      "source_text_sha256": {
+        "problem_statement": "41520e2b3c65bfd782b0f36f9ae0b1d4ee39ad5b1e6aaac7e9cc18255db9ed34",
+        "patch": "90258d679495749dbd30f08133431eabe9ef42888d865737c23fc099a3846a89",
+        "test_patch": "f0269c7907e8b3a966a95c9ca514c09fb0eb4ab40dfb272e518d85307a6cbbca"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_query_cookie_header_model_extra_params.py",
+        "tests/test_tutorial/test_header_param_models/test_tutorial003.py"
+      ],
+      "production_changed_lines": 11,
+      "test_changed_lines": 113,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14356",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14360",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix Query\\Header\\Cookie parameter model alias",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "4237fd72dc8638f6217f751633fc3bd552db958d020986548c8309dfa057cdc3",
+      "source_text_sha256": {
+        "problem_statement": "7e84d7fff1a642af47fe6e9846c9b6da22d437110eb0cd4d4e401d8f8b0ef63b",
+        "patch": "86bf3d1d8b0153c0d6196509a49ab6648d79592317ce275a008b3cdb95aa47ee",
+        "test_patch": "dd45b15d64471965106b7a903a460c15d2fd2540813de509d5af6567b86509ac"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_request_param_model_by_alias.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 76,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "request_param_alias",
+      "review_notes": "Query-/Header-/Cookie-Modellaliase und Fehlereingaben; privater Test nutzt dirty_equals und Pydantic-v2-Zweige.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14361",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Avoid accessing non-existing \"$ref\" key for Pydantic v2 compat remapping",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c57b6da67689a902c567a12c7f1db0fc261a6749d53ad327558c95009aa8dd68",
+      "source_text_sha256": {
+        "problem_statement": "e11ab2fe38a6dfc974e0f407059b6bdd6428c1a53ad5bfff7e5f11b36ab35b2f",
+        "patch": "e090e89ccc3f1c34bd955726f2add87ed0ed7b83e9f10b5137e0f0cdcab5bd60",
+        "test_patch": "70be2b4e43e88df64966d7f7f7bd56b1fe930bba53ee0bc55ef12d8f1ccd6b1d"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_schema_compat_pydantic_v2.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 92,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "pydantic_ref_remapping",
+      "review_notes": "Fehlenden $ref beim Remapping akzeptieren; Test mit Enum-Union, verwandt mit anderem Pydantic-Remapping-Fix.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14371",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix parameter aliases",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ea0573bda932784b9d48d24f9d1d68b15a93025508582247a6cdd681aca1ea24",
+      "source_text_sha256": {
+        "problem_statement": "36f90f1404bfc530f9319e0d3dcbbda9a38fab2376eb3dad4b493dd60c7463e2",
+        "patch": "bf8292f32982e5d79d290107ffd0f3d78e44b5f26c4bc02eb7aaf865aec2cf5d",
+        "test_patch": "f446888442d14ff774fc5d9f0fd3703b4f6a8bb2c452ef056fa88ab4d3c51f56"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py",
+        "fastapi/dependencies/utils.py",
+        "fastapi/openapi/utils.py",
+        "fastapi/params.py"
+      ],
+      "test_paths": [
+        "tests/test_request_params/test_body/test_list.py",
+        "tests/test_request_params/test_body/test_optional_list.py",
+        "tests/test_request_params/test_body/test_optional_str.py",
+        "tests/test_request_params/test_body/test_required_str.py",
+        "tests/test_request_params/test_cookie/test_optional_str.py",
+        "tests/test_request_params/test_cookie/test_required_str.py",
+        "tests/test_request_params/test_file/test_list.py",
+        "tests/test_request_params/test_file/test_optional.py",
+        "tests/test_request_params/test_file/test_optional_list.py",
+        "tests/test_request_params/test_file/test_required.py",
+        "tests/test_request_params/test_form/test_list.py",
+        "tests/test_request_params/test_form/test_optional_list.py",
+        "tests/test_request_params/test_form/test_optional_str.py",
+        "tests/test_request_params/test_form/test_required_str.py",
+        "tests/test_request_params/test_header/test_list.py",
+        "tests/test_request_params/test_header/test_optional_list.py",
+        "tests/test_request_params/test_header/test_optional_str.py",
+        "tests/test_request_params/test_header/test_required_str.py",
+        "tests/test_request_params/test_path/test_required_str.py",
+        "tests/test_request_params/test_query/test_list.py",
+        "tests/test_request_params/test_query/test_optional_list.py",
+        "tests/test_request_params/test_query/test_optional_str.py",
+        "tests/test_request_params/test_query/test_required_str.py"
+      ],
+      "production_changed_lines": 62,
+      "test_changed_lines": 1382,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14371",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14372",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Make the result of `Depends()` and `Security()` hashable, as a workaround for other tools interacting with these internal parts",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "88cfbd277cec642bcb5284d8d59ec37be0a7f54212c21a7fd2fa40363569e328",
+      "source_text_sha256": {
+        "problem_statement": "9998040438eb43155362fa0eca746dda802e359b421aeed05e8e41d100181924",
+        "patch": "c90e8097d59fc8d88a7f341e6762a722c6b31df2e46b7fea8bd3acc7961aa7f9",
+        "test_patch": "ee4b32bd412166e6bcdf2ffb573feec8047f3c727a564b04c066664f499377d2"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py",
+        "fastapi/params.py"
+      ],
+      "test_paths": [
+        "tests/test_depends_hashable.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 25,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "mixed",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "hashable_depends",
+      "review_notes": "Hashbarkeit von Depends/Security und sichere Aktualisierung eingefrorener Dataclasses; private Tests erfassen nicht alle Mutations- oder Scope-Kombinationen.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14419",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Cache dependencies that don't use scopes and don't have sub-dependencies with scopes",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "cb51d202f2446004a75abc6f30637980a4dd45ba8ee93ad2346a2257e89e25e7",
+      "source_text_sha256": {
+        "problem_statement": "8b69a4b356095bb894dd9ec25c34c62a0f5f90e2d268268aa8379897a5e26403",
+        "patch": "91e5c61e5a8a1c3c6b3dc33b510cd0f19fc6ace1c83a87ccfe9eb265addc707b",
+        "test_patch": "5b1bada360835d49a64fef98da9722cc6514365ebafefa4f5427dbcf6cefab96"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py",
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_security_scopes.py",
+        "tests/test_security_scopes_sub_dependency.py"
+      ],
+      "production_changed_lines": 62,
+      "test_changed_lines": 153,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14419",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14430",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix optional sequence handling with new union syntax from Python 3.10",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "74efd14e33ed56049c789757389488f5898edde1d43e821d94a907454cdb7ded",
+      "source_text_sha256": {
+        "problem_statement": "85be4cb8c18139e60c7c49de4d0ec7d98a5e4f50c17e165b34f22ecacb0de830",
+        "patch": "0592f55eaacb20e012f1772d6bc0594e26a3924b190293019ef6951147ce3c56",
+        "test_patch": "10c9ad06e71efd7bf86b790314747bc1c6509c3481bb8f5276f9bb952103dd72"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_compat.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14430",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14448",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix support for functools wraps and partial combined, for async and regular functions and classes in path operations and dependencies",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "121a1b36549df7894af5f2c5f5597ba96951933407c7c260a1a38f13a8dac247",
+      "source_text_sha256": {
+        "problem_statement": "12d7c9e557e6e809fd1d4345eab6f948466962bc21f306e0fe8b69de3c8f6610",
+        "patch": "3374394b882cd48ca9be801d1e81ed8ca6c9b10ac766e9f4d63528b8127220e2",
+        "test_patch": "c41df91772869d345f8190c79a58dcdab921f4b5815f951e458ba5aef03d96a9"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py",
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_wrapped.py"
+      ],
+      "production_changed_lines": 106,
+      "test_changed_lines": 380,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14448",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14455",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix OpenAPI security scheme OAuth2 scopes declaration, deduplicate security schemes with different scopes",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "860671961ada627d7ab7828dba4c70420f67f142caa35c967e9c42c3a8e9fd07",
+      "source_text_sha256": {
+        "problem_statement": "4b271d1cec1b5a99283e18e84dc41c8e728be8e5fbd33975e0ec15bfc8fd5ab7",
+        "patch": "dc7b0e8bec734ecc6493aa3790fdc1ac59cd835b7df17e23e3eaed860da3af61",
+        "test_patch": "05c6b6ac0e9582cfa89a1722226e6adfce35ce4b412e1a308197b31b85eaeaf5"
+      },
+      "production_paths": [
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_security_oauth2_authorization_code_bearer_scopes_openapi.py"
+      ],
+      "production_changed_lines": 13,
+      "test_changed_lines": 131,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14455",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14458",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix using class (not instance) dependency that has `__call__` method",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7b4f43e5fc8a10af68068a50a393929a318e2ae43bb61fb3951173e0feadf8bb",
+      "source_text_sha256": {
+        "problem_statement": "0034bface83bee2f8a67fc2f4f87901f626a319ee5e43017c5f63463bcb166ef",
+        "patch": "42bba28057a46237b25cf442013aa3d7846e501510d7492b0b2f1f7065fe9850",
+        "test_patch": "f1d5d3c4bd6d7e2d24f0799466ed1c0b3d07587cd87f7da102bf2b0d5a53d8f9"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_class.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 32,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14458",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14459",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix OAuth2 scopes in OpenAPI in extra corner cases, parent dependency with scopes, sub-dependency security scheme without scopes",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "17da80a4c8e38f55bd5f68d159e72a9fa114019987b2da6ebc5908a9de46e0d3",
+      "source_text_sha256": {
+        "problem_statement": "204aee6b1a8978fc1b0ce5777b3b116c45cea82d4b6822c5667724ccb6d62960",
+        "patch": "3ced1b81e37fefca6a7f0a65ff6328455c6888f79351dd67689a49f7e4bff75f",
+        "test_patch": "14eb9bf24bbc787b7810a9ca25a84f40af00217d80c0ef7304363c29e154b315"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py",
+        "fastapi/dependencies/utils.py",
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_security_oauth2_authorization_code_bearer_scopes_openapi.py",
+        "tests/test_security_oauth2_authorization_code_bearer_scopes_openapi_simple.py"
+      ],
+      "production_changed_lines": 71,
+      "test_changed_lines": 152,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14459",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14463",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix OpenAPI duplication of `anyOf` refs for app-level responses with specified `content` and `model` as `Union`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3a1475661817bf3befd495405344c597c1599c9a93abd1b317cb733fbdcc3081",
+      "source_text_sha256": {
+        "problem_statement": "c5a930e1d6843b6239e7febcfa3541f49019d779650c58af9bacd3dfa7423b6c",
+        "patch": "8e294b09a71a1e2b74d76ad05de0f6aa1f5e526526fef4dbd31030e77471c637",
+        "test_patch": "261f4a1ba553c2ba94ca4b37c64e5140761e7dc02f78a3c80ff55402c2f3b0e8"
+      },
+      "production_paths": [
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_additional_responses_union_duplicate_anyof.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 123,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14463",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14479",
+      "repo": "fastapi/fastapi",
+      "title": "🚸 Improve error message for invalid query parameter type annotations",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "f0252a6f0313b0ffd9aa847d54ab39eaab2420f3e5d8252ac8122007394e1c4e",
+      "source_text_sha256": {
+        "problem_statement": "cd0a15ee794aca5ea3729aabe50a2e5e8e6a82265ac0f306b060ce2f15bb5758",
+        "patch": "bdafb6a2ae4b171e9e9c69f97175d6992a2b98c7a4919fd74a3552309b518e81",
+        "test_patch": "50ed997bf4ec7d9bffa17e8c266420049e7861906d9aa936f73713affca5d6c8"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_invalid_sequence_param.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 20,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "exceptions_diagnostics",
+      "change_kind": "diagnostics",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "query_type_diagnostic",
+      "review_notes": "Unzulässige Query-Typen erhalten konkrete Fehlermeldung; Verhalten der Fehlermeldung getrennt von erfolgreicher Verarbeitung auswerten.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14482",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix handling arbitrary types when using `arbitrary_types_allowed=True`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ddbcc67e231d624ed2779b254ce091971432d30e887156e7be3131bd823c7d3d",
+      "source_text_sha256": {
+        "problem_statement": "ffd63d60d9a2ce0717790f9fd845950d28cfce2c441e41668efc791b44770dbd",
+        "patch": "ef4af9a1bc6941e7b7f9d8ce88545a13c74632da90df2152c8ff5458ef20ac5d",
+        "test_patch": "41c67171dc8dcc67c30401bf9c768d69590179ff5f024a6d23355decc6de058b"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_arbitrary_types.py"
+      ],
+      "production_changed_lines": 32,
+      "test_changed_lines": 141,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14482",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14485",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix support for `if TYPE_CHECKING`,  non-evaluated stringified annotations",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "96a68af8cad02cfe437120e8c838f62d2b1daf90108a5a3886b9785219fcd351",
+      "source_text_sha256": {
+        "problem_statement": "8259186a7b07d7fc2131e42f59d0144a097ce33a75273491a277153be489a0b3",
+        "patch": "c0c587f09d3241fa41bdd4a9b01bf30f28e13e94fe81d159755fae38a9e66f78",
+        "test_patch": "a3ea48e4480e81d5e0f5513f344e6bd3d32cd33d5512b9b791a4a5cf0d0bc872"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_stringified_annotation_dependency.py"
+      ],
+      "production_changed_lines": 19,
+      "test_changed_lines": 80,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14485",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14487",
+      "repo": "fastapi/fastapi",
+      "title": "📝 Update docs about re-raising validation errors, do not include string as is to not leak information",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "30017ce59d00cbe0983991de21f1bb3365c22f11ac710d5a4a1defb248c4f0fd",
+      "source_text_sha256": {
+        "problem_statement": "ed1deb46cbcf4ba85eeedef916f1d22183e71619e374cfcc3ad8d16d064fdd49",
+        "patch": "f7e5e827d69710b17d32045ceb70935d5ae2fc8920a8f4ef671084f85e99a918",
+        "test_patch": "e8879c4a0b4b71ed505b0bf089f3e759ad6ac41386e28bf7928ba4d6d4d04765"
+      },
+      "production_paths": [
+        "docs_src/handling_errors/tutorial004.py"
+      ],
+      "test_paths": [
+        "tests/test_tutorial/test_handling_errors/test_tutorial004.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 14,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14487",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14492",
+      "repo": "fastapi/fastapi",
+      "title": "📝 Fix example of license identifier in documentation",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "a90f11c2705bc1f5275318210633b23ab134edf9654a4cc3bea0d3d250b6222a",
+      "source_text_sha256": {
+        "problem_statement": "1f56d9154676b921b625c9dbeb7a258e4d904572d559dc3c90f726122c64cc90",
+        "patch": "8f9db8727157699bce712e199293a6fc767593ac41f1455cba3b9f773ce4b033",
+        "test_patch": "1eb8bc05bd3a42de177b841828d262afd15c1c68e319f21c799af2f43faa96f9"
+      },
+      "production_paths": [
+        "docs_src/metadata/tutorial001_1_py39.py"
+      ],
+      "test_paths": [
+        "tests/test_tutorial/test_metadata/test_tutorial001_1.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 2,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14492",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14512",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix support for tagged union with discriminator inside of `Annotated` with `Body()`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7f15602d93fa9bc122b98e855c5677b16d9907a16475c5f2f52915f9fbd2932a",
+      "source_text_sha256": {
+        "problem_statement": "33c782727b81f5dfe8d4c099c3ab1a64df42761ce909a7f93203c4da792dcb19",
+        "patch": "b4810a6fc3927f4b3724302187c6f68ef3efc2f708a69478174a08b2bc26d39b",
+        "test_patch": "7836746dbf96aa97cb14bf566c8a4ba452a6b142cc987e9074fbb9e32e178387"
+      },
+      "production_paths": [
+        "fastapi/_compat/v2.py"
+      ],
+      "test_paths": [
+        "tests/test_union_body_discriminator_annotated.py"
+      ],
+      "production_changed_lines": 52,
+      "test_changed_lines": 207,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14512",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14583",
+      "repo": "fastapi/fastapi",
+      "title": "🔊 Add deprecation warnings when using `pydantic.v1`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "04cda6fc5a79eea08c03564bdb07e9adabc468ba5761527e41d7ebffc55b95cb",
+      "source_text_sha256": {
+        "problem_statement": "77efb35fdc47e88e9d6c3e23860c5d2458da72ec01a50f05024f58cdfa58fb5c",
+        "patch": "bb64cc99c36eaa600c3d6c8a69f59a3a34e3194343a5244c74d93fc02ade0cec",
+        "test_patch": "836ae9b095e6820da25733514cc1458c4cf259d9b214d46b0892c47d7374e7e9"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/benchmarks/test_general_performance.py",
+        "tests/test_compat_params_v1.py",
+        "tests/test_datetime_custom_encoder.py",
+        "tests/test_filter_pydantic_sub_model/app_pv1.py",
+        "tests/test_get_model_definitions_formfeed_escape.py",
+        "tests/test_pydantic_v1_deprecation_warnings.py",
+        "tests/test_pydantic_v1_v2_01.py",
+        "tests/test_pydantic_v1_v2_list.py",
+        "tests/test_pydantic_v1_v2_mixed.py",
+        "tests/test_pydantic_v1_v2_multifile/main.py",
+        "tests/test_pydantic_v1_v2_noneable.py",
+        "tests/test_read_with_orm_mode.py",
+        "tests/test_response_model_as_return_annotation.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial002.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial003.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial004.py",
+        "tests/test_tutorial/test_request_form_models/test_tutorial002_pv1.py",
+        "tests/test_tutorial/test_schema_extra_example/test_tutorial001_pv1.py"
+      ],
+      "production_changed_lines": 24,
+      "test_changed_lines": 1380,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14583",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14605",
+      "repo": "fastapi/fastapi",
+      "title": "🔊 Add a custom `FastAPIDeprecationWarning`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "8a5de23dad8c57599f98be02ea465933770b2980c55496c6f97c730c5a7eff35",
+      "source_text_sha256": {
+        "problem_statement": "5a5c8f083ec8370091efcd55028c4869bfee6b4b999ae836ba490bb4e8eb026c",
+        "patch": "17bf64aad32f6e64b60de34e8c5f36a970a428fadc098af1d19e49d121c5583e",
+        "test_patch": "175b04f430e38f9e66b66a61d2315f33b7b2e3085c421dfd72b4a4da69086616"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py",
+        "fastapi/exceptions.py",
+        "fastapi/openapi/utils.py",
+        "fastapi/params.py",
+        "fastapi/routing.py",
+        "fastapi/temp_pydantic_v1_params.py",
+        "fastapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/benchmarks/test_general_performance.py",
+        "tests/test_compat_params_v1.py",
+        "tests/test_pydantic_v1_deprecation_warnings.py",
+        "tests/test_regex_deprecated_body.py",
+        "tests/test_regex_deprecated_params.py",
+        "tests/test_schema_extra_examples.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial002.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial003.py",
+        "tests/test_tutorial/test_pydantic_v1_in_v2/test_tutorial004.py",
+        "tests/test_tutorial/test_query_params_str_validations/test_tutorial004.py",
+        "tests/test_tutorial/test_request_form_models/test_tutorial002_pv1.py",
+        "tests/test_tutorial/test_schema_extra_example/test_tutorial001_pv1.py"
+      ],
+      "production_changed_lines": 44,
+      "test_changed_lines": 65,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14605",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14609",
+      "repo": "fastapi/fastapi",
+      "title": "➖ Drop support for `pydantic.v1`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7974907978b01d5173220af583885146f8b55df03caa3080b027b6cf07d3b053",
+      "source_text_sha256": {
+        "problem_statement": "8c071b0dd8203eafd9832b933d3b2e5daf55bd60559028abc612180ff75ef815",
+        "patch": "7c630910ff616e261f3b295eac927cc315e848e9e00f29fc1c7a668e0880053f",
+        "test_patch": "da5e2285b23c95785d4d63b8a6c780a2f0234c4ba4c8c01dc18808e54e0ccc79"
+      },
+      "production_paths": [
+        "docs_src/request_form_models/tutorial002_pv1_an_py39.py",
+        "docs_src/request_form_models/tutorial002_pv1_py39.py",
+        "fastapi/_compat/__init__.py",
+        "fastapi/_compat/main.py",
+        "fastapi/_compat/may_v1.py",
+        "fastapi/_compat/model_field.py",
+        "fastapi/_compat/shared.py",
+        "fastapi/_compat/v1.py",
+        "fastapi/_compat/v2.py",
+        "fastapi/datastructures.py",
+        "fastapi/dependencies/utils.py",
+        "fastapi/encoders.py",
+        "fastapi/exceptions.py",
+        "fastapi/openapi/models.py",
+        "fastapi/openapi/utils.py",
+        "fastapi/param_functions.py",
+        "fastapi/params.py",
+        "fastapi/routing.py",
+        "fastapi/temp_pydantic_v1_params.py",
+        "fastapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_compat.py",
+        "tests/test_compat_params_v1.py",
+        "tests/test_datetime_custom_encoder.py",
+        "tests/test_filter_pydantic_sub_model/app_pv1.py",
+        "tests/test_filter_pydantic_sub_model/test_filter_pydantic_sub_model_pv1.py",
+        "tests/test_get_model_definitions_formfeed_escape.py",
+        "tests/test_inherited_custom_class.py",
+        "tests/test_jsonable_encoder.py"
+      ],
+      "production_changed_lines": 2047,
+      "test_changed_lines": 1507,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14609",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14616",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix using `Json[list[str]]` type (issue #10997)",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "d0f2db7d4f286528fb5d301ac515515b160731a76922fe5953d2ac57de20377f",
+      "source_text_sha256": {
+        "problem_statement": "4a354dba07e3a1f80dec14d2a4385b3a8aa436edd9bb4ba7eb8c0a0d4379da41",
+        "patch": "840303ea0f03fc78b4b76b93dcce0341b0d092a57b2b9d2b596d0a147d9c1d37",
+        "test_patch": "1cf2f528f50ffd3969f8027e009e93cf1ca2fcc311a36b5bbfd65294ac396b5b"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_json_type.py"
+      ],
+      "production_changed_lines": 12,
+      "test_changed_lines": 63,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14616",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14786",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Strip whitespaces from `Authorization` header credentials",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "e48b11950a8cc7cc74b7cca1681a14ef86a9a40b182251c45c85b305dc579160",
+      "source_text_sha256": {
+        "problem_statement": "6df978503e68962de32f771a6372cfe970611b0e287609955484a043001f4b80",
+        "patch": "f41f4e4e2517629e481d1a24e89e16e5cf25fe5aae91f1228bb0d04b84000b1c",
+        "test_patch": "0108f7dd8522e495c6329038f4aab0f1e3b5cf7833d653b5ae708a80d0dfe1ab"
+      },
+      "production_paths": [
+        "fastapi/security/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_security_http_base.py",
+        "tests/test_security_oauth2_authorization_code_bearer.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 12,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "authorization_whitespace",
+      "review_notes": "Authorization-Scheme und Token bei zusätzlichen Leerzeichen; klare Eingabe-/Ausgabebeispiele, private Tests über lokalen TestClient.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_14791",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Update `ValidationError` schema to include `input` and `ctx`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "65866129c74a2827009fba5ac88c3e7fb6270fc38b7f6ddee6dba0567ba2fdcd",
+      "source_text_sha256": {
+        "problem_statement": "2b7e64ee08d830c1c5cff11341259e664426f37c1f6bc82aa8d1353cef2cafa8",
+        "patch": "a8a1410b67895b57f1483c1221a195857d5060e7f6ed729225fb2ca324875b4e",
+        "test_patch": "f749a43fff162501fcc95bb72752bd34a2e5275d015486d297a646f237f989a4"
+      },
+      "production_paths": [
+        "fastapi/openapi/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_additional_properties.py",
+        "tests/test_additional_properties_bool.py",
+        "tests/test_additional_responses_custom_model_in_callback.py",
+        "tests/test_additional_responses_default_validationerror.py",
+        "tests/test_annotated.py",
+        "tests/test_application.py",
+        "tests/test_dependency_duplicates.py",
+        "tests/test_enforce_once_required_parameter.py",
+        "tests/test_extra_routes.py",
+        "tests/test_filter_pydantic_sub_model_pv2.py",
+        "tests/test_forms_single_param.py",
+        "tests/test_generate_unique_id_function.py",
+        "tests/test_get_model_definitions_formfeed_escape.py",
+        "tests/test_get_request_body.py",
+        "tests/test_include_router_defaults_overrides.py",
+        "tests/test_infer_param_optionality.py",
+        "tests/test_modules_same_name_body/test_main.py",
+        "tests/test_multi_body_errors.py",
+        "tests/test_multi_query_errors.py",
+        "tests/test_no_schema_split.py",
+        "tests/test_openapi_examples.py",
+        "tests/test_openapi_query_parameter_extension.py",
+        "tests/test_openapi_separate_input_output_schemas.py",
+        "tests/test_param_in_path_and_dependency.py",
+        "tests/test_param_include_in_schema.py",
+        "tests/test_put_no_body.py",
+        "tests/test_regex_deprecated_body.py",
+        "tests/test_regex_deprecated_params.py",
+        "tests/test_repeated_dependency_schema.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 72,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14791",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14794",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Allow `Response` type hint as dependency annotation",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "400aecbc068b303e3139ec42b2e3358408e1e9af44611cbb73a27863a6f437eb",
+      "source_text_sha256": {
+        "problem_statement": "7e6771b2e30aee63be6fbc607931abae6913b55493b14adec73610ac5349effd",
+        "patch": "ebf28914e9a29065cc140d43430613512092e6d9616de9105daa91e34e96844e",
+        "test_patch": "69d22e0509e421ab4322f543adba63ce81989fafbf6df5451e3f0a9f876cd7c3"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_response_dependency.py"
+      ],
+      "production_changed_lines": 5,
+      "test_changed_lines": 173,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14794",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14851",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Re-implement `on_event` in FastAPI for compatibility with the next Starlette, while keeping backwards compatibility",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "235ea1c2edac3d1d53d29cea5603822f88a18cf15309188c329bb7b4b4edbaf5",
+      "source_text_sha256": {
+        "problem_statement": "50a90e2d8c40856486a575fe0e861daa709eecf393e0edac23726bc90f3be034",
+        "patch": "84fce4acdfa78c8a2b1a2fb8a2d8a6e7a980036e966c65349e4eefbf1907f224",
+        "test_patch": "54de1875291955cbceba20ddbdd96002e978c037777d2893af0c8cffacf008e3"
+      },
+      "production_paths": [
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_router_events.py"
+      ],
+      "production_changed_lines": 157,
+      "test_changed_lines": 76,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14851",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14873",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix `on_startup` and `on_shutdown` parameters of `APIRouter`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "78d74d2358bc972869dfdc0c74940b4f7feb36b56621a26d63d8ac226ed8fa01",
+      "source_text_sha256": {
+        "problem_statement": "de321030ff33d7bf6122e9fef3059975895d1574435051d110dea2f9938d8748",
+        "patch": "1a0cbfe6b0837309b370643b3b66cec13aaa462d7af93465934721aa9a1f668e",
+        "test_patch": "513bc58945b953791eddcd6c1888e723399ac78817e1aaba65c3852c3b67f8be"
+      },
+      "production_paths": [
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_router_events.py"
+      ],
+      "production_changed_lines": 21,
+      "test_changed_lines": 60,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14873",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14953",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Fix JSON Schema for bytes, use `\"contentMediaType\": \"application/octet-stream\"` instead of `\"format\": \"binary\"`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "56ec6adf4b3de4cb8f20da64b974aa8358668f1e5174d6cc1cda11bcd73badf3",
+      "source_text_sha256": {
+        "problem_statement": "c448aabff5f658c71168df75346ee9ba8717de454eb016e952a71c4491df5e36",
+        "patch": "ebb0f3c6dd0e979fb7e77f683306303a666970c7ae824f08702343c8223873c9",
+        "test_patch": "a07edde0016ada9fb0fb7c2e6ccd36fbebc9b2533a8d7e211e6b02c9115629c9"
+      },
+      "production_paths": [
+        "docs_src/json_base64_bytes/tutorial001_py310.py",
+        "fastapi/_compat/v2.py",
+        "fastapi/datastructures.py",
+        "scripts/playwright/json_base64_bytes/image01.py"
+      ],
+      "test_paths": [
+        "tests/test_request_params/test_file/test_list.py",
+        "tests/test_request_params/test_file/test_optional.py",
+        "tests/test_request_params/test_file/test_optional_list.py",
+        "tests/test_request_params/test_file/test_required.py",
+        "tests/test_tutorial/test_json_base64_bytes/test_tutorial001.py",
+        "tests/test_tutorial/test_request_files/test_tutorial001.py",
+        "tests/test_tutorial/test_request_files/test_tutorial001_02.py",
+        "tests/test_tutorial/test_request_files/test_tutorial001_03.py",
+        "tests/test_tutorial/test_request_files/test_tutorial002.py",
+        "tests/test_tutorial/test_request_files/test_tutorial003.py",
+        "tests/test_tutorial/test_request_forms_and_files/test_tutorial001.py"
+      ],
+      "production_changed_lines": 104,
+      "test_changed_lines": 331,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14953",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14962",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Serialize JSON response with Pydantic (in Rust), when there's a Pydantic return type or response model",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ea3e2b3d0d3824b57c0c52bd1a768f6a5ad8cc47a24ed469428ad069b11ad27c",
+      "source_text_sha256": {
+        "problem_statement": "403a87550df11e5a6fac2912129ea42fade6e9b99a8757a3220c901320861f94",
+        "patch": "7f7918573fcde2582b56eaf49d7bee6886c2d2b66ef1ae0bffa30d8ca93e23ca",
+        "test_patch": "8b0ef4802d2fa922bfa4c71e0346f10b1af76e3b50fe81a69919d6fa7c96ba1b"
+      },
+      "production_paths": [
+        "docs_src/custom_response/tutorial010_py310.py",
+        "fastapi/_compat/v2.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_dump_json_fast_path.py",
+        "tests/test_tutorial/test_custom_response/test_tutorial001.py",
+        "tests/test_tutorial/test_custom_response/test_tutorial010.py"
+      ],
+      "production_changed_lines": 55,
+      "test_changed_lines": 102,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14962",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14964",
+      "repo": "fastapi/fastapi",
+      "title": "🗑️ Deprecate `ORJSONResponse` and `UJSONResponse`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c751b0d739dcebf88a796a0716dfa9fdac8174fa7ab1c58803b71d1846f8c518",
+      "source_text_sha256": {
+        "problem_statement": "5ea0e133c3874a9a5ef72600954e8c5c20db6c93259d3397ba42396eb4c5e88c",
+        "patch": "336224f589fed0abedd918177270abdb4db1638822032ab8668b8fc53a2a2fff",
+        "test_patch": "776322136addbbccb4abc563631d6062e17e4e26cd64d0fbfd906c45f93255ac"
+      },
+      "production_paths": [
+        "fastapi/responses.py"
+      ],
+      "test_paths": [
+        "tests/test_deprecated_responses.py",
+        "tests/test_orjson_response_class.py",
+        "tests/test_tutorial/test_custom_response/test_tutorial001.py",
+        "tests/test_tutorial/test_custom_response/test_tutorial001b.py"
+      ],
+      "production_changed_lines": 52,
+      "test_changed_lines": 98,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14964",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14978",
+      "repo": "fastapi/fastapi",
+      "title": "🔒️ Add `strict_content_type` checking for JSON requests",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "a13eca7dfd579f3e594a27b4ea6092374679f0ecd75bf8a0e40df1ff15394d64",
+      "source_text_sha256": {
+        "problem_statement": "63862afb58d907db18388329b67920e924de5ae667d3457d2345717af05e5c0f",
+        "patch": "95255fcedd822f0bfee7a9a7c4ea4bdc8da26a027f9999eea140ce3b01edf27e",
+        "test_patch": "16971ab4c71641a50c68ee39faac2e691e6f30dc09f46d03ed5b93f68459b5f8"
+      },
+      "production_paths": [
+        "docs_src/strict_content_type/tutorial001_py310.py",
+        "fastapi/applications.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_strict_content_type_app_level.py",
+        "tests/test_strict_content_type_nested.py",
+        "tests/test_strict_content_type_router_level.py",
+        "tests/test_tutorial/test_body/test_tutorial001.py",
+        "tests/test_tutorial/test_strict_content_type/test_tutorial001.py"
+      ],
+      "production_changed_lines": 82,
+      "test_changed_lines": 249,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14978",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_14986",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Refactor logic to handle OpenAPI and Swagger UI escaping data",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "8546ff2a2c796831e8e214b4bffaa1b3df484d707c2c1ec2631ded4805f31547",
+      "source_text_sha256": {
+        "problem_statement": "54e937fb46cc46f8ab4441e0abff9c97a1e670d07bd30dc88ef64525c6e25886",
+        "patch": "ec36d1ae53651a514c41899eada1b6265b0b534941fd04e057eed427f9ee8952",
+        "test_patch": "8f5f3f730afd09d73a67957eaa0a81a382a17bcf6c759f452922a5fda441be50"
+      },
+      "production_paths": [
+        "fastapi/applications.py",
+        "fastapi/openapi/docs.py"
+      ],
+      "test_paths": [
+        "tests/test_openapi_cache_root_path.py",
+        "tests/test_swagger_ui_escape.py"
+      ],
+      "production_changed_lines": 34,
+      "test_changed_lines": 112,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_14986",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15023",
+      "repo": "fastapi/fastapi",
+      "title": "📝 Update docs for responses and new stream with `yield`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "80c80376fc18f83049bb7e7bcdad122e152281f4bda3fc7a7b2f851e4a1ed40d",
+      "source_text_sha256": {
+        "problem_statement": "aecf86c47e2ea04e00dae98cac021e9f9bc08bfa7e3153a156753ce0cec6255d",
+        "patch": "b28f3f4a6e6f7f62e0f99e900d921da41c1017e236110893553ddb5e82a43e27",
+        "test_patch": "cfd5318f8614f398c1a34a12d15474f717ae486f61ca28509a7965c3ac26200a"
+      },
+      "production_paths": [
+        "docs_src/stream_data/tutorial002_py310.py"
+      ],
+      "test_paths": [
+        "tests/test_tutorial/test_stream_data/test_tutorial002.py"
+      ],
+      "production_changed_lines": 26,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15023",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15030",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for Server Sent Events",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "979cc1f217ed6965d2b7c7806fd5fef9617c709e31369a65cef829df9567ce78",
+      "source_text_sha256": {
+        "problem_statement": "988a8d178da78eeaaf056ee02be623b7dd29d76c62f2552309eeda65561915ec",
+        "patch": "6d454e39f7838c16c13827daa2a9f6b32ee1858263445e386fd4f59c5c6c167c",
+        "test_patch": "4af622b8c3652990ecb9a2ea5e4b16ffb15a1038557f19dd565faa7881292f59"
+      },
+      "production_paths": [
+        "docs_src/server_sent_events/tutorial001_py310.py",
+        "docs_src/server_sent_events/tutorial002_py310.py",
+        "docs_src/server_sent_events/tutorial003_py310.py",
+        "docs_src/server_sent_events/tutorial004_py310.py",
+        "docs_src/server_sent_events/tutorial005_py310.py",
+        "fastapi/openapi/utils.py",
+        "fastapi/responses.py",
+        "fastapi/routing.py",
+        "fastapi/sse.py"
+      ],
+      "test_paths": [
+        "tests/test_sse.py",
+        "tests/test_tutorial/test_server_sent_events/test_tutorial001.py",
+        "tests/test_tutorial/test_server_sent_events/test_tutorial002.py",
+        "tests/test_tutorial/test_server_sent_events/test_tutorial003.py",
+        "tests/test_tutorial/test_server_sent_events/test_tutorial004.py",
+        "tests/test_tutorial/test_server_sent_events/test_tutorial005.py"
+      ],
+      "production_changed_lines": 560,
+      "test_changed_lines": 970,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15030",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15280",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for `@app.vibe()`",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "74f222219e952bdee004810beb406c6966d1987bf6456dbfd4d0aefd7046e46a",
+      "source_text_sha256": {
+        "problem_statement": "f8f0fefc29d8a2a0aeca4fd8d66351e3cc6ca9494c199259e3723f791f61efba",
+        "patch": "ef616e94a70568371b0ed1353dce6dce9e2997b54ccb97097fde1b253fa7936e",
+        "test_patch": "a45b740c9c23f27c90cbe591dcfbf9c43736ea52d9ccdd4b77bddef4695a7e97"
+      },
+      "production_paths": [
+        "docs_src/vibe/tutorial001_py310.py",
+        "fastapi/applications.py"
+      ],
+      "test_paths": [
+        "tests/test_vibe.py"
+      ],
+      "production_changed_lines": 72,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "feature",
+      "test_scope": "unit",
+      "review_status": "excluded",
+      "related_group": "april_fools_vibe",
+      "review_notes": "Referenz implementiert bewusst einen Aprilscherz mit FastAPIError statt der angekündigten LLM-Funktion. Issue nennt den erwarteten Scherz nicht. Kein belastbarer funktionaler Sollvertrag.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15588",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Validate Server Sent Event fields to avoid applications from sending broken data",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "12dd937f9144dad13174b6cae87878fc769a972dd4197a568bbd635e07ccadbe",
+      "source_text_sha256": {
+        "problem_statement": "b6d5cbc129d25d270191bbe0c24d49c0c236ceba73c311b118a80a7e930cd0b3",
+        "patch": "a733447f9def3051178abc618713d8af70a5fc57883281bceff2ce625138a7bb",
+        "test_patch": "b8e8e5e6144ea3a82d32f9989a70893686ea74d1b79d12935284d02e474164ab"
+      },
+      "production_paths": [
+        "fastapi/sse.py"
+      ],
+      "test_paths": [
+        "tests/test_sse.py"
+      ],
+      "production_changed_lines": 23,
+      "test_changed_lines": 9,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15588",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15589",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Do not accept underscore headers when using `convert_underscores=True` (the default)",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "628cc1bdc0e97638bfb98893055a569055220899c569fef3e8afdcaabd2f6066",
+      "source_text_sha256": {
+        "problem_statement": "229336ed7ae9e210946df9c37beec9e46e35dd0d890541ee5693a40290f7ac2a",
+        "patch": "837583fd16058eef087244c31ef56947c59df0efe753c5ac390e15fe258e5169",
+        "test_patch": "5e318f9eba1e431ad5e0a7a00720e9d13f7057b27c23883b988d461a98920a21"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_query_cookie_header_model_extra_params.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 35,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15589",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15661",
+      "repo": "fastapi/fastapi",
+      "title": "👷 Automate release preparation",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "88c52dfa641a69ed6abceab6d07a9347895974e76827a9b59f5911ca1f16e1bb",
+      "source_text_sha256": {
+        "problem_statement": "98478816244eb4b87b585dbe565458503201826a996a39626a52ec98233d118e",
+        "patch": "86552ee6a99eca75d04707cf0fd4cea09272f25528c7d0fed1fd05a5278045fb",
+        "test_patch": "c52c3af7f4cd3d0d8a992c82d6ab5de0392a56107d15059fe7b40911a7df01ef"
+      },
+      "production_paths": [
+        "scripts/prepare_release.py"
+      ],
+      "test_paths": [
+        "tests/test_prepare_release.py"
+      ],
+      "production_changed_lines": 216,
+      "test_changed_lines": 307,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15661",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15745",
+      "repo": "fastapi/fastapi",
+      "title": "♻️ Refactor internals to preserve `APIRouter` and `APIRoute` instances",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "d338e3b669cf320793a71347ee9533d45046f813f9e06b3786fac5aa619efd9a",
+      "source_text_sha256": {
+        "problem_statement": "e51591dfa0f72134488f7a513b3357b3e28d60e3e2e5a3c51b595bbfd2f7c86b",
+        "patch": "68dcaabbe5473d8d5664fcf694da4f2af6212cf69ce79855863a8fb0003b2f5e",
+        "test_patch": "d93ffcec2494bf94c5266c7f90c15a5e8c82252afcf896e46e4f8f523f551604"
+      },
+      "production_paths": [
+        "docs_src/path_operation_advanced_configuration/tutorial002_py310.py",
+        "fastapi/applications.py",
+        "fastapi/openapi/utils.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_custom_route_class.py",
+        "tests/test_router_include_context.py"
+      ],
+      "production_changed_lines": 1230,
+      "test_changed_lines": 866,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15745",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15763",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix bug, allow empty path in path operation in prefixless router",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "d1f1226670f45d3e5934331f0d6abe5ae96eccc674f76f432bddaf421169877f",
+      "source_text_sha256": {
+        "problem_statement": "6f9544f73811e1d5a906869fc0bc6478cadd033f551ddd0c0f26d4c30fcae09d",
+        "patch": "dea27278bb4121858d13d742629e66b78f1e71091c1df02d91459202d6b6bfde",
+        "test_patch": "cf5f6466bdec85c855f1789a345c68f822f1b2edeaf5b95bd214d991938aec18"
+      },
+      "production_paths": [
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_router_include_context.py"
+      ],
+      "production_changed_lines": 13,
+      "test_changed_lines": 55,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15763",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15785",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add `iter_route_contexts()` for advanced use cases that used to use `router.routes` (e.g. Jupyverse)",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "b9552113730ca7122249fabdf3502732c75990450a9ecd9c58d2c7526ba45a44",
+      "source_text_sha256": {
+        "problem_statement": "1e04f744c7f3d7ab99ba2cdec791eb498da6d7b6c0a99fa5b152d8bb037037f7",
+        "patch": "076200caa3e12f96637277ec360bad3612ea79dac9739e38544119afd3b89d44",
+        "test_patch": "75614dd719584c6640db45d29e5c17bf4539ebb4043999bac5b3b8fff6b69cdc"
+      },
+      "production_paths": [
+        "fastapi/openapi/utils.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_router_include_context.py"
+      ],
+      "production_changed_lines": 81,
+      "test_changed_lines": 105,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15785",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_15800",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for `app.frontend(\"/\", directory=\"dist\")` and `router.frontend(\"/\", directory=\"dist\")`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ff5428afd588e32a311b4341194ccdd5d15b00bbeb73dcb762e6fe724c630996",
+      "source_text_sha256": {
+        "problem_statement": "85c676765d59e203b9e78c89f06dd4fbf7ed3e469ec298892f08fd3ae12e4a11",
+        "patch": "bd07d49087d72c5a2ca33e9a4801890560ab3638e4666ced7a56c32487304d8a",
+        "test_patch": "6c7294d784901eb68f284a9a0aa5363147e1cecbbf87eaf24b31fce4639f819d"
+      },
+      "production_paths": [
+        "docs_src/frontend/tutorial001_py310.py",
+        "docs_src/frontend/tutorial002_py310.py",
+        "docs_src/frontend/tutorial003_py310.py",
+        "docs_src/frontend/tutorial004_py310.py",
+        "docs_src/frontend/tutorial005_py310.py",
+        "docs_src/frontend/tutorial006_py310.py",
+        "fastapi/applications.py",
+        "fastapi/routing.py"
+      ],
+      "test_paths": [
+        "tests/test_frontend.py"
+      ],
+      "production_changed_lines": 654,
+      "test_changed_lines": 858,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_15800",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_5077",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Add support for wrapped functions (e.g. `@functools.wraps()`) used with forward references",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "6197a8aead9f54d2cd399c163beaf1c8393c04195232bbb7876074073758c9c1",
+      "source_text_sha256": {
+        "problem_statement": "07fa3ca85eb583233bf5bb64c84480645d3c8b27afcd105cbe679a9f204d0a7e",
+        "patch": "4e5ab44b6968c5044dcf73f3c06f9f82dfb59790c1017367c45c1b11129ee834",
+        "test_patch": "f4a6857c266bed1ee92afe04fbcd2edca7dc3015663f702bbf4c2485d39f365b"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/forward_reference_type.py",
+        "tests/test_wrapped_method_forward_reference.py"
+      ],
+      "production_changed_lines": 6,
+      "test_changed_lines": 40,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_5077",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_5624",
+      "repo": "fastapi/fastapi",
+      "title": "🐛 Fix hierarchical security scope propagation",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "4c368be2d20238208b26577138d63c2bbdb04a109bcab22d6f272f4ee7a8aab0",
+      "source_text_sha256": {
+        "problem_statement": "a58f8d79e910e4d84b3a4e0eae50deddfc2db24fe1e4194e20c97313450e914e",
+        "patch": "1939328b6ae59d2f5b3f9a8cd6ba52521c63ef6a18e7aca95d2643fe9269aff3",
+        "test_patch": "c3abf856b0e8282fff8507dd8fdc69e55612d5b4ddfe69c4b0f9f19a3c15b088"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_security_scopes_dont_propagate.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 45,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_5624",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_9425",
+      "repo": "fastapi/fastapi",
+      "title": "✨  Allow `None` as return type for bodiless responses",
+      "split": "pilot",
+      "original_split": "pilot",
+      "snapshot_present": true,
+      "source_record_sha256": "fbd4649b004f22187defdeaa898761b10dca6d3abb8f15469d18ee2c4d6c571a",
+      "source_text_sha256": {
+        "problem_statement": "d70b96e8488a4d67f5c08de9d0319e8db1657912720fa029c24ad74ab087d673",
+        "patch": "bc673f06f7ce58b13d2ea4b757df5c0f4bd9fa298a20360dc3a00cec10e15d52",
+        "test_patch": "a052eba67704b6deac3d61f3d59f3d02a5b3cae3231f39ff7e7392ed6b30aabf"
+      },
+      "production_paths": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_return_none_stringified_annotations.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "compatibility",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "string_none_annotation",
+      "review_notes": "Stringannotation None für HTTP 204 ohne Body; klarer Status-/Body-Vertrag, TestClient benötigt keine externe Verbindung.",
+      "eligible": true
+    },
+    {
+      "id": "fastapi_9555",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Handle wrapped dependencies",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "b2adbfcfc040e470944bd44f6f513a225be4fd23926616e6358fb8bf9cd1fcd1",
+      "source_text_sha256": {
+        "problem_statement": "eeffbd0ab7a4ce245c9743cdf237b0eb5f3a8ef25c35f7f16a2b1aac7f7fb835",
+        "patch": "59463850b9a4ac09b1fce920ffe85b0f9480553b51633806aad6077043b55ece",
+        "test_patch": "b1afa683d19d7bb80ccaedeb61be5b24f22fcbfb3f6a00def38c342ab05e6294"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_wrapped.py"
+      ],
+      "production_changed_lines": 22,
+      "test_changed_lines": 77,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_9555",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "fastapi_9753",
+      "repo": "fastapi/fastapi",
+      "title": "✨ Allow using dependables with `functools.partial()`",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "66be1d3fd69133f12d35fd9aecb20ece88ee187ca6f9e3b66a953d33e16bd90d",
+      "source_text_sha256": {
+        "problem_statement": "044400970a0b83c94dd03cc7a1f7e8f4f4f5260780423eac02ea314ba57c9f78",
+        "patch": "aba55aeb4c57cbc78e54da7932748db5402964c332247f4435a014bfbcc58f58",
+        "test_patch": "955f49c9d0711b131b4a897a27a4b6c229ff7f5c3f81a4b0bbdfa690b177ed56"
+      },
+      "production_paths": [
+        "fastapi/dependencies/models.py"
+      ],
+      "test_paths": [
+        "tests/test_dependency_partial.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 251,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "fastapi_9753",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "httpx_3672",
+      "repo": "encode/httpx",
+      "title": "Server connection handling.",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "0291e05d9d6af9a51a9b3c592e8fac85850e4f0d0671a84256cadd7dffe1b97f",
+      "source_text_sha256": {
+        "problem_statement": "88b6d5135ef29b988ba3c21596c4215efaad62379337b6749be4c8c7b26c4487",
+        "patch": "e8e422a9bcfc7749dfacb456e7045646a1aa7feb678e1309f51637116fb562ce",
+        "test_patch": "84351ec69acd45dd26342a533bf13faa3ebf2784bf74d8e177671b697620bb09"
+      },
+      "production_paths": [
+        "src/ahttpx/_parsers.py",
+        "src/ahttpx/_pool.py",
+        "src/ahttpx/_server.py",
+        "src/httpx/_network.py",
+        "src/httpx/_parsers.py",
+        "src/httpx/_pool.py",
+        "src/httpx/_server.py"
+      ],
+      "test_paths": [
+        "tests/test_parsers.py"
+      ],
+      "production_changed_lines": 79,
+      "test_changed_lines": 10,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "lifecycle_state",
+      "change_kind": "mixed",
+      "test_scope": "async_integration",
+      "review_status": "deferred",
+      "related_group": "httpx_server_lifecycle",
+      "review_notes": "Sieben Produktionsmodule, sync/async Reset, Keepalive und Stream-Schließen. Private Tests ändern hauptsächlich complete zu reset; Server-Schließverhalten unzureichend abgedeckt. Nicht im kurzen Hauptprofil.",
+      "eligible": false
+    },
+    {
+      "id": "requests_6589",
+      "repo": "psf/requests",
+      "title": "Enhance `super_len` to count encoded bytes for str",
+      "split": "pilot",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "2d9139223ee3138395a49560f0471fedf73c49ac622edeb67fb41d56843a7d2d",
+      "source_text_sha256": {
+        "problem_statement": "60b61eb2b26e1135174dd59ddc4e29b2d7fe2b5e255b723e9085b36407663d04",
+        "patch": "f376959721e81ec30d49b365fd72ce698cd637086387ea4ca980ac4792c0e165",
+        "test_patch": "69cdb3149ea641fbc8893bcd6e6cf63c8b7cb56ecf435674255f0c0e43aef517"
+      },
+      "production_paths": [
+        "src/requests/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "loopback_fixture",
+      "review_status": "candidate",
+      "related_group": "content_length_versions",
+      "review_notes": "Content-Length für UTF-8-Zeichen statt Zeichenanzahl; verwandt mit requests_6757. Test referenziert httpbin-Fixture, obwohl Request nur vorbereitet wird; urllib3-Version festlegen.",
+      "eligible": true
+    },
+    {
+      "id": "requests_6592",
+      "repo": "psf/requests",
+      "title": "\"TOO_EARLY\" type definition for status code 425",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "767c3676c7c14f083e72d8239d8e61d3dfe33496c23e75f8a0ea7aa059c14026",
+      "source_text_sha256": {
+        "problem_statement": "19eac23b976cae55ad6f2ef09e7a474501c52d53845893e05201cae9d297ad98",
+        "patch": "cdd80e7ebd2ec81dba763d73b7121df3db269b43515db470553a24ad8d99997c",
+        "test_patch": "1751f2457a377b2989e8ee8e9e1c0ece4c00ca4e1cc172ef2a8c504ff4b2d972"
+      },
+      "production_paths": [
+        "src/requests/status_codes.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "api_schema",
+      "change_kind": "feature",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "status_425_alias",
+      "review_notes": "Alias too_early für Status 425; kleiner Lookup-Fall mit Erhalt bisheriger Aliase. Als eigener kleiner Featuretyp ausweisen, nicht mit größeren Reparaturen gleichsetzen.",
+      "eligible": true
+    },
+    {
+      "id": "requests_6629",
+      "repo": "psf/requests",
+      "title": "Fix #6628 - JSONDecodeError are not deserializable",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "f023463d40ea624a10637cd09ba608469c26250c89b62473514371368c472a38",
+      "source_text_sha256": {
+        "problem_statement": "aa205ed8a7fe5451356f5e3f54bc5e773aeb5f637d0d4157f78a8c58354080b1",
+        "patch": "544112fafd3811218c3ab8d1fc6e2dd631d7f30878c0cac2bb563e5ce389db43",
+        "test_patch": "3187e65f78fe666b493f6895eed8f93562cf5026100cae0b5067f6295d8020be"
+      },
+      "production_paths": [
+        "src/requests/exceptions.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 10,
+      "test_changed_lines": 10,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "exceptions_diagnostics",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "json_error_pickle",
+      "review_notes": "JSONDecodeError nach Pickle-Roundtrip rekonstruierbar machen; privater Test prüft repr-Gleichheit, kein tatsächlicher ProcessPool-Test. Der beschriebene Ausgangsfehler ist ein TypeError beim Pickle-Roundtrip, keine Assertion. Aktuelle Assertion-Rot-Zulassung kann diese Aufgabe so nicht aufnehmen.",
+      "eligible": false
+    },
+    {
+      "id": "requests_6644",
+      "repo": "psf/requests",
+      "title": "Trim excess leading path separators",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "230a134c856b99ffb39e527dae4b235e91f1f819f0fc13c6ff8a2acacb5d7e74",
+      "source_text_sha256": {
+        "problem_statement": "bbc61379a6d293c7deb71f215eba9dcfba76673b8432b43859ff17a4800112b3",
+        "patch": "109ab95ac1e6603b8df3d347fd2059d43a7ba4d29ae5006ca88aa244888a4e1e",
+        "test_patch": "bfb741362910a7144d5fdf8aa078f67ea8f1414244e349d2ac00b4911324c8cf"
+      },
+      "production_paths": [
+        "src/requests/adapters.py"
+      ],
+      "test_paths": [
+        "tests/test_adapters.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 8,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "leading_slash_history",
+      "review_notes": "Führende // im Requestpfad reduzieren. Historisch gegenteiliger Vertrag zu requests_7315; nicht gemeinsam als unabhängige Aufgaben wählen.",
+      "eligible": true
+    },
+    {
+      "id": "requests_6757",
+      "repo": "psf/requests",
+      "title": "Test on urllib3 1.26.x",
+      "split": "pilot",
+      "original_split": "pilot",
+      "snapshot_present": true,
+      "source_record_sha256": "47ecb9f5729409db0a0343ad18d5d3a884bc0aa910e72bbf7a4ba463b097fe89",
+      "source_text_sha256": {
+        "problem_statement": "77026c2d101f038577718e0fd53eeed23f56dd8dc7fbf860b334e3e98b4fa653",
+        "patch": "23da009adc98b77cfd86fb90c650861a9b76a951fe87196932e24ffe14df4657",
+        "test_patch": "426802da64cfe884930f9785387bc2b14b21f5046e61d14528360f4eddc1f4dd"
+      },
+      "production_paths": [
+        "src/requests/compat.py",
+        "src/requests/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 17,
+      "test_changed_lines": 41,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "compatibility",
+      "test_scope": "dependency_matrix",
+      "review_status": "deferred",
+      "related_group": "content_length_versions",
+      "review_notes": "Referenz unterscheidet urllib3 1.x/2.x und überspringt einen Fall versionsabhängig. Einzelnes Image und Pflicht ohne Skip bilden Versionsmatrix nicht ab. Alter Pilotplatz wird reserviert, nicht als Messaufgabe recycelt.",
+      "eligible": false
+    },
+    {
+      "id": "requests_7205",
+      "repo": "psf/requests",
+      "title": "Fix empty netrc entry usage",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "db1e0ee3f49c99e19d6255051305428f3b64b75034fd3d0aa231a57d61c0eb0e",
+      "source_text_sha256": {
+        "problem_statement": "ec4dd468be7affa56976ba0ca497797b620fbe6a04b2e9e709cf18f958543666",
+        "patch": "765989aa5fcb27fc811411429f0788219f54f4c8495dd15090ded27eed339edd",
+        "test_patch": "48e9c9ebbdcc2cee4c99c4d9911ef0ced4960f711b89da71b98e94091a526986"
+      },
+      "production_paths": [
+        "src/requests/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_utils.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 10,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "filesystem_configuration",
+      "change_kind": "compatibility",
+      "test_scope": "filesystem_env",
+      "review_status": "candidate",
+      "related_group": "empty_netrc",
+      "review_notes": "Leere netrc-Defaults unter Python >=3.11 ignorieren; temporäre Datei und NETRC-Variable, kein echter HTTP-Request.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7309",
+      "repo": "psf/requests",
+      "title": "Fix malformed value parsing for Content-Type",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "0171bbd45b4fd3c3d6cd39f6e776f0af5f40c8d167c53a218883a26a5e115897",
+      "source_text_sha256": {
+        "problem_statement": "01f13e565f7002c1fee41da58b174b79379e7f462dede91e60f761a5f153d20c",
+        "patch": "0f7e25286b394dfb9bccd50050146e69224868fc8974234e390f7670f5a7ed23",
+        "test_patch": "ed5dffcf6a3333c6f95d9420926a38ad5493a25a0086b650bc0ef1f0d1a4242f"
+      },
+      "production_paths": [
+        "src/requests/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_utils.py"
+      ],
+      "production_changed_lines": 15,
+      "test_changed_lines": 8,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "content_type_params",
+      "review_notes": "Content-Type-Parameter ohne Gleichheitszeichen ignorieren; enthält Anpassung bestehender Erwartungswerte und einen Encoding-Fallback-Fall.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7315",
+      "repo": "psf/requests",
+      "title": "Preserve leading slashes in request path_url",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "58524ff276bf5d6beb302fd61e7b524601996f578e109375fa95378f914f7ff4",
+      "source_text_sha256": {
+        "problem_statement": "468a069409bce40c07c19a1ab9a781955c3e68bb47274265ae73975ecb95ad67",
+        "patch": "cbb12eef3fc67638be1484b7bd7e3e5771be10d2c68d8a9f284f85e8a7a5e1c4",
+        "test_patch": "198095e348494b22d4a320bce3670875fcd5c2886c73d578f5ade7a61595efed"
+      },
+      "production_paths": [
+        "src/requests/adapters.py"
+      ],
+      "test_paths": [
+        "tests/test_adapters.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 4,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "leading_slash_history",
+      "review_notes": "Erhält // für signierte URLs und entfernt Fix aus requests_6644. Gegensätzliche zeitgebundene Sollverträge: eine Aufgabe pro Gruppe.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7328",
+      "repo": "psf/requests",
+      "title": "Prevent Response self-reference in redirect history",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c43bbecbae1abb9387de2106c7828984d1f4fd834e47729ceb4c72b5accd5859",
+      "source_text_sha256": {
+        "problem_statement": "88117c4cfe2520e07fb29dfc35d2653e60a334b9a058072ea9df62ac79dd216c",
+        "patch": "940d4ee56ebdfbc4c8287d7bb69f179799ec6b7b92d60cfe89bbb0ec3a50fbb4",
+        "test_patch": "41e769c53e448f1c43882e07b23fe76e11477f97906aeec0b9ed85128b428f00"
+      },
+      "production_paths": [
+        "src/requests/sessions.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 8,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "requests_7328",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "requests_7427",
+      "repo": "psf/requests",
+      "title": "Port bpo-39057 to Requests",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "74fde72edb9c7b433fa14ab42956a15206c1e5a7e5a48c03067b10f7d82f6680",
+      "source_text_sha256": {
+        "problem_statement": "e5ef8bb20c3b7f4ec583ea7cc312e2e79537ee7c3fb332f6c7ccb160607416fc",
+        "patch": "db72d6a7019de5f047420edcb5c42dd98be52ac07ba645d8d0b80124b4bf0c63",
+        "test_patch": "d6f4cee498a17f8dcc022c24fa50acfb51cb0bba887235229ec735c5b2e5c580"
+      },
+      "production_paths": [
+        "src/requests/utils.py"
+      ],
+      "test_paths": [
+        "tests/test_utils.py"
+      ],
+      "production_changed_lines": 6,
+      "test_changed_lines": 23,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "no_proxy_boundaries",
+      "review_notes": "no_proxy soll Domain-Grenzen respektieren; parametrische positive/negative Fälle, Umgebungs-Proxys kontrollieren.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7433",
+      "repo": "psf/requests",
+      "title": "Fix `prepare_body` stream detection for `__getattr__`-based file wrappers",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3054b2c60e42263d14053e0ebbc41ee241d08180786efd5a22ddf8f31f01b488",
+      "source_text_sha256": {
+        "problem_statement": "2753a02000cf17c5258bc23b9a91257403e57b34dcd934adbe3956b0523444db",
+        "patch": "c5ef4d6e9ca8d9676522d3eecdb95c43c702aff93061fe75722d3c112a487bea",
+        "test_patch": "8286a1547ba1bf923a0d5c7feb50104f1f353c705b4b773b28a55bf2ea4b3da4"
+      },
+      "production_paths": [
+        "src/requests/models.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 6,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "bugfix",
+      "test_scope": "loopback_http",
+      "review_status": "candidate",
+      "related_group": "file_wrapper_protocols",
+      "review_notes": "__getattr__-Stream bei 307-Redirect korrekt erkennen und erneut senden; lokale httpbin-Fixture und Redirectverhalten nötig.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7502",
+      "repo": "psf/requests",
+      "title": "Fix `_encode_files` detection for `__getattr__`-based file wrappers",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "1f04ce03d718cb8dae8cca85be7242002a012f831a7960699cae267d7359e2c0",
+      "source_text_sha256": {
+        "problem_statement": "8bef3ddbbc42cb6ab045879228b55ce25187ea4507d047f92bd1e814d2bedca4",
+        "patch": "b52e9d4e4a07866d2e679dfc58f9c862a68d83fcbb94a8c2bf350fdbc73d6411",
+        "test_patch": "d32150717ac0cb0e9a569a6666588eda385b9d91cefd57490c7b00edc89be10b"
+      },
+      "production_paths": [
+        "src/requests/models.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 11,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "bugfix",
+      "test_scope": "loopback_http",
+      "review_status": "candidate",
+      "related_group": "file_wrapper_protocols",
+      "review_notes": "NamedTemporaryFile/Attributproxy bei Multipart; privater Test benötigt lokalen httpbin-Dienst. Kein Internet nötig, aber Fixture muss im Container verfügbar sein.",
+      "eligible": true
+    },
+    {
+      "id": "requests_7505",
+      "repo": "psf/requests",
+      "title": "Add hasattr checks for remaining protocol isinstance checks",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "bdc96d8272ff99dd775867a2f4a3ae4717d7f38e051c2112029f1ad307ac5060",
+      "source_text_sha256": {
+        "problem_statement": "a12c378acc68e2ae971d8afb0c2c94f21e371b1539eafbd0b8e931d472976e03",
+        "patch": "c54225c510fe1ab3bfbae9aaa5abc3492c0a168a22e3d3bc3358b356bfb5dae9",
+        "test_patch": "7aefadcfb026cec011b7682d74c6be6acba23b442cf24894822061ddebc1ce76"
+      },
+      "production_paths": [
+        "src/requests/_types.py",
+        "src/requests/models.py"
+      ],
+      "test_paths": [
+        "tests/test_requests.py"
+      ],
+      "production_changed_lines": 16,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "mixed",
+      "test_scope": "loopback_http",
+      "review_status": "candidate",
+      "related_group": "file_wrapper_protocols",
+      "review_notes": "Folgefix zu requests_7502 zentralisiert has_read und ergänzt Aufrufstellen. Nicht als unabhängige zusätzliche Wrapper-Aufgabe behandeln.",
+      "eligible": true
+    },
+    {
+      "id": "rich_2725",
+      "repo": "Textualize/rich",
+      "title": "fix table rendering order of box elements",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "b2b351450ccdd13170b33266b9cadc98b2e4a06e2b6bfafbaad7c95b0f08c9ad",
+      "source_text_sha256": {
+        "problem_statement": "11c86e66475ad9c9ab5d386494d8a7b9213362aa033df3b5294a9571622d7f74",
+        "patch": "ec4b073605be834bfff028ad5c5356dec58184d2417f397e340674493e69d10f",
+        "test_patch": "abd891380314f8c620ce3af07c853b04c0477b43904c923718697c72c9a2f97c"
+      },
+      "production_paths": [
+        "rich/table.py"
+      ],
+      "test_paths": [
+        "tests/test_table.py"
+      ],
+      "production_changed_lines": 10,
+      "test_changed_lines": 129,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "terminal_rendering",
+      "change_kind": "bugfix",
+      "test_scope": "render_snapshot",
+      "review_status": "candidate",
+      "related_group": "table_box_order",
+      "review_notes": "Vertauschte Mid-/Footer-Boxzeichen; Issue beschreibt Reihenfolge, Testpatch parametrisiert Header/Footer. Keine Bildbewertung nötig.",
+      "eligible": true
+    },
+    {
+      "id": "rich_2943",
+      "repo": "Textualize/rich",
+      "title": "Clear hashed cache when clearing meta.",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "235a0df7d5870a35c7ec400e6d6f01f2149e4a888b0aa8b5572b79272b6a40a2",
+      "source_text_sha256": {
+        "problem_statement": "26bc712e8fadf7d06e5af656550431890d88ead2657cf3658c8129a3a02545f7",
+        "patch": "cc151ccf40c192906c9e12bd8129676f3bbc051d955018495980c1aa95c040e0",
+        "test_patch": "963f731abc2221032a9ab64b1d76f83521ac1028a9ba929813c72bc447974c87"
+      },
+      "production_paths": [
+        "rich/style.py"
+      ],
+      "test_paths": [
+        "tests/test_style.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 14,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_2943",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3006",
+      "repo": "Textualize/rich",
+      "title": "Fixed issue with custom classes (fixes #2875)",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "fa671b779a5d0134cd099c2e2ffbda7cdaba33eaf859804388ae7c045bf29c06",
+      "source_text_sha256": {
+        "problem_statement": "2fbae07738ce28407a469dc89bc225ed0dc35ea855aff297e4805d011ad2799a",
+        "patch": "731a4ffb59366175221c575531e32b0ff8fbe63b4fa736f9f5d77329d8d969b1",
+        "test_patch": "673c658748bdc78065b652198cd96d87d45dcffaa2562e9612e5fc0b0091a83b"
+      },
+      "production_paths": [
+        "rich/repr.py"
+      ],
+      "test_paths": [
+        "tests/test_repr.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 40,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3006",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3043",
+      "repo": "Textualize/rich",
+      "title": "Fix the HTML export template",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "7afdef0407804f3e28ec6f080024c70e8fb42d9ffa2c6fea4ed9d2f38d66592f",
+      "source_text_sha256": {
+        "problem_statement": "2741bd59cfdee6e332def1f83e6a662228667324a199dc3bb2f1be092c981d2f",
+        "patch": "9126adabc4d10d2a9378accb74f04f18d3ca0ed59ab10ac46d499de94599f448",
+        "test_patch": "9dd80b57b1a71590de3c60502d414c05bc506ba93dd58c09832a0db9d96726f2"
+      },
+      "production_paths": [
+        "rich/_export_format.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 6,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3043",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3052",
+      "repo": "Textualize/rich",
+      "title": "Case insensitive prompt choices",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "9a22d8ae1ed0ad73bc1cd08f3d37fc5e0b449d05058b018b75ba9b2f5bea5184",
+      "source_text_sha256": {
+        "problem_statement": "ee28e2b6527b67a12170d7289f2c625a11b210d801d09fa09de9e278d4c58a94",
+        "patch": "4572b6549b48eaae8b36a9c00d5859d2f4d7d22ceffb26eae3b7f7f8cf6ac051",
+        "test_patch": "1d6a15b325059b2c782f2925cee8041aa75fe8139df16dfd31137d3ce1ba9e45"
+      },
+      "production_paths": [
+        "rich/prompt.py"
+      ],
+      "test_paths": [
+        "tests/test_prompt.py"
+      ],
+      "production_changed_lines": 34,
+      "test_changed_lines": 20,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "terminal_rendering",
+      "change_kind": "feature",
+      "test_scope": "in_process_integration",
+      "review_status": "conditional",
+      "related_group": "case_insensitive_prompt",
+      "review_notes": "case_sensitive=False für Auswahlprompts, bestehendes Defaultverhalten erhalten und originale Auswahl zurückgeben; Feature statt Reparatur kennzeichnen. Der private Test ruft case_sensitive=False vor der Erweiterung direkt auf (TypeError). Das aktuelle Assertion-Rot-Gate akzeptiert dies nicht; vor Aufnahme unabhängige fachliche Rotklassifikation klären.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3061",
+      "repo": "Textualize/rich",
+      "title": "Extend tabs with styles",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "71c47aa349276bb58e319969a81f19a033c26424e828c47708e01c8baec627e2",
+      "source_text_sha256": {
+        "problem_statement": "6ca6e343aa9bc28cd145784021538c438c496df290aa6559595134d21f0a7e3a",
+        "patch": "96fed1d34cb7fa59f26835cc67e1bda60bf668f628fec96712fe62e88d2e7d81",
+        "test_patch": "0a479067ff96e102580334204bcb9d44dd364e1f03b23d72c0fc9b0642e7797d"
+      },
+      "production_paths": [
+        "rich/text.py"
+      ],
+      "test_paths": [
+        "tests/test_panel.py",
+        "tests/test_text.py"
+      ],
+      "production_changed_lines": 91,
+      "test_changed_lines": 115,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3061",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3063",
+      "repo": "Textualize/rich",
+      "title": "Fix escaping trailing backslash",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "eb9f58b8db8871be8a2a246caa3e709f59cf05cab10b165bc089fcfc26ea086e",
+      "source_text_sha256": {
+        "problem_statement": "bda18f886b91302917f79ca566864faca4583549e87b78521fd410bf6213b3a3",
+        "patch": "0bbae896103aa81c3a5a4576f75f81f4a396f50a8e94ddfc9fed8ebd03a691c8",
+        "test_patch": "b9b7558250b1c7021181b74793d28a2cf455625618f6c52ff018b03b9af0fa78"
+      },
+      "production_paths": [
+        "rich/markup.py"
+      ],
+      "test_paths": [
+        "tests/test_markup.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 14,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "markup_trailing_backslash",
+      "review_notes": "Markup-Escaping für abschließenden Backslash; Roundtrip und Style-Spans im privaten Test. Exaktes ergänzendes Issue aus externem Link lokal nicht vorhanden.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3064",
+      "repo": "Textualize/rich",
+      "title": "fix for markdown table",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "e6d200b78520800d7e88f60410fa59f3acf9c5814cec51106abdd93e5c790fbb",
+      "source_text_sha256": {
+        "problem_statement": "4f97d9231cfab79678118938df9689dc062e309b83d658a07ce45b62e9ebafd7",
+        "patch": "058789c1c05b9b40b45a6dd3b50bf950595d9f06282ebad3ee89f4c40068960c",
+        "test_patch": "c5c1642ca7b5353f2313cb04807d2a08657d863d96845e704a4e2dfe9aa47215"
+      },
+      "production_paths": [
+        "rich/markdown.py"
+      ],
+      "test_paths": [
+        "tests/test_markdown.py"
+      ],
+      "production_changed_lines": 17,
+      "test_changed_lines": 8,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3064",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3067",
+      "repo": "Textualize/rich",
+      "title": "Allow tilde in URL (fixes #3057)",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "a466d393df303ecb2cb7538c3f40d8eef864cf9c56369291331338676bfae1ea",
+      "source_text_sha256": {
+        "problem_statement": "ea985d37520edcb0519908a6ae8c0907e5729c6c10d88614e7a170afbbb7846e",
+        "patch": "686b632d94973a8399f4aaca287adf77c0950f187fa67f6ce05d7004d9b7752e",
+        "test_patch": "cb9274e5d6a43933751fd437e32b40ad314f8f5bd1f5f417a1a0cbe7a7c9427b"
+      },
+      "production_paths": [
+        "rich/highlighter.py"
+      ],
+      "test_paths": [
+        "tests/test_highlighter.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 10,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "url_tilde_highlight",
+      "review_notes": "Tilde im URL-Highlighter akzeptieren; prüfbare Zeichenpositionen/Spans, weder Browser noch Netzwerk erforderlich.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3105",
+      "repo": "Textualize/rich",
+      "title": "Fix #3104",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c27e6a3c50feff404f0bdb367e1ddc730d53bddac985ae3278cadac1c9375d77",
+      "source_text_sha256": {
+        "problem_statement": "4b28933ec2d62470ce3cd0a26277040c6143856cdf4c4cf9dc8bc8b3c9f56d2b",
+        "patch": "f664e52a7f6219202ec74130730face6396cfe36b553d4a9563f9e8b49b160af",
+        "test_patch": "6cc26627c7a31b85f52c611c6571d9cf1331b2d0184f5af7568ce17bcd429e4e"
+      },
+      "production_paths": [
+        "rich/_export_format.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 6,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3105",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3130",
+      "repo": "Textualize/rich",
+      "title": "Fix markdown table rendering issue with inline styles/links",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ff4f1e017b68dab90c6b9055fcfc47b86aa9697d16c7dbb60e29d8d3bd3337f3",
+      "source_text_sha256": {
+        "problem_statement": "452bde079727e28fb510b51d360e3db7a652977f698f6e74a648ce1e2404c16c",
+        "patch": "f51a83ea4fed0d343eee89def13265b14819fccc387cd856e2968e08d11e2384",
+        "test_patch": "f35f5670f665bf16748fc1cede401403e5065084e0224d19618e92cbc0f83928"
+      },
+      "production_paths": [
+        "rich/markdown.py"
+      ],
+      "test_paths": [
+        "tests/test_markdown.py"
+      ],
+      "production_changed_lines": 12,
+      "test_changed_lines": 37,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3130",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3180",
+      "repo": "Textualize/rich",
+      "title": "Fix double-width characters disappearing when wrapping",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "50663e5a2880ee987c2f4a87a8cb1a35c70720b982bd30132ce465267a74f753",
+      "source_text_sha256": {
+        "problem_statement": "89a303adaec10f4d093575754970a08077219edbd3a50f2d215060d96b8dda4c",
+        "patch": "85413844dc9eff1810d7fe36dd06ad54e3392c6fa593ce52ca03e1dbb678647b",
+        "test_patch": "53d9a0fe406b6db1d8c52de59480ebcb185a00f267236f9f1368c9c15398fa3c"
+      },
+      "production_paths": [
+        "rich/_wrap.py",
+        "rich/cells.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py",
+        "tests/test_text.py"
+      ],
+      "production_changed_lines": 127,
+      "test_changed_lines": 85,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3180",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3278",
+      "repo": "Textualize/rich",
+      "title": "Strip problematic private escape sequences",
+      "split": "pilot",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3f9f7eb1d6e0fb68580e8682a3b6057840277f9b8100e11aa97842dc5b9a2d0b",
+      "source_text_sha256": {
+        "problem_statement": "665a4e2e3fc95e55e496f73945d905a5a0df5e30335fcf387b61655c41155b1d",
+        "patch": "818fb8278426a8d201b2b8f9df8751e1612f6f468f9a7a2c3a4366e02756b07f",
+        "test_patch": "d0d7c1a9934d393a56e5ea86b7e06c603deb63b399c77740982945ee743ff047"
+      },
+      "production_paths": [
+        "rich/ansi.py"
+      ],
+      "test_paths": [
+        "tests/test_ansi.py"
+      ],
+      "production_changed_lines": 1,
+      "test_changed_lines": 14,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "render_snapshot",
+      "review_status": "candidate",
+      "related_group": "private_ansi_escape",
+      "review_notes": "Private ESC-Codes 0..? entfernen; Issue nennt Bereich und Auswirkung, parametrische Konsolenbelege im Speicher möglich.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3296",
+      "repo": "Textualize/rich",
+      "title": "fix(syntax): include padding with background color override",
+      "split": "pilot",
+      "original_split": "pilot",
+      "snapshot_present": true,
+      "source_record_sha256": "03a4190275d2cc0b8b44b6de39b078a0d2c58e4dd4ef165cde3702251901834d",
+      "source_text_sha256": {
+        "problem_statement": "ed0e6d81e3105d50e38138f8fe37e22ea04847e1391fe4b3146779afb74b2bb8",
+        "patch": "a6e10cc0fdc322b1c54ddf18714ae40e4ab48faf9dbddcdc1757764826eb2c40",
+        "test_patch": "fa97d0515b72c0ea79f662030817e60e9f48290dd38faf711b10f7872a452395"
+      },
+      "production_paths": [
+        "rich/syntax.py"
+      ],
+      "test_paths": [
+        "tests/test_syntax.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "terminal_rendering",
+      "change_kind": "bugfix",
+      "test_scope": "render_snapshot",
+      "review_status": "conditional",
+      "related_group": "syntax_background",
+      "review_notes": "Code und Test zeigen Padding mit Hintergrundfarbe; Issue verweist für das Sollbild nur auf Screenshots. Vor Pilot gleiche textuelle Anforderung für beide Agenten festhalten.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3454",
+      "repo": "Textualize/rich",
+      "title": "Fix [BUG] @ breaks highlighting in hyperlink #3327",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "000c6ba9d910e9691e48c94d6bfe40c8c53487c4273e4e7ff418687084bd16f8",
+      "source_text_sha256": {
+        "problem_statement": "639bc5bc96c7559f1730b37d19f9b8142c8133f05d98400e0928991342ad5b5e",
+        "patch": "c3ea18dca9a8a0fd50640c8b3d881fe41115421cf3fb1c0c48ed5ffd12cf85b7",
+        "test_patch": "64857f4f2619c156100d4ad2ff5432282ed6f77931043f20230b24e16b7d3459"
+      },
+      "production_paths": [
+        "rich/highlighter.py"
+      ],
+      "test_paths": [
+        "tests/test_highlighter.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 1,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3454",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3468",
+      "repo": "Textualize/rich",
+      "title": "handle broken pipe",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "523d844ab48344cace31af99adaa919e0c7de031499ad9c2b918ee0bed7515fe",
+      "source_text_sha256": {
+        "problem_statement": "1ea0f160a84888a4e6d5ca55211a9703f2165f8addfe043ab8a0860b97702a32",
+        "patch": "a15ee1276254aa0caae2edb1e27029d5fdc0f806f9045040fa9df9dcd91fd5bc",
+        "test_patch": "7edec35faefa8491e20405a81c0ccbc5f9116acd00ea2443f4e73f963bb605a4"
+      },
+      "production_paths": [
+        "rich/console.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 42,
+      "test_changed_lines": 21,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "lifecycle_state",
+      "change_kind": "mixed",
+      "test_scope": "subprocess_posix",
+      "review_status": "conditional",
+      "related_group": "broken_pipe",
+      "review_notes": "BrokenPipe behandeln und stdout umleiten; privater Test benötigt python/head und kann mit return ohne Prüfung enden. Fixture-Eignung und Soll-Exitcode vorher klären.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3469",
+      "repo": "Textualize/rich",
+      "title": "fix superfluous space",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "ac9e5c430ada4833e230a24791072382cd58a12bd4cc966360b8872047df4afc",
+      "source_text_sha256": {
+        "problem_statement": "044312ca2639804c606120b74c48348f304f15ca200eafed842fe69ad5b76284",
+        "patch": "2a320d963928932238a8222b906a0b040179f7b4693685907ce3d2bd1766b523",
+        "test_patch": "59f6ea7908a3051c504e508bd2290f36081bc6bbcf7e1bed444641f09789103b"
+      },
+      "production_paths": [
+        "rich/markdown.py"
+      ],
+      "test_paths": [
+        "tests/test_markdown.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 31,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3469",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3470",
+      "repo": "Textualize/rich",
+      "title": "Fix record and capture",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "0a566c1f68ca8cf9ea449416930220bf0827575c1176379c8e245df6814cce8b",
+      "source_text_sha256": {
+        "problem_statement": "c21af98581b8aa1f8e0ae37a7e918c329fd7b782521801bc875ba2afd50935b1",
+        "patch": "b46d716e819b8074b0858dc391c25cb78e01ffa7a067189ae1d4f81f3428736e",
+        "test_patch": "b82d536b93b2c90b121180b19f86b7280bc1293945581b7081998e245ce4be0a"
+      },
+      "production_paths": [
+        "rich/console.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 38,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3470",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3471",
+      "repo": "Textualize/rich",
+      "title": "Fixed exception in append_tokens",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "f62e282974b1c85a4d84bdf90a4f7c23112d9ee026cd2ad52b6df39f032cf4f9",
+      "source_text_sha256": {
+        "problem_statement": "a1dbba47d25327bcc1c7b76d7c004b6e67a29f9260830a9af647175eb7a8041a",
+        "patch": "c87863022f913cb942db5c8dd057db2b522e72faea88e7c2bbca79016275bf8c",
+        "test_patch": "9da35e149b366ded2dfbe3a3f2934658611d49796e6bd3a2abb7e1883c16d349"
+      },
+      "production_paths": [
+        "rich/text.py"
+      ],
+      "test_paths": [
+        "tests/test_text.py"
+      ],
+      "production_changed_lines": 1,
+      "test_changed_lines": 20,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3471",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3472",
+      "repo": "Textualize/rich",
+      "title": "fix for missing field in dataclass",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "447b1ba3cd38df405fc75b8beb657e9a4b2acf01c41e79580a21834504042c5e",
+      "source_text_sha256": {
+        "problem_statement": "207102154adb7619f6ebab4cc995eac6808cd2cdbc523cb341c0f17eba9b6e64",
+        "patch": "cd5e7f0c4bd8a5cc34692579a2efcb75987819887c24b6f3b47a668a8f87a6b3",
+        "test_patch": "779166fda29a9f435441d66afa8f86a141dfaf482a38d45128ebbf7d06551e79"
+      },
+      "production_paths": [
+        "rich/pretty.py"
+      ],
+      "test_paths": [
+        "tests/test_pretty.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 20,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "dataclass_missing_attribute",
+      "review_notes": "Referenz filtert repr-Felder ohne Attribut bei init=False. Lokales Issue enthält nur Titel/Link; Anforderung vor Zulassung textuell vervollständigen.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3480",
+      "repo": "Textualize/rich",
+      "title": "fix infinite loop in append",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "bdb92eb1b7bfb85c8ccd7ebcb47730a1c5fd38842bfd9a7ba4abe454b24fce0d",
+      "source_text_sha256": {
+        "problem_statement": "df3f42eb4a66d62f831ee80f426c6410cf9639eba455bbdf13794c81c61bf579",
+        "patch": "223da917b0a08a8e15cc89fc3d5e5ad5ac1f12e56742229acd9da32b869bfce1",
+        "test_patch": "ba3b739fdd7a97613957d275284707a0fce275c5b1c625b98bd41c8b5452db35"
+      },
+      "production_paths": [
+        "rich/text.py"
+      ],
+      "test_paths": [
+        "tests/test_text.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 11,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3480",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3486",
+      "repo": "Textualize/rich",
+      "title": "report fine grained error locations",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "f9d4fdaf7834084a72d41daedcc28a6a3076f58ed63bf0094325531e7b25dbdb",
+      "source_text_sha256": {
+        "problem_statement": "7e4d4dcbd069411432b3205183055672f18efc7fbdabac6f5f39c7b1ea7f04cb",
+        "patch": "36dd947a60c2d77d77d2bc010e9576a1fefea5259c55b720014fe74da4cc0c87",
+        "test_patch": "ec56c0e601315ea5cd7c8f1302cb92216060bc3791262aa8550eaa64c95a7ec3"
+      },
+      "production_paths": [
+        "rich/default_styles.py",
+        "rich/syntax.py",
+        "rich/traceback.py"
+      ],
+      "test_paths": [
+        "tests/test_traceback.py"
+      ],
+      "production_changed_lines": 98,
+      "test_changed_lines": 31,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3486",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3506",
+      "repo": "Textualize/rich",
+      "title": "fix split cells",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "2756b6aa999bd2d099e2e57db3f8b63535ae835feca627e1c4769feb0bcec6ed",
+      "source_text_sha256": {
+        "problem_statement": "365222fa8c25b80c45376a99929ea0e8c927c2034f4e494b60b3dbce237963bb",
+        "patch": "55cf396bffac014286ef76f179d3fa79b34eb1b2d42a4d0bc95109b8e199bd0b",
+        "test_patch": "5d403a6c52ac2938a3b08c22b4c6b8a6eef2148557b6eb618fbdf1778b2856a7"
+      },
+      "production_paths": [
+        "rich/segment.py"
+      ],
+      "test_paths": [
+        "tests/test_segment.py"
+      ],
+      "production_changed_lines": 17,
+      "test_changed_lines": 29,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3506",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3518",
+      "repo": "Textualize/rich",
+      "title": "fix(table): highlight columns added by add_row",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "46c207066c40139209ca334a819cb37b832c8f842d5f015a2fb5137dd27d3c4c",
+      "source_text_sha256": {
+        "problem_statement": "2f3e0130ffd5555a05bdfcaa58bacc4194282d0a4104c69125cbfdbbfc0aa2a4",
+        "patch": "aa2bf52dca288a80aea7b399195b05703bd14ae6428cbc44178c462c3a50eb27",
+        "test_patch": "c12456bce16888b74a5164705e1b0cd98d5d2b5e2139c660016958894935f30a"
+      },
+      "production_paths": [
+        "rich/table.py"
+      ],
+      "test_paths": [
+        "tests/test_table.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 19,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3518",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3521",
+      "repo": "Textualize/rich",
+      "title": "Segment.split_cells fix",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "973a7fabc4a0ed4b4ac82faeb0b587f7e71272bc21aa92501a49d27594f42a28",
+      "source_text_sha256": {
+        "problem_statement": "d057526390bd9a42aba47b69c5069872a95a73172b8ac9236f34f24680b4556e",
+        "patch": "7af1bc2e07aa30322cbabb9373429f1beef2ac2d33e86a3fb9331e0af97ac080",
+        "test_patch": "c928e6adf05a69f381e3cce3ad476b4d6d9910fa376d536bbfcdbc50e596359d"
+      },
+      "production_paths": [
+        "rich/segment.py"
+      ],
+      "test_paths": [
+        "tests/test_segment.py"
+      ],
+      "production_changed_lines": 35,
+      "test_changed_lines": 26,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "unicode_algorithms",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "split_wide_cells",
+      "review_notes": "Zellgrenzen in gemischtem CJK-Text; privater Test prüft jede Schnittposition. Lokale Aufgabe nennt Sollverhalten nur über externe Referenz.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3535",
+      "repo": "Textualize/rich",
+      "title": "Regex error",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "6b608217e82b0b73e6e9c5ee83f3e7e3c5e915630b3d41b2f6f5a097d29c8538",
+      "source_text_sha256": {
+        "problem_statement": "42f1ddb701bb41b3a7af24d6b308994bae1cba92d77a51f27fb48d48139c9f8f",
+        "patch": "0544c4e93a27df1966eba759a2c9a1f83355ef22bdab938c2cf7c52a778d749a",
+        "test_patch": "053e9b441d3b9bef3c029a1d4583eb95bd9f408fcb2fced68d42d4220ebc7db5"
+      },
+      "production_paths": [
+        "rich/cells.py",
+        "rich/segment.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py"
+      ],
+      "production_changed_lines": 8,
+      "test_changed_lines": 22,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3535",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3675",
+      "repo": "Textualize/rich",
+      "title": "TTY_COMPATIBLE",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "9ed2a7660a4250bcbbe3e95fad21532c137363d7247e5e8bdecf9fa2cee98bf1",
+      "source_text_sha256": {
+        "problem_statement": "e6e5bd894970416a63c474874fc942030255fd5e9cc6a5ef8b268618d6cd54de",
+        "patch": "93fc6d5ea9e90f22299a5a1e627e9ff04381e4fd255433746876c8d856087bfe",
+        "test_patch": "b6b8a2071b0ec5bcd2099c4eefaae462bdcf97f7b152a1b2fe5c9c69a40cd855"
+      },
+      "production_paths": [
+        "rich/console.py",
+        "rich/diagnose.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 41,
+      "test_changed_lines": 236,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3675",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3676",
+      "repo": "Textualize/rich",
+      "title": "Notes",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "2f2ad18bd0a515d6818dfaf32d851feadd590af8b569403667fa674abf6f13b6",
+      "source_text_sha256": {
+        "problem_statement": "a9668a4362d63ecec03005f2df78008f7d248d81b14c5929ec32a1f63187f7b4",
+        "patch": "be7506ee8c365603c29d77b08dc7b8a3ba7406f623dfea338cfb54f19b2ad34e",
+        "test_patch": "41903afad5cde1752deff99e13384483984d3772e2e9be0174339556c66ca8e0"
+      },
+      "production_paths": [
+        "rich/default_styles.py",
+        "rich/traceback.py"
+      ],
+      "test_paths": [
+        "tests/test_traceback.py"
+      ],
+      "production_changed_lines": 13,
+      "test_changed_lines": 15,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "exceptions_diagnostics",
+      "change_kind": "feature",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "exception_notes",
+      "review_notes": "Exception.__notes__ erfassen und darstellen; Python >=3.11. Privater Test prüft extrahierte Notizen, nicht die gesamte Darstellung. Der private Test greift auf das zuvor fehlende notes-Attribut zu (AttributeError). Das aktuelle Assertion-Rot-Gate reicht für diese Feature-Einführung nicht.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3718",
+      "repo": "Textualize/rich",
+      "title": "fix(panel): fix title missing panel background",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3d814194bb7ec903772b41009aa75f70c2bcf28f70a96bd902b98338c753410c",
+      "source_text_sha256": {
+        "problem_statement": "ddc10c80d2e7e6deac0d568d5cd1c6fa63ec8c475bf05978ef56319d0aa7b1fc",
+        "patch": "195cf14eaeab8ad61328f08bf1f2e6ee19420d40b4d3cdcc8f206f21ca13bba4",
+        "test_patch": "ebfea4051dbb8386d807db9b0fdc47fdaa742afc33d016096ebda54eed3d6aa1"
+      },
+      "production_paths": [
+        "rich/panel.py"
+      ],
+      "test_paths": [
+        "tests/test_panel.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 48,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3718",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3772",
+      "repo": "Textualize/rich",
+      "title": "Fix traceback recursion",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "8dddf458b68ac50639ed060dc69ce5c3ef7f74303a95f3d5683cc6025505cf26",
+      "source_text_sha256": {
+        "problem_statement": "0a3d32363483d3804ec3ea08009e1b5f4ac45147cbc9f79e4d0c3272ef795db3",
+        "patch": "28e6ecad3c04b8cebbf03047810592cca54c77faa4f7cd42498d5351b54a0cbb",
+        "test_patch": "0f7a0bf7c8a0c6f1d8614c961305118828957b69b65e2072adc045b41f3e90eb"
+      },
+      "production_paths": [
+        "rich/traceback.py"
+      ],
+      "test_paths": [
+        "tests/test_traceback.py"
+      ],
+      "production_changed_lines": 45,
+      "test_changed_lines": 24,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3772",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3777",
+      "repo": "Textualize/rich",
+      "title": "TTY_INTERACTIVE env var",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c684beabb73a4af8ac3fcaf82b39d87f8fcba0bbcb9539658acd737db2ee83c5",
+      "source_text_sha256": {
+        "problem_statement": "44a2858054c7733850ba8a34626ccbca5023ec18ed1ff8a62ecd68a796b3583f",
+        "patch": "f270e8518ecd4d25a5c933d970901ff6ebe71baf844be520b15e98cb24d62f8b",
+        "test_patch": "db4c780ce9f1a3f076df1a4018f468cdcbf3c8d0247c999b748112e21d41f121"
+      },
+      "production_paths": [
+        "rich/console.py",
+        "rich/diagnose.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 13,
+      "test_changed_lines": 25,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "filesystem_configuration",
+      "change_kind": "feature",
+      "test_scope": "filesystem_env",
+      "review_status": "candidate",
+      "related_group": "tty_interactive_env",
+      "review_notes": "TTY_INTERACTIVE=0/1 und Priorität expliziter Optionen; Testpatch enthält eine Konstruktion ohne anschließende Assertion. Zusätzliche unabhängige Prüfabdeckung nötig.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3782",
+      "repo": "Textualize/rich",
+      "title": "Syntax padding",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "6c198787ccc41501f305d86a81be429747e4d201625c7a6f529b6a57a5122d27",
+      "source_text_sha256": {
+        "problem_statement": "8a053cddd1eac562d3e734b24a17a5d4d9dd27cb2a6532f689654de63081cb6f",
+        "patch": "868b4ad7693e9fe19421bc31704dfaba09b6ed988859f2f5080beb3431a7b4a3",
+        "test_patch": "f13d267fc64747e2be686d089b991d7ccdcbd630849574d248cb2fb7bb110702"
+      },
+      "production_paths": [
+        "rich/syntax.py"
+      ],
+      "test_paths": [
+        "tests/test_syntax.py"
+      ],
+      "production_changed_lines": 29,
+      "test_changed_lines": 66,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3782",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3882",
+      "repo": "Textualize/rich",
+      "title": "Fix raw markup printed on prompt errors sometimes",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "949f6060628c1d2fafecccdcca8ccb14d487289fd85a4d4afffc1c49c94c5250",
+      "source_text_sha256": {
+        "problem_statement": "367da9ab633626d292b1bad19c72c557bbd628629448a093587fafd6466474f1",
+        "patch": "7ecfc850b865ae7775eb0d7d289ca85102b699b990b55304392a3ba740e0878c",
+        "test_patch": "c69450626f78fa26ff80cef304e74e277589abd1322e256503f3470ba8e62098"
+      },
+      "production_paths": [
+        "rich/prompt.py"
+      ],
+      "test_paths": [
+        "tests/test_prompt.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 13,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "terminal_rendering",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "review_status": "candidate",
+      "related_group": "prompt_markup",
+      "review_notes": "Promptfehler müssen Markup trotz global markup=False rendern; Eingabe und Konsolenausgabe im Speicher prüfbar.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3894",
+      "repo": "Textualize/rich",
+      "title": "Handle unusual __qualname__ in inspect",
+      "split": "measurement",
+      "original_split": "measurement",
+      "snapshot_present": true,
+      "source_record_sha256": "456e7cb9d1858ff4c1bf98cae9b88abebd7049a82acaf8fa886315b0ca1beab5",
+      "source_text_sha256": {
+        "problem_statement": "7437cdd3b9061fb370c11e511733186b20b1742fa1f247d8425a172b7baed80c",
+        "patch": "8ab1b40120fe99a9eb9854807dbdaf9d493a3787266d7702f9a4f831e17e8cb6",
+        "test_patch": "db302b8777b0c0868dd44a0f6691b75daf8a85a3c2fd89d917861ac9b13283ca"
+      },
+      "production_paths": [
+        "rich/_inspect.py"
+      ],
+      "test_paths": [
+        "tests/test_inspect.py"
+      ],
+      "production_changed_lines": 4,
+      "test_changed_lines": 13,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "python_protocols",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "candidate",
+      "related_group": "inspect_qualname",
+      "review_notes": "Nicht-stringförmiges __qualname__ bei Deskriptoren; privater Test prüft vor allem Absturzfreiheit, nicht sämtliche Fallback-Zweige.",
+      "eligible": true
+    },
+    {
+      "id": "rich_3905",
+      "repo": "Textualize/rich",
+      "title": "Update progress.py",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "0e4cce8b812b9a6c18189dfe66f0da10c2272109e61f5f10a1b6377630338bb9",
+      "source_text_sha256": {
+        "problem_statement": "fd2aec0741e120b2944201bce5a65031be31cac801701029c5110f03c748e441",
+        "patch": "1ee7c13f1a1b8d67925206a701c8a19472526b653611387e127f1d350b0aae5c",
+        "test_patch": "ba1f14df110cee68ba782cfb1f3088cd20a446e19c8aba0aad7e6de7207ea2d0"
+      },
+      "production_paths": [
+        "rich/progress.py"
+      ],
+      "test_paths": [
+        "tests/test_progress.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 24,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3905",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3930",
+      "repo": "Textualize/rich",
+      "title": "Handle graphemes",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "273b5ed6e9e12c679ba980d3464039f7ccc58b87899b310fbc8b6d39f61b402a",
+      "source_text_sha256": {
+        "problem_statement": "ea38ad9773c0311e07034a422cdaead58cb2206412fe76214206deffb73b27e0",
+        "patch": "39f04c89376da3268f751a3d7fc20e7422d8bf1c0026f23dc92898addb1a1e03",
+        "test_patch": "012ad7e80bd653dcd5e7d89a299ef9a3f21fdfc8e473f287a7845b0a256be009"
+      },
+      "production_paths": [
+        "rich/__main__.py",
+        "rich/_cell_widths.py",
+        "rich/_unicode_data/__init__.py",
+        "rich/_unicode_data/_versions.py",
+        "rich/_unicode_data/unicode10-0-0.py",
+        "rich/_unicode_data/unicode11-0-0.py",
+        "rich/_unicode_data/unicode12-0-0.py",
+        "rich/_unicode_data/unicode12-1-0.py",
+        "rich/_unicode_data/unicode13-0-0.py",
+        "rich/_unicode_data/unicode14-0-0.py",
+        "rich/_unicode_data/unicode15-0-0.py",
+        "rich/_unicode_data/unicode15-1-0.py",
+        "rich/_unicode_data/unicode16-0-0.py",
+        "rich/_unicode_data/unicode17-0-0.py",
+        "rich/_unicode_data/unicode4-1-0.py",
+        "rich/_unicode_data/unicode5-0-0.py",
+        "rich/_unicode_data/unicode5-1-0.py",
+        "rich/_unicode_data/unicode5-2-0.py",
+        "rich/_unicode_data/unicode6-0-0.py",
+        "rich/_unicode_data/unicode6-1-0.py",
+        "rich/_unicode_data/unicode6-2-0.py",
+        "rich/_unicode_data/unicode6-3-0.py",
+        "rich/_unicode_data/unicode7-0-0.py",
+        "rich/_unicode_data/unicode8-0-0.py",
+        "rich/_unicode_data/unicode9-0-0.py",
+        "rich/cells.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py",
+        "tests/test_text.py",
+        "tests/test_unicode_data.py"
+      ],
+      "production_changed_lines": 12714,
+      "test_changed_lines": 190,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3930",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3934",
+      "repo": "Textualize/rich",
+      "title": "empty live",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "08e1953e9d64c0775f62645aeb326e35e7fc0ec5167808af850db4054aaeda52",
+      "source_text_sha256": {
+        "problem_statement": "a6ef01efa86026eef0fe04e879e160c95c5fe4591d78fef627ce1d0e123769c6",
+        "patch": "afa5df648a2695dff3d3641546575f0c13cba2428d73dac884b46170ab2cdf6a",
+        "test_patch": "73302c898d055db02087976179635eeb66480c439a6d199d7588eadeef01eb98"
+      },
+      "production_paths": [
+        "rich/live.py",
+        "rich/live_render.py"
+      ],
+      "test_paths": [
+        "tests/test_live.py"
+      ],
+      "production_changed_lines": 20,
+      "test_changed_lines": 18,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3934",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3935",
+      "repo": "Textualize/rich",
+      "title": "fix for padding width",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "8612d3e2866ec347270848475504fd07074110730ac3a025f3a440844f360cb2",
+      "source_text_sha256": {
+        "problem_statement": "6d50624082250132045026951ea922028b35c0fe24de3067ff09b9e1a9fffa91",
+        "patch": "85c139d462dfbabede769384abdadc60c356c30e19049ea4bb191551a68e46b4",
+        "test_patch": "79baa36293f812d44769e54c003eca8618d056c5d6e7fc0c30c7579f98a85d86"
+      },
+      "production_paths": [
+        "rich/table.py"
+      ],
+      "test_paths": [
+        "tests/test_columns.py",
+        "tests/test_table.py"
+      ],
+      "production_changed_lines": 16,
+      "test_changed_lines": 31,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3935",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3938",
+      "repo": "Textualize/rich",
+      "title": "fix background style with soft wrap",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "e66678104dfd032045002f2d1688275c9fa135db0393103d8dc18461290df6e2",
+      "source_text_sha256": {
+        "problem_statement": "aa3bdeeaeadcac1cca4dfa7557b18c1f0becc450f98cdfe8f1c7f2429e51a223",
+        "patch": "77305fb1afd310ab239fa8dab9b4dacd450eff87332b32bc5d4a59ad49b9dfdb",
+        "test_patch": "13c7265ce8a4a7d0caf7e63098dc94df72ee92be746df07a61d4871058abe40b"
+      },
+      "production_paths": [
+        "rich/console.py",
+        "rich/segment.py"
+      ],
+      "test_paths": [
+        "tests/test_segment.py",
+        "tests/test_text.py"
+      ],
+      "production_changed_lines": 45,
+      "test_changed_lines": 32,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3938",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3942",
+      "repo": "Textualize/rich",
+      "title": "Update to markdown styles",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "4c149baa9afe97170498833b1bd7dfd917f9fff4c3f267f9c24c561754d4d0a4",
+      "source_text_sha256": {
+        "problem_statement": "9aa5848bbc3aaf8fe97182285df7743bfb6846eebd410f300df1c00770cd0351",
+        "patch": "749bb5fd8abf4d2515469c6333c3f42ed3a3621b8994cd8b63e717d447b1c347",
+        "test_patch": "f40301cc51d0fe3422ee42098fb8c3c936b0cc2a99a411b118ceae6951c0135d"
+      },
+      "production_paths": [
+        "rich/default_styles.py",
+        "rich/markdown.py"
+      ],
+      "test_paths": [
+        "tests/_card_render.py",
+        "tests/test_markdown.py",
+        "tests/test_markdown_no_hyperlinks.py"
+      ],
+      "production_changed_lines": 70,
+      "test_changed_lines": 18,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3942",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3944",
+      "repo": "Textualize/rich",
+      "title": "fix fonts",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "519886138b78af9734e7cfb6b01f0ed169cbd972fa2103a69404e48ae0e24502",
+      "source_text_sha256": {
+        "problem_statement": "6c6b08dd4c9c751fca98640b52b6df3417ced6c34e73f45123a656350c24f7df",
+        "patch": "8eb634a8d374bb83d99e3ea5ee5386318d63333f95617100535a27dd5a5050a7",
+        "test_patch": "bcb51d77eaa945803db0d8a347cd33fc926906d8c94012e23801f697999db0c3"
+      },
+      "production_paths": [
+        "rich/cells.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py"
+      ],
+      "production_changed_lines": 2,
+      "test_changed_lines": 6,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_3944",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_3953",
+      "repo": "Textualize/rich",
+      "title": "Fix ZWJ and edge cases",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "372224df28be1bcb37d02cce7faa0c8216b84fc5415bc80da2015853b709ef6b",
+      "source_text_sha256": {
+        "problem_statement": "648942fd86a0da45f4922154fe40f662f27fa5b4f2a0e21824c5f79ebcfaaa0f",
+        "patch": "b7bc9bf69cd089bb92cdab1d8501bb5da8303e5149fadc3d4f0ace4324b3dc64",
+        "test_patch": "2df0d56996d5c59b4ce373bd8a0dedb7470e20d1eb564418dcfbc6fe4aec6ec4"
+      },
+      "production_paths": [
+        "rich/cells.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py"
+      ],
+      "production_changed_lines": 26,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "unicode_algorithms",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "review_status": "conditional",
+      "related_group": "grapheme_zero_width",
+      "review_notes": "ZWJ-Randfälle und nicht druckbare Zeichen; lokales Issue besteht aus Titel und Links. Sollwerte und Python/Unicode-Versionen vor Zulassung festhalten.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4006",
+      "repo": "Textualize/rich",
+      "title": "fix for infinite loop in split_graphemes",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "98eeb26ed20736ea068ecb5d01cdfc29addf007be09b775e1dc783d7a0c78506",
+      "source_text_sha256": {
+        "problem_statement": "28fae6196b2c67989d1ad751a3376902c8f4cc40de5731bf588a9cd21ad42357",
+        "patch": "319fbad81db88182a12d2b59594740b9bddde1b3152416462c28b461080b59dc",
+        "test_patch": "9ddd816d41a69d2ab4c312767a3ea6a0ce07745319d43f4ec70f88d677aa8f75"
+      },
+      "production_paths": [
+        "rich/cells.py"
+      ],
+      "test_paths": [
+        "tests/test_cells.py"
+      ],
+      "production_changed_lines": 45,
+      "test_changed_lines": 38,
+      "technical_admission": "pending",
+      "review_basis": "local issue, reference patch, private test patch",
+      "task_type": "unicode_algorithms",
+      "change_kind": "bugfix",
+      "test_scope": "timeout_termination",
+      "review_status": "deferred",
+      "related_group": "grapheme_zero_width",
+      "review_notes": "Zero-Width-Zeichen können Endlosschleifen erzeugen; Ausgangsrot kann nur Timeout sein und ist im aktuellen Assertion-Rot-Gate nicht zulassungsfähig.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4070",
+      "repo": "Textualize/rich",
+      "title": "perf: reduce Console and RichHandler import time by deferring unused imports",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "5c5397de85d1963e2e4cf4f9fe43e025025e77fb0f6902b0408475e4ee65121d",
+      "source_text_sha256": {
+        "problem_statement": "2c14c423ec863127ae9fe2e4d13bdfe601f4d6762ae4451b8fd6967f6e20e0ae",
+        "patch": "34bb36c1ad55293e2e7996610ba6e6f6281dd5b20e3b36daeecaee7e7ce400dd",
+        "test_patch": "f03185835b98a91393dbefebe80f68c4165b6cdc67b4abcee7985108fe079037"
+      },
+      "production_paths": [
+        "rich/_emoji_replace.py",
+        "rich/console.py",
+        "rich/emoji.py",
+        "rich/logging.py",
+        "rich/protocol.py",
+        "rich/repr.py",
+        "rich/segment.py",
+        "rich/syntax.py",
+        "rich/theme.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py",
+        "tests/test_syntax.py"
+      ],
+      "production_changed_lines": 128,
+      "test_changed_lines": 6,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_4070",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4075",
+      "repo": "Textualize/rich",
+      "title": "empty with end",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "47af446a22084bf0362cc49ff90c0905d3daf82a03108c4b915641fdf5416d3b",
+      "source_text_sha256": {
+        "problem_statement": "6f234f9b0aa874957de7408cebf4c02df8b2dee5fb1e25aaaeb50f2a139f54e8",
+        "patch": "80bbf60b53144c66090f137fe45a2474f8cf724f66df874a32e45225983e8d06",
+        "test_patch": "3389014f09744e8e9adcf053ee15807a1df97b262606e9efc4931982bbcc368c"
+      },
+      "production_paths": [
+        "rich/console.py"
+      ],
+      "test_paths": [
+        "tests/test_console.py"
+      ],
+      "production_changed_lines": 15,
+      "test_changed_lines": 6,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_4075",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4076",
+      "repo": "Textualize/rich",
+      "title": "preserve newlines",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "d43dd1e74b68dfbc7690c9f6e0074f3d47ada0aaca716d8afa1e3fdfa298376a",
+      "source_text_sha256": {
+        "problem_statement": "2bf2ca18a8acecc33efe588dc18eac85e0db57ac79b819664d66d8e59af8b6c0",
+        "patch": "dd1e5fdc515929ef5af7aacc819ee8a3b1d5cdc2a0521c402b0b582aab863ae5",
+        "test_patch": "e06b8733eb2358c0f539992f35809a4b338e94b99bdbe9960f594e4d69a3dee1"
+      },
+      "production_paths": [
+        "rich/ansi.py"
+      ],
+      "test_paths": [
+        "tests/test_ansi.py"
+      ],
+      "production_changed_lines": 6,
+      "test_changed_lines": 26,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_4076",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4077",
+      "repo": "Textualize/rich",
+      "title": "proxy isatty",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "3cb9dc82be18cee59b3323994d5f00d5c8972448ba560ec2a745cf146e037ef3",
+      "source_text_sha256": {
+        "problem_statement": "44860aa2cc716bfa3e4fe9ee43f18663fc8574ebbb0574df3e3f8b99750f29e9",
+        "patch": "69e4739e0ffdd1a17511a4955ab19609317580024aacd85f78eabf1641df4fe5",
+        "test_patch": "9e59b129366762fa4986a14823f0efdbae9f9852247bc066f37b16bc10cfb47b"
+      },
+      "production_paths": [
+        "rich/file_proxy.py"
+      ],
+      "test_paths": [
+        "tests/test_file_proxy.py"
+      ],
+      "production_changed_lines": 3,
+      "test_changed_lines": 17,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_4077",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    },
+    {
+      "id": "rich_4079",
+      "repo": "Textualize/rich",
+      "title": "Inline table code",
+      "split": "measurement",
+      "original_split": null,
+      "snapshot_present": true,
+      "source_record_sha256": "c5985658ae504fdd7b2b18bc7efb1938768a15a299d04ff8bd260ebfd95ced69",
+      "source_text_sha256": {
+        "problem_statement": "31ddf03091438264fdae54b8d616cd5aaa33913410aaaea11dbfb548175a45d3",
+        "patch": "170bdd568978ee6f74da90eeddb29ef695b75530ed5ff4950ada11edbefd3654",
+        "test_patch": "bb5e0f85e98a429ff96b14557f6799bee761ec9cc2c771ff4dfb33b2386799c7"
+      },
+      "production_paths": [
+        "rich/markdown.py"
+      ],
+      "test_paths": [
+        "tests/test_markdown.py"
+      ],
+      "production_changed_lines": 7,
+      "test_changed_lines": 16,
+      "technical_admission": "pending",
+      "review_basis": "inventory only",
+      "task_type": "unreviewed",
+      "change_kind": "unreviewed",
+      "test_scope": "unreviewed",
+      "review_status": "unreviewed",
+      "related_group": "rich_4079",
+      "review_notes": "Noch keine semantische Einzelprüfung.",
+      "eligible": false
+    }
+  ]
+}

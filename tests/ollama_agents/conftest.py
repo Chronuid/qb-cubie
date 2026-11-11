@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-COMMON = ROOT / "examples/ollama-agents/common.py"
+COMMON = ROOT / "experiments/ollama-agents/common.py"
 WRITE_SCHEMA = {
     "type": "object",
     "properties": {"files": {"type": "object", "additionalProperties": {"type": "string"},
@@ -41,7 +41,7 @@ def api(monkeypatch):
         nonlocal loaded
         if loaded is None:
             assert COMMON.is_file(), (
-                "Agenten §5.1: examples/ollama-agents/common.py is not implemented yet"
+                "Agenten §5.1: experiments/ollama-agents/common.py is not implemented yet"
             )
             monkeypatch.syspath_prepend(str(COMMON.parent))
             spec = importlib.util.spec_from_file_location("cubie_ollama_agents_common", COMMON)

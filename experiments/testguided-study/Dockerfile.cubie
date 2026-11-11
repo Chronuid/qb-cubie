@@ -1,0 +1,8 @@
+ARG BASE_IMAGE=cubie-study-pytest:local
+FROM ${BASE_IMAGE}
+ARG CUBIE_WHEEL=dist/qb_cubie-0.0.3-py3-none-any.whl
+COPY ${CUBIE_WHEEL} /tmp/cubie-wheel/
+RUN python -m pip install --no-cache-dir /tmp/cubie-wheel/*.whl \
+    && rm -rf /tmp/cubie-wheel
+# The treatment exposes Cubie's testing API, without the historical experiment data.
+RUN python -c "import pathlib, qb_cubie, shutil; root = pathlib.Path(qb_cubie.__file__).parent; shutil.rmtree(root / 'benchmarks'); shutil.rmtree(root.parent / 'ollama_agents'); pathlib.Path('/usr/local/bin/cubie-bench').unlink(missing_ok=True)"

@@ -1,0 +1,102 @@
+{
+  "study_id": "cubie-testguided-measurement-three-hours-v2",
+  "phase": "measurement",
+  "status": "candidates_not_admitted",
+  "source_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+  "available_before_selection": 23,
+  "selection": {
+    "task_count": 5,
+    "seed": 20261111,
+    "task_types": []
+  },
+  "tasks": [
+    {
+      "id": "rich_3882",
+      "split": "measurement",
+      "task_type": "terminal_rendering",
+      "change_kind": "bugfix",
+      "test_scope": "in_process_integration",
+      "related_group": "prompt_markup",
+      "repo": "Textualize/rich",
+      "review_status": "candidate"
+    },
+    {
+      "id": "fastapi_14479",
+      "split": "measurement",
+      "task_type": "exceptions_diagnostics",
+      "change_kind": "diagnostics",
+      "test_scope": "unit",
+      "related_group": "query_type_diagnostic",
+      "repo": "fastapi/fastapi",
+      "review_status": "candidate"
+    },
+    {
+      "id": "requests_6592",
+      "split": "measurement",
+      "task_type": "api_schema",
+      "change_kind": "feature",
+      "test_scope": "unit",
+      "related_group": "status_425_alias",
+      "repo": "psf/requests",
+      "review_status": "candidate"
+    },
+    {
+      "id": "rich_3894",
+      "split": "measurement",
+      "task_type": "python_protocols",
+      "change_kind": "bugfix",
+      "test_scope": "unit",
+      "related_group": "inspect_qualname",
+      "repo": "Textualize/rich",
+      "review_status": "candidate"
+    },
+    {
+      "id": "rich_3777",
+      "split": "measurement",
+      "task_type": "filesystem_configuration",
+      "change_kind": "feature",
+      "test_scope": "filesystem_env",
+      "related_group": "tty_interactive_env",
+      "repo": "Textualize/rich",
+      "review_status": "candidate"
+    }
+  ],
+  "distribution": {
+    "task_type": {
+      "api_schema": 1,
+      "exceptions_diagnostics": 1,
+      "filesystem_configuration": 1,
+      "python_protocols": 1,
+      "terminal_rendering": 1
+    },
+    "change_kind": {
+      "bugfix": 2,
+      "diagnostics": 1,
+      "feature": 2
+    },
+    "test_scope": {
+      "filesystem_env": 1,
+      "in_process_integration": 1,
+      "unit": 3
+    },
+    "repo": {
+      "Textualize/rich": 3,
+      "fastapi/fastapi": 1,
+      "psf/requests": 1
+    }
+  },
+  "runtime": {
+    "tasks": 5,
+    "seeds_per_task": 1,
+    "agent_runs": 10,
+    "agent_budget_hours": 1.6666666666666667,
+    "evaluation_budget_hours": 0.3333333333333333,
+    "reference_and_setup_allowance_hours": 0.6666666666666666,
+    "total_allowance_hours": 2.6666666666666665,
+    "target_hours": 3,
+    "fits_allowance": true,
+    "task_capacity_for_target": 5,
+    "setup_seconds_per_run_assumed": 60,
+    "interpretation": "Planning allowance, not measured runtime or a hard study deadline. Includes baseline/reference checks and one setup allowance per container. Image builds, image probes and manual data admission are additional."
+  }
+}

@@ -17,6 +17,13 @@ Der [SWE-bench-Leitfaden](GUIDE_Benchmark-SWEbench.md) beschreibt den Import
 Der [Nutzenvergleich](GUIDE_Benchmark-Comparison.md) erklärt gespiegelte Aufgaben,
 getrennt anpassbare Cubie-/Pytest-Agenten und die Isolation des Vergleichslaufs.
 
+Die davon getrennte [Testguided-Vergleichsstudie](../experiments/testguided-study/README.md)
+vergleicht zwei lokale Ollama-Agenten mit swegemma, frei überarbeitbaren Tests
+und unabhängiger Lösungsbewertung. Ihr
+[Studienprotokoll](../experiments/testguided-study/PROTOKOLL.md) ist der Einstieg
+für den experimentellen Nutzennachweis; die Produkt-Benchmarkleitfäden beschreiben
+einen anderen Ablauf.
+
 Relative Markdown-Links beziehen sich auf das jeweilige Dokument. Unverlinkte
 Repositorypfade und Shellbefehle beziehen sich, sofern nicht anders angegeben,
 auf die Repositorywurzel. Dateinamen eines beschriebenen Beispielprojekts

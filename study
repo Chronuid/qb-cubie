@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+study_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+study_python="${STUDY_PYTHON:-}"
+if [[ -z "$study_python" ]]; then
+  for candidate in "$study_root/.venv/bin/python" "$study_root/../start-local-devagent/.venv/bin/python" "$study_root/../devagent-comp/.venv/bin/python"; do
+    if [[ -x "$candidate" ]] && "$candidate" -c "import importlib.util; raise SystemExit(importlib.util.find_spec('swegemma') is None)" 2>/dev/null; then
+      study_python="$candidate"
+      break
+    fi
+  done
+fi
+study_python="${study_python:-python3}"
+exec "$study_python" "$study_root/experiments/testguided-study/study.py" "$@"

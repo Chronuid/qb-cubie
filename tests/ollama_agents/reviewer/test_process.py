@@ -27,7 +27,7 @@ def config(process):
 def test_handshake_has_no_inference_or_workspace_side_effects(process, tmp_path):
     path = tmp_path / 'runtime.json'
     path.write_text(json.dumps(config(process)), encoding='utf-8')
-    script = Path(__file__).resolve().parents[3] / 'examples/ollama-agents/reviewer_process.py'
+    script = Path(__file__).resolve().parents[3] / 'experiments/ollama-agents/reviewer_process.py'
     result = accepted(lambda: subprocess.run([sys.executable, '-S', str(script), '--config', str(path)],
                       input='{"schema_version":1,"type":"capabilities"}\n', cwd=tmp_path,
                       capture_output=True, text=True, timeout=5, check=False), expected=lambda value: value.returncode == 0)

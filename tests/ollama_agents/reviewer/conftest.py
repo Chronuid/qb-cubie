@@ -9,13 +9,13 @@ import pytest
 from .support import SOURCES
 
 FIXTURES = Path(__file__).parent / "fixtures"
-ENTRY = Path(__file__).resolve().parents[3] / "examples/ollama-agents/reviewer.py"
+ENTRY = Path(__file__).resolve().parents[3] / "experiments/ollama-agents/reviewer.py"
 
 
 @pytest.fixture
 def reviewer_api(monkeypatch):
     def resolve(**kwargs):
-        assert ENTRY.is_file(), "Agenten §5.2: examples/ollama-agents/reviewer.py is not implemented yet"
+        assert ENTRY.is_file(), "Agenten §5.2: experiments/ollama-agents/reviewer.py is not implemented yet"
         monkeypatch.syspath_prepend(str(ENTRY.parent))
         spec = importlib.util.spec_from_file_location("cubie_ollama_reviewer", ENTRY)
         module = importlib.util.module_from_spec(spec)

@@ -1,0 +1,188 @@
+{
+  "date": "2026-11-11",
+  "version": 2,
+  "purpose": "task_classification_selection_and_infrastructure_validation",
+  "acceptance": {
+    "passed": 30,
+    "duration_seconds": 39.71,
+    "model_responses": "controlled_replay",
+    "command": "CUBIE_STUDY_DOCKER=1 /home/symphonie/PycharmProjects/start-local-devagent/.venv/bin/python -m pytest experiments/testguided-study/tests -q --basetemp=/tmp/cubie-study-types-v2-final"
+  },
+  "catalog": {
+    "source_sha256": "e4b3fd60f69dbc2b9213e54eeb9636db78aefe92c1d06269d73d9f5f8f3c8ad6",
+    "catalog_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+    "total_tasks": 129,
+    "reviewed_tasks": 39,
+    "additional_reviewed_tasks": 24,
+    "review_status_counts": {
+      "unreviewed": 90,
+      "candidate": 26,
+      "conditional": 9,
+      "excluded": 1,
+      "deferred": 3
+    },
+    "eligible_by_phase": {
+      "measurement": 23,
+      "pilot": 3
+    },
+    "technical_admission": "pending for every real task"
+  },
+  "plans": {
+    "pilot": {
+      "source_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+      "task_ids": [
+        "fastapi_9425",
+        "rich_3278",
+        "requests_6589"
+      ],
+      "distribution": {
+        "task_type": {
+          "api_schema": 1,
+          "parsing_encoding": 2
+        },
+        "change_kind": {
+          "bugfix": 2,
+          "compatibility": 1
+        },
+        "test_scope": {
+          "in_process_integration": 1,
+          "loopback_fixture": 1,
+          "render_snapshot": 1
+        },
+        "repo": {
+          "Textualize/rich": 1,
+          "fastapi/fastapi": 1,
+          "psf/requests": 1
+        }
+      },
+      "runtime": {
+        "tasks": 3,
+        "seeds_per_task": 1,
+        "agent_runs": 6,
+        "agent_budget_hours": 1.0,
+        "evaluation_budget_hours": 0.2,
+        "reference_and_setup_allowance_hours": 0.4,
+        "total_allowance_hours": 1.6,
+        "target_hours": 2,
+        "fits_allowance": true,
+        "task_capacity_for_target": 3,
+        "setup_seconds_per_run_assumed": 60,
+        "interpretation": "Planning allowance, not measured runtime or a hard study deadline. Includes baseline/reference checks and one setup allowance per container. Image builds, image probes and manual data admission are additional."
+      }
+    },
+    "three-hours": {
+      "source_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+      "task_ids": [
+        "rich_3882",
+        "fastapi_14479",
+        "requests_6592",
+        "rich_3894",
+        "rich_3777"
+      ],
+      "distribution": {
+        "task_type": {
+          "api_schema": 1,
+          "exceptions_diagnostics": 1,
+          "filesystem_configuration": 1,
+          "python_protocols": 1,
+          "terminal_rendering": 1
+        },
+        "change_kind": {
+          "bugfix": 2,
+          "diagnostics": 1,
+          "feature": 2
+        },
+        "test_scope": {
+          "filesystem_env": 1,
+          "in_process_integration": 1,
+          "unit": 3
+        },
+        "repo": {
+          "Textualize/rich": 3,
+          "fastapi/fastapi": 1,
+          "psf/requests": 1
+        }
+      },
+      "runtime": {
+        "tasks": 5,
+        "seeds_per_task": 1,
+        "agent_runs": 10,
+        "agent_budget_hours": 1.6666666666666667,
+        "evaluation_budget_hours": 0.3333333333333333,
+        "reference_and_setup_allowance_hours": 0.6666666666666666,
+        "total_allowance_hours": 2.6666666666666665,
+        "target_hours": 3,
+        "fits_allowance": true,
+        "task_capacity_for_target": 5,
+        "setup_seconds_per_run_assumed": 60,
+        "interpretation": "Planning allowance, not measured runtime or a hard study deadline. Includes baseline/reference checks and one setup allowance per container. Image builds, image probes and manual data admission are additional."
+      }
+    },
+    "six-hours": {
+      "source_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+      "task_ids": [
+        "rich_3882",
+        "fastapi_14479",
+        "requests_6592",
+        "rich_3894",
+        "rich_3777",
+        "requests_7315",
+        "rich_2725",
+        "fastapi_14349",
+        "requests_7502",
+        "requests_7205"
+      ],
+      "distribution": {
+        "task_type": {
+          "api_schema": 2,
+          "exceptions_diagnostics": 1,
+          "filesystem_configuration": 2,
+          "parsing_encoding": 1,
+          "python_protocols": 2,
+          "terminal_rendering": 2
+        },
+        "change_kind": {
+          "bugfix": 6,
+          "compatibility": 1,
+          "diagnostics": 1,
+          "feature": 2
+        },
+        "test_scope": {
+          "filesystem_env": 2,
+          "in_process_integration": 2,
+          "loopback_http": 1,
+          "render_snapshot": 1,
+          "unit": 4
+        },
+        "repo": {
+          "Textualize/rich": 4,
+          "fastapi/fastapi": 2,
+          "psf/requests": 4
+        }
+      },
+      "runtime": {
+        "tasks": 10,
+        "seeds_per_task": 1,
+        "agent_runs": 20,
+        "agent_budget_hours": 3.3333333333333335,
+        "evaluation_budget_hours": 0.6666666666666666,
+        "reference_and_setup_allowance_hours": 1.3333333333333333,
+        "total_allowance_hours": 5.333333333333333,
+        "target_hours": 6,
+        "fits_allowance": true,
+        "task_capacity_for_target": 11,
+        "setup_seconds_per_run_assumed": 60,
+        "interpretation": "Planning allowance, not measured runtime or a hard study deadline. Includes baseline/reference checks and one setup allowance per container. Image builds, image probes and manual data admission are additional."
+      }
+    }
+  },
+  "synthetic_preflight": {
+    "status": "ready",
+    "manifest_sha256": "e5e0af1ea5e019a09cd70e789411ea7aaee268860d4f061d7848e1327cb0f35b",
+    "model_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+    "swegemma": "0.2.11",
+    "directory": "local/smoke-types-v2-ready"
+  },
+  "new_live_inference_calls": 0,
+  "real_task_performance_measured": false
+}

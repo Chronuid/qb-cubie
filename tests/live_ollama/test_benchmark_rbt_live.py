@@ -47,7 +47,7 @@ def configure(external, endpoint, observed, process):
 
 
 def write_agent(external, runtime, model, capabilities):
-    example = ROOT / 'examples/ollama-agents'
+    example = ROOT / 'experiments/ollama-agents'
     command = [sys.executable, str(example / 'reviewer_process.py'), '--config', str(runtime)]
     lines = ['schema_version = 1', 'transport = "jsonl-v1"', 'id = "ollama-gemma4-reviewer"',
              f'cwd = {json.dumps(str(example))}', f'command = {json.dumps(command)}',
@@ -90,7 +90,7 @@ def real_evidence(external, run):
 
 
 def test_benchmark_ollama_evaluator_and_rbt_form_one_pipeline(external, review_workspace, tmp_path, monkeypatch):
-    monkeypatch.syspath_prepend(str(ROOT / 'examples/ollama-agents'))
+    monkeypatch.syspath_prepend(str(ROOT / 'experiments/ollama-agents'))
     process = importlib.import_module('ollama_agents.reviewer.process')
     endpoint = os.environ.get('CUBIE_OLLAMA_ENDPOINT', 'http://localhost:11434').rstrip('/')
     observed = metadata(endpoint)

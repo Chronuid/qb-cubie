@@ -131,7 +131,7 @@ def test_baseline_startup_rejects_an_image_with_cubie():
 
 
 def test_example_developer_tools_work_when_every_cubie_import_is_blocked(tmp_path):
-    adapter = Path(__file__).resolve().parents[2] / "examples/ollama-agents"
+    adapter = Path(__file__).resolve().parents[2] / "experiments/ollama-agents"
     workspace = tmp_path / "project"
     (workspace / "tests").mkdir(parents=True)
     (workspace / "tests/test_regular.py").write_text("def test_regular():\n    assert 2 + 2 == 4\n")

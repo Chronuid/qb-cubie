@@ -1,0 +1,137 @@
+{
+  "date": "2026-11-11",
+  "purpose": "infrastructure_validation_only",
+  "acceptance": {
+    "command": "CUBIE_STUDY_DOCKER=1 /home/symphonie/PycharmProjects/start-local-devagent/.venv/bin/python -m pytest experiments/testguided-study/tests -q --basetemp=/tmp/cubie-study-integration-final",
+    "passed": 22,
+    "duration_seconds": 39.67,
+    "model_responses": "controlled_replay"
+  },
+  "live_api_probe": {
+    "real_inference_calls": 1,
+    "model": "gemma4:12b",
+    "digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+    "action": {
+      "action": "list_files",
+      "stage": "inspect"
+    },
+    "usage": {
+      "input_tokens": 48,
+      "output_tokens": 15,
+      "cost": null
+    },
+    "duration_seconds": 5.742
+  },
+  "preflight": {
+    "status": "ready",
+    "study_manifest_sha256": "aebfe5c806414cbe7ed7c61d7aaf8748e225b08610ee0719de0afffb406e930a",
+    "reference_outcomes": {
+      "study-smoke-bounds": {
+        "base": {
+          "resolved": false,
+          "available": true,
+          "observation": "assertion_failure",
+          "tests": {
+            "tests/test_bounds.py::test_outside": "fail",
+            "tests/test_bounds.py::test_inside": "pass"
+          }
+        },
+        "gold": {
+          "resolved": true,
+          "available": true,
+          "observation": "pass",
+          "tests": {
+            "tests/test_bounds.py::test_outside": "pass",
+            "tests/test_bounds.py::test_inside": "pass"
+          }
+        }
+      }
+    }
+  },
+  "software": {
+    "swegemma": "0.2.11",
+    "ollama": {
+      "version": "0.40.2"
+    },
+    "host": {
+      "platform": "Linux-6.8.0-147-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3"
+    },
+    "images": {
+      "pytest": {
+        "image_id": "sha256:9a5a38f6941c6ae68d2ed03dfac66d4b469fa5618627baf90d2d369bfbc5398d",
+        "python": [
+          3,
+          13,
+          18
+        ],
+        "pytest": "9.2.0",
+        "cubie": false,
+        "packages": {
+          "iniconfig": "2.3.1",
+          "packaging": "26.3",
+          "pip": "26.2.2",
+          "pluggy": "1.7.0",
+          "pygments": "2.21.0",
+          "pytest": "9.2.0",
+          "setuptools": "84.2.1"
+        }
+      },
+      "cubie": {
+        "image_id": "sha256:6bb89b339e6dfe544296adb56d87cc8d3146716b355baa5576ac09e3e5050a97",
+        "python": [
+          3,
+          13,
+          18
+        ],
+        "pytest": "9.2.0",
+        "cubie": true,
+        "packages": {
+          "cloudpickle": "3.1.2",
+          "iniconfig": "2.3.1",
+          "loky": "3.7.0",
+          "msgspec": "0.22.0",
+          "packaging": "26.3",
+          "pip": "26.2.2",
+          "pluggy": "1.7.0",
+          "pygments": "2.21.0",
+          "pytest": "9.2.0",
+          "qb-cubie": "0.0.3",
+          "setuptools": "84.2.1"
+        }
+      },
+      "evaluator": {
+        "image_id": "sha256:9a5a38f6941c6ae68d2ed03dfac66d4b469fa5618627baf90d2d369bfbc5398d",
+        "python": [
+          3,
+          13,
+          18
+        ],
+        "pytest": "9.2.0",
+        "cubie": false,
+        "packages": {
+          "iniconfig": "2.3.1",
+          "packaging": "26.3",
+          "pip": "26.2.2",
+          "pluggy": "1.7.0",
+          "pygments": "2.21.0",
+          "pytest": "9.2.0",
+          "setuptools": "84.2.1"
+        }
+      }
+    }
+  },
+  "dataset": {
+    "source_sha256": "e4b3fd60f69dbc2b9213e54eeb9636db78aefe92c1d06269d73d9f5f8f3c8ad6",
+    "source_count": 129,
+    "repository_counts": {
+      "Textualize/rich": 48,
+      "encode/httpx": 1,
+      "fastapi/fastapi": 67,
+      "psf/requests": 13
+    },
+    "candidate_count": 15,
+    "admitted_real_tasks": 0
+  },
+  "study_performance_measured": false
+}

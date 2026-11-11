@@ -1,0 +1,78 @@
+{
+  "study_id": "cubie-testguided-pilot-v2",
+  "phase": "pilot",
+  "status": "candidates_not_admitted",
+  "source_sha256": "754e189830f97db5d8ae090998e1c7750536e582d537d8ae6f00797d3807438a",
+  "available_before_selection": 3,
+  "selection": {
+    "task_count": 3,
+    "seed": 20261111,
+    "task_types": []
+  },
+  "tasks": [
+    {
+      "id": "fastapi_9425",
+      "split": "pilot",
+      "task_type": "api_schema",
+      "change_kind": "compatibility",
+      "test_scope": "in_process_integration",
+      "related_group": "string_none_annotation",
+      "repo": "fastapi/fastapi",
+      "review_status": "candidate"
+    },
+    {
+      "id": "rich_3278",
+      "split": "pilot",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "render_snapshot",
+      "related_group": "private_ansi_escape",
+      "repo": "Textualize/rich",
+      "review_status": "candidate"
+    },
+    {
+      "id": "requests_6589",
+      "split": "pilot",
+      "task_type": "parsing_encoding",
+      "change_kind": "bugfix",
+      "test_scope": "loopback_fixture",
+      "related_group": "content_length_versions",
+      "repo": "psf/requests",
+      "review_status": "candidate"
+    }
+  ],
+  "distribution": {
+    "task_type": {
+      "api_schema": 1,
+      "parsing_encoding": 2
+    },
+    "change_kind": {
+      "bugfix": 2,
+      "compatibility": 1
+    },
+    "test_scope": {
+      "in_process_integration": 1,
+      "loopback_fixture": 1,
+      "render_snapshot": 1
+    },
+    "repo": {
+      "Textualize/rich": 1,
+      "fastapi/fastapi": 1,
+      "psf/requests": 1
+    }
+  },
+  "runtime": {
+    "tasks": 3,
+    "seeds_per_task": 1,
+    "agent_runs": 6,
+    "agent_budget_hours": 1.0,
+    "evaluation_budget_hours": 0.2,
+    "reference_and_setup_allowance_hours": 0.4,
+    "total_allowance_hours": 1.6,
+    "target_hours": 2,
+    "fits_allowance": true,
+    "task_capacity_for_target": 3,
+    "setup_seconds_per_run_assumed": 60,
+    "interpretation": "Planning allowance, not measured runtime or a hard study deadline. Includes baseline/reference checks and one setup allowance per container. Image builds, image probes and manual data admission are additional."
+  }
+}

@@ -8,13 +8,13 @@ import pytest
 
 from .support import BASE, CODE_PATH, TASK
 
-ENTRY = Path(__file__).resolve().parents[3] / "examples/ollama-agents/developer.py"
+ENTRY = Path(__file__).resolve().parents[3] / "experiments/ollama-agents/developer.py"
 
 
 @pytest.fixture
 def developer_api(monkeypatch):
     def resolve(**kwargs):
-        assert ENTRY.is_file(), "Agenten §5.3: examples/ollama-agents/developer.py is not implemented yet"
+        assert ENTRY.is_file(), "Agenten §5.3: experiments/ollama-agents/developer.py is not implemented yet"
         monkeypatch.syspath_prepend(str(ENTRY.parent))
         spec = importlib.util.spec_from_file_location("cubie_ollama_developer", ENTRY)
         module = importlib.util.module_from_spec(spec)

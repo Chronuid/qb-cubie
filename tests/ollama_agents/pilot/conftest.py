@@ -8,13 +8,13 @@ import pytest
 
 from .support import pilot_inputs
 
-ENTRY = Path(__file__).resolve().parents[3] / "examples/ollama-agents/pilot.py"
+ENTRY = Path(__file__).resolve().parents[3] / "experiments/ollama-agents/pilot.py"
 
 
 @pytest.fixture
 def pilot_api(monkeypatch):
     def resolve():
-        assert ENTRY.is_file(), "Agenten §5.5: examples/ollama-agents/pilot.py is not implemented yet"
+        assert ENTRY.is_file(), "Agenten §5.5: experiments/ollama-agents/pilot.py is not implemented yet"
         monkeypatch.syspath_prepend(str(ENTRY.parent))
         spec = importlib.util.spec_from_file_location("cubie_ollama_pilot", ENTRY)
         module = importlib.util.module_from_spec(spec)

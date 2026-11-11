@@ -1,0 +1,41 @@
+schema_version = 1
+study_id = "cubie-testguided-measurement-six-hours-v2"
+phase = "measurement"
+tasks = "../tasks-measurement.json"
+seeds = [42]
+order_seed = 20261111
+
+[selection]
+task_count = 10
+seed = 20261111
+task_types = []
+
+[planning]
+hours = 6
+setup_seconds_per_run = 60
+
+[ollama]
+endpoint = "http://localhost:11434"
+model = "gemma4:12b"
+think = false
+temperature = 0.2
+num_ctx = 16384
+num_predict = 4096
+
+[budgets]
+wall_seconds = 600
+model_calls = 24
+tool_calls = 24
+command_seconds = 90
+verification_seconds = 120
+context_bytes = 40000
+output_chars = 12000
+
+[images]
+pytest = "cubie-study-pytest:local"
+cubie = "cubie-study-cubie:local"
+evaluator = "cubie-study-pytest:local"
+
+[guides]
+pytest = "../guides/pytest.md"
+cubie = "../guides/cubie.md"

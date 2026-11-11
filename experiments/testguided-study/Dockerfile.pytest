@@ -1,0 +1,14 @@
+ARG BASE_IMAGE=python:3.13-slim
+FROM ${BASE_IMAGE}
+RUN apt-get update && apt-get install -y --no-install-recommends git patch pigz \
+    && rm -rf /var/lib/apt/lists/*
+COPY experiments/testguided-study/task-requirements.txt /tmp/task-requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/task-requirements.txt
+# swegemma calls this hook before evaluation; task dependencies belong in images.
+RUN mkdir -p /sandbox /workspace && printf 'raise SystemExit(0)\n' > /sandbox/setup.py
+ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 PYTEST_PLUGINS=pytest_httpbin.plugin
+RUN git config --global user.email study@localhost \
+    && git config --global user.name Study \
+    && git config --global init.defaultBranch main
+WORKDIR /workspace
+RUN git init -q
