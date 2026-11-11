@@ -6,6 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .artifacts import MODES, digest, read, verify
+from .iteration import summarize_trials
 from .planning import allowance
 from .selection import distribution
 
@@ -29,6 +30,8 @@ def summarize(root):
         rows.append(row)
     tasks = read(root / "tasks.json")
     return {"study_id": config["study_id"], "phase": config["phase"], "scheduled_runs": len(schedule),
+            "by_design": summarize_trials([{**row, "phase": row.get("phase", config["phase"]),
+                                             "design_id": row.get("design_id", "legacy-unversioned")} for row in rows]),
             "arms": arms(rows), **paired(rows), "task_distribution": distribution(tasks),
             "by_task_type": grouped(rows, "task_type"), "by_change_kind": grouped(rows, "change_kind"),
             "runtime_plan": allowance(config, len(tasks)),

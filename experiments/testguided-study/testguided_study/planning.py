@@ -36,11 +36,11 @@ def plan(config_path, catalog=None):
     source = Path(catalog).resolve() if catalog else config_path.parent / config["tasks"]
     data = read(source)
     if catalog:
-        tasks = [task for task in data["tasks"] if task["split"] == config["phase"] and task["eligible"]]
+        tasks = [task for task in data["tasks"] if task["split"] in ({"pilot", "development"} if config["phase"] == "development" else {config["phase"]}) and task["eligible"]]
         stage = "candidates_not_admitted"
     else:
         tasks = data
-        if any(task["split"] != config["phase"] for task in tasks):
+        if any(task["split"] not in ({"pilot", "development"} if config["phase"] == "development" else {config["phase"]}) for task in tasks):
             raise ValueError("Task splits must match study phase")
         stage = "input_manifest_not_preflighted"
     selected = configured(tasks, config)

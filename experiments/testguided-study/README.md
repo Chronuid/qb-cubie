@@ -106,6 +106,86 @@ Checkout-/Host-Mount. Die Modellverbindung läuft ausschließlich vom Host zu Ol
 Aufgaben- und Evaluatorcontainer haben kein Netzwerk. Generierte Python-Tests
 laufen im jeweiligen Container; die Dateitools allein sind keine Sicherheitsgrenze.
 
+## Weiterentwicklung der Agenten
+
+Der [Designvorschlag zur iterativen Agentenentwicklung](AGENTENDESIGN.md) erläutert
+Pilotbefunde, Architektur und Abnahmeverträge. Neue Freezes verwenden den
+Agentenkern v2 mit Arbeitsledger, Fortschrittsfeedback, begrenzter Aktionsreparatur,
+pfadbezogener Suche und exakt verankerten Änderungen. Die historischen Archive
+werden nicht migriert. Geänderte Laufzeitquellen erfordern weiterhin einen neuen
+Freeze; Testdateien gehören nicht mehr zum Laufzeitmanifest.
+
+Für Entwicklungsversuche in der TOML `phase = "development"` setzen; diese Phase
+akzeptiert Pilot- und Entwicklungsaufgaben. Die vorhandenen Launcher-Modi regeln
+weiterhin Umfang und Vorbereitung. Mit `--config` lässt sich eine eigene TOML
+nutzen. Jeder Freeze speichert `designs/pytest.json`, `designs/cubie.json` und die
+Design-/Kern-IDs im Laufplan. Ergebnisse und `report.by_design` führen diese IDs.
+
+Eigene Varianten werden als JSON mit `core` und `specialization` konfiguriert:
+
+```toml
+# Optional; Pfade relativ zu dieser TOML.
+[designs]
+pytest = "variants/pytest-v3.json"
+cubie = "variants/cubie-v3.json"
+```
+
+Eine Ausgangsvariante lässt sich offline exportieren:
+
+```bash
+PYTHONPATH=experiments/testguided-study .venv/bin/python - <<'PYTHON'
+import json
+from pathlib import Path
+from testguided_study.design import default_design
+root = Path("experiments/testguided-study")
+guides = {mode: (root / "guides" / f"{mode}.md").read_text() for mode in ("pytest", "cubie")}
+for mode in guides:
+    print(json.dumps(default_design(mode, guides), ensure_ascii=False, indent=2))
+PYTHON
+```
+
+Bei expliziten Designs stammen Prompt und Frameworkanleitung vollständig aus
+diesen JSON-Dateien. Die gemeinsamen Regeln stehen in `core`; `specialization`
+erlaubt ausschließlich `id`, `mode`, `guide` und `examples`. Inhaltsänderungen
+ändern die SHA-256-Identität auch ohne neues Versionslabel. Für den Vergleich
+müssen beide Bedingungen denselben Kern verwenden.
+
+Eine Hauptmessung verlangt jetzt zusätzlich eine Kampagnendatei. Den Verweis
+auf oberster Ebene der TOML vor den Tabellen eintragen:
+
+```toml
+phase = "measurement"
+campaign = "campaign.json"
+```
+
+```json
+{
+  "hypothesis": "Die eingefrorenen Varianten erfüllen die Qualifikation",
+  "parent_revision": "vorherige Design-ID",
+  "development_archives": ["runs/development-01/frozen"]
+}
+```
+
+Archivpfade sind relativ zur Kampagnendatei. Alle für die Entwicklung verbrauchten
+Aufgabenarchive angeben: ihre Aufgaben und verwandten Gruppen sind für die Messung
+gesperrt. Diese Liste ist die explizite Herkunftsangabe des Studienautors; außerhalb
+dieser Liste durchgeführte Experimente kann der Runner nicht entdecken.
+
+Die feste Qualifikationsschwelle verlangt je Bedingung zwei unabhängig gelöste
+reale Aufgabengruppen mit beobachtetem Assertion-Rot und anschließendem Grün
+auf denselben Testzielen bei geändertem Workspace. Synthetische Smokes zählen
+nicht. Ein beitragendes Entwicklungsarchiv muss vollständig verfügbar sein und
+dieselben Designs, Budgets, Modelloptionen und Images verwenden. Die Vorprüfung
+vergleicht zusätzlich konkrete Modell-, Image- und swegemma-Identitäten.
+Ein selbst gesetztes `qualification: true` ersetzt keine Belege.
+`campaign.json` im Freeze hält Zulassung und Belegmomentaufnahmen fest.
+
+Die 29 ursprünglichen EBT-Verträge unter `tests/testguided_study_design` sind
+um Session-, Freeze-, Berichts-, Qualifikations- und Workspace-Integrationstests
+ergänzt. Diese Tests und deterministische Modell-Replays belegen technische
+Eigenschaften. Eine höhere Lösungsquote muss erst in neuen Entwicklungsversuchen
+mit echter Modellinferenz gezeigt werden.
+
 ## Umgebung und Images
 
 Host: Python ab 3.11 mit einer funktionsfähigen swegemma-0.2.11-Installation samt

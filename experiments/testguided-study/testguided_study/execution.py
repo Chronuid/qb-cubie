@@ -9,6 +9,7 @@ from pathlib import Path
 from . import backend
 from .agent import develop
 from .artifacts import MODES, digest, read, verify, write
+from .iteration import load_design
 from .telemetry import Observer, emit
 
 
@@ -39,6 +40,16 @@ def preflight(root, observer=None):
                 "host": {"platform": platform.platform(), "python": platform.python_version()},
                 "images": {mode: backend.image_identity(config["images"][mode], mode)
                            for mode in (*MODES, "evaluator")}}
+    if (root / "campaign.json").exists() and config["phase"] == "measurement":
+        for evidence in read(root / "campaign.json")["provenance"]:
+            if not evidence["contributes"]:
+                continue
+            prior = evidence["runtime"]
+            if prior["ollama"] != identity["ollama"] or prior["swegemma"] != identity["swegemma"]:
+                raise ValueError("Qualification model/runtime identity drift")
+            if any(prior["images"][mode]["image_id"] != identity["images"][mode]["image_id"]
+                   for mode in (*MODES, "evaluator")):
+                raise ValueError("Qualification image identity drift")
     images = identity["images"]
     if images["pytest"]["python"] != images["cubie"]["python"] or images["pytest"]["pytest"] != images["cubie"]["pytest"]:
         raise ValueError("Agent images must use identical Python and pytest versions")
@@ -109,7 +120,8 @@ def run(root, observer=None):
             sandbox = mgr.start()
             task = backend.task_for(root, item)
             backend.prepare(mgr, sandbox, root, item, task, config, directory)
-            agent = develop(mgr, sandbox, task, row, config, guides, directory, observer=observer)
+            agent = develop(mgr, sandbox, task, row, config, guides, directory, observer=observer,
+                            design=load_design(root / "designs" / f"{row['mode']}.json"))
             patch = agent.pop("patch")
             write(directory / "agent.json", agent)
             observer.emit("evaluation_started", "Unabhängige Lösungsauswertung läuft", state="evaluating")

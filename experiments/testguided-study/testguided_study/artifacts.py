@@ -51,10 +51,10 @@ def read(path):
 def sources():
     import ollama_agents
     result = {}
-    for label, root in (("study", ROOT), ("ollama", Path(ollama_agents.__file__).parent)):
+    for label, root in (("study", ROOT / "testguided_study"), ("ollama", Path(ollama_agents.__file__).parent)):
         for path in sorted(root.rglob("*.py")):
-            if "runs" not in path.relative_to(root).parts:
-                result[f"{label}/{path.relative_to(root)}"] = digest(path)
+            result[f"{label}/{path.relative_to(root)}"] = digest(path)
+    result["study/study.py"] = digest(ROOT / "study.py")
     return result
 
 
@@ -77,12 +77,18 @@ def load_config(path):
     with Path(path).open("rb") as stream:
         config = tomllib.load(stream)
     fields(config, "schema_version study_id phase tasks seeds order_seed ollama budgets images guides", "study",
-           optional="selection planning")
+           optional="selection planning designs campaign")
     fields(config["ollama"], "endpoint model think temperature num_ctx num_predict", "ollama")
     fields(config["budgets"], "wall_seconds model_calls tool_calls command_seconds verification_seconds context_bytes output_chars", "budgets")
     fields(config["images"], "pytest cubie evaluator", "images")
     fields(config["guides"], "pytest cubie", "guides")
-    if config["schema_version"] != 1 or config["phase"] not in {"pilot", "measurement"}:
+    if "designs" in config:
+        fields(config["designs"], "pytest cubie", "designs")
+        if any(not isinstance(path, str) or not path for path in config["designs"].values()):
+            raise ValueError("designs requires JSON paths")
+    if "campaign" in config and (not isinstance(config["campaign"], str) or not config["campaign"]):
+        raise ValueError("campaign must be a JSON path")
+    if config["schema_version"] != 1 or config["phase"] not in {"pilot", "development", "measurement"}:
         raise ValueError("Unsupported schema_version or study phase")
     seeds = config["seeds"]
     if not seeds or len(set(seeds)) != len(seeds) or any(type(seed) is not int for seed in seeds):
@@ -157,7 +163,8 @@ def freeze(config_path, destination):
     tasks = read(task_path)
     if not tasks or len({task["id"] for task in tasks}) != len(tasks):
         raise ValueError("Select a nonempty list of distinct task IDs before freezing")
-    if any(task["split"] != config["phase"] for task in tasks):
+    allowed_splits = {"pilot", "development"} if config["phase"] == "development" else {config["phase"]}
+    if any(task["split"] not in allowed_splits for task in tasks):
         raise ValueError("Task splits must match study phase; pilot and measurement cannot mix")
     tasks = configured(tasks, config)
     if config["phase"] == "measurement" and any(
@@ -189,7 +196,28 @@ def freeze(config_path, destination):
         write(destination / "guides.json", guides)
         write(destination / "tasks.json", frozen)
         write(destination / "task-distribution.json", distribution(frozen))
-        write(destination / "schedule.json", schedule(frozen, config["seeds"], config["order_seed"]))
+        from . import campaign
+        from .design import default_design
+        from .iteration import compose, freeze_design, identity
+        designs = {}
+        if "designs" in config:
+            fields(config["designs"], "pytest cubie", "designs")
+        for mode in MODES:
+            if "designs" in config:
+                data = read(config_path.parent / config["designs"][mode])
+                fields(data, "core specialization", "design")
+                designs[mode] = compose(data["core"], data["specialization"])
+                if designs[mode]["specialization"]["mode"] != mode:
+                    raise ValueError("Design specialization mode does not match configuration")
+            else:
+                designs[mode] = default_design(mode, guides)
+            freeze_design(designs[mode], destination / "designs" / f"{mode}.json")
+        campaign.admit(config, frozen, designs, config_path, destination)
+        rows = schedule(frozen, config["seeds"], config["order_seed"])
+        for row in rows:
+            row.update(design_id=identity(designs[row["mode"]]),
+                       core_id=identity(designs[row["mode"]]["core"]), phase=config["phase"])
+        write(destination / "schedule.json", rows)
         manifest = {p.relative_to(destination).as_posix(): digest(p) for p in destination.rglob("*") if p.is_file()}
         write(destination / "manifest.json", {"schema_version": 1, "files": manifest, "implementation": sources()})
     except BaseException:

@@ -40,6 +40,8 @@ SCHEMA = {"oneOf": [
     labeled("list_files"),
     labeled("read_file", path=TEXT, start={"type": "integer", "minimum": 1}),
     labeled("search_text", query=TEXT),
+    labeled("search_files", path=TEXT, query=TEXT, start={"type": "integer", "minimum": 0}),
+    labeled("replace_text", path=TEXT, old=TEXT, new={"type": "string"}, reason=TEXT),
     labeled("write_file", path=TEXT, content={"type": "string"}, reason=TEXT),
     labeled("delete_file", path=TEXT, reason=TEXT),
     labeled("run_tests", targets={"type": "array", "items": TEXT, "minItems": 1, "maxItems": 20}),
@@ -50,3 +52,40 @@ SCHEMA = {"oneOf": [
 def instruction(mode, guides):
     """Combine the identical base instruction with the frozen treatment guide."""
     return PROMPT + f"\nTesting framework: {mode}\n" + guides[mode]
+
+
+ITERATION_PROMPT = """
+Keep a short working ledger with update_ledger: hypothesis, relevant files and
+next concrete action. Read the implementation and its focused tests once located.
+Repeated broad searches or unchanged test runs do not advance a solution.
+Use search_files(path, query, start=0) for literal search in a file or directory;
+continue with next_start. Use replace_text(path, old, new, reason) for small edits:
+old must match exactly once. Use read_file to locate the exact original text.
+After assertion red implement the missing behavior. After collection/import errors
+repair the test setup. After green verify relevant regressions and submit, or
+identify a specific missing behavior. Runner feedback is based on observations.
+"""
+
+
+def default_design(mode, guides):
+    from .iteration import compose
+    return compose(
+        {"id": "testguided-core-v2", "prompt": PROMPT + ITERATION_PROMPT,
+         "tools": [entry["properties"]["action"]["const"] for entry in SCHEMA["oneOf"]] + ["update_ledger"],
+         "policy": {"repeat_limit": 3, "repair_calls": 1},
+         "context": {"strategy": "ledger", "version": 1}},
+        {"id": mode + "-guide-v2", "mode": mode, "guide": guides[mode], "examples": []})
+
+
+def design_instruction(design):
+    treatment = design["specialization"]
+    return (design["core"]["prompt"] + f"\nTesting framework: {treatment['mode']}\n"
+            + treatment["guide"] + "\n" + "\n".join(treatment["examples"]))
+
+
+def design_schema(design):
+    tools = design["core"]["tools"]
+    entries = SCHEMA["oneOf"] + [labeled(
+        "update_ledger", hypothesis=TEXT, next=TEXT,
+        files={"type": "array", "items": TEXT, "maxItems": 20})]
+    return {"oneOf": [entry for entry in entries if entry["properties"]["action"]["const"] in tools]}

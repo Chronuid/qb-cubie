@@ -40,22 +40,44 @@ elif op == 'read_file':
     start = arg['start'] - 1
     result = {'path': arg['path'], 'start': start+1, 'total_lines': len(lines),
               'text': '\n'.join(lines[start:start+160])}
-elif op == 'search_text':
-    hits = []
+elif op in ('search_text', 'search_files'):
+    scope = target(arg['path']) if op == 'search_files' else root
+    if not scope.exists():
+        raise ValueError('Search path does not exist')
+    offset = arg['start'] if op == 'search_files' else 0
+    hits, seen = [], 0
     for p in files():
+        if p != scope and not p.is_relative_to(scope):
+            continue
         if p.stat().st_size > 500_000:
             continue
         try:
             for i, line in enumerate(p.read_text().splitlines(), 1):
                 if arg['query'] in line:
+                    seen += 1
+                    if seen <= offset:
+                        continue
                     hits.append({'path': str(p.relative_to(root)), 'line': i, 'text': line[:500]})
-                    if len(hits) >= 80:
+                    if len(hits) > 80:
                         break
         except UnicodeError:
             continue
-        if len(hits) >= 80:
+        if len(hits) > 80:
             break
-    result = {'hits': hits, 'limit': 80}
+    result = {'hits': hits[:80], 'start': offset, 'limit': 80,
+              'next_start': offset + 80 if len(hits) > 80 else None}
+elif op == 'replace_text':
+    p = target(arg['path'])
+    if p.stat().st_size > 2_000_000:
+        raise ValueError('File exceeds the editable size limit')
+    original = p.read_bytes().decode('utf-8')
+    if not arg['old'] or original.count(arg['old']) != 1:
+        raise ValueError('Old text must match exactly once; file unchanged')
+    data = original.replace(arg['old'], arg['new'], 1).encode('utf-8')
+    if len(data) > 2_000_000:
+        raise ValueError('Replacement exceeds the editable size limit')
+    p.write_bytes(data)
+    result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
 elif op in ('write_file', 'delete_file'):
     p = target(arg['path'])
     if op == 'delete_file':
@@ -86,10 +108,34 @@ def execute(manager, sandbox, action, timeout, limit):
     result = manager.exec(sandbox, command(SCRIPT, json.dumps(action)), timeout=timeout)
     if result.exit_code:
         return {"status": "tool_error", "stderr": result.stderr[:limit], "timed_out": result.timed_out}
-    raw = result.stdout
-    if len(raw) > limit:
-        return {"status": "completed", "truncated": True, "output": raw[:limit]}
-    return {"status": "completed", **json.loads(raw)}
+    return bounded(json.loads(result.stdout), limit)
+
+
+def bounded(result, limit):
+    """Keep search/file results structured, with continuation at entry boundaries."""
+    result = {"status": "completed", **result}
+    if len(json.dumps(result)) <= limit:
+        return result
+    result["truncated"] = True
+    for key in ("hits", "files"):
+        if key in result:
+            original_count = len(result[key])
+            while result[key] and len(json.dumps(result)) > limit:
+                result[key].pop()
+                result["next_start"] = result.get("start", 0) + len(result[key])
+            if original_count and not result[key]:
+                return {"status": "tool_error", "error": "output_chars cannot fit one entry; narrow the query"}
+            return result
+    if "text" in result:
+        lines = result["text"].splitlines()
+        while lines and len(json.dumps(result)) > limit:
+            lines.pop()
+            result["text"] = "\n".join(lines)
+            result["next_start"] = result["start"] + len(lines)
+        if not lines:
+            return {"status": "tool_error", "error": "output_chars cannot fit one line"}
+        return result
+    return {"status": "tool_error", "error": "Result exceeds output_chars"}
 
 
 def run_tests(manager, sandbox, targets, timeout, limit):

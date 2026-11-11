@@ -22,6 +22,15 @@ def options(args):
     config = copy.deepcopy(load_config(path))
     config["guides"] = {mode: str(path.parent / guide) for mode, guide in config["guides"].items()}
     config["tasks"] = str(path.parent / config["tasks"])
+    if "designs" in config:
+        config["designs"] = {mode: str(path.parent / design) for mode, design in config["designs"].items()}
+    if "campaign" in config:
+        campaign_path = path.parent / config["campaign"]
+        # Archive paths in campaign JSON are relative to that JSON, not the generated TOML.
+        campaign_config = read(campaign_path)
+        campaign_config["development_archives"] = [str((campaign_path.parent / archive).resolve())
+                                                   for archive in campaign_config.get("development_archives", [])]
+        config["campaign"] = campaign_config
     if args.tasks is not None:
         config.setdefault("selection", {"seed": config["order_seed"], "task_types": []})["task_count"] = args.tasks
     if args.seeds:
@@ -53,6 +62,10 @@ def toml_value(value):
 
 
 def save_config(path, config):
+    config = copy.deepcopy(config)
+    if isinstance(config.get("campaign"), dict):
+        write(Path(path).with_suffix(".campaign.json"), config["campaign"])
+        config["campaign"] = str(Path(path).with_suffix(".campaign.json").resolve())
     lines = [f"{key} = {toml_value(value)}" for key, value in config.items() if not isinstance(value, dict)]
     for key, value in config.items():
         if isinstance(value, dict):
@@ -86,7 +99,7 @@ def start(args):
             observer.bind(root / "frozen", config, schedule(selected, config["seeds"], config["order_seed"]))
         else:
             catalog = read(args.catalog)
-            eligible = [task for task in catalog["tasks"] if task["split"] == config["phase"] and task["eligible"]]
+            eligible = [task for task in catalog["tasks"] if task["split"] in ({"pilot", "development"} if config["phase"] == "development" else {config["phase"]}) and task["eligible"]]
             selected = configured(eligible, config)
             observer.bind(root / "frozen", config, schedule(selected, config["seeds"], config["order_seed"]))
             write(root / "selection.json", {"tasks": selected, "runtime": allowance(config, len(selected))})
