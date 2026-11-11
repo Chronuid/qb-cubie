@@ -53,3 +53,10 @@ separate expected fixtures. Ordinary assertions remain available for supplementa
 checks. Finite examples do not prove universal correctness.
 Confirm collection and behavioral red, then implement and verify regressions.
 If a new test is immediately green, check that it reproduces the issue.
+
+Before adding a test, state the requirement, concrete input and expected observation
+in the action note. Distinguish a literal string from a type or runtime value.
+Check the failing assertion against that example before implementing. A failure
+in an unrelated assertion is not reproduction. Keep the first regression small;
+add boundary/control cases after the reported behavior is covered. A green
+existing suite does not establish that the reported input is handled correctly.

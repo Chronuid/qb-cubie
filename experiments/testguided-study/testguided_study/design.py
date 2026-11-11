@@ -67,14 +67,17 @@ identify a specific missing behavior. Runner feedback is based on observations.
 """
 
 
-def default_design(mode, guides):
+def default_design(mode, guides, *, version=4):
     from .iteration import compose
+    if version not in (3, 4):
+        raise ValueError("Unsupported default design version")
+    schema = V4_SCHEMA if version == 4 else V3_SCHEMA
     return compose(
-        {"id": "testguided-core-v3", "prompt": V3_PROMPT,
-         "tools": [entry["properties"]["action"]["const"] for entry in V3_SCHEMA["oneOf"]],
+        {"id": f"testguided-core-v{version}", "prompt": V4_PROMPT if version == 4 else V3_PROMPT,
+         "tools": [entry["properties"]["action"]["const"] for entry in schema["oneOf"]],
          "policy": {"repeat_limit": 3, "repair_calls": 1},
-         "context": {"strategy": "evidence", "version": 3}},
-        {"id": mode + "-guide-v3", "mode": mode, "guide": guides[mode], "examples": []})
+         "context": {"strategy": "evidence", "version": version}},
+        {"id": mode + f"-guide-v{version}", "mode": mode, "guide": guides[mode], "examples": []})
 
 
 def design_instruction(design):
@@ -90,6 +93,8 @@ def design_schema(design):
         files={"type": "array", "items": TEXT, "maxItems": 20})]
     if design["core"]["context"]["version"] == 3:
         entries = V3_SCHEMA["oneOf"]
+    if design["core"]["context"]["version"] == 4:
+        entries = V4_SCHEMA["oneOf"]
     return {"oneOf": [entry for entry in entries if entry["properties"]["action"]["const"] in tools]}
 
 
@@ -158,3 +163,44 @@ def _v3_schema():
 
 
 V3_SCHEMA = _v3_schema()
+
+
+V4_PROMPT = V3_PROMPT.replace(
+    "Use replace_text with the sha256 from read_file as expected_sha256; old must match\nexactly once. After a conflict read the current text before retrying.",
+    "Before replace_text, read the current file. The runner binds the edit to that\nread version; do not generate a hash. old must match exactly once. After any edit\nor conflict read again before another replacement.") + """
+Before writing a regression test, attach a note with the exact issue requirement,
+a concrete input and its expected result. Preserve literal strings, types and
+escape sequences: similar-looking values are not interchangeable. Do not invent
+an expected value merely because it makes an assertion fail. Read the traceback:
+which assertion failed, and does that assertion expose the reported behavior?
+A green existing suite is only a baseline. If the issue remains unreproduced,
+write one small regression test instead of rerunning unchanged tests. Prefer a
+focused test to the whole repository suite, especially after known setup errors.
+Make one local edit at a time, ideally a few lines. Never copy an entire function
+just to change one branch. Copy old verbatim from the read result, excluding line
+numbers. Use JSON newline escapes for source line breaks; avoid double-escaped newlines.
+Keep new tests concise, with no long comments or docstrings. Use replace_text to
+extend files in small steps. After edit_conflict distinguish a missing anchor from
+an ambiguous anchor; reread the relevant lines and reduce or disambiguate old.
+After syntax/import errors repair the reported location before behavioral work.
+After green, inspect warnings, run relevant regressions, and submit with evidence.
+"""
+
+
+def _v4_schema():
+    import copy
+    schema = copy.deepcopy(V3_SCHEMA)
+    for entry in schema["oneOf"]:
+        props = entry["properties"]
+        name = props["action"]["const"]
+        if name == "replace_text":
+            del props["expected_sha256"]
+            entry["required"].remove("expected_sha256")
+            props["old"]["maxLength"] = 1200
+            props["new"]["maxLength"] = 1600
+        if name == "write_file":
+            props["content"]["maxLength"] = 2400
+    return schema
+
+
+V4_SCHEMA = _v4_schema()

@@ -71,8 +71,10 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         ledger['visible_baseline']['scope'] = 'Original visible suite before any agent or private patch; existing failures are not new regressions.'
     workspace_patch = patch(manager, sandbox)
     repeat_signature, repeats = None, 0
-    v3 = design["core"]["context"]["version"] == 3
-    controller = Controller(policy["repeat_limit"])
+    v3 = design["core"]["context"]["version"] >= 3
+    v4 = design["core"]["context"]["version"] == 4
+    recovering = False
+    controller = Controller(policy["repeat_limit"], local_edits=v4)
     capacity = context_capacity(limits, model, schema) if v3 else limits["context_bytes"]
     versions = {}
     if v3 and manager is not None:
@@ -103,7 +105,11 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
              agent={"context": request, "action": None, "result": None, "response": None})
         before = clock()
         try:
-            response = client.chat(messages=request, schema=schema, timeout=remaining)
+            active_schema = schema
+            if recovering:
+                active_schema = {"oneOf": [entry for entry in schema["oneOf"]
+                                          if entry["properties"]["action"]["const"] == "read_file"]}
+            response = client.chat(messages=request, schema=active_schema, timeout=remaining)
         except AdapterError as error:
             usage.append(error.usage or {})
             rejected = {"error": str(error), "status": error.status, "raw": error.raw, "usage": error.usage}
@@ -118,8 +124,12 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
                 if isinstance(error.raw, dict) and error.raw.get('done_reason') == 'length':
                     ledger['next'] = ('Output was truncated at the token limit. Return a short read action or a small edit '
                                       'with replace_text. Do not repeat a full file or long comments. Return complete JSON.')
+                recovering = v4
+                if recovering:
+                    ledger["next"] = "Recovery schema: return one short read_file action for a relevant source or test file."
                 continue
             break
+        recovering = False
         status = "model_budget"
         ledger.pop("action_error", None)
         usage.append(response["usage"])
@@ -143,6 +153,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         emit(observer, "tool_started", f"Werkzeug läuft: {action['action']}", state="tool_wait",
              active={"tool_calls": tools})
         timeout = max(1, min(limits["command_seconds"], int(limits["wall_seconds"] - (clock() - started))))
+        executed_action = controller.bind_edit(action) if v4 else action
         if action["action"] == "update_ledger":
             ledger.update({key: action[key] for key in ("hypothesis", "next", "files")})
             result = {"status": "completed", "updated": True}
@@ -151,7 +162,8 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         else:
             result = controller.guard(action) if v3 else None
             if result is None:
-                result = execute(manager, sandbox, action, timeout, limits["output_chars"])
+                result = execute(manager, sandbox, executed_action,
+                                 timeout, limits["output_chars"])
         previous_versions = versions
         if v3 and manager is not None:
             versions = execute(manager, sandbox, {"action": "snapshot"}, min(timeout, 10), 1000)
@@ -161,6 +173,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             controller.metrics["first_production_change_call"] = calls
         stopped = controller.observe(action, result, versions, calls) if v3 else False
         write(directory / f"steps/{step:04d}-tool.json", {"action": action, "result": result,
+                                                         "executed_action": executed_action,
                                                          "elapsed_seconds": clock() - before})
         visible = compact_observation(result, min(6000, limits['output_chars'])) if v3 else dict(result)
         if v3 and 'diagnostics' in result:

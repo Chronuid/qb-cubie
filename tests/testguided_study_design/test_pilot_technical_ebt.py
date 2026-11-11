@@ -75,7 +75,7 @@ def pilot_session(tmp_path, monkeypatch):
 
     monkeypatch.setattr(agent, "patch", patch)
 
-    def run(actions, *, mode="pytest", test_result=None, observer=None):
+    def run(actions, *, mode="pytest", test_result=None, observer=None, design_version=3):
         def execute(manager, sandbox, selected, timeout, limit):
             if selected["action"] in {"run_tests", "collect_tests", "check_baseline"}:
                 return copy.deepcopy(test_result or {
@@ -89,7 +89,7 @@ def pilot_session(tmp_path, monkeypatch):
         client = Replay(actions)
         result = agent.develop(object(), object(), SimpleNamespace(problem_statement="Fix module behavior"),
                                {"mode": mode, "run_id": "0001", "seed": 42}, config, guides,
-                               directory, client=client, design=default_design(mode, guides), observer=observer)
+                               directory, client=client, design=default_design(mode, guides, version=design_version), observer=observer)
         return result, client, directory
 
     return run, tree, config

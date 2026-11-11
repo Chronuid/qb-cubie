@@ -80,9 +80,9 @@ def admit(config, tasks, designs, source, destination):
                             or not task.get("related_group")):
                         continue
                     if behavior_cycle(result.get("agent", {}).get("test_observations", []),
-                                      require_versions=designs[mode]["core"]["context"]["version"] == 3,
+                                      require_versions=designs[mode]["core"]["context"]["version"] >= 3,
                                       final_tests=result.get("agent", {}).get("final_versions", {}).get("tests", "")
-                                      if designs[mode]["core"]["context"]["version"] == 3 else None):
+                                      if designs[mode]["core"]["context"]["version"] >= 3 else None):
                         qualifying[mode].add(task["related_group"])
                         contributes = True
             admission = read(root / "ready.json")

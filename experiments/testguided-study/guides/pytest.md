@@ -39,3 +39,10 @@ not requirements for an arbitrary repository. Keep assertions inside test functi
 Confirm the test is collected. Red must expose the reported behavior, not an
 incorrect test API. If a new test is immediately green, check its relevance before
 changing production code. Run focused tests and relevant regressions before submit.
+
+Before adding a test, state the requirement, concrete input and expected observation
+in the action note. Distinguish a literal string from a type or runtime value.
+Check the failing assertion against that example before implementing. A failure
+in an unrelated assertion is not reproduction. Keep the first regression small;
+add boundary/control cases after the reported behavior is covered. A green
+existing suite does not establish that the reported input is handled correctly.

@@ -54,7 +54,8 @@ def compose(core, specialization):
     if type(core["policy"]["repair_calls"]) is not int or core["policy"]["repair_calls"] not in (0, 1):
         raise ValueError("core.policy.repair_calls must be zero or one")
     if not isinstance(core["context"], dict) or type(core["context"].get("version")) is not int or core["context"] not in ({"strategy": "ledger", "version": 1},
-                               {"strategy": "evidence", "version": 3}):
+                               {"strategy": "evidence", "version": 3},
+                               {"strategy": "evidence", "version": 4}):
         raise ValueError("Unsupported core context strategy")
     return copy.deepcopy({"core": core, "specialization": specialization})
 

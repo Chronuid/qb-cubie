@@ -8,7 +8,9 @@ from .iteration import context, identity
 
 
 class Controller:
-    def __init__(self, repeat_limit):
+    def __init__(self, repeat_limit, local_edits=False):
+        self.local_edits = local_edits
+        self.edit_versions = {}
         self.repeat_limit = repeat_limit
         self.attempts = Counter()
         self.seen = set()
@@ -29,7 +31,17 @@ class Controller:
             value['versions'] = self.test_version
         return identity(value)
 
+    def bind_edit(self, action):
+        """Bind a v4 replacement to runner evidence, never a model-generated hash."""
+        if self.local_edits and action['action'] == 'replace_text':
+            return {**action, 'expected_sha256': self.edit_versions.get(action['path'])}
+        return action
+
     def guard(self, action):
+        if (self.local_edits and action['action'] == 'replace_text'
+                and action['path'] not in self.edit_versions):
+            return {"status": "tool_error", "code": "read_required",
+                    "repair": "Read the relevant current lines before a small replacement; the runner supplies its hash."}
         if action['action'] == 'replace_text' and action['path'] in self.blocked_edits:
             return {"status": "tool_error", "code": "read_required", "repair": "Read the current file before another edit."}
         # Successful reads may have been evicted from the model context. Replaying
@@ -49,7 +61,10 @@ class Controller:
         self.paths[self.key(action)] = action.get("path")
         if result.get('code') == 'edit_conflict':
             self.blocked_edits.add(action['path'])
+            self.edit_versions.pop(action['path'], None)
         if op == 'read_file' and successful:
+            if result.get('sha256'):
+                self.edit_versions[action['path']] = result['sha256']
             self.readable.add(self.key(action))
             self.blocked_edits.discard(action['path'])
             self.facts['files'][action['path']] = {k: result.get(k) for k in ('sha256', 'start', 'total_lines')}
@@ -75,9 +90,18 @@ class Controller:
                     self.metrics['first_red_call'] = call
             elif observation == 'pass':
                 self.facts['workflow'] = 'verify'
+                if self.local_edits:
+                    unchanged = self.metrics['first_production_change_call'] is None
+                    self.facts['next_action'] = (
+                        'Green without a production change is baseline evidence only. Compare the issue input '
+                        'with test inputs; add a small missing regression or explain existing coverage. '
+                        'Do not rerun this unchanged target.' if unchanged else
+                        'Verify the issue regression and relevant existing tests; inspect warnings, then submit.')
         for key in ('ebt_executed', 'ebt_evaluated', 'ebt_passed'):
             self.metrics[key] += result.get('framework_usage', {}).get(key, 0)
         if op in {'write_file', 'replace_text', 'delete_file'} and successful:
+            self.edit_versions.pop(action.get('path'), None)
+            self.facts.pop('next_action', None)
             # A successful mutation invalidates cached attempts; notes and failures never do.
             for key in list(self.attempts):
                 if self.paths.get(key) == action.get('path'):

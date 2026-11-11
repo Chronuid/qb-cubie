@@ -518,3 +518,13 @@ Die Docker-Gegenprobe überschreibt vorhandene Tests, beobachtet Rot/Grün und
 zeigt, dass eine nur auf `assert True` reduzierte sichtbare Suite die private
 Prüfung einer falschen Lösung nicht bestehen lässt. Diese Proben sind
 Infrastrukturnachweise; sie messen keine Modellleistung.
+
+
+## Agentendesign v4
+
+Neue Freezes verwenden `testguided-core-v4` mit `pytest-guide-v4` beziehungsweise
+`cubie-guide-v4`. [Entwurf und Begründung](AGENTENDESIGN-V4.md) dokumentieren die
+Änderungen aus Pilot `20261111-180702`: vom Runner gebundene Datei-Versionen,
+kleine Änderungen, explizite Prüfung des Testorakels, Reproduktionsfeedback nach
+Grün ohne Produktionsänderung und ein eingeschränktes Reparaturschema nach
+ungültiger Modellausgabe. Historische Freezes werden nicht verändert.
