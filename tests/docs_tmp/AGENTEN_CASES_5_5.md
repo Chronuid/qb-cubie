@@ -5,15 +5,15 @@
 > erlauben `author_checked`; nur der beanspruchte Status `independently_checked`
 > verlangt weiterhin zwei belegte unabhängige Zustimmungen. Frühere Aussagen
 > zu einer verpflichtenden menschlichen Aufnahme unten sind historisch.
-> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/misc/OFFENE_PUNKTE_Benchmarks-Agenten.md).
+> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/GUIDE_Benchmarks.md#noch-benötigte-praktische-nachweise).
 
 > Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
 > beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
 
 Stand: 10. November 2026. **Pilotfreigabe implementiert und offline geprüft;
-explorative Modellmessung separat dokumentiert.** Die [65 ursprünglichen Cases](../ollama_agents/pilot) konkretisieren
-[Schritt 5 des Agentenkonzepts](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+explorative Modellmessung separat dokumentiert.** Die [65 ursprünglichen Cases](../ollama_agents/pilot) konkretisieren die Pilotfreigabe der
+[Rollen- und Ablaufbeschreibung](../../experiments/ollama-agents/README.md).
 Die ursprüngliche Testentwurfsphase und ihre Rotphase bleiben unten dokumentiert.
 Die anschließende Umsetzung ergänzt Produktcode und Messablauf; Rollenprompts
 bleiben unverändert. Offizielle menschliche Referenzen wurden nicht aufgenommen.
@@ -199,7 +199,7 @@ den vollständigen Zwei-/Fünf-Ablauf einschließlich aller **21 Episoden** und
 zweier Vorprüfungen. Planung, Rollenprozesse, EBT/pytest, unabhängige Auswertung,
 Rohantwortarchive und Hashprüfungen sind real; ausschließlich Ollama wird
 ersetzt. Das ist ein Infrastrukturbeleg. Die tatsächliche lokale Modellmessung
-steht getrennt im [Messprotokoll](../../docs/misc/EXPERIMENT_Agenten-5-5.md).
+steht getrennt unter [Messung und Ergebnisgrenzen](../../experiments/ollama-agents/README.md#explorative-messung-vom-10-november-2026).
 
 ## Abschließende Prüfung und echte Messreihe
 
@@ -232,8 +232,8 @@ Reviewer-Pilotkriterien entsprechen der Autorreferenz; fünf fehlerhafte
 Stände bestehen den exakten Finding-Abgleich nicht. Diese bekannte Grenze
 wird getrennt berichtet und nicht als semantisches Fehlurteil ausgegeben.
 Es wurden keine Versuche ersetzt oder ausgeschlossen. Die detaillierten
-Zeiten, Tokens, Konfigurationen und Grenzen stehen im
-[Messprotokoll](../../docs/misc/EXPERIMENT_Agenten-5-5.md).
+Zeiten, Tokens, Konfigurationen und Grenzen stehen unter
+[Messung und Ergebnisgrenzen](../../experiments/ollama-agents/README.md#explorative-messung-vom-10-november-2026).
 
 Gemeinsames dauerhaftes Belegarchiv:
 `/home/symphonie/.local/share/cubie/agent-5-5-evidence-20261110.tar.gz`,

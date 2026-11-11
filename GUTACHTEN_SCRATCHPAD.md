@@ -269,7 +269,7 @@ Geeignete übergreifende Regressionseigenschaften sind: Ein Reporterwechsel ver�
 
 ### 9.3 Produktnutzen anschließend gezielt nachweisen
 
-Ein [Konzept für die Benchmarks ReviewAgent und DeveloperAgent](docs/misc/BENCHMARK_KONZEPT.md) beschreibt ein allgemein nutzbares Prüfwerkzeug für eigene Agentensysteme mit erweiterbaren Szenariopaketen und konfigurierbaren Benchmark-Sets. Ein optionales Vergleichsprofil konkretisiert die Produktnutzenmessung; Review-Nachweise werden an Quellstand und Kontext gebunden. Es ist ein Implementierungsentwurf; Messergebnisse liegen damit noch nicht vor.
+Der heutige [Leitfaden für die Benchmarks ReviewAgent und DeveloperAgent](docs/GUIDE_Benchmarks.md) beschreibt ein allgemein nutzbares Prüfwerkzeug für eigene Agentensysteme mit erweiterbaren Szenariopaketen und konfigurierbaren Benchmark-Sets. Ein optionales Vergleichsprofil konkretisiert die Produktnutzenmessung; Review-Nachweise werden an Quellstand und Kontext gebunden. Zum Zeitpunkt dieses Gutachtens lag dafür nur ein Implementierungsentwurf ohne Messergebnisse vor. Spätere explorative Ergebnisse sind bei den [Ollama-Experimenten](experiments/ollama-agents/README.md#explorative-messung-vom-10-november-2026) dokumentiert; sie ersetzen keinen allgemeinen Produktnachweis.
 
 1. Eingabe-Erwartungs-Paare und klarere Zustandsrollen anbieten.
 2. Ausgabeform und Fehlerpolitik unabhängig konfigurierbar machen.

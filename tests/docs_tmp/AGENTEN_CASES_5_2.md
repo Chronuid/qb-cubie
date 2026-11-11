@@ -5,8 +5,8 @@
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
 
 Stand: 10. November 2026. **Reviewer-Kern implementiert und offline geprüft.** Die 68 ursprünglichen Cases unter
-[ollama_agents/reviewer](../ollama_agents/reviewer) konkretisieren Schritt 2 aus
-[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+[ollama_agents/reviewer](../ollama_agents/reviewer) konkretisieren den Reviewer-Kern der
+[Rollen- und Ablaufbeschreibung](../../experiments/ollama-agents/README.md).
 Sie ergänzen die [Unterbau-Abnahme](AGENTEN_CASES_5_1.md).
 
 Alle 68 ursprünglichen Cases bestehen unverändert. Zwölf zusätzliche Gegenproben

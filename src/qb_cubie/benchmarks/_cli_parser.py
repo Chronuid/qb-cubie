@@ -12,7 +12,7 @@ def authoring(commands):
         if name == "validate":
             parser.add_argument("--check-references", action="store_true")
     commands.add_parser("list", help="List scenarios, types and tags").add_argument("--package", required=True)
-    commands.add_parser("guide", help="Read the installed GUIDE_Benchmark-Custom.md tutorial")
+    commands.add_parser("guide", help="Read the installed experimental benchmark guide (GUIDE_Benchmarks.md)")
 
 
 def _ollama(commands):

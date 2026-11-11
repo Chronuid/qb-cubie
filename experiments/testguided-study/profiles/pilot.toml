@@ -17,7 +17,7 @@ setup_seconds_per_run = 60
 [ollama]
 endpoint = "http://localhost:11434"
 model = "gemma4:12b"
-think = false
+think = true
 temperature = 0.2
 num_ctx = 32768
 num_predict = 8192

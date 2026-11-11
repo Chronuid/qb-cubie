@@ -30,11 +30,12 @@ python3.13 -m venv .venv
 
 Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --group dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
 
-Ein modellfreier Benchmark-Smoke-Lauf ist mit dem Extra `benchmarks` auch ohne
-Checkout verfügbar: `cubie-bench init-suite ./sets/smoke.toml --preset smoke --fake`,
+Der gesamte Benchmark-Bereich ist **experimentell und gehört nicht zum
+qb-cubie Core**. Ein modellfreier Smoke-Lauf ist mit dem Extra `benchmarks`
+auch ohne Checkout verfügbar: `cubie-bench init-suite ./sets/smoke.toml --preset smoke --fake`,
 danach `cubie-bench plan --suite ./sets/smoke.toml` und
 `cubie-bench run --suite ./sets/smoke.toml`. Installation, Ergebnisdateien und
-Gegenproben erklärt die [Benchmark-Anleitung](docs/GUIDE_Benchmark-Contracts.md).
+Gegenproben erklärt der [Benchmark-Guide](docs/GUIDE_Benchmarks.md#schnellstart).
 
 Die Repository-Tests benötigen zusätzlich lokal provisionierte Arena-Basen und `uv` im `PATH`:
 
@@ -88,14 +89,17 @@ Veröffentlichte Abhängigkeiten haben Mindestversionen und eine Obergrenze vor 
 
 Nach Änderungen an Anforderungen wird `uv lock` ausgeführt und die Änderung an `uv.lock` gemeinsam geprüft. `uv sync --locked --group dev` installiert die festgehaltene Entwicklungsumgebung. Releases werden mit isoliertem Setuptools-Build (`setuptools>=77` für SPDX-Lizenzmetadaten) und den folgenden Installationsprüfungen validiert. Die Konfiguration folgt der [Setuptools-Dokumentation](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html) und der [uv-Trennung von Abhängigkeiten, Extras und Entwicklungsgruppen](https://docs.astral.sh/uv/concepts/projects/dependencies/). Für den grafischen Reviewer wird zusätzlich eine Python-Installation mit Tk benötigt.
 
-## Wheel-Prüfung und CI
+## Experimentelle Benchmarks außerhalb des Core
 
-Eigene Agenten und Szenarien lassen sich mit dem optionalen Extra `benchmarks`
-über JSONL anbinden. Das [Tutorial](docs/GUIDE_Benchmark-Custom.md) zeigt
-Installation, ein ausführbares Beispielpaket und den Vergleich gespeicherter
-Läufe. Nach Installation öffnet `cubie-bench guide` dieselbe Anleitung.
-Der [Nutzenvergleich](docs/GUIDE_Benchmark-Comparison.md) spiegelt Developer-Aufgaben
-mit getrennten Cubie-/Pytest-Spezialisten und einem Cubie-freien Vergleichscontainer.
+Der [Benchmark-Guide](docs/GUIDE_Benchmarks.md) bündelt Schnellstart, eigene
+JSONL-Agenten und Szenarien, Ergebnisvergleich, SWE-bench und CI-Messbetrieb.
+Er beschreibt auch gespiegelte Developer-Aufgaben mit getrennten
+Cubie-/Pytest-Agenten und einem Cubie-freien Vergleichscontainer.
+`cubie-bench guide` zeigt denselben Guide aus dem installierten Paket.
+Der gesamte Bereich einschließlich Adapter, Datensätzen und Messfunktionen
+gehört nicht zum qb-cubie Core.
+
+## Wheel-Prüfung und CI
 
 Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
 
@@ -205,8 +209,8 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
-[↦ | Benchmark-Verträge: Pakete, Sets und Nachrichten | ↤](./docs/GUIDE_Benchmark-Contracts.md)
 
+[↦ | Experimentelle Benchmarks außerhalb des Core | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
 </center>

@@ -68,7 +68,8 @@ def test_recovery_restricts_next_action_then_restores_full_schema(tmp_path, monk
 
     result = agent.develop(None, None, SimpleNamespace(problem_statement='Fix boundary'),
                            {'mode': 'pytest', 'run_id': '0001', 'seed': 42}, config,
-                           {'pytest': 'guide'}, tmp_path, client=Client())
+                           {'pytest': 'guide'}, tmp_path, client=Client(),
+                           design=default_design('pytest', {'pytest': 'guide'}, version=4))
     assert result['status'] == 'submitted'
     assert result['repairs'] == 1
     assert [e['properties']['action']['const'] for e in requests[1]['schema']['oneOf']] == ['read_file']
@@ -77,5 +78,5 @@ def test_recovery_restricts_next_action_then_restores_full_schema(tmp_path, monk
     archived = read(tmp_path / 'steps/0002-tool.json')
     assert 'expected_sha256' not in archived['action']
     assert archived['executed_action']['expected_sha256'] == 'c' * 64
-    schema = design_schema(default_design('pytest', {'pytest': 'guide'}))
+    schema = design_schema(default_design('pytest', {'pytest': 'guide'}, version=4))
     assert requests[2]['schema'] == schema

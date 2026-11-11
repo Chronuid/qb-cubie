@@ -111,7 +111,7 @@ def test_cli_help_points_to_custom_agent_workflow(external):
     accepted(lambda: cli("--help", cwd=external.parent), expected=lambda p: (
         p.returncode == 0 and all(word in p.stdout for word in
                                  ["init-agent", "validate-agent", "init-scenario", "validate", "list", "compare",
-                                  "GUIDE_Benchmark-Custom"])))
+                                  "GUIDE_Benchmarks"])))
 
 
 def test_cli_can_create_a_suite_with_one_explicit_external_agent(external):

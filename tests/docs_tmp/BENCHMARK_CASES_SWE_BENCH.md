@@ -2,13 +2,14 @@
 
 Stand: 11. November 2026. **Produktimplementierung vorhanden; die ursprüngliche
 Rotphase bleibt unten als Historie dokumentiert. Keine reale SWE-bench-Messung.**
-Der [Nutzungsleitfaden](../../docs/GUIDE_Benchmark-SWEbench.md) beschreibt den
+Der [Nutzungsleitfaden](../../docs/GUIDE_Benchmarks.md#swe-bench) beschreibt den
 Developer-Agent-Durchstich und seine Laufzeitvoraussetzungen.
 
-Maßgeblich sind die [Loader-Anforderungen SBL-01 bis SBL-08](../../docs/misc/SWE_BENCH_LOADER_ANFORDERUNGEN.md).
-Der Ausbau ist im [Benchmark-Konzept §10.6](../../docs/misc/BENCHMARK_KONZEPT.md#106-datensatzausbau-durch-swe-bench)
-und in der [Liste offener Punkte](../../docs/misc/OFFENE_PUNKTE_Benchmarks-Agenten.md#datensätze-verbessern-automatisierter-swe-bench-import)
-verlinkt. Er ersetzt weder die Basisdatensatz-Abnahme noch unverbrauchte Messaufgaben.
+Die Anforderungen SBL-01 bis SBL-08 sind in der Kriterienzuordnung unten
+zusammengefasst; Konfiguration und Snapshotformat stehen im
+[Loadervertrag](../../docs/GUIDE_Benchmarks.md#loadervertrag-und-lokaler-snapshot).
+Der SWE-bench-Ausbau ersetzt weder die Basisdatensatz-Abnahme noch unverbrauchte
+Messaufgaben.
 
 ## Öffentlicher Vertrag
 
@@ -126,7 +127,7 @@ Der Produktcode exportiert die drei Loader-APIs und integriert
 `external.swebench_v1` sowie `issue_resolution` in Paketprüfung, Suite,
 Referenzfreigabe, Freeze, JSONL-Abgabe und Reporting. Der mitgelieferte
 Ollama-Developer besitzt einen getrennten Reparaturmodus mit vollständiger
-Patch-Abgabe. Der [Leitfaden](../../docs/GUIDE_Benchmark-SWEbench.md) beschreibt
+Patch-Abgabe. Der [Leitfaden](../../docs/GUIDE_Benchmarks.md#swe-bench) beschreibt
 Konfiguration und Laufzeitvoraussetzungen.
 
 Ergänzende Cases liegen in

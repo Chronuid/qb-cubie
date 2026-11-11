@@ -55,7 +55,7 @@ def test_unlimited_steps_reach_submission_beyond_previous_limits(session, monkey
         # Different located pages provide new evidence; stagnation is unrelated
         # to removing numerical model/tool allowances.
         actions = [action('read_file', path=f'module_{i}.py', start=1) for i in range(48)]
-        result, _, _ = run([*actions, action('submit', reason='verified')], design=default_design('pytest', guides))
+        result, _, _ = run([*actions, action('submit', reason='verified')], design=default_design('pytest', guides, version=4))
         return result['status'], result['model_calls'], result['tool_calls']
     check(observe, expected)
 
@@ -67,7 +67,7 @@ def test_time_deadline_still_applies_when_both_call_budgets_are_unlimited(sessio
 
     def observe():
         result, _, _ = run([action('read_file', path='module.py', start=1)],
-                            design=default_design('pytest', guides), clock=lambda: next(ticks))
+                            design=default_design('pytest', guides, version=4), clock=lambda: next(ticks))
         return result['status'], result['model_calls'], result['tool_calls']
     check(observe, ('wall_budget', 1, 0))
 

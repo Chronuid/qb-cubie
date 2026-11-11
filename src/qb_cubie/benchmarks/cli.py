@@ -26,7 +26,7 @@ def main(argv=None):
 
 def _parser():
     """Define the supported benchmark commands and arguments."""
-    parser = argparse.ArgumentParser(description="Benchmark agents and scenarios: initialize, plan, run, compare; see GUIDE_Benchmark-Custom.md and GUIDE_Benchmark-Contracts.md")
+    parser = argparse.ArgumentParser(description="Experimental benchmarks (outside qb-cubie Core): initialize, plan, run, compare; see GUIDE_Benchmarks.md or cubie-bench guide")
     commands = parser.add_subparsers(dest="command", required=True)
     _cli_parser.authoring(commands)
     _cli_parser.suites(commands)

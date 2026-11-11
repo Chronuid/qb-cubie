@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 MODES = {"pytest", "cubie"}
-TOOLS = {"list_files", "read_file", "search_text", "write_file", "delete_file", "run_tests", "submit", "update_ledger", "search_files", "replace_text", "find_paths", "search_content", "collect_tests", "check_baseline", "read_test_details"}
+TOOLS = {"analyze", "list_files", "read_file", "search_text", "write_file", "delete_file", "run_tests", "submit", "update_ledger", "search_files", "replace_text", "find_paths", "search_content", "collect_tests", "check_baseline", "read_test_details"}
 
 
 def canonical(value):
@@ -55,7 +55,8 @@ def compose(core, specialization):
         raise ValueError("core.policy.repair_calls must be zero or one")
     if not isinstance(core["context"], dict) or type(core["context"].get("version")) is not int or core["context"] not in ({"strategy": "ledger", "version": 1},
                                {"strategy": "evidence", "version": 3},
-                               {"strategy": "evidence", "version": 4}):
+                               {"strategy": "evidence", "version": 4},
+                               {"strategy": "evidence", "version": 5}):
         raise ValueError("Unsupported core context strategy")
     return copy.deepcopy({"core": core, "specialization": specialization})
 

@@ -6,8 +6,8 @@
 
 Stand: 10. November 2026. **Developer-Kern implementiert und offline geprüft.**
 Die [36 neuen Cases](../ollama_agents/developer) konkretisieren den Developer-Durchstich
-in [AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme)
-und die Regeln aus §4.1–4.3. Sie ergänzen die Unterbau- und Reviewer-Abnahme.
+in der [Rollen- und Ablaufbeschreibung](../../experiments/ollama-agents/README.md)
+zu Phasensteuerung, Testentwurf, Reparaturen und den Cubie-/pytest-Modi. Sie ergänzen die Unterbau- und Reviewer-Abnahme.
 Die ursprüngliche Rotphase bleibt unten dokumentiert. Der Produktionsadapter
 erfüllt inzwischen alle ursprünglichen Cases; der Prozessanschluss bleibt Folgearbeit.
 

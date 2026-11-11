@@ -23,7 +23,7 @@ def test_notes_do_not_consume_a_turn_or_overwrite_runner_facts(session):
     result, client, _ = run([
         action('read_file', path='bounds.py', start=1, note={
             'hypothesis': 'missing boundary', 'requirement': 'Fix bounds', 'next': 'add test'}),
-        action('submit', reason='No reproduction yet')], design=default_design('pytest', guides))
+        action('submit', reason='No reproduction yet')], design=default_design('pytest', guides, version=3))
     assert result['tool_calls'] == 1
     assert result['model_calls'] == 2
     assert 'missing boundary' in json.dumps(client.requests[1]['messages'])
@@ -40,7 +40,7 @@ def test_alternating_notes_and_failed_path_are_bounded(session, monkeypatch):
     monkeypatch.setattr(agent, 'execute', fail)
     result, _, _ = run([action('read_file', path='requests/utils.py', start=1,
                               note={'next': f'retry {i}'}) for i in range(20)],
-                       design=default_design('cubie', guides), mode='cubie')
+                       design=default_design('cubie', guides, version=3), mode='cubie')
     assert result['status'] == 'stalled'
     assert len(executed) == 2
     assert result['process_metrics']['rejected_retries'] >= 1

@@ -5,7 +5,7 @@
 > erlauben `author_checked`; nur der beanspruchte Status `independently_checked`
 > verlangt weiterhin zwei belegte unabhängige Zustimmungen. Frühere Aussagen
 > zu einer verpflichtenden menschlichen Aufnahme unten sind historisch.
-> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/misc/OFFENE_PUNKTE_Benchmarks-Agenten.md).
+> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/GUIDE_Benchmarks.md#noch-benötigte-praktische-nachweise).
 
 > Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
 > beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
@@ -14,8 +14,8 @@
 Stand: 10. November 2026. **Produktfunktionen implementiert; Referenzen bleiben
 `author_checked`. Unabhängige menschliche Aufnahme und reale Modellmessung sind offen.**
 
-Die ursprünglich 55 Cases unter [benchmarks/phase4](../benchmarks/phase4) konkretisieren die
-vierte Phase aus [Entwicklungsplan und Abnahme](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+Die ursprünglich 55 Cases unter [benchmarks/phase4](../benchmarks/phase4) prüfen den Basisdatensatz und die Pilotfunktionen;
+Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#basisdatensatz-und-pilot).
 Sie verwenden die vorhandenen EBT-Hüllen `accepted` und `rejected` mit
 `WorldState` und gegebenenfalls `ExceptionExpectation`. Die Hüllen prüfen
 `RunTrace.evaluation` und das Urteil der einzelnen Spur ausdrücklich.
@@ -255,7 +255,7 @@ verweigert stille Mischungen verschiedener Szenario-/Evaluatorstände oder
 Agentenkonfigurationen unter denselben Kennungen; neue Agentenversionen erhalten
 unterschiedliche IDs. Kein Best-of-n und kein Gesamtscore werden eingeführt.
 
-Die [installierte Anleitung](../../docs/GUIDE_Benchmark-Custom.md#basisdatensatz-und-pilot)
+Die [installierte Anleitung](../../docs/GUIDE_Benchmarks.md#basisdatensatz-und-pilot)
 beschreibt Export, Planung, Ausführung, Auswertung und Modelldeklaration.
 Der lokale Runner bleibt eine Umgebung für vertrauenswürdige Agenten und
 Evaluatoren. Containerisolation, harte Token-/Kostenlimits, semantisches

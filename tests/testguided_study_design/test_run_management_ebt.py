@@ -110,6 +110,16 @@ def managed_study(tmp_path, monkeypatch):
             if state.failure == "interrupt":
                 raise KeyboardInterrupt
             action = {"action": "submit", "stage": "finish", "reason": "Deterministic run-management replay"}
+            names = {e['properties']['action']['const'] for e in kwargs['schema']['oneOf']}
+            if 'submit' not in names:
+                if 'analyze' in names:
+                    entry = next(e for e in kwargs['schema']['oneOf'] if e['properties']['action']['const'] == 'analyze')
+                    phase = entry['properties']['phase']['enum'][0]
+                    action = {"action": 'analyze', "stage": 'inspect', "phase": phase,
+                                  "requirement": 'Synthetic issue', "example": 'boundary', "observation": 'No verification',
+                                  "decision": 'unclear', "next": 'Finish replay'}
+                else:
+                    action = {"action": 'read_file', "stage": 'inspect', "path": 'bounds.py', "start": 1}
             validate(action, kwargs["schema"])
             return {"action": action, "usage": {"input_tokens": 7, "output_tokens": 3}, "raw": {"replay": True}}
 
@@ -195,7 +205,7 @@ def test_m01_default_cli_prepares_freezes_checks_runs_and_reports_without_manual
                 read(root / "setup/images.json")["automatic_build"], env.calls.count("model"),
                 all(manager.cleaned for manager in env.managers))
 
-    contract(observe, (0, "pilot", 6, 3, "finished", None, True, 6, True))
+    contract(observe, (0, "pilot", 6, 3, "finished", None, True, 24, True))
 
 
 @pytest.mark.parametrize("mode", ["smoke", "pilot"])

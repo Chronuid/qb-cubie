@@ -7,6 +7,7 @@ from itertools import count
 from ollama_agents.client import OllamaClient
 from ollama_agents.errors import AdapterError
 
+from .analysis import Analysis
 from .artifacts import read, write
 from .controller import (
     Controller,
@@ -72,7 +73,9 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
     workspace_patch = patch(manager, sandbox)
     repeat_signature, repeats = None, 0
     v3 = design["core"]["context"]["version"] >= 3
-    v4 = design["core"]["context"]["version"] == 4
+    v4 = design["core"]["context"]["version"] >= 4
+    v5 = design["core"]["context"]["version"] == 5
+    analysis = Analysis() if v5 else None
     recovering = False
     controller = Controller(policy["repeat_limit"], local_edits=v4)
     capacity = context_capacity(limits, model, schema) if v3 else limits["context_bytes"]
@@ -90,6 +93,9 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             status = "wall_budget"
             break
         try:
+            if analysis:
+                ledger["analysis"] = {"pending": analysis.pending, "reviewed": analysis.reviewed,
+                                      "records": analysis.records}
             if v3:
                 ledger["evidence"] = controller.facts
             request = (session_context if v3 else context)(system, public_task, history, ledger, capacity)
@@ -105,7 +111,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
              agent={"context": request, "action": None, "result": None, "response": None})
         before = clock()
         try:
-            active_schema = schema
+            active_schema = analysis.schema(schema) if analysis else schema
             if recovering:
                 active_schema = {"oneOf": [entry for entry in schema["oneOf"]
                                           if entry["properties"]["action"]["const"] == "read_file"]}
@@ -154,7 +160,9 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
              active={"tool_calls": tools})
         timeout = max(1, min(limits["command_seconds"], int(limits["wall_seconds"] - (clock() - started))))
         executed_action = controller.bind_edit(action) if v4 else action
-        if action["action"] == "update_ledger":
+        if action["action"] == "analyze" and analysis:
+            result = analysis.analyze(action)
+        elif action["action"] == "update_ledger":
             ledger.update({key: action[key] for key in ("hypothesis", "next", "files")})
             result = {"status": "completed", "updated": True}
         elif action['action'] == 'read_test_details':
@@ -171,6 +179,8 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
                 previous_versions.get("production") != versions.get("production") and
                 controller.metrics["first_production_change_call"] is None):
             controller.metrics["first_production_change_call"] = calls
+        if analysis:
+            analysis.observe(action, result)
         stopped = controller.observe(action, result, versions, calls) if v3 else False
         write(directory / f"steps/{step:04d}-tool.json", {"action": action, "result": result,
                                                          "executed_action": executed_action,
@@ -202,6 +212,8 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             "repair_test": "Repair collection/import/syntax errors before treating this as behavioral red.",
             "implement": "Observed assertion red: implement the required behavior, then rerun this test.",
         }
+        if analysis and analysis.pending:
+            hints["implement"] = "Analyze the failing observation before choosing a repair. Assertion red alone does not establish the cause."
         if directive in hints:
             ledger["feedback"] = hints[directive]
         else:

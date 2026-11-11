@@ -5,8 +5,8 @@
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
 
 Stand: **10. November 2026, öffentlicher Offline-Durchstich implementiert.**
-Diese Cases konkretisieren Phase 2 aus
-[BENCHMARK_KONZEPT.md, Abschnitt 10](../../docs/misc/BENCHMARK_KONZEPT.md#102-installierbarer-durchstich-ohne-modell).
+Diese Cases prüfen den installierten Offline-Durchstich mit CLI und Fake-Adapter;
+Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#schnellstart).
 CLI, Fake-Adapter, Phasensteuerung, unabhängige Evaluatoren und Ergebnisarchiv sind implementiert.
 Die bestehenden [Phase-10.1-Verträge](BENCHMARK_CASES_10_1.md) bleiben gültig.
 

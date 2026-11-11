@@ -5,15 +5,15 @@
 > erlauben `author_checked`; nur der beanspruchte Status `independently_checked`
 > verlangt weiterhin zwei belegte unabhängige Zustimmungen. Frühere Aussagen
 > zu einer verpflichtenden menschlichen Aufnahme unten sind historisch.
-> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/misc/OFFENE_PUNKTE_Benchmarks-Agenten.md).
+> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/GUIDE_Benchmarks.md#noch-benötigte-praktische-nachweise).
 
 > Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
 > beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
 
 Status: **Öffentliche Schnittstellen implementiert**, 10. November 2026.
-Diese Cases konkretisieren die erste Phase aus
-[BENCHMARK_KONZEPT.md, Abschnitt 10](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+Diese Cases prüfen die öffentlichen Paket-, Agenten- und Set-Verträge;
+Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#technische-referenz).
 Die beschriebenen Python-Schnittstellen sind in
 [`qb_cubie.benchmarks`](../../src/qb_cubie/benchmarks/__init__.py) implementiert.
 Der ausführende Benchmark-Runner folgt in Phase 2.
@@ -196,7 +196,7 @@ Unterbrochene oder offene Bewertungen dürfen keine numerischen
 Qualitätswerte behaupten. Negative Werte abgeschlossener eigener Metriken sind
 zulässig, etwa für Zeitdifferenzen.
 
-Die [API-Anleitung](../../docs/GUIDE_Benchmark-Contracts.md) dokumentiert die
+Die [API-Anleitung](../../docs/GUIDE_Benchmarks.md#technische-referenz) dokumentiert die
 verfügbaren Eingaben, Voreinstellungen und Grenzen. Die noch ausstehende
 menschliche Referenzfreigabe und der ausführende Durchstich bleiben separat
 sichtbar.

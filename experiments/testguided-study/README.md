@@ -520,11 +520,26 @@ Prüfung einer falschen Lösung nicht bestehen lässt. Diese Proben sind
 Infrastrukturnachweise; sie messen keine Modellleistung.
 
 
-## Agentendesign v4
+## Agentendesign v4 (historisch)
 
-Neue Freezes verwenden `testguided-core-v4` mit `pytest-guide-v4` beziehungsweise
+v4 verwendet `testguided-core-v4` mit `pytest-guide-v4` beziehungsweise
 `cubie-guide-v4`. [Entwurf und Begründung](AGENTENDESIGN-V4.md) dokumentieren die
 Änderungen aus Pilot `20261111-180702`: vom Runner gebundene Datei-Versionen,
 kleine Änderungen, explizite Prüfung des Testorakels, Reproduktionsfeedback nach
 Grün ohne Produktionsänderung und ein eingeschränktes Reparaturschema nach
 ungültiger Modellausgabe. Historische Freezes werden nicht verändert.
+
+
+## Agentendesign v5
+
+Neue Freezes verwenden `testguided-core-v5` mit identischer Steuerung für beide
+Testbedingungen. [Design und Validierung](AGENTENDESIGN-V5.md) beschreiben drei
+verbindliche Analysephasen: Reproduktion vor Dateiänderungen, Diagnose nach
+fehlgeschlagenen Tests und Abschlussprüfung vor `submit`. Strukturierte
+Modellbewertungen bleiben von Runner-Evidenz getrennt.
+
+`think = true` ist in `study.toml` und allen drei Profilen aktiviert. Modell-,
+Kontext-, Ausgabe- und Zeitbudgets bleiben unverändert. v3/v4 sind weiterhin über
+`default_design(..., version=3)` bzw. `version=4` auswählbar. Thinking ist unabhängig
+von der Designversion konfigurierbar; Variantenvergleiche müssen beide Einstellungen
+explizit einfrieren. Historische Archive werden nicht geändert.

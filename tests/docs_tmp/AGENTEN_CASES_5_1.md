@@ -6,8 +6,8 @@
 
 Stand: 10. November 2026. **Gemeinsamer Unterbau implementiert und offline geprüft;
 die ursprüngliche Rotphase bleibt unten dokumentiert.** Die **97 ursprünglichen
-Cases** unter [ollama_agents](../ollama_agents) konkretisieren den ersten Schritt aus
-[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+Cases** unter [ollama_agents](../ollama_agents) konkretisieren den gemeinsamen Unterbau der
+[Rollen- und Ablaufbeschreibung](../../experiments/ollama-agents/README.md).
 Mit zwölf ergänzenden Gegenproben bestehen jetzt **109 Cases**.
 Die Implementierung liegt unter [examples/ollama-agents](../../examples/ollama-agents/README.md).
 Das historische Ollama-Beispiel und seine Archive bleiben unverändert.

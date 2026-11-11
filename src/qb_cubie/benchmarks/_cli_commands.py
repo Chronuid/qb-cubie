@@ -47,7 +47,7 @@ def _compare(args):
 def guide():
     """Return the tutorial bundled in the installed distribution."""
     from importlib.resources import files
-    return {"guide": files("qb_cubie.benchmarks").joinpath("data/GUIDE_Benchmark-Custom.md").read_text(encoding="utf-8")}
+    return {"guide": files("qb_cubie.benchmarks").joinpath("data/GUIDE_Benchmarks.md").read_text(encoding="utf-8")}
 
 
 def _suite(args):

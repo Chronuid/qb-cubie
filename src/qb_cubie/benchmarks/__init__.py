@@ -1,4 +1,4 @@
-"""Public version-one benchmark validation and planning contracts."""
+"""Experimental benchmark APIs, separate from the qb-cubie Core."""
 
 from qb_cubie.benchmarks.adapters.process import validate_agent
 from qb_cubie.benchmarks.contracts.packages import load_package

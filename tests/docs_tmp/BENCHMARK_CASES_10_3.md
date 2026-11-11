@@ -5,8 +5,8 @@
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.
 
 Stand: **10. November 2026, öffentliche Prozessanbindung implementiert.**
-Diese Cases konkretisieren Phase 3 aus
-[BENCHMARK_KONZEPT.md](../../docs/misc/BENCHMARK_KONZEPT.md#103-eigene-agenten-und-szenarien).
+Diese Cases prüfen die eigenen Prozessagenten und Szenarien;
+Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#agenten-und-modellkonfiguration).
 Sie ergänzen die Verträge aus [10.1](BENCHMARK_CASES_10_1.md) und
 [10.2](BENCHMARK_CASES_10_2.md). Die ursprüngliche Rotphase ist unten dokumentiert.
 Alle ursprünglichen Cases bleiben reguläre Prüfungen ohne `xfail` oder Skips.
@@ -20,7 +20,7 @@ zweiten Agenten oder den Cubie-/pytest-Produktvergleich.
 | Prozessadapter | [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Ein echtes externes Programm empfängt JSONL, liest sichtbares Material und reicht gehashte Artefakte ein. Ein eigener Agent bewertet beide Review-Varianten in der Cubie-Bedingung. Der unabhängige Evaluator erkennt eine konstante Freigabe als Fehler. |
 | Fähigkeiten und Konfigurationsfehler | [test_authoring.py](../benchmarks/phase3/test_authoring.py), [test_process_adapter.py](../benchmarks/phase3/test_process_adapter.py) | Tatsächlicher Fähigkeitenaustausch statt Vertrauen auf TOML-Angaben. Falsche Protokollversion und fehlende Fähigkeiten verhindern Aufgabenstart und Laufartefakte. Ein Review-Agent ohne Phasenabgabe wird nicht für Entwicklung eingeplant. |
 | Agentenvorlage | [test_authoring.py](../benchmarks/phase3/test_authoring.py) | `init-agent` liefert bearbeitbare Prozesskonfiguration; `validate-agent` prüft den realen Peer ohne Szenarioausführung. Bestehende Dateien werden nicht überschrieben. |
-| Tutorial aus installiertem Wheel | [benchmark_custom_installed.py](../wheel/benchmark_custom_installed.py) | Agent initialisieren und konfigurieren, Verbindung prüfen, externes Paket validieren und entdecken, Set anlegen, planen, zweimal ausführen, gespeicherte Läufe vergleichen. Nur installierte öffentliche API und CLI, externes Arbeitsverzeichnis, kein Checkout. Die CLI-Hilfe verweist auf `GUIDE_Benchmark-Custom`; `guide` zeigt die installierte Anleitung. |
+| Tutorial aus installiertem Wheel | [benchmark_custom_installed.py](../wheel/benchmark_custom_installed.py) | Agent initialisieren und konfigurieren, Verbindung prüfen, externes Paket validieren und entdecken, Set anlegen, planen, zweimal ausführen, gespeicherte Läufe vergleichen. Nur installierte öffentliche API und CLI, externes Arbeitsverzeichnis, kein Checkout. Die CLI-Hilfe verweist auf `GUIDE_Benchmarks`; `guide` zeigt die installierte Anleitung. |
 | Externes Beispielpaket | [fixtures/phase3](../benchmarks/fixtures/phase3/package.json), [test_external_packages.py](../benchmarks/phase3/test_external_packages.py) | Eigener Namespace, neue Fachdomäne, MIT-Lizenz, Quellen und getrennte Referenzen. Bestehende Evaluatoren genügen; keine Registrierung und keine Core-Änderung. Verschieben und Aufruf aus anderem Arbeitsverzeichnis funktionieren. |
 | Szenariovorlagen und Referenzprüfung | [test_authoring.py](../benchmarks/phase3/test_authoring.py) | Vollständige Vorlagen für Review und Entwicklung. Strukturelle Validierung führt keinen Szenariocode aus; ausdrücklich eingeschaltete Referenzprüfung akzeptiert die Lösung und erkennt den Mutanten. Fehlerhafte Lösung und wirkungsloser Mutant verhindern Validierung. |
 | Typ-/Tagfilter | [test_external_packages.py](../benchmarks/phase3/test_external_packages.py) | Freie Typen wie `shop/shipping`, kombinierte Filter und Ausschlüsse, untypisierter Fall, keine doppelten Versuche bei mehreren Typen. Bestehendes und eigenes Paket passen in denselben Plan. Unbekannte Auswahl und fehlende Vorgänger scheitern vor Prozessstart. |
@@ -229,7 +229,7 @@ für diesen Testentwurf nicht erneut ausgeführt.
 Die öffentlichen Funktionen, CLI-Kommandos und der JSONL-Prozessadapter sind
 implementiert. `init_example` bzw. `cubie-bench init-example` exportiert ein
 eigenständiges Paket aus dem Wheel ohne Repository-Fixtures. `cubie-bench guide`
-zeigt das mitgelieferte [Tutorial](../../docs/GUIDE_Benchmark-Custom.md).
+zeigt das mitgelieferte [Tutorial](../../docs/GUIDE_Benchmarks.md).
 Der Prozess wird vor der unabhängigen Schlussbewertung beendet; ein Absturz
 nach gültiger Abgabe bleibt ein Infrastrukturfehler. Rohe Nachrichten und
 Diagnosen werden archiviert, Sitzungen bei Fehlern und Timeouts aufgeräumt.
@@ -298,7 +298,7 @@ Ruff für sämtliche ergänzten Python-Dateien und `git diff --check` bestehen.
 Die Cases in
 [test_experiment_regressions.py](../benchmarks/phase3/test_experiment_regressions.py)
 konkretisieren die priorisierten Befunde aus
-[EXPERIMENT_Benchmark-10-3.md](../../docs/misc/EXPERIMENT_Benchmark-10-3.md).
+[Nutzungsexperiment und Folgerungen](../../experiments/ollama-user-benchmark/README.md#nutzungsexperiment-vom-10-november-2026).
 Die Abnahme wurde zunächst mit bewusst sichtbarer Rotphase ergänzt.
 Die nachfolgende Produktkorrektur ist unten dokumentiert; die archivierten
 Ollama-Belege bleiben unverändert.

@@ -167,7 +167,7 @@ def session_context(system, issue, history, ledger, capacity):
     # Ledger entries and the latest output can grow independently. Try bounded
     # views of both; previous complete exchanges are still selected by context().
     minimal = {key: copy.deepcopy(ledger[key]) for key in
-               ('action_error', 'next', 'last_file', 'last_test') if key in ledger}
+               ('action_error', 'next', 'last_file', 'last_test', 'analysis') if key in ledger}
     minimal['context_notice'] = 'Older ledger details omitted; reread files or use read_test_details.'
     if 'visible_baseline' in ledger:
         baseline = ledger['visible_baseline']
@@ -213,7 +213,7 @@ def session_context(system, issue, history, ledger, capacity):
         except ValueError:
             continue
     # Retain an explicit failure if even the mandatory input cannot fit.
-    required = {key: minimal[key] for key in ('visible_baseline', 'context_notice') if key in minimal}
+    required = {key: minimal[key] for key in ('visible_baseline', 'context_notice', 'analysis') if key in minimal}
     return context(system, issue, exchanges, required, capacity)
 
 

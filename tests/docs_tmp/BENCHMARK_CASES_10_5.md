@@ -6,8 +6,8 @@
 
 Stand: 10. November 2026. **Produktfunktionen implementiert; die ursprüngliche
 Rotphase bleibt unten dokumentiert.** Die Cases unter
-[benchmarks/phase5](../benchmarks/phase5) konkretisieren die fünfte Phase aus
-[BENCHMARK_KONZEPT.md](../../docs/misc/BENCHMARK_KONZEPT.md#10-entwicklungsplan-und-abnahme).
+[benchmarks/phase5](../benchmarks/phase5) prüfen den Messbetrieb mit Gates und
+eingefrorenen Konfigurationen. Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#messbetrieb-gates-und-ci).
 Neue öffentliche Schnittstellen werden erst innerhalb der Cases aufgelöst.
 Ihr Fehlen erzeugt einen Testfehlschlag und verhindert nicht die Sammlung.
 
@@ -353,7 +353,7 @@ Python-Schritte des tatsächlichen Workflows lokal mit einem echten Bundle aus
 und prüft anschließend dessen Ausführbarkeit. Die IDE meldet keine YAML-Fehler.
 Ein entfernter GitHub-Job wurde nicht ausgelöst.
 
-Die [installierte Anleitung](../../docs/GUIDE_Benchmark-Custom.md#messbetrieb-gates-eingefrorene-konfiguration-und-ci)
+Die [installierte Anleitung](../../docs/GUIDE_Benchmarks.md#messbetrieb-gates-und-ci)
 beschreibt Gates, Exitcodes, Freeze, CI-Provisionierung, zurückgehaltene Pakete
 und die Voraussetzungen für Produktmessungen. Ihr mitgeliefertes Ressourcenexemplar
 ist identisch mit der Dokumentation im Repository.

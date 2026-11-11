@@ -1,8 +1,9 @@
 # Lokale Ollama-Agenten aus Checkout und Wheel
 
-Dieses Beispiel implementiert den Unterbau, beide Rollenkerne, den Installationsweg
-und die Pilotfreigabe aus Schritt 1 bis 5 von
-[AGENTEN_KONZEPT.md](../../docs/misc/AGENTEN_KONZEPT.md#5-umsetzung-und-abnahme).
+Dieses Beispiel implementiert den gemeinsamen Ollama-Unterbau, einen Reviewer
+mit Quellenbindung und einen Developer mit kontrollierten Test-/Implementierungsphasen
+sowie Wheel-Export, Kalibrierung und Pilotfreigabe. Die
+[Abnahmenachweise](../../tests/docs_tmp/README.md) dokumentieren die fünf Entwicklungsschritte.
 Der gemeinsame Unterbau und der Reviewer verwenden die Python-Standardbibliothek;
 der Developer nutzt zusätzlich den installierten Cubie-Testausführer und pytest.
 Python ab 3.13 wird benötigt. Import und Offline-Prüfungen starten weder Ollama noch ein
@@ -391,3 +392,67 @@ bleiben unbekannt; Reviewer-Findingtexte unterliegen weiterhin dem exakten
 Matcher. Menschliche Aufnahme und blinde semantische Nachbewertung bleiben offen.
 Das [§5.5-Protokoll](../../tests/docs_tmp/AGENTEN_CASES_5_5.md) trennt Offline-Abnahme und
 tatsächliche Modellmessungen.
+
+## Explorative Messung vom 10. November 2026
+
+Aus einem frisch installierten Wheel außerhalb des Checkouts wurden mit lokalem
+Ollama beide Rollen seriell gemessen: die Reviewer-Fälle `shop/review-boundary`
+und `shop/review-correct` sowie `shop/fee-initial` als Developer-Episode unter
+Cubie. Zwei Kalibrierungs- und danach fünf Messwiederholungen je Aufgabe ergaben
+6 Kalibrierungs- und 15 Pilotepisoden. Die Pilotsets wurden nach beiden
+Kalibrierungen eingefroren; danach blieben Prompts und Parameter unverändert.
+Alle 21 begonnenen Episoden sind enthalten und `completed`; keine wurde ersetzt,
+ausgeschlossen oder automatisch wiederholt. Zwei unbewertete Vorprüfungen
+werden getrennt gezählt.
+
+Gemessen wurde mit Python 3.13.12, Ollama 0.40.2 und `gemma4:12b` (`Q4_K_M`),
+Digest `4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c`,
+auf einer RTX 4060 Ti mit 16380 MiB. Temperatur 0, Seed 42, Kontext 16384,
+`think=false`, `stream=false` und JSON-Schema galten für beide Rollen.
+Reviewer/Developer hatten 2048/4096 Ausgabetokens pro Aufruf, 300/1800 Sekunden,
+20/100 Runner-Werkzeuge sowie intern 6/12 Modell- und 12/40 Werkzeugaufrufe
+als Grenzen. Adapterstände waren `ollama-reviewer-v2-jsonl-1` und
+`ollama-developer-v4-jsonl-1`; konkrete Prompts und Konfigurationen sind archiviert.
+
+| Pilotfall | Wiederholungen | Kriterien korrekt | Runner-Qualität bestanden | Prozess bestanden | Dauer: Mittel ± Stichprobenstandardabweichung |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Reviewer, Grenzfehler | 5 | 5/5 | 0/5 | entfällt | 12.985 ± 0.107 s |
+| Reviewer, konform | 5 | 5/5 | 5/5 | entfällt | 3.093 ± 0.057 s |
+| Developer | 5 | 5/5 | 5/5 | 5/5 | 33.444 ± 4.390 s |
+
+Die Kalibrierung ergab beim Reviewer 4/4 korrekte Kriterienentscheidungen und
+2/4 bestandene Qualitätsabnahmen, beim Developer 2/2 bestandene Qualitäts-
+und Prozessabnahmen. In den fünf Developer-Pilotepisoden wurden eingefrorene
+Tests, fachliches Rot, Grün und Refactoring tatsächlich beobachtet; die private
+Projektabnahme bestand unabhängig davon. Die fünf Grenzfehlerreviews scheiterten
+am exakten Vergleich anders formulierter Findingtexte. Das belegt keine
+semantische Precision/Recall von null. Eine blinde semantische Nachbewertung
+steht aus; Referenzformulierungen wurden dem Modell nicht vorgelegt.
+
+Kalibrierung und Pilot umfassen 56 Modellaufrufe mit 95994 Eingabe- und 6034
+Ausgabetokens; mit Vorprüfungen waren es 58 echte Inferenzaufrufe. Kosten sind
+`null`, harte Tokenlimits wurden nicht durchgesetzt. Zeiten sind lokale
+Beobachtungen bei zeitweise parallel laufenden CPU-Prüfungen; GPU-Zustände
+wurden nur an Stapelgrenzen erfasst. Die öffentlichen Aufgaben sind potenziell
+bekannt, mit nur einer Projektgruppe je Rolle. Wiederholungen schaffen keine
+zusätzlichen Projekte. Ein Cubie-/pytest-Vergleich wurde nicht ausgeführt.
+Die Messung ersetzt weder den Basisdatensatz-Pilot noch einen unabhängigen
+Goldstandard oder einen allgemeinen Modell-/Produktleistungsnachweis.
+
+Die Rohdaten liegen außerhalb des Repositorys unter
+`/home/symphonie/.local/share/cubie/agent-5-5-20261110`, die Auswertung daneben
+in `agent-5-5-analysis.json`. `evidence-manifest.json` bindet 1756 Dateien;
+vier Runnerarchive und 21 externe Adapterarchive wurden nachgeprüft.
+Das gemeinsame Archiv `agent-5-5-evidence-20261110.tar.gz` im selben Elternordner
+hat SHA-256 `4028ab93d49d83b1c64f4afffa6242816ccc5c5b8a165d84cb1882d76cb19036`.
+Es bewahrt Konfigurationen, Rohantworten, Provider-/Hardwarebelege und Wheels.
+Das gemessene Wheel hat SHA-256
+`f14b47b0a1baa89043f05a9da07febb577feea532fa6da0f5ec30046e066ef28`;
+das abschließende Produktwheel
+`caab3d7de8d6b98331ce6fc7ff6acb6c15f8db695f8b98207ceb9169f3d959b9`
+enthält zusätzliche Produktprüfungen bei identischen Rollenprompts und Parametern.
+Die Archivangabe ist kein Nachweis einer getrennten Sicherung und Wiederherstellung.
+[Offline-Abnahme und Archivprüfung](../../tests/docs_tmp/AGENTEN_CASES_5_5.md)
+bleiben getrennt von der Modellmessung dokumentiert. Menschliche Referenzprüfungen
+wurden nicht durchgeführt und bleiben optional; für Aussagen zur semantischen
+Findingqualität fehlt weiterhin eine dokumentierte Nachbewertung.

@@ -67,13 +67,13 @@ identify a specific missing behavior. Runner feedback is based on observations.
 """
 
 
-def default_design(mode, guides, *, version=4):
+def default_design(mode, guides, *, version=5):
     from .iteration import compose
-    if version not in (3, 4):
+    if version not in (3, 4, 5):
         raise ValueError("Unsupported default design version")
-    schema = V4_SCHEMA if version == 4 else V3_SCHEMA
+    schema = {3: V3_SCHEMA, 4: V4_SCHEMA, 5: V5_SCHEMA}[version]
     return compose(
-        {"id": f"testguided-core-v{version}", "prompt": V4_PROMPT if version == 4 else V3_PROMPT,
+        {"id": f"testguided-core-v{version}", "prompt": {3: V3_PROMPT, 4: V4_PROMPT, 5: V5_PROMPT}[version],
          "tools": [entry["properties"]["action"]["const"] for entry in schema["oneOf"]],
          "policy": {"repeat_limit": 3, "repair_calls": 1},
          "context": {"strategy": "evidence", "version": version}},
@@ -95,6 +95,8 @@ def design_schema(design):
         entries = V3_SCHEMA["oneOf"]
     if design["core"]["context"]["version"] == 4:
         entries = V4_SCHEMA["oneOf"]
+    if design["core"]["context"]["version"] == 5:
+        entries = V5_SCHEMA["oneOf"]
     return {"oneOf": [entry for entry in entries if entry["properties"]["action"]["const"] in tools]}
 
 
@@ -204,3 +206,32 @@ def _v4_schema():
 
 
 V4_SCHEMA = _v4_schema()
+
+
+V5_PROMPT = V4_PROMPT + """
+The runner requires three short analysis checkpoints using analyze:
+reproduction: after reading code, record the exact requirement, concrete input,
+expected observation and relevant public source/test evidence before changing files.
+diagnosis: after a failed test, identify the failed assertion or setup error and
+classify its cause as issue, test, setup or unclear before changing production.
+review: before submit, summarize actual changes, verification, pre-existing failures
+and missing evidence. Use decision=unclear when verification is incomplete.
+These are concise decision records, not proof of correctness. Cite actual public
+file paths or test steps; do not invent observations. Tests remain editable.
+Read more evidence when uncertain. Analysis cannot overwrite runner evidence.
+"""
+
+
+def _v5_schema():
+    import copy
+    schema = copy.deepcopy(V4_SCHEMA)
+    short = {"type": "string", "minLength": 1, "maxLength": 600}
+    schema["oneOf"].append(labeled(
+        "analyze", phase={"enum": ["reproduction", "diagnosis", "review"]},
+        requirement=short, example=short, observation=short,
+        decision={"enum": ["issue", "test", "setup", "unclear", "verified"]},
+        next=short))
+    return schema
+
+
+V5_SCHEMA = _v5_schema()
