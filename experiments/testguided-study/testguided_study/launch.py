@@ -48,8 +48,6 @@ def options(args):
         config["study_id"] = "plumbing-smoke-not-evidence-v3"
         config["selection"] = {"task_count": 1, "seed": config["order_seed"], "task_types": []}
         config["seeds"] = args.seeds or [42]
-        config["budgets"]["wall_seconds"] = args.agent_seconds or 180
-        config["budgets"]["model_calls"] = args.model_calls or 12
     return config
 
 

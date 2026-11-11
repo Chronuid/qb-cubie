@@ -96,8 +96,10 @@ def load_config(path):
     if type(config["order_seed"]) is not int:
         raise ValueError("order_seed must be an integer")
     for name, value in config["budgets"].items():
-        if type(value) is not int or value <= 0:
-            raise ValueError(f"budgets.{name} must be a positive integer")
+        minimum = 0 if name in {'model_calls', 'tool_calls'} else 1
+        if type(value) is not int or value < minimum:
+            rule = 'a nonnegative integer (0 means unlimited)' if minimum == 0 else 'a positive integer'
+            raise ValueError(f"budgets.{name} must be {rule}")
     model = config["ollama"]
     url = urlsplit(model["endpoint"])
     host = url.hostname

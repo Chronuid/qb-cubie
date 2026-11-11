@@ -70,11 +70,11 @@ identify a specific missing behavior. Runner feedback is based on observations.
 def default_design(mode, guides):
     from .iteration import compose
     return compose(
-        {"id": "testguided-core-v2", "prompt": PROMPT + ITERATION_PROMPT,
-         "tools": [entry["properties"]["action"]["const"] for entry in SCHEMA["oneOf"]] + ["update_ledger"],
+        {"id": "testguided-core-v3", "prompt": V3_PROMPT,
+         "tools": [entry["properties"]["action"]["const"] for entry in V3_SCHEMA["oneOf"]],
          "policy": {"repeat_limit": 3, "repair_calls": 1},
-         "context": {"strategy": "ledger", "version": 1}},
-        {"id": mode + "-guide-v2", "mode": mode, "guide": guides[mode], "examples": []})
+         "context": {"strategy": "evidence", "version": 3}},
+        {"id": mode + "-guide-v3", "mode": mode, "guide": guides[mode], "examples": []})
 
 
 def design_instruction(design):
@@ -88,4 +88,73 @@ def design_schema(design):
     entries = SCHEMA["oneOf"] + [labeled(
         "update_ledger", hypothesis=TEXT, next=TEXT,
         files={"type": "array", "items": TEXT, "maxItems": 20})]
+    if design["core"]["context"]["version"] == 3:
+        entries = V3_SCHEMA["oneOf"]
     return {"oneOf": [entry for entry in entries if entry["properties"]["action"]["const"] in tools]}
+
+
+V3_PROMPT = PROMPT.replace("Use read_file in pages and search_text to inspect a large repository.", "") + """
+Choose a concrete action on every turn; optionally attach a short note containing
+hypothesis, requirement (quote the issue), example, and next action. Notes are
+hypotheses, never verified facts. Runner evidence records actual files and tests.
+Use find_paths(pattern, start) to locate paths, search_content(path, query, start)
+for literal contents, then read_file. Never use a filename as a content query.
+Read nearby existing tests and their public observation APIs before writing tests.
+Keep examples faithful to the exact issue notation; distinguish strings from values.
+Use replace_text with the sha256 from read_file as expected_sha256; old must match
+exactly once. After a conflict read the current text before retrying.
+Use collect_tests to confirm uncertain test targets. A green new test on unchanged
+production code may not reproduce the bug: revisit the issue and its oracle.
+Use start=0 for the first search result page; read_file uses line numbers from 1.
+find_paths uses glob patterns such as '*ansi*', not regular expressions or substrings.
+Large test results include a details reference: use read_test_details with its
+one-based step and error offset start=0. Full test evidence stays archived.
+After changing tests following red, use check_baseline to run the final tests on
+original production code. This check copies visible tests only, never private tests.
+After meaningful red implement, run focused tests, then relevant regressions.
+Tests remain editable throughout. Before submit explain verification and missing
+reproduction evidence. Never manufacture red or weaken a valid requirement.
+"""
+
+NOTE = {"type": "object", "properties": {
+    key: {"type": "string", "maxLength": 600}
+    for key in ("hypothesis", "requirement", "example", "next")},
+    "additionalProperties": False}
+
+
+def _v3_schema():
+    import copy
+    entries = [copy.deepcopy(e) for e in SCHEMA["oneOf"]
+               if e["properties"]["action"]["const"] not in {"search_text", "search_files", "list_files"}]
+    entries += [
+        labeled("find_paths", pattern=TEXT, start={"type": "integer", "minimum": 0}),
+        labeled("search_content", path=TEXT, query=TEXT, start={"type": "integer", "minimum": 0}),
+        labeled("collect_tests", targets={"type": "array", "items": TEXT, "minItems": 1, "maxItems": 20}),
+        labeled("check_baseline", targets={"type": "array", "items": TEXT, "minItems": 1, "maxItems": 20}),
+        labeled("read_test_details", step={"type": "integer", "minimum": 1,
+                "description": "Test step number shown in details (one-based)."},
+                start={"type": "integer", "minimum": 0, "description": "Error offset from 0; continue with next_start."}),
+    ]
+    for entry in entries:
+        entry["properties"]["note"] = NOTE
+        name = entry['properties']['action']['const']
+        if name == 'read_file':
+            entry['properties']['start']['description'] = 'First line number, starting at 1; continue with next_start.'
+        if name in {'search_content', 'find_paths'}:
+            entry['properties']['start']['description'] = 'Result offset starting at 0, not a line number; continue with next_start.'
+        if name == 'find_paths':
+            entry['properties']['pattern'] = {**TEXT, 'description': "Glob pattern for the relative path, e.g. '*ansi*' or 'tests/test_*.py'; not regex."}
+        if name == 'search_content':
+            entry['properties']['query'] = {**TEXT, 'description': 'Literal text to find inside files, not a filename or regex.'}
+        if name == 'write_file':
+            entry['properties']['content']['maxLength'] = 6000
+        if name == 'replace_text':
+            entry['properties']['old']['maxLength'] = 4000
+            entry['properties']['new']['maxLength'] = 4000
+        if entry["properties"]["action"]["const"] == "replace_text":
+            entry["properties"]["expected_sha256"] = {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            entry["required"].append("expected_sha256")
+    return {"oneOf": entries}
+
+
+V3_SCHEMA = _v3_schema()

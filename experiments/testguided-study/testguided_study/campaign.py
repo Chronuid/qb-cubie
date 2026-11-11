@@ -4,14 +4,23 @@
 from .iteration import identity, load_design, validate_campaign
 
 
-def behavior_cycle(observations):
+def behavior_cycle(observations, require_versions=False, final_tests=None):
     for index, red in enumerate(observations):
-        if red["observation"] != "assertion_failure" or not red.get("targets") or not red.get("workspace_sha256"):
+        if red["observation"] != "assertion_failure" or not red.get("targets") or (not require_versions and not red.get("workspace_sha256")):
             continue
-        if any(green["observation"] == "pass" and green.get("targets") == red["targets"]
-               and green.get("workspace_sha256") and green["workspace_sha256"] != red["workspace_sha256"]
-               for green in observations[index + 1:]):
-            return True
+        for green in observations[index + 1:]:
+            if (green["observation"] != "pass" or green.get("targets") != red["targets"]
+                    or green.get("baseline") or green.get("collection_only")):
+                continue
+            if require_versions:
+                if final_tests is not None and green.get("tests") != final_tests:
+                    continue
+                if (red.get("tests") and red.get("tests") == green.get("tests") and
+                        red.get("production") and green.get("production") and
+                        (red.get("baseline") or red["production"] != green["production"])):
+                    return True
+            elif green.get("workspace_sha256") and green["workspace_sha256"] != red["workspace_sha256"]:
+                return True
     return False
 
 
@@ -70,7 +79,10 @@ def admit(config, tasks, designs, source, destination):
                             or not task.get("task_type") or task["task_type"] == "infrastructure_smoke"
                             or not task.get("related_group")):
                         continue
-                    if behavior_cycle(result.get("agent", {}).get("test_observations", [])):
+                    if behavior_cycle(result.get("agent", {}).get("test_observations", []),
+                                      require_versions=designs[mode]["core"]["context"]["version"] == 3,
+                                      final_tests=result.get("agent", {}).get("final_versions", {}).get("tests", "")
+                                      if designs[mode]["core"]["context"]["version"] == 3 else None):
                         qualifying[mode].add(task["related_group"])
                         contributes = True
             admission = read(root / "ready.json")

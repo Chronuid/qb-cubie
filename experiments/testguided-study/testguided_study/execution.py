@@ -6,7 +6,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from . import backend
+from . import admission, backend
 from .agent import develop
 from .artifacts import MODES, digest, read, verify, write
 from .iteration import load_design
@@ -61,6 +61,8 @@ def preflight(root, observer=None):
     for item in read(root / "tasks.json"):
         emit(observer, "reference_started", f"Private Rot-/Grün-Prüfung: {item['id']}", state="reference_check")
         task = backend.task_for(root, item)
+        admission.visible_baseline(root, item, config, images['evaluator']['image_id'],
+                                   destination / f'visible/{len(references):04d}')
         base = backend.evaluate(root, item, config, images["evaluator"]["image_id"],
                                 destination / f"references/{len(references):04d}/base", "")
         gold = backend.evaluate(root, item, config, images["evaluator"]["image_id"],
@@ -98,6 +100,11 @@ def run(root, observer=None):
     observer = observer or Observer(root)
     observer.bind(root, config, read(root / "schedule.json"))
     tasks = {item["id"]: item for item in read(root / "tasks.json")}
+    baselines = {}
+    for index, item in enumerate(tasks.values()):
+        path = root / f'preflight/visible/{index:04d}/visible-baseline.json'
+        if path.is_file():
+            baselines[item['id']] = read(path)
     guides = read(root / "guides.json")
     for row in read(root / "schedule.json"):
         directory = root / "runs" / row["run_id"]
@@ -121,7 +128,8 @@ def run(root, observer=None):
             task = backend.task_for(root, item)
             backend.prepare(mgr, sandbox, root, item, task, config, directory)
             agent = develop(mgr, sandbox, task, row, config, guides, directory, observer=observer,
-                            design=load_design(root / "designs" / f"{row['mode']}.json"))
+                            design=load_design(root / "designs" / f"{row['mode']}.json"),
+                            visible_baseline=baselines.get(row['task_id']))
             patch = agent.pop("patch")
             write(directory / "agent.json", agent)
             observer.emit("evaluation_started", "Unabhängige Lösungsauswertung läuft", state="evaluating")

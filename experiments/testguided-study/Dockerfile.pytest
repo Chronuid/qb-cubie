@@ -6,7 +6,7 @@ COPY experiments/testguided-study/task-requirements.txt /tmp/task-requirements.t
 RUN python -m pip install --no-cache-dir -r /tmp/task-requirements.txt
 # swegemma calls this hook before evaluation; task dependencies belong in images.
 RUN mkdir -p /sandbox /workspace && printf 'raise SystemExit(0)\n' > /sandbox/setup.py
-ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 PYTEST_PLUGINS=pytest_httpbin.plugin
+ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1
 RUN git config --global user.email study@localhost \
     && git config --global user.name Study \
     && git config --global init.defaultBranch main

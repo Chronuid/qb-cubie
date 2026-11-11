@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 from . import backend
 from .artifacts import read, write
 from .telemetry import emit
-from .workspace import outcomes
+from .workspace import outcomes, run_tests
 
 COLLECT = '''import json, pytest
 class Capture:
@@ -47,7 +47,8 @@ def control_file(paths, targets):
 
 def collection(mgr, sandbox, targets, config, receipt):
     script = "TARGETS = " + repr(targets) + "\n" + COLLECT
-    result = mgr.exec(sandbox, "cd /workspace && python3 -c " + shlex.quote(script),
+    plugins = shlex.quote(','.join(getattr(mgr, 'study_plugins', ())))
+    result = mgr.exec(sandbox, "cd /workspace && PYTEST_PLUGINS=" + plugins + " python3 -c " + shlex.quote(script),
                       timeout=config["budgets"]["verification_seconds"])
     write(receipt, {"stdout": result.stdout, "stderr": result.stderr,
                     "exit_code": result.exit_code, "timed_out": result.timed_out})
@@ -55,6 +56,23 @@ def collection(mgr, sandbox, targets, config, receipt):
     if result.exit_code or not match:
         raise ValueError(f"Cannot collect independent tests; see {receipt}")
     return json.loads(match[1])
+
+
+def visible_baseline(root, item, config, image, directory):
+    """Profile original visible tests in a fresh sandbox, before any private patch."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    task = backend.task_for(root, item)
+    mgr = backend.manager(image, config['budgets']['verification_seconds'])
+    try:
+        sandbox = mgr.start()
+        backend.prepare(mgr, sandbox, root, item, task, config, directory)
+        result = run_tests(mgr, sandbox, ['.'], config['budgets']['verification_seconds'], 12000)
+        (directory / 'visible-baseline.xml').write_text(result.get('junit_xml', ''), encoding='utf-8')
+        write(directory / 'visible-baseline.json', result)
+        return result
+    finally:
+        mgr.cleanup_all()
 
 
 def collect(root, item, config, image, directory):
@@ -85,6 +103,7 @@ def admit(root, item, config, image, directory, *, regressions=8, observer=None)
     directory.mkdir(parents=True, exist_ok=False)
     task = backend.task_for(root, item)
     emit(observer, "admission_started", f"Unabhängige Testzuordnung ermitteln: {item['id']}", state="admission")
+    visible_baseline(root, item, config, image, directory)
     nodes = collect(root, item, config, image, directory)
     names = changed_tests(task.test_patch)
     changed = sorted({node["nodeid"] for node in nodes if node["nodeid"].split("::")[-1].split("[")[0] in names})

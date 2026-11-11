@@ -60,6 +60,7 @@ def prepare(mgr, sandbox, root, item, task, config, directory):
         setup_git_exclude,
         setup_workspace_test_config,
     )
+    mgr.study_plugins = task_plugins(task.repo)
     cfg = harness_config(root, directory, config)
     extract_snapshot(mgr, sandbox, root / item["snapshot"])
     setup_git_exclude(mgr, sandbox)
@@ -91,7 +92,8 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
     def capture(sandbox, cmd, *, timeout=None):
         nonlocal count, timed_out
         if "python3 -s -m pytest " in cmd:
-            cmd = cmd.replace("python3 -s -m pytest ", "python3 -s -m pytest --rootdir=/workspace ", 1)
+            plugin_env = 'PYTEST_PLUGINS=' + shlex.quote(','.join(task_plugins(task.repo))) + ' '
+            cmd = cmd.replace("python3 -s -m pytest ", plugin_env + "python3 -s -m pytest --rootdir=/workspace ", 1)
         result = original(sandbox, cmd, timeout=timeout)
         timed_out = timed_out or result.timed_out
         report = re.search(r"--junitxml=(/tmp/_swegemma_junit_[0-9a-f]+\.xml)", cmd)
@@ -122,6 +124,11 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
         return data
     finally:
         mgr.cleanup_all()
+
+
+def task_plugins(repo):
+    """Explicit task dependencies; never inherit plugins from an ambient image."""
+    return ('pytest_httpbin.plugin',) if repo.lower() == 'psf/requests' else ()
 
 
 class TargetedTask:

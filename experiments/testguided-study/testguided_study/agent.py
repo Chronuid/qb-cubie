@@ -2,22 +2,49 @@
 
 import json
 import time
+from itertools import count
 
 from ollama_agents.client import OllamaClient
 from ollama_agents.errors import AdapterError
 
-from .artifacts import write
+from .artifacts import read, write
+from .controller import (
+    Controller,
+    compact_observation,
+    context_capacity,
+    session_context,
+)
 from .design import default_design, design_instruction, design_schema
 from .iteration import compose, context, event_signature, identity, progress
 from .telemetry import emit
-from .workspace import execute, patch
+from .workspace import bounded, execute, patch
+
+
+def test_details(directory, action, current_step, limit):
+    """Read only earlier public tool results, never evaluator/private artifacts."""
+    step, start = action['step'] - 1, action['start']
+    if not 0 <= step < current_step or start < 0:
+        return {'status': 'tool_error', 'error': 'Choose an earlier test step and a nonnegative error offset.'}
+    path = directory / f'steps/{step:04d}-tool.json'
+    if not path.is_file():
+        return {'status': 'tool_error', 'error': 'No test evidence at this step.'}
+    result = read(path)['result']
+    if 'diagnostics' not in result:
+        return {'status': 'tool_error', 'error': 'This step did not produce test diagnostics.'}
+    errors = result['diagnostics'].get('errors', [])
+    # Each diagnostic is bounded at creation. One error per page preserves full
+    # messages/trace tails without allowing another large mandatory exchange.
+    return bounded({'step': step + 1, 'start': start, 'hits': errors[start:start + 1],
+                    'next_start': start + 1 if start + 1 < len(errors) else None,
+                    'diagnostic_counts': result['diagnostics'].get('counts', {})}, limit)
 
 
 def messages(system, task, history, capacity):
     return context(system, task, history, {}, capacity)
 
 
-def develop(manager, sandbox, task, row, config, guides, directory, client=None, observer=None, design=None, clock=None):
+def develop(manager, sandbox, task, row, config, guides, directory, client=None, observer=None, design=None, clock=None,
+            visible_baseline=None):
     clock = clock or time.monotonic
     design = design or default_design(row["mode"], guides)
     design = compose(design["core"], design["specialization"])
@@ -38,16 +65,32 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
     status, calls, tools = "model_budget", 0, 0
     system = design_instruction(design)
     ledger, events, repairs = {}, [], 0
+    if visible_baseline is not None:
+        write(directory / 'visible-baseline.json', visible_baseline)
+        ledger['visible_baseline'] = compact_observation(visible_baseline, 3000)
+        ledger['visible_baseline']['scope'] = 'Original visible suite before any agent or private patch; existing failures are not new regressions.'
     workspace_patch = patch(manager, sandbox)
     repeat_signature, repeats = None, 0
+    v3 = design["core"]["context"]["version"] == 3
+    controller = Controller(policy["repeat_limit"])
+    capacity = context_capacity(limits, model, schema) if v3 else limits["context_bytes"]
+    versions = {}
+    if v3 and manager is not None:
+        ledger["repository"] = execute(manager, sandbox, {"action": "overview"}, 10, 4000)
+        versions = execute(manager, sandbox, {"action": "snapshot"}, 10, 1000)
+        write(directory / "initial-evidence.json", {"repository": ledger["repository"], "versions": versions})
     public_task = task.problem_statement
-    for step in range(limits["model_calls"]):
+    for step in count():
+        if limits['model_calls'] and calls >= limits['model_calls']:
+            break
         remaining = limits["wall_seconds"] - (clock() - started)
         if remaining <= 0:
             status = "wall_budget"
             break
         try:
-            request = context(system, public_task, history, ledger, limits["context_bytes"])
+            if v3:
+                ledger["evidence"] = controller.facts
+            request = (session_context if v3 else context)(system, public_task, history, ledger, capacity)
         except ValueError as error:
             write(directory / f"steps/{step:04d}-context.json", {"error": str(error)})
             status = "context_budget"
@@ -63,15 +106,18 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             response = client.chat(messages=request, schema=schema, timeout=remaining)
         except AdapterError as error:
             usage.append(error.usage or {})
-            write(directory / f"steps/{step:04d}-response.json", {"error": str(error), "status": error.status,
-                                                               "raw": error.raw, "usage": error.usage})
+            rejected = {"error": str(error), "status": error.status, "raw": error.raw, "usage": error.usage}
+            write(directory / f"steps/{step:04d}-response.json", rejected)
             status = error.status
             emit(observer, "model_error", f"Modellaufruf: {error.status}", state="model_error",
-                 agent={"response": {"error": str(error), "status": error.status}})
+                 agent={"response": rejected, "last_error": {**rejected, 'step': step + 1}})
             if error.status == "invalid_output" and repairs < policy["repair_calls"]:
                 repairs += 1
                 ledger["action_error"] = str(error)[:1000]
                 ledger["next"] = "Return one valid JSON action matching the schema. Keep it short."
+                if isinstance(error.raw, dict) and error.raw.get('done_reason') == 'length':
+                    ledger['next'] = ('Output was truncated at the token limit. Return a short read action or a small edit '
+                                      'with replace_text. Do not repeat a full file or long comments. Return complete JSON.')
                 continue
             break
         status = "model_budget"
@@ -79,6 +125,8 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         usage.append(response["usage"])
         write(directory / f"steps/{step:04d}-response.json", response)
         action = response["action"]
+        if v3 and action.get("note"):
+            ledger["note"] = action["note"]
         emit(observer, "model_response", f"{row['run_id']} · {action['stage']}: {action['action']}",
              state="action", active={"stage": action["stage"], "operation": action["action"]},
              agent={"response": response, "action": action})
@@ -88,7 +136,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         if action["action"] == "submit":
             status = "submitted"
             break
-        if tools >= limits["tool_calls"]:
+        if limits['tool_calls'] and tools >= limits["tool_calls"]:
             status = "tool_budget"
             break
         tools += 1
@@ -98,11 +146,25 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         if action["action"] == "update_ledger":
             ledger.update({key: action[key] for key in ("hypothesis", "next", "files")})
             result = {"status": "completed", "updated": True}
+        elif action['action'] == 'read_test_details':
+            result = test_details(directory, action, step, limits['output_chars'])
         else:
-            result = execute(manager, sandbox, action, timeout, limits["output_chars"])
+            result = controller.guard(action) if v3 else None
+            if result is None:
+                result = execute(manager, sandbox, action, timeout, limits["output_chars"])
+        previous_versions = versions
+        if v3 and manager is not None:
+            versions = execute(manager, sandbox, {"action": "snapshot"}, min(timeout, 10), 1000)
+        if (v3 and previous_versions.get("production") and
+                previous_versions.get("production") != versions.get("production") and
+                controller.metrics["first_production_change_call"] is None):
+            controller.metrics["first_production_change_call"] = calls
+        stopped = controller.observe(action, result, versions, calls) if v3 else False
         write(directory / f"steps/{step:04d}-tool.json", {"action": action, "result": result,
                                                          "elapsed_seconds": clock() - before})
-        visible = dict(result)
+        visible = compact_observation(result, min(6000, limits['output_chars'])) if v3 else dict(result)
+        if v3 and 'diagnostics' in result:
+            visible['details'] = {'action': 'read_test_details', 'step': step + 1, 'start': 0}
         visible.pop("junit_xml", None)
         emit(observer, "tool_result", f"{action['action']}: {result.get('observation', result['status'])}",
              state="tool_result", agent={"result": visible})
@@ -111,7 +173,9 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             (directory / f"steps/{step:04d}.patch").write_text(workspace_patch, encoding="utf-8")
         if "observation" in result:
             observations.append({"step": step, "stage": action["stage"], "observation": result["observation"],
-                                 "targets": action["targets"], "workspace_sha256": identity(workspace_patch)})
+                                 "targets": action["targets"], "workspace_sha256": identity(workspace_patch),
+                                 **versions, "baseline": result.get("baseline", False),
+                                 "collection_only": result.get("collection_only", False)})
         history.append([{"role": "assistant", "content": json.dumps(action)},
                         {"role": "user", "content": json.dumps(visible)}])
         event = {"action": action, "result": visible, "workspace_sha256": identity(workspace_patch)}
@@ -136,13 +200,17 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         if "observation" in result:
             ledger["last_test"] = {"targets": action.get("targets"), "observation": result["observation"]}
         write(directory / f"steps/{step:04d}-progress.json", {"directive": directive, "ledger": ledger})
-        if repeats >= 2 * policy["repeat_limit"]:
+        if stopped or repeats >= 2 * policy["repeat_limit"]:
             status = "stalled"
             break
     final = patch(manager, sandbox)
     (directory / "full.patch").write_text(final, encoding="utf-8")
     emit(observer, "agent_finished", f"Agentenschleife beendet: {status}",
+         state='agent_finished', agent={'stop_reason': status},
          active={"agent_finished_at": time.time(), "operation": "evaluation"})
     return {"design_id": identity(design), "status": status, "model_calls": calls, "tool_calls": tools,
             "duration_seconds": clock() - started, "usage": usage,
-            "test_observations": observations, "repairs": repairs, "ledger": ledger, "patch": final}
+            "test_observations": observations, "repairs": repairs, "ledger": ledger, "patch": final,
+            "process_metrics": controller.metrics if v3 else {}, "final_versions": versions,
+            "context_policy": {"capacity_bytes": capacity, "token_measurement": "provider_usage",
+                               "estimate": "two_utf8_bytes_per_token" if v3 else "bytes_only"}}

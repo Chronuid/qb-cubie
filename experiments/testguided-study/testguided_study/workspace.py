@@ -8,7 +8,7 @@ import uuid
 import xml.etree.ElementTree as ET
 
 SCRIPT = r'''
-import hashlib, json, pathlib, sys
+import ast, difflib, fnmatch, hashlib, json, pathlib, sys
 root = pathlib.Path('/workspace')
 arg = json.loads(sys.argv[1])
 op = arg['action']
@@ -29,70 +29,115 @@ def files():
         result.extend(pathlib.Path(folder) / n for n in sorted(names)
                       if not (pathlib.Path(folder) / n).is_symlink())
     return result
-if op == 'list_files':
-    names = [str(p.relative_to(root)) for p in files()]
-    result = {'files': names[:1500], 'omitted': max(0, len(names)-1500)}
-elif op == 'read_file':
-    p = target(arg['path'])
-    if p.stat().st_size > 2_000_000:
-        raise ValueError('File exceeds the readable size limit')
-    lines = p.read_text().splitlines()
-    start = arg['start'] - 1
-    result = {'path': arg['path'], 'start': start+1, 'total_lines': len(lines),
-              'text': '\n'.join(lines[start:start+160])}
-elif op in ('search_text', 'search_files'):
-    scope = target(arg['path']) if op == 'search_files' else root
-    if not scope.exists():
-        raise ValueError('Search path does not exist')
-    offset = arg['start'] if op == 'search_files' else 0
-    hits, seen = [], 0
-    for p in files():
-        if p != scope and not p.is_relative_to(scope):
-            continue
-        if p.stat().st_size > 500_000:
-            continue
-        try:
-            for i, line in enumerate(p.read_text().splitlines(), 1):
-                if arg['query'] in line:
-                    seen += 1
-                    if seen <= offset:
-                        continue
-                    hits.append({'path': str(p.relative_to(root)), 'line': i, 'text': line[:500]})
-                    if len(hits) > 80:
-                        break
-        except UnicodeError:
-            continue
-        if len(hits) > 80:
-            break
-    result = {'hits': hits[:80], 'start': offset, 'limit': 80,
-              'next_start': offset + 80 if len(hits) > 80 else None}
-elif op == 'replace_text':
-    p = target(arg['path'])
-    if p.stat().st_size > 2_000_000:
-        raise ValueError('File exceeds the editable size limit')
-    original = p.read_bytes().decode('utf-8')
-    if not arg['old'] or original.count(arg['old']) != 1:
-        raise ValueError('Old text must match exactly once; file unchanged')
-    data = original.replace(arg['old'], arg['new'], 1).encode('utf-8')
-    if len(data) > 2_000_000:
-        raise ValueError('Replacement exceeds the editable size limit')
-    p.write_bytes(data)
-    result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
-elif op in ('write_file', 'delete_file'):
-    p = target(arg['path'])
-    if op == 'delete_file':
-        p.unlink()
-        result = {'deleted': arg['path']}
-    else:
-        data = arg['content'].encode('utf-8')
-        if len(data) > 128_000:
-            raise ValueError('Write exceeds 128000 bytes; use smaller modules')
-        p.parent.mkdir(parents=True, exist_ok=True)
+try:
+    if op == 'overview':
+        names = [str(p.relative_to(root)) for p in files()]
+        result = {'roots': sorted({p.split('/')[0] for p in names})[:60],
+                  'configuration': [p for p in names if '/' not in p and p.endswith(('.toml', '.ini', '.cfg'))][:20]}
+    elif op == 'snapshot':
+        groups = {'tests': {}, 'production': {}}
+        for p in files():
+            name = str(p.relative_to(root))
+            explicit_test = any(p == root / t or p.is_relative_to(root / t) for t in arg.get('test_paths', []))
+            is_test = (bool({'tests', 'test'} & set(p.relative_to(root).parts)) or
+                       p.name.startswith('test_') or p.name == 'conftest.py' or explicit_test)
+            if p.suffix != '.py' and not is_test:
+                continue
+            group = 'tests' if is_test else 'production'
+            groups[group][name] = hashlib.sha256(p.read_bytes()).hexdigest()
+        result = {k: hashlib.sha256(json.dumps(v, sort_keys=True).encode()).hexdigest() for k, v in groups.items()}
+    elif op == 'find_paths':
+        names = [str(p.relative_to(root)) for p in files()
+                 if fnmatch.fnmatch(str(p.relative_to(root)), arg['pattern'])]
+        offset = arg['start']
+        result = {'files': names[offset:offset+80], 'start': offset,
+                  'next_start': offset+80 if len(names) > offset+80 else None}
+    elif op == 'list_files':
+        names = [str(p.relative_to(root)) for p in files()]
+        result = {'files': names[:1500], 'omitted': max(0, len(names)-1500)}
+    elif op == 'read_file':
+        p = target(arg['path'])
+        if p.stat().st_size > 2_000_000:
+            raise ValueError('File exceeds the readable size limit')
+        lines = p.read_text().splitlines()
+        start = arg['start'] - 1
+        result = {'path': arg['path'], 'start': start+1, 'total_lines': len(lines),
+                  'text': '\n'.join(lines[start:start+160]),
+                  'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
+    elif op in ('search_text', 'search_files', 'search_content'):
+        scope = target(arg['path']) if op != 'search_text' else root
+        if not scope.exists():
+            raise ValueError('Search path does not exist')
+        offset = arg['start'] if op != 'search_text' else 0
+        hits, seen = [], 0
+        for p in files():
+            if p != scope and not p.is_relative_to(scope):
+                continue
+            if p.stat().st_size > 500_000:
+                continue
+            try:
+                for i, line in enumerate(p.read_text().splitlines(), 1):
+                    if arg['query'] in line:
+                        seen += 1
+                        if seen <= offset:
+                            continue
+                        hits.append({'path': str(p.relative_to(root)), 'line': i, 'text': line[:500]})
+                        if len(hits) > 80:
+                            break
+            except UnicodeError:
+                continue
+            if len(hits) > 80:
+                break
+        result = {'hits': hits[:80], 'start': offset, 'limit': 80,
+                  'next_start': offset + 80 if len(hits) > 80 else None}
+    elif op == 'replace_text':
+        p = target(arg['path'])
+        if p.stat().st_size > 2_000_000:
+            raise ValueError('File exceeds the editable size limit')
+        original = p.read_bytes().decode('utf-8')
+        current_hash = hashlib.sha256(p.read_bytes()).hexdigest()
+        if arg.get('expected_sha256', current_hash) != current_hash or not arg['old'] or original.count(arg['old']) != 1:
+            print(json.dumps({'status': 'tool_error', 'code': 'edit_conflict',
+                              'sha256': current_hash, 'match_count': original.count(arg['old']),
+                              'excerpt': original[:1500], 'repair': 'Read current file before retrying.'}))
+            sys.exit(1)
+        data = original.replace(arg['old'], arg['new'], 1).encode('utf-8')
+        if len(data) > 2_000_000:
+            raise ValueError('Replacement exceeds the editable size limit')
         p.write_bytes(data)
         result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
-else:
-    raise ValueError('Unknown file action')
-print(json.dumps(result))
+    elif op in ('write_file', 'delete_file'):
+        p = target(arg['path'])
+        if op == 'write_file' and not p.exists() and (not p.name.strip() or not any(c.isalnum() for c in p.name)):
+            raise ValueError('New filename must contain a letter or digit')
+        if op == 'write_file' and p.suffix == '.py':
+            ast.parse(arg['content'], filename=arg['path'])
+        if op == 'delete_file':
+            p.unlink()
+            result = {'deleted': arg['path']}
+        else:
+            data = arg['content'].encode('utf-8')
+            if len(data) > 128_000:
+                raise ValueError('Write exceeds 128000 bytes; use smaller modules')
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(data)
+            result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
+    else:
+        raise ValueError('Unknown file action')
+    print(json.dumps(result))
+except (OSError, ValueError, SyntaxError, UnicodeError) as error:
+    name = arg.get('path', '')
+    suggestions = []
+    if isinstance(error, FileNotFoundError):
+        names = [str(p.relative_to(root)) for p in files()]
+        suggestions = [n for n in names if pathlib.PurePosixPath(n).name == pathlib.PurePosixPath(name).name][:5]
+        code = 'not_found'
+    else:
+        code = 'invalid_action'
+    print(json.dumps({'status': 'tool_error', 'code': code, 'error': str(error)[:500],
+                      'suggestions': suggestions, 'repair': 'Inspect existing paths and current source before retrying.'}))
+    sys.exit(1)
+
 '''
 
 
@@ -103,11 +148,16 @@ def command(script, *arguments):
 
 
 def execute(manager, sandbox, action, timeout, limit):
-    if action["action"] == "run_tests":
-        return run_tests(manager, sandbox, action["targets"], timeout, limit)
+    if action["action"] in {"run_tests", "collect_tests", "check_baseline"}:
+        return run_tests(manager, sandbox, action["targets"], timeout, limit,
+                         collect=action["action"] == "collect_tests", baseline=action["action"] == "check_baseline")
     result = manager.exec(sandbox, command(SCRIPT, json.dumps(action)), timeout=timeout)
     if result.exit_code:
-        return {"status": "tool_error", "stderr": result.stderr[:limit], "timed_out": result.timed_out}
+        try:
+            return bounded(json.loads(result.stdout), limit)
+        except (ValueError, TypeError):
+            return {"status": "tool_error", "code": "execution_error", "stderr": result.stderr[-min(limit, 1000):],
+                    "timed_out": result.timed_out}
     return bounded(json.loads(result.stdout), limit)
 
 
@@ -138,22 +188,59 @@ def bounded(result, limit):
     return {"status": "tool_error", "error": "Result exceeds output_chars"}
 
 
-def run_tests(manager, sandbox, targets, timeout, limit):
+def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, baseline=False):
     for target in targets:
         path = target.split("::", 1)[0]
         if not path or path.startswith(("/", "-")) or any(p in {"..", ".git"} for p in path.split("/")):
             return {"status": "tool_error", "error": "Use relative test paths or pytest node IDs"}
     report = f"/tmp/study-{uuid.uuid4().hex}.xml"
-    cmd = ("cd /workspace && PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONNOUSERSITE=1 "
-           "python3 -m pytest --rootdir=/workspace " + " ".join(shlex.quote(path) for path in targets)
-           + f" --junitxml={report} -q")
+    workspace = "/workspace"
+    cleanup = None
+    if baseline:
+        workspace = f"/tmp/study-baseline-{uuid.uuid4().hex}"
+        setup = manager.exec(sandbox, command(BASELINE, workspace, json.dumps(targets)), timeout=timeout)
+        if setup.exit_code:
+            return {"status": "tool_error", "code": "baseline_setup", "error": setup.stderr[-1000:]}
+        cleanup = workspace
+    plugin_name = "study_probe_" + uuid.uuid4().hex
+    plugin_path = f"/tmp/{plugin_name}.py"
+    evidence = f"/tmp/{plugin_name}.json"
+    install = manager.exec(sandbox, command(INSTALL_PROBE, plugin_path, evidence), timeout=10)
+    if install.exit_code:
+        return {"status": "tool_error", "code": "probe_setup", "error": install.stderr[-1000:]}
+    plugins = ','.join(getattr(manager, 'study_plugins', ()))
+    cmd = ("cd " + shlex.quote(workspace) + " && PYTHONPATH=/tmp PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONNOUSERSITE=1 "
+           + 'PYTEST_PLUGINS=' + shlex.quote(plugins) + ' '
+           "python3 -m pytest -p " + plugin_name + " --rootdir=" + shlex.quote(workspace) + " " + " ".join(shlex.quote(path) for path in targets)
+           + f" --junitxml={report} -q" + (" --collect-only" if collect else ""))
     result = manager.exec(sandbox, cmd, timeout=timeout)
     xml = manager.exec(sandbox, "cat " + report, timeout=10)
     observed = classify(result.exit_code, xml.stdout, result.timed_out)
+    probe = manager.exec(sandbox, "cat " + evidence, timeout=10)
+    try:
+        usage = json.loads(probe.stdout)
+    except ValueError:
+        usage = {"available": False}
+    if cleanup:
+        manager.exec(sandbox, command(REMOVE_TREE, cleanup), timeout=10)
+    diagnostics = test_diagnostics(xml.stdout, usage.get('test_ids', []))
+    if collect and result.exit_code == 0 and usage.get("collected", 0):
+        observed = "collected"
+        diagnostics['collected'] = usage['collected']
+    if not result.timed_out:
+        if result.exit_code == 4 and re.search(r'(file or directory not found|not found:)', result.stderr):
+            diagnostics['category'] = 'target_not_found'
+        elif result.exit_code == 5:
+            diagnostics['category'] = 'no_tests_collected'
+        if 'category' in diagnostics:
+            diagnostics['targets'] = targets
+            diagnostics['repair'] = ('Locate a relative test file or collected pytest node ID with find_paths; '
+                                     'production modules and function names alone are not test targets.')
     return {"status": "completed", "observation": observed, "exit_code": result.exit_code,
             "timed_out": result.timed_out, "stdout": result.stdout[:limit], "stderr": result.stderr[:limit],
             "output_truncated": len(result.stdout) > limit or len(result.stderr) > limit,
-            "junit_xml": xml.stdout}
+            "junit_xml": xml.stdout, "diagnostics": diagnostics, "framework_usage": usage,
+            "baseline": baseline, "collection_only": collect}
 
 
 def classify(exit_code, xml, timed_out=False):
@@ -213,3 +300,103 @@ def patch(manager, sandbox):
     if result.exit_code:
         raise RuntimeError("Cannot capture workspace patch: " + result.stderr)
     return result.stdout
+
+
+BASELINE = r'''
+import json, pathlib, shutil, subprocess, sys
+root = pathlib.Path(sys.argv[1])
+targets = [t.split("::", 1)[0] for t in json.loads(sys.argv[2]) if t != "."]
+root.mkdir()
+archive = subprocess.Popen(['git', '-C', '/workspace', 'archive', '_swegemma_baseline'], stdout=subprocess.PIPE)
+extract = subprocess.run(['tar', '-x', '-C', str(root)], stdin=archive.stdout, check=True)
+archive.stdout.close()
+if archive.wait():
+    raise RuntimeError('Cannot archive baseline')
+# Replace baseline test trees with the current visible test trees, including deletions.
+for folder in list(root.rglob('*')):
+    if folder.is_dir() and folder.name in {'tests', 'test'}:
+        shutil.rmtree(folder)
+for source in list(root.rglob('test_*.py')) + list(root.rglob('conftest.py')):
+    if source.exists():
+        source.unlink()
+# Copy only visible test Python files and fixtures under test directories.
+for source in pathlib.Path('/workspace').rglob('*'):
+    relative = source.relative_to('/workspace')
+    if '.git' in relative.parts or source.is_symlink() or not source.is_file():
+        continue
+    if (any(source == pathlib.Path('/workspace') / t or source.is_relative_to(pathlib.Path('/workspace') / t) for t in targets)
+            or 'tests' in relative.parts or 'test' in relative.parts or source.name.startswith('test_')
+            or source.name == 'conftest.py') and not any(p in {'__pycache__', '.pytest_cache'} for p in relative.parts):
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+'''
+
+REMOVE_TREE = "import shutil, sys; shutil.rmtree(sys.argv[1])"
+
+PROBE = r'''
+import json
+import pytest
+from pathlib import Path
+usage = {'available': True, 'collected': 0, 'ebt_executed': 0, 'ebt_evaluated': 0, 'ebt_passed': 0}
+def pytest_configure(config):
+    try:
+        from qb_cubie import EBT
+    except ImportError:
+        return
+    original = EBT.run
+    def run(self, *args, **kwargs):
+        usage['ebt_executed'] += 1
+        try:
+            return original(self, *args, **kwargs)
+        finally:
+            trace = self.run_trace
+            if trace is not None and trace.evaluation is not None:
+                usage['ebt_evaluated'] += 1
+                usage['ebt_passed'] += int(trace.evaluation is True)
+    EBT.run = run
+def pytest_collection_finish(session):
+    usage['collected'] = len(session.items)
+    usage['test_ids'] = [item.nodeid for item in session.items]
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_logreport(report):
+    report.user_properties.append(('study_nodeid', report.nodeid))
+def pytest_sessionfinish(session, exitstatus):
+    Path(EVIDENCE).write_text(json.dumps(usage))
+'''
+
+INSTALL_PROBE = "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text(" + repr(PROBE) + ".replace('EVIDENCE', repr(sys.argv[2])))"
+
+
+def diagnostic_id(case, node_ids=()):
+    """Prefer collected pytest IDs; use JUnit module/class conventions offline."""
+    recorded = case.findall("./properties/property[@name='study_nodeid']")
+    if recorded:
+        return recorded[-1].get('value')
+    actual = identifiers(case) & set(node_ids)
+    if len(actual) == 1:
+        return actual.pop()
+    parts = case.get('classname', '').split('.')
+    boundary = next((i for i, part in enumerate(parts) if part[:1].isupper()), len(parts))
+    path = case.get('file') or '/'.join(parts[:boundary]) + '.py'
+    return '::'.join([path, *parts[boundary:], case.get('name', '')])
+
+
+def test_diagnostics(xml, node_ids=()):
+    counts = {"passed": 0, "failed": 0, "errors": 0, "skipped": 0}
+    try:
+        cases = list(ET.fromstring(xml).iter("testcase"))
+    except ET.ParseError:
+        return {"collected": 0, "counts": counts, "errors": [], "invalid_xml": True}
+    errors = []
+    for case in cases:
+        failure = case.find("failure")
+        error = case.find("error")
+        counts["errors" if error is not None else "failed" if failure is not None else
+               "skipped" if case.find("skipped") is not None else "passed"] += 1
+        node = error if error is not None else failure
+        if node is not None:
+            errors.append({"id": diagnostic_id(case, node_ids), "phase": "setup_or_collection" if error is not None else "call",
+                           "type": node.get("type"), "message": node.get("message", "")[:500],
+                           "traceback_tail": (node.text or "")[-1000:]})
+    return {"collected": len(cases), "counts": counts, "errors": errors}

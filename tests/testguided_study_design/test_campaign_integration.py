@@ -27,9 +27,9 @@ def qualified(tmp_path):
     freeze(config, archive)
     for row in read(archive / "schedule.json"):
         directory = archive / "runs" / row["run_id"]
-        result = row | {"resolved": True, "agent": {"status": "submitted", "test_observations": [
-            {"observation": "assertion_failure", "targets": ["tests/test_x.py"], "workspace_sha256": "before"},
-            {"observation": "pass", "targets": ["tests/test_x.py"], "workspace_sha256": "after"}]}}
+        result = row | {"resolved": True, "agent": {"status": "submitted", "final_versions": {"tests": "test-version"}, "test_observations": [
+            {"observation": "assertion_failure", "targets": ["tests/test_x.py"], "workspace_sha256": "before", "tests": "test-version", "production": "original"},
+            {"observation": "pass", "targets": ["tests/test_x.py"], "workspace_sha256": "after", "tests": "test-version", "production": "fixed"}]}}
         write(directory / "result.json", result)
         write(directory / "manifest.json", {"result.json": digest(directory / "result.json")})
     write(archive / "preflight/identity.json", {"ollama": {"model": {"digest": "model"}},

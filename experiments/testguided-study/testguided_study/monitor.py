@@ -30,6 +30,9 @@ def run_view(root, run_id, step=None):
     if step is not None and step not in steps:
         raise ValueError("Unknown step")
     agent = {}
+    summary = directory.parent / 'agent.json'
+    if summary.is_file():
+        agent['stop_reason'] = read(summary).get('status')
     if step is not None:
         for key, suffix in (("context", "request"), ("response", "response"), ("result", "tool")):
             path = directory / f"{step:04d}-{suffix}.json"
@@ -40,6 +43,13 @@ def run_view(root, run_id, step=None):
                     agent[key].pop("junit_xml", None)
                 if key == "response":
                     agent["action"] = data.get("action")
+        for previous in reversed([value for value in steps if value <= step]):
+            path = directory / f'{previous:04d}-response.json'
+            if path.is_file():
+                response = read(path)
+                if response.get('error'):
+                    agent['last_error'] = {**response, 'step': previous + 1}
+                    break
     return {"row": row, "step": step, "steps": steps, "agent": agent}
 
 

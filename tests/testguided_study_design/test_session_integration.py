@@ -8,12 +8,23 @@ from ollama_agents.errors import AdapterError
 from ollama_agents.schema import validate
 from testguided_study import agent
 from testguided_study.artifacts import freeze, load_config, read, verify, write
-from testguided_study.design import default_design
+from testguided_study.design import ITERATION_PROMPT, PROMPT, SCHEMA
+from testguided_study.design import default_design as v3_design
+
+from qb_cubie import EBT, WorldState
+
+
+def default_design(mode, guides):
+    """Keep historical session contracts on the explicit v2 schema."""
+    design = v3_design(mode, guides)
+    design["core"].update(id="testguided-core-v2", prompt=PROMPT + ITERATION_PROMPT,
+                          tools=[e["properties"]["action"]["const"] for e in SCHEMA["oneOf"]] + ["update_ledger"],
+                          context={"strategy": "ledger", "version": 1})
+    return design
+
 from testguided_study.iteration import identity, load_design
 from testguided_study.report import summarize
 from testguided_study.smoke import generate
-
-from qb_cubie import EBT, WorldState
 
 
 class Replay:
@@ -64,7 +75,7 @@ def session(tmp_path, monkeypatch):
         client = Replay(actions)
         row = {"mode": mode, "run_id": "0001", "seed": 42}
         result = agent.develop(None, None, SimpleNamespace(problem_statement="Fix bounds"), row,
-                               config, guides, directory, client=client, design=design, clock=clock)
+                               config, guides, directory, client=client, design=design or default_design(mode, guides), clock=clock)
         return result, client, directory
 
     return run, config, guides

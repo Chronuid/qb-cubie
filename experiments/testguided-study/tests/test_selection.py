@@ -56,9 +56,9 @@ def test_profiles_plan_both_agents_repeats_references_and_setup():
     assert short["tasks"] == long["tasks"][:5]
     assert short["runtime"]["agent_runs"] == 10
     assert long["runtime"]["agent_runs"] == 20
-    assert short["runtime"]["total_allowance_hours"] == pytest.approx(160 / 60)
-    assert long["runtime"]["total_allowance_hours"] == pytest.approx(320 / 60)
-    assert short["runtime"]["fits_allowance"] is True
+    assert short["runtime"]["total_allowance_hours"] == pytest.approx(210 / 60)
+    assert long["runtime"]["total_allowance_hours"] == pytest.approx(420 / 60)
+    assert short["runtime"]["fits_allowance"] is False
     assert short["status"] == "candidates_not_admitted"
     assert len({task["related_group"] for task in long["tasks"]}) == 10
     pilot = plan(ROOT / "profiles/pilot.toml", catalog)

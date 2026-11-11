@@ -17,14 +17,14 @@ es gibt keine Cloud-Inferenz und keinen automatischen Modell-Download.
 
 | Modus | Zweck | Standardumfang |
 | --- | --- | --- |
-| `smoke` | synthetischer Techniklauf, kein Nutzenbeleg | 1 Aufgabe, 2 Agentenläufe, je höchstens 180 Sekunden |
+| `smoke` | synthetischer Techniklauf, kein Nutzenbeleg | 1 Aufgabe, 2 Agentenläufe, je höchstens 900 Sekunden |
 | `pilot` | fachlicher Pilot mit getrennten Pilotaufgaben | 3 Aufgaben, 6 Agentenläufe |
 | `short` | Hauptstudie für ungefähr drei Stunden | 5 Aufgaben, 10 Agentenläufe |
 | `long` | Hauptstudie für ungefähr sechs Stunden | 10 Aufgaben, 20 Agentenläufe |
 
 ```bash
 ./study --mode smoke
-./study --mode short --tasks 5 --agent-seconds 600 --seeds 42 --keep-monitor
+./study --mode short --tasks 5 --agent-seconds 900 --seeds 42 --keep-monitor
 ./study --mode long --tasks 3 --task-type parsing_encoding --monitor terminal
 ./study --mode pilot --prepare-only
 ./study start --help
@@ -108,12 +108,62 @@ laufen im jeweiligen Container; die Dateitools allein sind keine Sicherheitsgren
 
 ## Weiterentwicklung der Agenten
 
+Die [Analyse des letzten Piloten vom 11. November 2026](PILOTANALYSE-20261111.md)
+wertet den abgeschlossenen v2-Lauf `20261111-163110` aus: ein gelöster
+pytest-Lauf, kein gelöster Cubie-Lauf und keine ausgeführte EBT-Prüfung.
+Sie entwickelt daraus ein Konzept für einen gemeinsamen Kern v3 und verbesserte
+Frameworkspezialisierungen mit priorisierten Abnahmen. Der Kern v3 und die neuen Guides sind implementiert; eine höhere
+Lösungsquote muss in neuer Modellinferenz geprüft werden.
+
 Der [Designvorschlag zur iterativen Agentenentwicklung](AGENTENDESIGN.md) erläutert
 Pilotbefunde, Architektur und Abnahmeverträge. Neue Freezes verwenden den
-Agentenkern v2 mit Arbeitsledger, Fortschrittsfeedback, begrenzter Aktionsreparatur,
-pfadbezogener Suche und exakt verankerten Änderungen. Die historischen Archive
+Agentenkern v3 mit Aktionsnotizen, beobachteter Ablaufsteuerung, begrenzter
+Aktionsreparatur, getrennter Pfad-/Inhaltssuche und verankerten Änderungen mit
+Ausgangshash. Wiederholte erfolglose Aktionen werden auch bei wechselnden
+Notizen erkannt; nach einem Änderungskonflikt ist erneutes Lesen erforderlich. Die historischen Archive
 werden nicht migriert. Geänderte Laufzeitquellen erfordern weiterhin einen neuen
 Freeze; Testdateien gehören nicht mehr zum Laufzeitmanifest.
+
+`collect_tests` bestätigt Testziele, `check_baseline` führt die aktuellen
+sichtbaren Tests mit ursprünglichem Produktionscode in einer separaten Kopie aus.
+Beide Aktionen zählen gegen die bestehenden Budgets. V3-Qualifikation verlangt
+zusätzlich identische Testversionen zwischen Rot und Grün; nach späteren
+Teständerungen ist eine erneute Reproduktion erforderlich. Fehlerdiagnosen und
+Framework-Laufzeitbelege bleiben archiviert. `ebt_executed`, `ebt_evaluated` und
+`ebt_passed` im Bericht unterscheiden Ausführung und Vertragsresultat; sie beweisen
+nicht, dass der Test das Issue vollständig abdeckt oder jedes Ergebnis assertiert.
+Das Kontextbudget reserviert Schema und Ausgabe anhand einer konservativen
+Byteschätzung, die im Ergebnis ausdrücklich als Schätzung ausgewiesen wird.
+
+Die technischen Befunde des Piloten `20261111-171515` sind inzwischen durch
+[32 EBT-Verträge](../../tests/testguided_study_design/PILOT_TECHNICAL_CASES.md)
+und zusätzliche Integrationsfälle abgesichert. Große Testergebnisse liefern
+verdichtete Counts und Fehlerursachen; `read_test_details(step, start)` liest
+vollständige Diagnosen aus früheren sichtbaren Testschritten seitenweise nach.
+`step` ist dabei die angezeigte Schrittnummer ab 1, `start` ein Fehleroffset ab 0.
+Die vollständigen JUnit-Belege bleiben im Archiv. Bei knappem Kontext wird
+optionale Historie bzw. Dateiausgabe gekürzt und als gekürzt gekennzeichnet;
+Aufgabe und Frameworkanleitung bleiben obligatorisch. Erfolgreiche Leseaktionen
+dürfen wiederholt werden, während identische erfolglose Aktionen weiter begrenzt
+werden. Testziele beeinflussen die Produktionsversionsmetrik nicht mehr.
+
+Zulassung und Vorprüfung erfassen zusätzlich die ursprüngliche sichtbare Suite
+in einem eigenen Container **vor** privaten Testpatches. `visible-baseline.json`
+und `visible-baseline.xml` dokumentieren vorhandene Snapshot- und Umgebungsfehler.
+Die Vorprüfungsbelege sind an `ready.json` gebunden; beide Agenten erhalten eine
+verdichtete Zusammenfassung derselben Ausgangsbasis. Vorhandene Suitefehler
+werden dokumentiert, nicht automatisch repariert oder als neue Agentenregression
+ausgegeben. Die private Rot-/Grün-Zulassung bleibt separat erforderlich.
+pytest-Plugins werden explizit je Aufgabe aktiviert; `pytest_httpbin` wird nur
+für Requests geladen. Die Netzwerkisolation bleibt bestehen.
+
+Der Monitor hält die letzte Fehlantwort mit Rohdaten, Tokenverbrauch und den
+Abbruchgrund sichtbar. „Neuester“ lädt auch für einen ausgewählten aktiven Lauf
+neue Schritte nach; ein ausdrücklich gewählter historischer Schritt bleibt
+fixiert. Alle angezeigten Schritte beginnen bei 1; die Archivdateien und
+API-Schrittindizes bleiben zur Kompatibilität nullbasiert. Laufzeitänderungen
+erfordern einen neuen Freeze. Das geänderte Basisimage wird beim nächsten Start
+neu gebaut; alte Laufarchive werden nicht migriert.
 
 Für Entwicklungsversuche in der TOML `phase = "development"` setzen; diese Phase
 akzeptiert Pilot- und Entwicklungsaufgaben. Die vorhandenen Launcher-Modi regeln
@@ -261,9 +311,24 @@ Kandidatenplanung benötigt weder Docker noch Modellinferenz:
 
 | Profil | Aufgaben | Seeds je Aufgabe | Agentenläufe | Budget je Agent | Planung einschließlich Referenzprüfung und Rüstzeit |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Pilot | 3 | 1 | 6 | 10 Minuten | 1:36 Stunden |
-| Drei Stunden | 5 | 1 | 10 | 10 Minuten | 2:40 Stunden |
-| Sechs Stunden | 10 | 1 | 20 | 10 Minuten | 5:20 Stunden |
+| Pilot | 3 | 1 | 6 | 15 Minuten | 2:06 Stunden |
+| Drei Stunden | 5 | 1 | 10 | 15 Minuten | 3:30 Stunden |
+| Sechs Stunden | 10 | 1 | 20 | 15 Minuten | 7:00 Stunden |
+
+Alle Standardprofile verwenden 900 Sekunden pro Agent und Aufgabe. `model_calls = 0`
+und `tool_calls = 0` bedeuten unbegrenzte Aufrufzahlen; positive Werte setzen
+weiterhin explizite Grenzen. `--model-calls 0` ist auch über den Starter möglich.
+Das Zeitlimit und die Erkennung ausbleibenden Fortschritts bleiben aktiv.
+Die Modelloption `num_predict = 8192` begrenzt die **Ausgabe** pro Antwort;
+`num_ctx = 32768` ist das Gesamtfenster, `context_bytes = 80000` die zusätzliche
+hostseitige Kontextgrenze. Die Laufzeit reserviert weiterhin Platz für Schema
+und Ausgabe, sodass das tatsächlich nutzbare Eingabebudget kleiner ist.
+
+Die Aufgabenzahlen bleiben unverändert. Mit dem höheren Zeitbudget können die
+bisherigen Drei-/Sechs-Stunden-Profile ihre nominellen Planungsziele überschreiten;
+`fits_allowance` weist dies aus. Für die bisherigen Zeitzielwerte passen nach der
+bisherigen Planungsformel vier bzw. acht Aufgaben. Sichtbare Baselineprofile,
+Imagebau und tatsächliche Setups können zusätzlichen Aufwand verursachen.
 
 Die beiden Hauptprofile verwenden dieselben Modell- und Agentenbudgets. Ein
 einzelner API-Smoke kalibriert keine typische Aufgabenlaufzeit. Die Zahlen sind

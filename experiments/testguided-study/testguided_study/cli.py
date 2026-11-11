@@ -15,6 +15,13 @@ def positive(value):
     return result
 
 
+def call_limit(value):
+    result = int(value)
+    if result < 0:
+        raise argparse.ArgumentTypeError('must be nonnegative (0 means unlimited)')
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -25,7 +32,7 @@ def main():
     launch.add_argument("--seeds", type=int, nargs="+")
     launch.add_argument("--task-type", action="append")
     launch.add_argument("--agent-seconds", type=positive)
-    launch.add_argument("--model-calls", type=positive)
+    launch.add_argument("--model-calls", type=call_limit, help='Maximum model steps; 0 means unlimited')
     launch.add_argument("--regression-tests", type=positive, default=8)
     launch.add_argument("--catalog", type=Path, default=ROOT / "candidate-catalog.json")
     launch.add_argument("--source", type=Path)

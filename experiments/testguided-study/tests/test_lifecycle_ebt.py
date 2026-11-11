@@ -49,6 +49,7 @@ def test_six_runs_reach_report_even_with_unavailable_attempt(tmp_path, monkeypat
     monkeypatch.setattr(execution.backend, "task_for", lambda *a: SimpleNamespace(problem_statement="Visible issue"))
     monkeypatch.setattr(execution.backend, "prepare", lambda *a: None)
     monkeypatch.setattr(agent, "patch", lambda *a: "")
+    monkeypatch.setattr(agent, "execute", lambda *a: {"status": "completed"})
 
     class Client:
         def chat(self, **kwargs):

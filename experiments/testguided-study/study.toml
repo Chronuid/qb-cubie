@@ -20,16 +20,16 @@ endpoint = "http://localhost:11434"
 model = "gemma4:12b"
 think = false
 temperature = 0.2
-num_ctx = 16384
-num_predict = 4096
+num_ctx = 32768
+num_predict = 8192
 
 [budgets]
-wall_seconds = 1800
-model_calls = 40
-tool_calls = 40
+wall_seconds = 900
+model_calls = 0 # unlimited
+tool_calls = 0 # unlimited
 command_seconds = 120
 verification_seconds = 300
-context_bytes = 40000
+context_bytes = 80000
 output_chars = 12000
 
 [images]

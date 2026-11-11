@@ -1,10 +1,12 @@
 # Agenten iterativ entwickeln, anschließend Nutzen messen
 
 Status: Die Basisverträge D01–D08 und ihre Anbindung an Freeze, Session und
-Bericht sind implementiert. Die bestehenden Piloten und ihr Protokoll bleiben
-historische v1-Versuche. Neue Entwicklungsversuche mit echter Modellinferenz
-stehen noch aus. Die Befund- und Entwurfsabschnitte dokumentieren den Ausgangspunkt;
-der Umsetzungsstand am Ende beschreibt die Änderungen.
+Bericht sind implementiert. Die hier beschriebenen ersten beiden Piloten bleiben
+historische v1-Versuche. Inzwischen liegt mit `20261111-163110` ein abgeschlossener
+Pilot des Kerns v2 vor; die [aktuelle Pilotanalyse](PILOTANALYSE-20261111.md)
+dokumentiert seine Ergebnisse und das daraus entwickelte v3-Konzept.
+Die folgenden Befund- und Entwurfsabschnitte dokumentieren den Ausgangspunkt;
+der Umsetzungsstand am Ende beschreibt die damaligen Änderungen.
 
 ## Befund am bestehenden Aufbau
 
@@ -274,3 +276,42 @@ Abnahme des Produktstands:
 - Die drei Docker-Cases mit der vorhandenen swegemma-Umgebung separat ausgeführt:
   **3 bestanden** (Modellantworten als Replay, echte Container und Evaluation).
 - Ruff für Experiment und neue Tests sowie `git diff --check`: bestanden.
+
+
+## Weiterentwicklung auf Kern v3
+
+Das [Konzept aus dem letzten Pilot](PILOTANALYSE-20261111.md) ist inzwischen in
+`controller.py`, Session, Werkzeugen und beiden Guides umgesetzt. Neue Standard-
+Freezes verwenden `testguided-core-v3`; explizite Designs mit Kontextstrategie
+`ledger` Version 1 bleiben als Legacy-Varianten ausführbar. Historische Archive
+werden nicht migriert und bleiben an ihre ursprünglichen Laufzeitquellen gebunden.
+
+V3 koppelt optionale kurze Notizen an echte Aktionen. Der Controller hält Fakten,
+Arbeitszustand, Fehlversuche und Belegversionen separat. Zwei gleiche Versuche
+lösen beim nächsten unveränderten Aufruf eine budgetierte Ablehnung aus;
+anhaltender Stillstand beendet den Lauf. Änderungen an Tests bleiben erlaubt.
+Die verankerte Ersetzung benötigt nun den zuvor gelesenen SHA-256-Wert.
+
+Neue Werkzeuge: `find_paths`, `search_content`, `collect_tests`, `check_baseline`.
+Testresultate enthalten einzelne Diagnosen und Laufzeitbelege der EBT-Ausführung.
+Die Qualifikation für v3 bindet Rot und Grün an dieselbe Testversion und eine
+Produktionsänderung oder eine beobachtete rote Ausgangscode-Gegenprobe.
+Der Providerverbrauch bleibt gemessen; die Kontextreserve ist eine konservative
+Schätzung ohne Garantie gegen providerseitige Trunkierung. Die Controllerzustände
+und Frameworkzähler beweisen weder Oraclequalität noch universelle Korrektheit.
+
+Die Guides verwenden vergleichbare Wert-, Exception- und Dateibeispiele.
+Zusätzliche Tests führen diese Beispiele mit korrekten und falschen Funktionen
+aus und prüfen echte EBT-Ergebnisse. Ein neuer fachlicher Pilot wurde durch diese
+Implementierung nicht gestartet; die Wirksamkeit mit Gemma4 bleibt zu messen.
+
+
+Technische Abnahme von v3:
+
+- Studien-, Design- und Regressionstests: 145 bestanden; drei Docker-Cases im
+  normalen Lauf übersprungen.
+- Die drei Docker-Cases separat mit echter swegemma-Umgebung: drei bestanden,
+  einschließlich EBT-Ausführung, Baseline-Reproduktion der finalen Tests und
+  unabhängiger Evaluation beider Bedingungen. Nur die Modellantworten sind Replays.
+- Beide Guides mit korrekten und absichtlich falschen Implementierungen geprüft.
+- Ruff und `git diff --check` bestanden.

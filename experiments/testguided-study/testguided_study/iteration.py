@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 MODES = {"pytest", "cubie"}
-TOOLS = {"list_files", "read_file", "search_text", "write_file", "delete_file", "run_tests", "submit", "update_ledger", "search_files", "replace_text"}
+TOOLS = {"list_files", "read_file", "search_text", "write_file", "delete_file", "run_tests", "submit", "update_ledger", "search_files", "replace_text", "find_paths", "search_content", "collect_tests", "check_baseline", "read_test_details"}
 
 
 def canonical(value):
@@ -53,8 +53,8 @@ def compose(core, specialization):
         raise ValueError("core.policy.repeat_limit must be at least two")
     if type(core["policy"]["repair_calls"]) is not int or core["policy"]["repair_calls"] not in (0, 1):
         raise ValueError("core.policy.repair_calls must be zero or one")
-    if (core["context"] != {"strategy": "ledger", "version": 1}
-            or type(core["context"]["version"]) is not int):
+    if not isinstance(core["context"], dict) or type(core["context"].get("version")) is not int or core["context"] not in ({"strategy": "ledger", "version": 1},
+                               {"strategy": "evidence", "version": 3}):
         raise ValueError("Unsupported core context strategy")
     return copy.deepcopy({"core": core, "specialization": specialization})
 
@@ -127,6 +127,9 @@ def progress(events, repeat_limit=3):
         raise ValueError("repeat_limit must be at least two")
     if not events:
         return "continue"
+    events = [e for e in events if e["action"]["action"] != "update_ledger"]
+    if not events:
+        return "continue"
     last = events[-1]
     observation = last["result"].get("observation")
     if observation == "invalid_test_run":
@@ -143,7 +146,7 @@ def progress(events, repeat_limit=3):
 
 def event_signature(event):
     """Ignore audit labels and nondeterministic pytest duration/output banners."""
-    action = {k: v for k, v in event["action"].items() if k != "stage"}
+    action = {k: v for k, v in event["action"].items() if k not in {"stage", "note"}}
     if action["action"] == "run_tests":
         result = {key: event["result"].get(key) for key in ("status", "observation", "exit_code", "timed_out")}
     else:

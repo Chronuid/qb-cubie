@@ -100,6 +100,9 @@ def arm(rows):
             "measured_total_tokens": measured(tokens), "measured_input_tokens": measured(inputs),
             "measured_output_tokens": measured(outputs), "measured_model_calls": measured(model_calls),
             "measured_tool_calls": measured(tool_calls), "visible_test_observations": dict_counts(observations),
+            "process_metrics": {key: measured([r.get("agent", {}).get("process_metrics", {}).get(key)
+                                               for r in rows])
+                                for key in ("rejected_retries", "tool_errors", "ebt_executed", "ebt_evaluated", "ebt_passed")},
             "agent_stops": dict_counts(row.get("agent", {}).get("status", "unavailable") for row in rows)}
 
 

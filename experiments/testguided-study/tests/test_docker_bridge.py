@@ -32,6 +32,8 @@ class ReplayClient:
              "content": test + "\ndef test_upper():\n    assert bounded(9, 0, 5) == 5\n",
              "reason": "Extend the existing suite after green to cover the other boundary"},
             {"action": "run_tests", "stage": "refactor", "targets": ["tests/test_bounds.py"]},
+            {"action": "check_baseline", "stage": "test", "targets": ["tests/test_bounds.py"]},
+            {"action": "run_tests", "stage": "finish", "targets": ["tests/test_bounds.py"]},
             {"action": "submit", "stage": "finish", "reason": "Both boundaries verified"},
         ])
 
@@ -68,15 +70,21 @@ def test_real_containers_allow_revising_original_tests_after_green(tmp_path, mon
     assert report["arms"]["pytest"]["resolved"] == report["arms"]["cubie"]["resolved"] == 1
     group = report["by_task_type"]["infrastructure_smoke"]
     for mode in ("pytest", "cubie"):
-        assert group["arms"][mode]["measured_model_calls"] == 8
-        assert group["arms"][mode]["measured_tool_calls"] == 7
-        assert group["arms"][mode]["visible_test_observations"] == {"pass": 3, "assertion_failure": 1}
+        assert group["arms"][mode]["measured_model_calls"] == 10
+        assert group["arms"][mode]["measured_tool_calls"] == 9
+        assert group["arms"][mode]["visible_test_observations"] == {"pass": 4, "assertion_failure": 2}
     for row in read(frozen / "schedule.json"):
         directory = frozen / "runs" / row["run_id"]
         assert "test_upper" in (directory / "full.patch").read_text()
         assert "test_regression" not in (directory / "evaluation/evaluated.patch").read_text()
-        observations = read(directory / "agent.json")["test_observations"]
-        assert [v["observation"] for v in observations] == ["pass", "assertion_failure", "pass", "pass"]
+        agent_result = read(directory / "agent.json")
+        if row["mode"] == "cubie":
+            assert agent_result["process_metrics"]["ebt_executed"] >= 1
+        from testguided_study.campaign import behavior_cycle
+        observations = agent_result["test_observations"]
+        assert observations[-2]["baseline"] is True
+        assert behavior_cycle(observations, require_versions=True)
+        assert [v["observation"] for v in observations] == ["pass", "assertion_failure", "pass", "pass", "assertion_failure", "pass"]
     monkeypatch.setattr(agent, "OllamaClient", actual)
     with pytest.raises(ValueError, match="already exist"):
         execution.run(frozen)
