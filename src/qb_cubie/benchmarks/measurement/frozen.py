@@ -60,7 +60,14 @@ def _suite(root, suite, prepared, plan):
         namespace = source["path"].split("/")[-1]
         if namespace in repair_namespaces:
             source["reference_report"] = "references/" + namespace + "/report.json"
-    data["agents"] = ["agents/" + identifier + ".toml" for identifier in prepared["agents"]]
+    if "agent_pairs" in data:
+        from qb_cubie.benchmarks.planning.pairs import agent_paths
+        names = {name: "agents/" + v.read_data(suite.parent / name, toml=True)["id"] + ".toml"
+                 for name in agent_paths(data)}
+        data["agent_pairs"] = [{**pair, **{arm: names[pair[arm]] for arm in ("cubie", "pytest")}}
+                               for pair in data["agent_pairs"]]
+    else:
+        data["agents"] = ["agents/" + identifier + ".toml" for identifier in prepared["agents"]]
     data["output"] = "../results"
     write_toml(root / "inputs/suite.toml", data)
 

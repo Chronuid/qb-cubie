@@ -5,6 +5,7 @@ import hashlib
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.contracts.packages import load_package
 from qb_cubie.benchmarks.planning.order import trials
+from qb_cubie.benchmarks.planning.pairs import groups
 
 DEFAULTS = {"review_agent": {"wall_time_seconds": 300, "tool_calls": 20},
             "developer_agent": {"wall_time_seconds": 1800, "tool_calls": 100}}
@@ -62,12 +63,16 @@ def agents(root, values):
 def expand(scenarios, configured_agents, suite):
     """Expand selected scenarios into bounded trial combinations."""
     conditions = ["cubie", "pytest"] if suite["profile"] == "cubie-vs-pytest" else ["cubie"]
-    _preflight(scenarios, configured_agents, conditions, suite)
+    paired = groups(suite, configured_agents)
+    _preflight(scenarios, paired, conditions, suite)
     runs = []
-    for agent in configured_agents:
+    for pair_id, arms in paired:
         for repetition in range(1, suite["repetitions"] + 1):
             for scenario, condition in trials(scenarios, conditions, suite, repetition):
-                runs.append(_run(scenario, agent, repetition, condition, suite))
+                run = _run(scenario, arms[condition], repetition, condition, suite)
+                if pair_id is not None:
+                    run["agent_pair_id"] = pair_id
+                runs.append(run)
     return runs
 
 

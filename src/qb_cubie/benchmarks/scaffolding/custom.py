@@ -68,18 +68,31 @@ def _available(path):
     v.require(not path.exists() and not path.is_symlink(), "destination", f"already exists; refusing overwrite: {path}")
 
 
-def init_suite(path: str | Path, agent: str | Path, package: str | Path) -> dict:
+def init_suite(path: str | Path, agent: str | Path, package: str | Path, *, pytest_agent: str | Path | None = None) -> dict:
     """Create a relocatable suite for one explicit agent and package."""
     path, agent, package = Path(path).resolve(), Path(agent).resolve(), Path(package).resolve()
     _available(path)
     v.read_data(agent, toml=True)
-    count = len(load_package(package)["scenarios"])
+    scenarios = load_package(package)["scenarios"]
+    count = len(scenarios)
     text = SUITE.replace('["../agents/fake.toml"]', json.dumps([_relative(agent, path.parent)]))
     text = text.replace('"../scenarios/smoke"', json.dumps(_relative(package, path.parent)))
+    extra = {}
+    if pytest_agent is not None:
+        pytest_agent = Path(pytest_agent).resolve()
+        v.read_data(pytest_agent, toml=True)
+        count = 2 * sum(case["benchmark"] == "developer_agent" for case in scenarios)
+        v.require(count > 0, "package", "comparison requires developer_agent tasks")
+        text = text.replace('profile = "agent-evaluation"', 'profile = "cubie-vs-pytest"')
+        text = text.replace('agents = ' + json.dumps([_relative(agent, path.parent)]), '')
+        text += ('\n[select]\nbenchmarks = ["developer_agent"]\n\n[[agent_pairs]]\nid = "developer"\n'
+                 + 'cubie = ' + json.dumps(_relative(agent, path.parent)) + '\n'
+                 + 'pytest = ' + json.dumps(_relative(pytest_agent, path.parent)) + '\n')
+        extra["pytest_agent"] = str(pytest_agent)
     text = text.replace("max_runs = 3", f"max_runs = {count}")
     text = text.replace("max_total_wall_time_seconds = 60", f"max_total_wall_time_seconds = {count * 20}")
     _write(path, text)
-    return {"suite": str(path), "agent": str(agent), "package": str(package)}
+    return {"suite": str(path), "agent": str(agent), "package": str(package), **extra}
 
 
 def _relative(path, parent):

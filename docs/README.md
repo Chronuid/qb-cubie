@@ -14,6 +14,8 @@ Für die Bedeutung von Qualität und bestandenen Prüfungen gelten die
 [Nutzungsleitfaden](GUIDE_Benchmark-Custom.md) durch den vorhandenen Funktionsumfang.
 Der [SWE-bench-Leitfaden](GUIDE_Benchmark-SWEbench.md) beschreibt den Import
 öffentlicher Reparaturaufgaben und ihren Betrieb mit dem Developer-Agenten.
+Der [Nutzenvergleich](GUIDE_Benchmark-Comparison.md) erklärt gespiegelte Aufgaben,
+getrennt anpassbare Cubie-/Pytest-Agenten und die Isolation des Vergleichslaufs.
 
 Relative Markdown-Links beziehen sich auf das jeweilige Dokument. Unverlinkte
 Repositorypfade und Shellbefehle beziehen sich, sofern nicht anders angegeben,

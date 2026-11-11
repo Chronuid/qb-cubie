@@ -6,6 +6,12 @@ Import → Basis-/Gold-Referenzprüfung → Suite → Freeze → Developer-Agent
 unabhängige Patch-Abnahme. Die drei öffentlichen APIs stehen im installierten
 Paket unter `qb_cubie.benchmarks` zur Verfügung.
 
+Die importierten Datensätze sind Quellen der regulären Developer-Agent-Benchmark.
+Sie unterstützen auch `cubie-vs-pytest` mit getrennt spezialisierten
+`agent_pairs`; siehe [gespiegelte Developer-Aufgaben](GUIDE_Benchmark-Comparison.md).
+Dabei bleiben Reparaturprofil, Referenzfreigabe und unabhängige Patch-Abnahme
+erhalten.
+
 ## Import
 
 ```python

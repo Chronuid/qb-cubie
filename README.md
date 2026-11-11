@@ -94,6 +94,8 @@ Eigene Agenten und Szenarien lassen sich mit dem optionalen Extra `benchmarks`
 über JSONL anbinden. Das [Tutorial](docs/GUIDE_Benchmark-Custom.md) zeigt
 Installation, ein ausführbares Beispielpaket und den Vergleich gespeicherter
 Läufe. Nach Installation öffnet `cubie-bench guide` dieselbe Anleitung.
+Der [Nutzenvergleich](docs/GUIDE_Benchmark-Comparison.md) spiegelt Developer-Aufgaben
+mit getrennten Cubie-/Pytest-Spezialisten und einem Cubie-freien Vergleichscontainer.
 
 Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
 

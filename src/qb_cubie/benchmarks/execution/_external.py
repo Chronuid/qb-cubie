@@ -40,7 +40,6 @@ def _repair(context):
     """Accept one complete patch without assigning TDD process credit."""
     event = exchange(context, "repair")
     _stop(context)
-    context["repair_container"].stop()
     _artifacts(context, event)
     v.require(event["artifacts"] == ["submission.patch"], "artifacts", "repair requires submission.patch")
     from qb_cubie.benchmarks.swebench.evaluation import evaluate_patch, protect_tests
@@ -107,6 +106,8 @@ def _stop(context):
     """Stop the submitting process tree before independent evaluation."""
     context["peer"].finish()
     context["peer"].close()
+    if "agent_container" in context:
+        context["agent_container"].stop()
 
 
 def _review_record(context):
@@ -154,10 +155,12 @@ def _phase(context, phase):
 
 
 def _session(context, agent, repair):
-    """Select an isolated repair session or a local process session."""
-    if not repair:
+    """Select the configured isolated image or a local process session."""
+    if not repair and "container_image" not in agent:
         return nullcontext(agent["command"])
     from qb_cubie.benchmarks.swebench.agent import AgentContainer
-    session = AgentContainer(agent, context["run"]["run_id"], context["workspace"], context["directory"] / "agent-evidence")
-    context["repair_container"] = session
+    baseline = context["run"]["condition"] == "pytest" and context["run"]["benchmark"] == "developer_agent"
+    session = AgentContainer(agent, context["run"]["run_id"], context["workspace"], context["directory"] / "agent-evidence",
+                             without_cubie=baseline)
+    context["agent_container"] = session
     return session

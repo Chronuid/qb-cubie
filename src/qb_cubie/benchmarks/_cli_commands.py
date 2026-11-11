@@ -35,7 +35,8 @@ def _actions(args):
                "validate": lambda: validate_package(args.path, args.check_references),
                "list": lambda: list_package(args.package),
                "summarize-pilot": lambda: summarize_pilot(args.archives),
-               "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent)}
+               "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent,
+                                               before_condition=args.before_condition, after_condition=args.after_condition)}
 
 
 def guide():
@@ -47,10 +48,11 @@ def guide():
 def _suite(args):
     """Require an explicit fake choice or a complete external configuration."""
     if args.fake:
-        v.require(args.agent is None and args.package is None, "init-suite", "--fake cannot combine with --agent/--package")
+        v.require(args.agent is None and args.package is None and args.pytest_agent is None,
+                  "init-suite", "--fake cannot combine with --agent/--pytest-agent/--package")
         return init_smoke_suite(args.path)
     v.require(args.agent is not None and args.package is not None, "init-suite", "provide --agent and --package or --fake")
-    return init_suite(args.path, args.agent, args.package)
+    return init_suite(args.path, args.agent, args.package, pytest_agent=args.pytest_agent)
 
 
 def text(result):
@@ -70,10 +72,11 @@ def text(result):
 
 def _comparison_pair(pair):
     """Show both attempt outcomes alongside numeric differences."""
-    return (f"{pair['scenario_id']} ({pair['condition']}, repetition {pair['repetition']}):\n"
+    return (f"{pair['scenario_id']} ({pair['before']['condition']} → {pair['after']['condition']}, repetition {pair['repetition']}):\n"
             f"  before: {_attempt(pair['before'])}\n"
             f"  after: {_attempt(pair['after'])}\n"
-            f"  metric_deltas: {pair['metric_deltas']}")
+            f"  metric_deltas: {pair['metric_deltas']}\n"
+            f"  effort_deltas: {pair['effort_deltas']}")
 
 
 def _attempt(run):

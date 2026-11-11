@@ -9,6 +9,7 @@ from qb_cubie.benchmarks.adapters.process import configuration, probe
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.contracts.packages import load_package
 from qb_cubie.benchmarks.planning._planning import _identity
+from qb_cubie.benchmarks.planning.pairs import agent_paths
 from qb_cubie.benchmarks.reporting._files import copy_tree, inventory, write_json
 
 
@@ -45,7 +46,7 @@ def archive(prepared, plan, root):
 def _agents(root, suite):
     """Load and validate supported fake-agent configurations."""
     result = {}
-    for name in suite["agents"]:
+    for name in agent_paths(suite):
         path = (root / name).resolve()
         agent = v.read_data(path, toml=True)
         cwd = path.parent
@@ -63,7 +64,9 @@ def _probe(agents, plan):
         entry = agents[identifier]
         if entry["config"]["command"] != ["builtin:fake"]:
             required = {cap for run in plan["runs"] if run["agent_id"] == identifier for cap in run["required_capabilities"]}
-            probe(entry["config"], entry["cwd"], required)
+            baseline = any(run["agent_id"] == identifier and run["condition"] == "pytest"
+                           and run["benchmark"] == "developer_agent" for run in plan["runs"])
+            probe(entry["config"], entry["cwd"], required, without_cubie=baseline)
 
 
 def _scenarios(packages):
@@ -80,6 +83,10 @@ def _scenarios(packages):
 def _executable(run, agent, material, *, check_runtime=True):
     """Validate runtime capabilities and private project test materials."""
     v.require(set(run["budgets"]) <= {"wall_time_seconds", "tool_calls"}, "budgets", "runner enforces wall time and its own tool invocations only")
+    if (run["benchmark"] == "developer_agent" and run["condition"] == "pytest"
+            and agent["config"]["command"] != ["builtin:fake"]):
+        from qb_cubie.benchmarks.swebench.agent import image
+        image(agent["config"])
     if run.get("process_profile") == "issue_resolution":
         _repair_runtime(run, agent, material, check_runtime)
         return

@@ -554,3 +554,20 @@ getrennt; Wiederholungen erhöhen nicht die Zahl unabhängiger Projekte.
 Ein grünes Team-Gate oder ein deterministischer Fake-Lauf ersetzt diesen
 Produktnachweis nicht. Die Grenzen und offenen methodischen Abnahmen aus dem
 Benchmark-Konzept gelten weiter.
+
+## Developer-Aufgaben für den Nutzenvergleich spiegeln
+
+`cubie-bench init-suite ./sets/comparison.toml --preset smoke --agent ./agents/cubie.toml
+--pytest-agent ./agents/pytest.toml --package ./package` erzeugt eine Suite mit
+`profile="cubie-vs-pytest"` und einem expliziten `[[agent_pairs]]`. Die beiden
+Agenten lassen sich vor Freeze getrennt spezialisieren. Ein externer
+Pytest-Developer benötigt ein unveränderliches Cubie-freies Containerimage;
+Host-Checkout und private Referenzen werden nicht eingebunden.
+
+`cubie-bench compare ARCHIV ARCHIV --before-condition cubie
+--after-condition pytest --before-agent CUBIE_ID --after-agent PYTEST_ID`
+vergleicht die archivierten Bedingungen derselben Aufgaben. Qualitäts-/Prozess-
+Ergebnisse und Aufwanddifferenzen bleiben getrennt sichtbar. Importierte
+SWE-bench-Pakete verwenden denselben regulären Developer-Messpfad mit ihrer
+eigenen Patch-Abnahme. Konfiguration und Imagebeispiele stehen in
+[Nutzenvergleich](GUIDE_Benchmark-Comparison.md).

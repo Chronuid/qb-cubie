@@ -214,6 +214,11 @@ Eine Deklaration dieser Fähigkeiten ersetzt noch keine Adapter-Vertragstests.
 
 `profile = "agent-evaluation"` erzeugt die Bedingung `cubie`.
 `profile = "cubie-vs-pytest"` erzeugt je einen Versuch für `cubie` und `pytest`.
+Optionale `[[agent_pairs]]` mit `id`, `cubie` und `pytest` ersetzen `agents` und
+ordnen jeder Bedingung eine eigene Agenten-TOML zu. Externe Pytest-Developer
+benötigen ein Cubie-freies Digest-Image. Die
+[Anleitung zum Nutzenvergleich](GUIDE_Benchmark-Comparison.md) beschreibt
+Zugriffstrennung, Spezialisierung, Freeze und den Abgleich beider Bedingungen.
 Für jeden Agenten, jede Wiederholung, Bedingung und ausgewähltes Szenario gibt
 es genau einen Versuch. Wiederholungen werden ab 1 gezählt; Vorgänger stehen
 innerhalb jeder Folge vor ihren Nachfolgern. Zyklen und fehlende Vorgänger sind

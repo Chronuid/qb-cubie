@@ -1,0 +1,5 @@
+FROM python:3.13-slim
+COPY wheels /wheels
+RUN python -m pip install --no-cache-dir "pytest>=9.2,<10" /wheels/*.whl
+COPY adapter /opt/adapter
+WORKDIR /opt/adapter

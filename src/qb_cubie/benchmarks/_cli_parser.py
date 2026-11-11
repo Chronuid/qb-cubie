@@ -30,6 +30,7 @@ def suites(commands):
     init.add_argument("--preset", choices=["smoke"], required=True)
     init.add_argument("--fake", action="store_true", help="Use the offline reference fake")
     init.add_argument("--agent")
+    init.add_argument("--pytest-agent", help="Create paired developer trials using a separate Pytest agent")
     init.add_argument("--package")
     for name in ("plan", "run"):
         commands.add_parser(name, help=f"{name.capitalize()} the selected suite").add_argument("--suite", required=True)
@@ -42,6 +43,8 @@ def comparison(commands):
     parser.add_argument("after")
     parser.add_argument("--before-agent")
     parser.add_argument("--after-agent")
+    parser.add_argument("--before-condition", choices=["cubie", "pytest"])
+    parser.add_argument("--after-condition", choices=["cubie", "pytest"])
     pilot = commands.add_parser("summarize-pilot", help="Summarize verified pilot archives without rerunning agents")
     pilot.add_argument("archives", nargs="+")
 

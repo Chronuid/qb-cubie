@@ -50,10 +50,10 @@ def handshake(peer, agent, required=()):
             for key in ("agent_id", "agent_version", "capabilities")}, **handshake_model(agent, answer)}
 
 
-def probe(agent, cwd, required=()):
+def probe(agent, cwd, required=(), *, without_cubie=False):
     """Check the live peer with a bounded handshake and no scenario request."""
     try:
-        with _session(agent) as command, JsonlProcess(command, cwd, time.monotonic() + 30) as peer:
+        with _session(agent, without_cubie=without_cubie) as command, JsonlProcess(command, cwd, time.monotonic() + 30) as peer:
             result = handshake(peer, agent, required)
             peer.finish()
             return result
@@ -61,12 +61,12 @@ def probe(agent, cwd, required=()):
         raise ValueError(f"agent handshake: {error}") from error
 
 
-def _session(agent):
+def _session(agent, *, without_cubie=False):
     """Select the configured isolation boundary for a capability probe."""
     if "container_image" not in agent:
         return nullcontext(agent["command"])
     from qb_cubie.benchmarks.swebench.agent import AgentContainer
-    return AgentContainer(agent, "probe-" + uuid.uuid4().hex)
+    return AgentContainer(agent, "probe-" + uuid.uuid4().hex, without_cubie=without_cubie)
 
 
 def validate_agent(path: str | Path) -> dict:

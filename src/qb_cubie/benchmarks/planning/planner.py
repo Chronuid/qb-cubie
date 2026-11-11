@@ -5,6 +5,7 @@ from pathlib import Path
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.planning._planning import agents, expand, limits, sources
 from qb_cubie.benchmarks.planning.gates import validate_gates
+from qb_cubie.benchmarks.planning.pairs import agent_paths
 from qb_cubie.benchmarks.planning.selection import select_scenarios
 
 
@@ -14,7 +15,7 @@ def plan_suite(path: str | Path) -> dict:
     suite = v.read_data(path, toml=True)
     _suite(suite)
     chosen, packages = _selected(path, suite)
-    configured_agents = agents(path.parent, suite.get("agents"))
+    configured_agents = agents(path.parent, agent_paths(suite))
     runs = expand(chosen, configured_agents, suite)
     bounds = limits(suite.get("limits", {}), len(runs), sum(r["budgets"]["wall_time_seconds"] for r in runs))
     return v.snapshot({"schema_version": 1, "name": suite["name"], "profile": suite["profile"],
@@ -23,7 +24,7 @@ def plan_suite(path: str | Path) -> dict:
             "gates": validate_gates(suite.get("gates", []), runs), **bounds})
 
 
-def _repairs(scenarios, suite):
+def _repairs(scenarios):
     """Reject overlap and missing reference admission before any agent is started."""
     seen = set()
     for scenario in scenarios:
@@ -34,7 +35,6 @@ def _repairs(scenarios, suite):
         v.require(key not in seen, "selection", "duplicate overlapping SWE-bench instance")
         seen.add(key)
         v.require(bool(scenario.get("reference_report_sha256")), "reference_report", "repair measurement requires a successful bound reference report")
-        v.require(suite["profile"] == "agent-evaluation", "profile", "repair tasks require agent-evaluation")
 
 
 def _suite(suite):
@@ -52,5 +52,5 @@ def _selected(path, suite):
     """Select scenarios and reject invalid repair admissions."""
     scenarios, packages = sources(path.parent, suite.get("sources"))
     chosen = select_scenarios(scenarios, suite.get("select", {}))
-    _repairs(chosen, suite)
+    _repairs(chosen)
     return (chosen, packages)

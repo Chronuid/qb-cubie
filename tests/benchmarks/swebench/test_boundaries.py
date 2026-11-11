@@ -161,6 +161,33 @@ def test_freeze_keeps_repair_admission_without_runtime_or_agent_start(config, tm
     assert plan_suite(destination / 'inputs/suite.toml')['runs'] == manifest['plan']['runs']
 
 
+def test_imported_dataset_uses_regular_mirrored_developer_planning_and_freeze(config, tmp_path):
+    from qb_cubie.benchmarks import freeze_suite
+    from qb_cubie.benchmarks.measurement._bundle import verify
+    root = tmp_path / 'package'
+    import_swebench(config, root)
+    execute, _ = executor_fixture()
+    report = validate_swebench_references(root, executor=execute)
+    suite = suite_file(tmp_path, [(root, report['report'])])
+    agent = tmp_path / 'agent.toml'
+    agent.write_text(agent.read_text() + 'transport = "jsonl-v1"\ncontainer_image = "sha256:' + 'e' * 64 + '"\n')
+    baseline = tmp_path / 'pytest.toml'
+    baseline.write_text(agent.read_text().replace('id = "repair-agent"', 'id = "pytest-repair"'))
+    suite.write_text(suite.read_text().replace('profile = "agent-evaluation"', 'profile = "cubie-vs-pytest"')
+                     .replace('agents = ["agent.toml"]', '') +
+                     '\n[[agent_pairs]]\nid = "repair"\ncubie = "agent.toml"\npytest = "pytest.toml"\n')
+    planned = plan_suite(suite)
+    assert len(planned['runs']) == 2 * len(config['instance_ids'])
+    assert {run['agent_id'] for run in planned['runs']} == {'repair-agent', 'pytest-repair'}
+    assert {run['condition'] for run in planned['runs']} == {'cubie', 'pytest'}
+    assert all(run['benchmark'] == 'developer_agent' and run['process_profile'] == 'issue_resolution'
+               and run['reference_report_sha256'] and 'project_patch' in run['required_capabilities']
+               for run in planned['runs'])
+    destination = tmp_path / 'paired-frozen'
+    freeze_suite(suite, destination)
+    assert plan_suite(destination / 'inputs/suite.toml')['runs'] == verify(destination)['plan']['runs']
+
+
 def test_git_replacements_and_caller_environment_cannot_change_base(config, snapshot, tmp_path, monkeypatch):
     git(snapshot['repo'], 'replace', snapshot['base'], 'HEAD')
     monkeypatch.setenv('GIT_WORK_TREE', str(tmp_path / 'unrelated'))
@@ -207,7 +234,7 @@ for line in sys.stdin:
 ''')
 
     class SyntheticContainer:
-        def __init__(self, *args):
+        def __init__(self, *args, **kwargs):
             pass
 
         def __enter__(self):
