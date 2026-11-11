@@ -147,8 +147,19 @@ def session_context(system, issue, history, ledger, capacity):
     minimal['context_notice'] = 'Older ledger details omitted; reread files or use read_test_details.'
     if 'visible_baseline' in ledger:
         baseline = ledger['visible_baseline']
+        diagnostics = baseline.get('diagnostics', {})
+        errors = diagnostics.get('errors', [])
+        causes = []
+        seen = set()
+        for error in errors:
+            message = error.get('message', '')[:240]
+            if message and message not in seen:
+                seen.add(message)
+                causes.append({'id': (error.get('id') or '')[:160], 'message': message})
+            if len(causes) == 3:
+                break
         minimal['visible_baseline'] = {'observation': baseline.get('observation'),
-                                       'counts': baseline.get('diagnostics', {}).get('counts', {}),
+                                       'diagnostics': {'counts': diagnostics.get('counts', {}), 'errors': causes},
                                        'scope': baseline.get('scope')}
     for allowance in (4000, 2000, 800):
         exchanges = copy.deepcopy(history)
@@ -178,7 +189,8 @@ def session_context(system, issue, history, ledger, capacity):
         except ValueError:
             continue
     # Retain an explicit failure if even the mandatory input cannot fit.
-    return context(system, issue, exchanges, {}, capacity)
+    required = {key: minimal[key] for key in ('visible_baseline', 'context_notice') if key in minimal}
+    return context(system, issue, exchanges, required, capacity)
 
 
 def context_capacity(limits, model, schema):

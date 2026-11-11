@@ -8,7 +8,7 @@ import uuid
 import xml.etree.ElementTree as ET
 
 SCRIPT = r'''
-import ast, difflib, fnmatch, hashlib, json, pathlib, sys
+import difflib, fnmatch, hashlib, json, pathlib, sys
 root = pathlib.Path('/workspace')
 arg = json.loads(sys.argv[1])
 op = arg['action']
@@ -96,14 +96,24 @@ try:
             raise ValueError('File exceeds the editable size limit')
         original = p.read_bytes().decode('utf-8')
         current_hash = hashlib.sha256(p.read_bytes()).hexdigest()
-        if arg.get('expected_sha256', current_hash) != current_hash or not arg['old'] or original.count(arg['old']) != 1:
+        matches = original.count(arg['old']) if arg['old'] else 0
+        conflict = ('hash_mismatch' if arg.get('expected_sha256', current_hash) != current_hash else
+                    'anchor_missing' if matches == 0 else 'anchor_ambiguous' if matches != 1 else None)
+        if conflict:
+            repairs = {
+                'hash_mismatch': 'Read the current file and copy its exact sha256 into expected_sha256.',
+                'anchor_missing': 'Read the relevant lines and use a small old anchor copied exactly from current source.',
+                'anchor_ambiguous': 'Read current source and extend old with enough surrounding text to match exactly once.',
+            }
             print(json.dumps({'status': 'tool_error', 'code': 'edit_conflict',
-                              'sha256': current_hash, 'match_count': original.count(arg['old']),
-                              'excerpt': original[:1500], 'repair': 'Read current file before retrying.'}))
+                              'conflict_reason': conflict, 'sha256': current_hash, 'match_count': matches,
+                              'excerpt': original[:1500], 'repair': repairs[conflict]}))
             sys.exit(1)
         data = original.replace(arg['old'], arg['new'], 1).encode('utf-8')
         if len(data) > 2_000_000:
             raise ValueError('Replacement exceeds the editable size limit')
+        if p.suffix == '.py':
+            compile(data.decode('utf-8'), arg['path'], 'exec')
         p.write_bytes(data)
         result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
     elif op in ('write_file', 'delete_file'):
@@ -111,7 +121,7 @@ try:
         if op == 'write_file' and not p.exists() and (not p.name.strip() or not any(c.isalnum() for c in p.name)):
             raise ValueError('New filename must contain a letter or digit')
         if op == 'write_file' and p.suffix == '.py':
-            ast.parse(arg['content'], filename=arg['path'])
+            compile(arg['content'], arg['path'], 'exec')
         if op == 'delete_file':
             p.unlink()
             result = {'deleted': arg['path']}
@@ -132,10 +142,14 @@ except (OSError, ValueError, SyntaxError, UnicodeError) as error:
         names = [str(p.relative_to(root)) for p in files()]
         suggestions = [n for n in names if pathlib.PurePosixPath(n).name == pathlib.PurePosixPath(name).name][:5]
         code = 'not_found'
+    elif isinstance(error, SyntaxError):
+        code = 'invalid_python'
     else:
         code = 'invalid_action'
     print(json.dumps({'status': 'tool_error', 'code': code, 'error': str(error)[:500],
-                      'suggestions': suggestions, 'repair': 'Inspect existing paths and current source before retrying.'}))
+                      'suggestions': suggestions, 'repair':
+                      'Python syntax rejected before writing; fix the candidate syntax and retry a small edit.'
+                      if isinstance(error, SyntaxError) else 'Inspect existing paths and current source before retrying.'}))
     sys.exit(1)
 
 '''
@@ -223,7 +237,7 @@ def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, basel
         usage = {"available": False}
     if cleanup:
         manager.exec(sandbox, command(REMOVE_TREE, cleanup), timeout=10)
-    diagnostics = test_diagnostics(xml.stdout, usage.get('test_ids', []))
+    diagnostics = test_diagnostics(xml.stdout, usage.get('test_ids', []), usage.get('collection_error_ids', []))
     if collect and result.exit_code == 0 and usage.get("collected", 0):
         observed = "collected"
         diagnostics['collected'] = usage['collected']
@@ -358,6 +372,9 @@ def pytest_configure(config):
 def pytest_collection_finish(session):
     usage['collected'] = len(session.items)
     usage['test_ids'] = [item.nodeid for item in session.items]
+def pytest_collectreport(report):
+    if report.failed:
+        usage.setdefault('collection_error_ids', []).append(report.nodeid)
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_logreport(report):
     report.user_properties.append(('study_nodeid', report.nodeid))
@@ -368,7 +385,7 @@ def pytest_sessionfinish(session, exitstatus):
 INSTALL_PROBE = "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text(" + repr(PROBE) + ".replace('EVIDENCE', repr(sys.argv[2])))"
 
 
-def diagnostic_id(case, node_ids=()):
+def diagnostic_id(case, node_ids=(), collection_ids=()):
     """Prefer collected pytest IDs; use JUnit module/class conventions offline."""
     recorded = case.findall("./properties/property[@name='study_nodeid']")
     if recorded:
@@ -376,13 +393,23 @@ def diagnostic_id(case, node_ids=()):
     actual = identifiers(case) & set(node_ids)
     if len(actual) == 1:
         return actual.pop()
+    if not case.get('classname') and case.find('error') is not None:
+        # JUnit flattens collector paths into dotted names. Only reverse this
+        # using actual collected IDs, since dots may also occur in filenames.
+        matches = []
+        for node in collection_ids:
+            path, *names = node.split('::')
+            label = '.'.join([path.removesuffix('.py').replace('/', '.'), *names])
+            if label == case.get('name'):
+                matches.append(node)
+        return matches[0] if len(matches) == 1 else case.get('file') or None
     parts = case.get('classname', '').split('.')
     boundary = next((i for i, part in enumerate(parts) if part[:1].isupper()), len(parts))
     path = case.get('file') or '/'.join(parts[:boundary]) + '.py'
     return '::'.join([path, *parts[boundary:], case.get('name', '')])
 
 
-def test_diagnostics(xml, node_ids=()):
+def test_diagnostics(xml, node_ids=(), collection_ids=()):
     counts = {"passed": 0, "failed": 0, "errors": 0, "skipped": 0}
     try:
         cases = list(ET.fromstring(xml).iter("testcase"))
@@ -396,7 +423,7 @@ def test_diagnostics(xml, node_ids=()):
                "skipped" if case.find("skipped") is not None else "passed"] += 1
         node = error if error is not None else failure
         if node is not None:
-            errors.append({"id": diagnostic_id(case, node_ids), "phase": "setup_or_collection" if error is not None else "call",
+            errors.append({"id": diagnostic_id(case, node_ids, collection_ids), "phase": "setup_or_collection" if error is not None else "call",
                            "type": node.get("type"), "message": node.get("message", "")[:500],
                            "traceback_tail": (node.text or "")[-1000:]})
     return {"collected": len(cases), "counts": counts, "errors": errors}

@@ -44,8 +44,8 @@ Eine feste lokale Portnummer lässt sich mit `--port 8765` wählen. Er zeigt:
 
 - Gesamtphase, geplante und abgeschlossene Läufe, Erfolge, Fehler und Ausfälle;
 - aktuellen Agenten, Aufgabe, Typ, Seed, Aufrufe und Agentenzeit;
-- den tatsächlich gesendeten Kontext samt aktuellem Guide, validierte Aktionen,
-  Werkzeug-/Testbeobachtungen und die erhaltene Modellantwort;
+- den tatsächlich gesendeten Kontext samt aktuellem Guide im einzigen Tab
+  „Kontext“, mit Kopierfunktion und umschaltbarem Zeilenumbruch;
 - frühere Läufe und Schritte zur getrennten Betrachtung sowie eine Pausenfunktion.
 
 Während Ollama rechnet, ist ausdrücklich der Wartezustand sichtbar. Die verwendete
@@ -147,6 +147,17 @@ Aufgabe und Frameworkanleitung bleiben obligatorisch. Erfolgreiche Leseaktionen
 dürfen wiederholt werden, während identische erfolglose Aktionen weiter begrenzt
 werden. Testziele beeinflussen die Produktionsversionsmetrik nicht mehr.
 
+Die [48 Abnahmefälle zum Piloten `20261111-180702`](../../tests/testguided_study_design/PILOT_180702_CASES.md)
+sind ebenfalls umgesetzt. Python-Änderungen werden vor dem Schreiben kompiliert;
+Änderungskonflikte unterscheiden falschen Hash, fehlenden und mehrdeutigen Anker.
+Collectiondiagnosen verwenden tatsächlich aufgezeichnete Collector-IDs. Bei
+Kontextkürzung bleiben repräsentative Ursachen bekannter Ausgangsfehler erhalten.
+Ein agentenverursachter conftest-Importabbruch mit pytest-Exitcode 4 zählt als
+„Nicht gelöst“, wenn der erfasste Traceback eine Datei des effektiven
+Produktionspatches nennt. CLI-, Timeout- und Verbindungsfehler bleiben nicht
+verfügbar. Beendete Monitorzeilen zeigen bei unbekanntem Ergebnis „Nicht verfügbar“.
+Für neue Studien ist ein neuer Freeze erforderlich; alte Archive bleiben unverändert.
+
 Zulassung und Vorprüfung erfassen zusätzlich die ursprüngliche sichtbare Suite
 in einem eigenen Container **vor** privaten Testpatches. `visible-baseline.json`
 und `visible-baseline.xml` dokumentieren vorhandene Snapshot- und Umgebungsfehler.
@@ -157,8 +168,13 @@ ausgegeben. Die private Rot-/Grün-Zulassung bleibt separat erforderlich.
 pytest-Plugins werden explizit je Aufgabe aktiviert; `pytest_httpbin` wird nur
 für Requests geladen. Die Netzwerkisolation bleibt bestehen.
 
-Der Monitor hält die letzte Fehlantwort mit Rohdaten, Tokenverbrauch und den
-Abbruchgrund sichtbar. „Neuester“ lädt auch für einen ausgewählten aktiven Lauf
+Der Monitor zeigt eine Kurzdiagnose der letzten fehlgeschlagenen Modellantwort
+und den Abbruchgrund. Rohantworten und Tokenverbrauch bleiben in der Monitor-API
+und im Belegarchiv verfügbar. Eigene Tabs für Aktionen, Werkzeugergebnisse und
+Antworten sowie die vollständige JSON-Ansicht der Agentenbelege entfallen.
+Aktionen und Werkzeugbeobachtungen, die tatsächlich Teil einer späteren
+Modellanfrage sind, bleiben in deren Kontext sichtbar.
+„Neuester“ lädt auch für einen ausgewählten aktiven Lauf
 neue Schritte nach; ein ausdrücklich gewählter historischer Schritt bleibt
 fixiert. Alle angezeigten Schritte beginnen bei 1; die Archivdateien und
 API-Schrittindizes bleiben zur Kompatibilität nullbasiert. Laufzeitänderungen

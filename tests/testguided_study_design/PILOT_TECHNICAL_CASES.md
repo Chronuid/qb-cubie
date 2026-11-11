@@ -2,6 +2,9 @@
 
 Grundlage: [Technikanalyse des Piloten 20261111-171515](../../experiments/testguided-study/TECHNIKANALYSE-20261111-171515.md).
 Die Anforderungssuite enthält 32 parametrisierte Cases in 21 Vertragsgruppen.
+Die [ergänzende Reihe zum aktiven Piloten 20261111-180702](PILOT_180702_CASES.md)
+definiert separat 48 weitere Cases für die neu beobachteten Auffälligkeiten,
+einschließlich Evaluator-Einstufung und Monitoranzeige von Lauf 0004.
 Jeder Case führt `EBT(..., reporter=None).run()` aus und prüft explizit
 `result.evaluation is True`. Die Cases wurden zuerst rot angelegt und sind inzwischen gegen die überarbeitete
 Laufzeitimplementierung grün. Es gibt keine `xfail`-Markierungen; historische
@@ -40,7 +43,7 @@ bei fehlendem Node.js übersprungen. Das ersetzt keine Browserprüfung.
 | P10 | Längenabbruch erzeugt eine spezifische Aufforderung zu einer kleinen Folgeaktion | 1 | grün |
 | P11 | Zwei abgeschnittene Antworten stoppen begrenzt, archivieren beide Antworten und führen keine Teilmutation aus | 1 | grün |
 | P12 | Der aktuelle Monitorzustand enthält bei abgelehnter Antwort Rohdaten und Tokenverbrauch | 1 | grün |
-| P13 | Archivansicht liefert Fehlantwort und Rohdaten ohne erfundene gültige Aktion | 1 | grün |
+| P13 | Archivabfrage der Monitor-API liefert Fehlantwort und Rohdaten ohne erfundene gültige Aktion | 1 | grün |
 | P14 | Ein unbeteiligtes globales Plugin kann einen fokussierten Test nicht beschädigen | mit/ohne defektes Plugin | grün/grün |
 | P15 | Änderungskonflikt erfordert weiterhin erneutes Lesen | 1 | grün |
 | P16 | Eine zu große obligatorische Aufgabenbeschreibung scheitert explizit | 1 | grün |
@@ -89,3 +92,7 @@ des ursprünglichen Snapshotpools oder einen vollständigen Imagevergleich.
 Die Gegenfälle schützen die bereits funktionierenden Grenzen bei weiteren
 Überarbeitungen. Docker-Integration wird zusätzlich mit wiedergegebenen
 Modellantworten und echten Containern geprüft.
+
+Die [Kontextansicht-Verträge](MONITOR_CONTEXT_CASES.md) ergänzen elf Cases für
+die auf einen Tab reduzierte Oberfläche. P12/P13/P21 bleiben bestehen: Sie
+prüfen Zustand und Archivdaten der Monitor-API, keine entfernten UI-Tabs.

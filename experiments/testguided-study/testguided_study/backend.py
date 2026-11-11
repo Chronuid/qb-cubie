@@ -1,12 +1,13 @@
 """Adapt swegemma's fresh Docker workspaces and independent verifier."""
 
+import ast
 import asyncio
 import importlib.metadata
 import json
 import re
 import shlex
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 
 from .artifacts import digest, read, write
@@ -87,6 +88,7 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
     original = mgr.exec
     count = 0
     test_observations = []
+    test_commands = []
     timed_out = False
 
     def capture(sandbox, cmd, *, timeout=None):
@@ -98,6 +100,7 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
         timed_out = timed_out or result.timed_out
         report = re.search(r"--junitxml=(/tmp/_swegemma_junit_[0-9a-f]+\.xml)", cmd)
         if report:
+            test_commands.append((result.exit_code, result.stderr))
             xml = original(sandbox, "cat " + report[1], timeout=10)
             test_observations.append(xml.stdout)
             (directory / "junit.xml").write_text(xml.stdout, encoding="utf-8")
@@ -114,8 +117,14 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
                                          start_time=time.perf_counter()))
         data = {key: getattr(result, key) for key in
                 ("resolved", "test_exit_code", "test_output", "error", "duration_seconds")}
-        # Agent-caused syntax/import failures count as failed solutions after task admission.
-        data["available"] = data["test_exit_code"] in (0, 1, 2) and not timed_out
+        # pytest also uses exit 4 for conftest import failures, without JUnit.
+        # Attribute those only when the captured traceback reaches a file in
+        # the effective production patch. CLI errors and timeouts stay unavailable.
+        patch_failure = (data['test_exit_code'] == 4 and test_commands
+                         and test_commands[-1][0] == 4
+                         and patch_import_failure(effective, test_commands[-1][1]))
+        data["available"] = bool((data["test_exit_code"] in (0, 1, 2) or patch_failure)
+                                 and not timed_out and not data['error'])
         xml = test_observations[-1] if test_observations else ""
         data["observation"] = classify(data["test_exit_code"], xml, timed_out)
         data["tests"] = outcomes(xml, [*task.FAIL_TO_PASS, *task.PASS_TO_PASS])
@@ -124,6 +133,37 @@ def evaluate(root, item, config, image, directory, submitted, *, targets=None):
         return data
     finally:
         mgr.cleanup_all()
+
+
+def patch_import_failure(patch, stderr):
+    """Recognize a conftest import failure in an actually changed workspace file."""
+    conftest = re.search(r"ImportError while loading conftest ['\"]([^'\"]+)['\"]", stderr)
+    if not conftest or not re.search(
+            r'^\s*(?:E\s+)?(?:SyntaxError|IndentationError|TabError|ImportError|ModuleNotFoundError):',
+            stderr, re.MULTILINE):
+        return False
+    changed = set()
+    for line in patch.splitlines():
+        if line.startswith('+++ '):
+            name = line[4:].split('\t', 1)[0]
+            if name.startswith('"'):
+                try:
+                    name = ast.literal_eval(name)
+                except (ValueError, SyntaxError):
+                    continue
+            if name.startswith('b/'):
+                changed.add(name[2:])
+    roots = (PurePosixPath('/workspace'), PurePosixPath(conftest[1]).parent)
+    frames = re.findall(r'^\s*(?:E\s+)?File ["\']([^"\']+)["\'], line \d+', stderr, re.MULTILINE)
+    frames += re.findall(r'^\s*([^\n]+\.py):\d+: in ', stderr, re.MULTILINE)
+    for frame in frames:
+        path = PurePosixPath(frame)
+        if not path.is_absolute() and path.as_posix() in changed:
+            return True
+        for root in roots:
+            if path.is_relative_to(root) and path.relative_to(root).as_posix() in changed:
+                return True
+    return False
 
 
 def task_plugins(repo):
