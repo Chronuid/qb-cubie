@@ -97,8 +97,13 @@ def ready(root):
 def run(root, observer=None):
     root = Path(root).resolve()
     config, identity = ready(root)
+    rows = read(root / "schedule.json")
+    # Reject reuse before creating an observer or writing any archive state.
+    for row in rows:
+        if (root / "runs" / row["run_id"]).exists():
+            raise ValueError("Runs already exist; this command never silently resumes or overwrites attempts")
     observer = observer or Observer(root)
-    observer.bind(root, config, read(root / "schedule.json"))
+    observer.bind(root, config, rows)
     tasks = {item["id"]: item for item in read(root / "tasks.json")}
     baselines = {}
     for index, item in enumerate(tasks.values()):
@@ -106,15 +111,11 @@ def run(root, observer=None):
         if path.is_file():
             baselines[item['id']] = read(path)
     guides = read(root / "guides.json")
-    for row in read(root / "schedule.json"):
-        directory = root / "runs" / row["run_id"]
-        if directory.exists():
-            raise ValueError("Runs already exist; this command never silently resumes or overwrites attempts")
-    for row in read(root / "schedule.json"):
+    for row in rows:
         # Recheck identity between runs so a restarted/reconfigured provider cannot pass unnoticed.
         ready(root)
         directory = root / "runs" / row["run_id"]
-        directory.mkdir(parents=True)
+        directory.mkdir(parents=True, exist_ok=False)
         write(directory / "attempt.json", row)
         item = tasks[row["task_id"]]
         observer.begin(row, config)

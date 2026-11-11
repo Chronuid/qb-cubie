@@ -60,6 +60,13 @@ def _suite(root, suite, prepared, plan):
         namespace = source["path"].split("/")[-1]
         if namespace in repair_namespaces:
             source["reference_report"] = "references/" + namespace + "/report.json"
+    _agents(data, suite, prepared)
+    data["output"] = "../results"
+    write_toml(root / "inputs/suite.toml", data)
+
+
+def _agents(data, suite, prepared):
+    """Resolve each configured agent to its bundled configuration file."""
     if "agent_pairs" in data:
         from qb_cubie.benchmarks.planning.pairs import agent_paths
         names = {name: "agents/" + v.read_data(suite.parent / name, toml=True)["id"] + ".toml"
@@ -68,8 +75,6 @@ def _suite(root, suite, prepared, plan):
                                for pair in data["agent_pairs"]]
     else:
         data["agents"] = ["agents/" + identifier + ".toml" for identifier in prepared["agents"]]
-    data["output"] = "../results"
-    write_toml(root / "inputs/suite.toml", data)
 
 
 def run_frozen_suite(bundle_path: str | Path, output_path: str | Path) -> dict:

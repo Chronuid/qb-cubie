@@ -75,7 +75,18 @@ def save_config(path, config):
 def start(args):
     config = options(args)
     root = (args.output or ROOT / "runs" / time.strftime("%Y%m%d-%H%M%S")).resolve()
-    root.mkdir(parents=True, exist_ok=False)
+    if args.output:
+        root.mkdir(parents=True, exist_ok=False)
+    else:
+        base = root
+        suffix = 0
+        while True:
+            try:
+                root.mkdir(parents=True, exist_ok=False)
+                break
+            except FileExistsError:
+                suffix += 1
+                root = base.with_name(f"{base.name}-{suffix:03d}")
     observer = Observer(root, terminal=args.monitor != "none")
     observer.emit("starting", f"Studie starten · Modus {args.mode}", study_id=config["study_id"], phase="preparation")
     server = None

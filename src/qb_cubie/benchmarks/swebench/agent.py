@@ -35,6 +35,10 @@ class AgentContainer:
         v.identifier(self.name, 'agent.container')
         self.command = _agent_command(self.docker, self.name)
         _mounts(self.command, workspace, evidence)
+        self._configure(agent, workspace, without_cubie, network)
+
+    def _configure(self, agent, workspace, without_cubie, network):
+        """Configure network access, working directory and the adapter entrypoint."""
         if not network:
             self.command.extend(['--network', 'none'])
         if workspace is not None:

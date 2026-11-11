@@ -17,8 +17,7 @@ def compare_runs(before: str | Path, after: str | Path, *, before_agent=None, af
     try:
         cross = before_condition is not None or after_condition is not None
         if cross:
-            for condition in (before_condition, after_condition):
-                v.choice(condition, {"cubie", "pytest"}, "condition")
+            _conditions(before_condition, after_condition)
         result = _compare(_index(read_archive(before), before_agent, before_condition, cross),
                           _index(read_archive(after), after_agent, after_condition, cross))
         if cross:
@@ -27,6 +26,12 @@ def compare_runs(before: str | Path, after: str | Path, *, before_agent=None, af
         return result
     except (KeyError, TypeError, IndexError) as error:
         raise ValueError(f"archive: malformed run manifest or results: {error}") from error
+
+
+def _conditions(before, after):
+    """Require both explicitly selected comparison conditions to be valid."""
+    for condition in (before, after):
+        v.choice(condition, {"cubie", "pytest"}, "condition")
 
 
 def _compare(left, right):
@@ -49,12 +54,17 @@ def _index(result, agent, condition=None, cross=False):
     index = {}
     for run in selected:
         if run["agent_id"] == chosen:
-            fields = [field for field in IDENTITY if not (cross and field == "condition")]
-            extra = [run.get(name) for name in ("agent_pair_id", "process_profile", "reference_image_digest")]
-            key = json.dumps([run[field] for field in fields] + extra, sort_keys=True, allow_nan=False)
+            key = _identity(run, cross)
             v.require(key not in index, "runs", "duplicate trial identity")
             index[key] = run
     return index
+
+
+def _identity(run, cross):
+    """Encode the execution fields that identify a comparable trial."""
+    fields = [field for field in IDENTITY if not (cross and field == "condition")]
+    extra = [run.get(name) for name in ("agent_pair_id", "process_profile", "reference_image_digest")]
+    return json.dumps([run[field] for field in fields] + extra, sort_keys=True, allow_nan=False)
 
 
 def _pair(before, after):

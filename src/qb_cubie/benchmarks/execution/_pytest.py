@@ -11,12 +11,7 @@ from qb_cubie.benchmarks.execution._process import ExecutionError, invoke
 
 def observe(context, directory, tests, record):
     """Capture pytest output and classify its JUnit observations."""
-    config = directory / "pytest.ini"
-    config.write_text("[pytest]\npythonpath = .\n", encoding="utf-8")
-    junit = record.with_suffix(".xml")
-    command = [sys.executable, "-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider",
-               "--import-mode=importlib", "--confcutdir=" + str(directory), "-c", str(config),
-               "--junitxml=" + str(junit), str(tests)]
+    command, junit = _command(directory, tests, record)
     if "container_image" in context.get("agent", {}):
         result = _container_observation(context, command, directory, tests, record, junit)
     else:
@@ -27,14 +22,21 @@ def observe(context, directory, tests, record):
     return result
 
 
+def _command(directory, tests, record):
+    """Prepare the isolated pytest command and its report path."""
+    config = directory / "pytest.ini"
+    config.write_text("[pytest]\npythonpath = .\n", encoding="utf-8")
+    junit = record.with_suffix(".xml")
+    command = [sys.executable, "-I", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider",
+               "--import-mode=importlib", "--confcutdir=" + str(directory), "-c", str(config),
+               "--junitxml=" + str(junit), str(tests)]
+    return command, junit
+
+
 def _container_observation(context, command, directory, tests, record, junit):
     """Observe tests in the arm's image, exposing no host installation or references."""
     from qb_cubie.benchmarks.swebench.agent import AgentContainer
-    if not tests.is_relative_to(directory):
-        target = directory / ".benchmark-acceptance" / tests.name
-        target.parent.mkdir(exist_ok=True)
-        shutil.copy2(tests, target)
-        command[-1] = str(target)
+    _container_tests(command, directory, tests)
     output = record.parent / "pytest-output"
     command[0] = "python"
     command[-2] = "--junitxml=/agent-evidence/junit.xml"
@@ -43,11 +45,24 @@ def _container_observation(context, command, directory, tests, record, junit):
     with AgentContainer(agent, "tests-" + uuid.uuid4().hex, directory, output,
                         without_cubie=baseline, network=False) as isolated:
         result = invoke(context, isolated, directory, record)
-    report = output / "junit.xml"
+    _container_report(output / "junit.xml", junit, result)
+    return result
+
+
+def _container_tests(command, directory, tests):
+    """Expose external acceptance tests within the container workspace."""
+    if not tests.is_relative_to(directory):
+        target = directory / ".benchmark-acceptance" / tests.name
+        target.parent.mkdir(exist_ok=True)
+        shutil.copy2(tests, target)
+        command[-1] = str(target)
+
+
+def _container_report(report, junit, result):
+    """Copy the required container report into the observation archive."""
     if not report.is_file():
         raise ExecutionError("infrastructure_error", "Container produced no pytest report: " + result["stderr"][-2000:])
     shutil.copy2(report, junit)
-    return result
 
 
 def _cases(path):

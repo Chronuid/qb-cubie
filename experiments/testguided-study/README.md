@@ -15,6 +15,15 @@ Studie ein und führt beide Agenten aus. Ein neuer Archivpfad und die lokale
 Monitor-URL werden ausgegeben. Der erste Imagebau kann Paketdownloads benötigen;
 es gibt keine Cloud-Inferenz und keinen automatischen Modell-Download.
 
+Der Freeze ist dabei ein automatischer interner Schritt. Auch nach Änderungen
+an Agentenquellen oder Guides genügt wieder `./study --mode pilot`; separate
+`freeze`-/`preflight`-Befehle sind für diesen Einstieg nicht erforderlich.
+Die [EBT-Verträge zur automatischen Laufverwaltung](../../tests/testguided_study_design/RUN_MANAGEMENT_CASES.md)
+sichern diesen Ablauf auch bei Starts in derselben Sekunde, beim Archivschutz
+abgewiesener Low-Level-Neustarts und beim Wheel-Cache nach einem Versionswechsel
+ab. Automatische Archivnamen erhalten bei Kollisionen selbstständig einen freien
+Suffix; ausdrücklich angegebene bestehende Ausgabeziele bleiben geschützt.
+
 | Modus | Zweck | Standardumfang |
 | --- | --- | --- |
 | `smoke` | synthetischer Techniklauf, kein Nutzenbeleg | 1 Aufgabe, 2 Agentenläufe, je höchstens 900 Sekunden |

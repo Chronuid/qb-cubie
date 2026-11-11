@@ -4,6 +4,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import tomllib
 
 from .artifacts import ROOT, digest, read, write
 from .telemetry import emit
@@ -47,9 +48,11 @@ def wheel(observer, log):
         raise RuntimeError("uv is required to build the Cubie wheel; install uv or provide prepared images with --no-build-images")
     emit(observer, "wheel_build", "Cubie-Wheel vorbereiten", phase="preparation", state="building")
     execute(["uv", "build", "--wheel", "--out-dir", str(cache / "wheels")], log)
-    paths = list((cache / "wheels").glob("qb_cubie-*.whl"))
+    with (REPOSITORY / "pyproject.toml").open('rb') as stream:
+        version = tomllib.load(stream)['project']['version']
+    paths = list((cache / "wheels").glob(f"qb_cubie-{version}-*.whl"))
     if len(paths) != 1:
-        raise ValueError("Expected one cached Cubie wheel")
+        raise ValueError(f"Expected one built Cubie wheel for version {version}")
     write(receipt, {"signature": fingerprint, "path": paths[0].relative_to(REPOSITORY).as_posix(), "sha256": digest(paths[0])})
     return paths[0]
 

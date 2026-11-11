@@ -35,8 +35,13 @@ def _actions(args):
                "validate": lambda: validate_package(args.path, args.check_references),
                "list": lambda: list_package(args.package),
                "summarize-pilot": lambda: summarize_pilot(args.archives),
-               "compare": lambda: compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent,
-                                               before_condition=args.before_condition, after_condition=args.after_condition)}
+               "compare": lambda: _compare(args)}
+
+
+def _compare(args):
+    """Compare the selected agents and conditions in two archives."""
+    return compare_runs(args.before, args.after, before_agent=args.before_agent, after_agent=args.after_agent,
+                        before_condition=args.before_condition, after_condition=args.after_condition)
 
 
 def guide():

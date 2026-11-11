@@ -11,7 +11,13 @@ def agent_paths(suite):
     v.require(suite["profile"] == "cubie-vs-pytest", "agent_pairs", "requires cubie-vs-pytest")
     pairs = suite["agent_pairs"]
     v.require(type(pairs) is list and bool(pairs), "agent_pairs", "expected nonempty list")
-    paths, ids = [], set()
+    return _paths(pairs)
+
+
+def _paths(pairs):
+    """Validate pair identities and collect distinct agent paths in order."""
+    paths: list[str] = []
+    ids: set[str] = set()
     for pair in pairs:
         v.mapping(pair, "agent_pairs")
         v.require(set(pair) == {"id", "cubie", "pytest"}, "agent_pairs", "expected id, cubie and pytest")
