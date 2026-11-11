@@ -36,5 +36,9 @@
   "acceptance_tests": "evaluator/acceptance.py.txt",
   "agent_tests": "evaluator/agent_test.py.txt",
   "pytest_agent_tests": "evaluator/pytest_agent_test.py.txt",
-  "submission_module": "invoice_export.py"
+  "submission_module": "invoice_export.py",
+  "expected_red_exception": {
+    "module": "invoice_export.py",
+    "message": "invoice export"
+  }
 }

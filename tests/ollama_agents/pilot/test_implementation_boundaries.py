@@ -88,12 +88,15 @@ def test_live_study_requires_opt_in_before_provider_access(pilot_api, tmp_path):
     assert not target.exists()
 
 
-def test_official_receipt_is_explicit(pilot_api, prepared, tmp_path):
+@pytest.mark.parametrize("exploratory", [False, True])
+def test_study_kind_does_not_change_reference_admission(pilot_api, prepared, tmp_path, exploratory):
     gate = pilot_api()
     suite, archive = prepared
     bundle = tmp_path / "bundle"
-    freeze(gate, suite, [archive], bundle)
-    assert read_json(bundle / "measurement.json")["pilot"]["study_kind"] == "official"
+    gate(calibration_archives=[archive], suite_path=suite, destination=bundle, exploratory=exploratory)
+    receipt = read_json(bundle / "measurement.json")["pilot"]
+    assert receipt["study_kind"] == ("exploratory" if exploratory else "official")
+    assert receipt["reference_admission"] == "independently_checked"
 
 
 def test_unknown_calibration_status_cannot_count_as_a_started_trial(pilot_api, prepared, tmp_path):

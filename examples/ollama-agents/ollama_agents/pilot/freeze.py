@@ -35,10 +35,10 @@ def _stage(temporary, suite, roots, exploratory):
     manifest = _bundle.verify(bundle)
     receipts = [_copy(root, bundle, index) for index, root in enumerate(roots)]
     entries = calibration([bundle / receipt["path"] for receipt in receipts])
-    validate_pilot(bundle, manifest, entries, exploratory)
+    admission = validate_pilot(bundle, manifest, entries)
     frozen_at = now()
     chronological(entries, frozen_at)
-    manifest["pilot"] = _receipt(receipts, frozen_at, exploratory)
+    manifest["pilot"] = _receipt(receipts, frozen_at, exploratory, admission)
     manifest.update(files=_bundle.files(bundle), modes=_bundle.modes(bundle))
     write_json(bundle / "measurement.json", manifest)
     _bundle.verify(bundle)
@@ -55,9 +55,9 @@ def _copy(source, bundle, index):
     return {"path": relative, "manifest_sha256": checksum}
 
 
-def _receipt(receipts, frozen_at, exploratory):
+def _receipt(receipts, frozen_at, exploratory, admission):
     """Distinguish a structurally admitted official pilot from exploratory measurements."""
     return {"calibration_repetitions": 2, "measurement_repetitions": 5,
-            "reference_admission": "author_checked" if exploratory else "independently_checked",
+            "reference_admission": admission,
             "study_kind": "exploratory" if exploratory else "official",
             "frozen_at": frozen_at, "calibration_archives": receipts}

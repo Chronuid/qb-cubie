@@ -6,6 +6,7 @@ from pathlib import Path
 
 from qb_cubie.benchmarks.contracts import _validation as v
 from qb_cubie.benchmarks.reporting._files import digest, wheel_hash
+from qb_cubie.benchmarks.measurement.provenance import capture
 
 
 def files(root):
@@ -23,7 +24,7 @@ def modes(root):
 def runtime():
     """Record runtime provenance without inventing a lockfile or wheel identity."""
     return {"python_version": platform.python_version(), "wheel_sha256": wheel_hash(),
-            "source_sha256": _source_hash(), "dependency_lock_sha256": None}
+            "source_sha256": _source_hash(), **capture(__file__)}
 
 
 def _source_hash():
@@ -64,5 +65,5 @@ def check_runtime(recorded):
     v.text(recorded.get("python_version"), "measurement.runtime.python_version")
     v.text(recorded.get("source_sha256"), "measurement.runtime.source_sha256")
     current = runtime()
-    for key in ("python_version", "wheel_sha256", "source_sha256"):
+    for key in ("python_version", "wheel_sha256", "source_sha256", "installed_distributions_sha256", "dependency_lock_sha256"):
         v.require(recorded.get(key) is None or recorded[key] == current[key], "measurement.runtime", f"different {key}")

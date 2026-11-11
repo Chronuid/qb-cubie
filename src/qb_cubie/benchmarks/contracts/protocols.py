@@ -8,12 +8,12 @@ from qb_cubie.benchmarks.contracts import _validation as v
 def validate_agent_request(payload: dict) -> dict:
     """Return a detached valid agent request with its original JSON values."""
     data = _envelope(payload)
-    benchmark = v.choice(data.get("benchmark"), v.PHASES, "benchmark")
-    v.choice(data.get("phase"), v.PHASES[benchmark], "phase")
+    benchmark, repair = _agent_role(data)
     v.text(data.get("task"), "task")
     _workspace(data.get("workspace"), "workspace")
     _criteria(data)
-    v.choice(data.get("output_format"), {"review_v1" if benchmark == "review_agent" else "project_v1"}, "output_format")
+    output_format = "patch_v1" if repair else "review_v1" if benchmark == "review_agent" else "project_v1"
+    v.choice(data.get("output_format"), {output_format}, "output_format")
     limits = v.budgets(data.get("budgets"))
     v.require(bool(limits), "budgets", "at least one limit is required")
     return data
@@ -142,3 +142,12 @@ def _separate(data):
     reference = _workspace(data.get("reference_workspace"), "reference_workspace")
     v.require(not (submitted.is_relative_to(reference) or reference.is_relative_to(submitted)),
               "reference_workspace", "workspaces must be separate without overlap")
+
+
+def _agent_role(data):
+    """Validate the benchmark role and its allowed submission phase."""
+    benchmark = v.choice(data.get("benchmark"), v.PHASES, "benchmark")
+    repair = data.get("process_profile") == "issue_resolution"
+    v.require(not repair or benchmark == "developer_agent", "process_profile", "repair requires developer_agent")
+    v.choice(data.get("phase"), {"repair"} if repair else v.PHASES[benchmark], "phase")
+    return (benchmark, repair)

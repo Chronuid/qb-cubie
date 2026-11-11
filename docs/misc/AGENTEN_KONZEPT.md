@@ -265,7 +265,8 @@ Der erste Anschlusslauf prüft daher Ausgabe, Quellenbindung und
 Kriterienentscheidungen; automatische Finding-Präzision und Recall werden als
 exakter Referenzabgleich gekennzeichnet. Für die eigentliche Pilotbewertung
 werden freie Befunde anhand der unabhängigen Referenz ohne Kenntnis der
-Agentenkonfiguration menschlich zugeordnet. Diese Nachbewertung erhält ein
+Agentenkonfiguration durch ein dokumentiertes automatisches Verfahren oder
+optional menschlich zugeordnet. Diese Nachbewertung erhält ein
 versioniertes Zusatzartefakt; sie ist noch keine vorhandene Runnerfunktion.
 Alternativ kann später ein entsprechender Evaluator implementiert werden.
 Referenzformulierungen werden dem Modell nicht zur Erfüllung des Matchers gezeigt.
@@ -431,17 +432,19 @@ Für Schritt 5 dokumentieren die
 [EBT-Abnahmecases für Kalibrierung und Pilot](../../tests/docs_tmp/AGENTEN_CASES_5_5.md)
 zwei Kalibrierungs- und anschließend fünf eingefrorene
 Messwiederholungen je ausgewählter Aufgabe, Agent und Bedingung, vollständige
-Versuchsarchive einschließlich Fehlschlägen sowie die unabhängige Aufnahme
-aller ausgewählten Referenzen. Die Pilotfreigabe im installierten Paket
+Versuchsarchive einschließlich Fehlschlägen sowie den tatsächlichen
+Validierungsstand aller ausgewählten Referenzen. Die Pilotfreigabe im installierten Paket
 `ollama_agents.pilot` erfüllt alle 65 ursprünglichen Cases und zusätzliche
 Gegenproben. Der optionale Ablauf `python -m ollama_agents.pilot.live ZIEL
 --exploratory` exportiert ein neues Beispiel, führt unbewertete Vorprüfungen
 und anschließend die seriellen Messungen aus; alle Runner- und Adapterarchive
-bleiben erhalten. Offizielle Freigaben benötigen weiterhin unabhängige menschliche
-Aufnahmebelege. Die ausdrücklich explorative Variante verändert keine
-Referenzstatus und liefert keinen offiziellen Goldstandard. Menschliche
-Referenzaufnahme und blinde semantische Finding-Nachbewertung bleiben offen;
-die methodische Abnahme von Schritt 5 ist deshalb noch nicht abgeschlossen.
+bleiben erhalten. Offizielle Freigaben erlauben `author_checked`-Referenzen;
+menschliche Prüfungen je Fall sind optional und kein Vollständigkeitskriterium.
+`independently_checked` bleibt tatsächlichen belegten unabhängigen Prüfungen
+vorbehalten. Beide Varianten erhalten die Referenzstatus. Fehlende menschliche
+Aufnahmebelege blockieren die methodische Abnahme nicht. Eine dokumentierte
+semantische Finding-Bewertung bleibt für entsprechende Qualitätsaussagen
+erforderlich und kann automatisch oder optional menschlich erfolgen.
 
 Zusätzliche deterministische Gegenproben betreffen Kontextüberlauf,
 Symlink-Eltern, mehrteilige Schreibfehler, fehlende Tokenmessungen,

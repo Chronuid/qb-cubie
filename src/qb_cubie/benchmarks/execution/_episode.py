@@ -67,7 +67,8 @@ def _export(material, workspace):
     for path in source.rglob("*"):
         if path.is_file() and not {"__pycache__", ".pytest_cache"} & set(path.relative_to(source).parts):
             relative = path.relative_to(source)
-            target = workspace / (relative.with_suffix("") if relative.name.endswith(".py.txt") else relative)
+            repair = material["scenario"].get("process_profile") == "issue_resolution"
+            target = workspace / (relative.with_suffix("") if not repair and relative.name.endswith(".py.txt") else relative)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
     shutil.copy2(material["base"] / material["scenario"]["task"], workspace / "task.md")
@@ -78,7 +79,8 @@ def _initial(context):
     workspace = context["workspace"]
     export = write_json(context["directory"] / "export.json", {"task": context["task"],
         "criteria": context["scenario"]["criteria"], "files": list(context["source_files"])})
-    return {**context["run"], **_failure("not_started", "Episode has not started"),
+    extra = {"process_passed": None} if context["run"].get("process_profile") == "issue_resolution" else {}
+    return {**context["run"], **extra, **_failure("not_started", "Episode has not started"),
             "started_at": context["started_at"], "task_version": context["run"]["package"]["version"],
             "evaluator_id": context["scenario"]["evaluator"]["kind"], "evaluator_version": "1.0.0",
             "agent_kind": "fake", "model_id": None, "usage": dict(fake.USAGE),

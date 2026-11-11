@@ -15,35 +15,24 @@ CAPABILITIES = {"wall_time_seconds": "wall_time", "tool_calls": "tool_calls",
 def sources(root, values):
     """Resolve scenario sources and reject conflicting package identities."""
     v.require(type(values) is list and bool(values), "sources", "expected a nonempty list")
-    scenarios = []
+    scenarios: list[dict] = []
     packages: dict[str, dict] = {}
+    admissions: dict[str, str | None] = {}
     for source in values:
-        path = _source(root, source)
-        package = load_package(path)
-        namespace, identity = package["namespace"], _identity(path, package)
-        v.require(namespace not in packages or packages[namespace] == identity, "namespace", f"conflicting package {namespace}")
-        if namespace not in packages:
-            scenarios.extend(_scenarios(package, identity))
-        packages[namespace] = identity
+        _source_cases(root, source, packages, admissions, scenarios)
     return scenarios, list(packages.values())
 
 
 def _source(root, source):
     """Resolve a supported local scenario source."""
     v.mapping(source, "sources")
-    v.require(set(source) == {"path"}, "sources", "phase 1 supports local path sources")
+    v.require(set(source) <= {"path", "reference_report"} and "path" in source, "sources", "expected local path and optional reference_report")
     return (root / v.text(source.get("path"), "sources.path")).resolve()
 
 
 def _identity(root, package):
     """Identify all declared package material with a deterministic digest."""
-    manifests = [root / "package.json"]
-    paths = set(manifests)
-    if "dataset" in package:
-        paths.add(v.contained(root, package["dataset"], "dataset"))
-    for scenario in package["scenarios"]:
-        directory = root / scenario["manifest"]
-        paths.update(directory.parent.rglob("*"))
+    paths = _package_paths(root, package)
     digest = hashlib.sha256()
     for path in sorted(paths, key=lambda item: item.relative_to(root).as_posix()):
         _hash_file(digest, root, path)
@@ -86,9 +75,12 @@ def _run(scenario, agent, repetition, condition, suite):
     """Resolve one trial with its budgets and required capabilities."""
     budget = _budget(scenario, suite)
     required = _capabilities(scenario["benchmark"], budget)
+    if scenario.get("process_profile") == "issue_resolution":
+        required = (required - {"phased_submission"}) | {"project_patch"}
     missing = required - set(agent["capabilities"])
     v.require(not missing, "capabilities", f"{agent['id']} is missing {sorted(missing)}")
-    return {"scenario_id": scenario["qualified_id"], "agent_id": agent["id"],
+    extra = {key: scenario[key] for key in ("process_profile", "source", "regression_coverage", "reference_report_sha256", "reference_image_digest", "import_summary") if key in scenario}
+    return {**extra, "scenario_id": scenario["qualified_id"], "agent_id": agent["id"],
             "repetition": repetition, "condition": condition, "budgets": budget,
             "benchmark": scenario["benchmark"], "types": scenario["types"], "tags": scenario["tags"],
             "split": scenario["split"], "group_id": scenario["group_id"], "package": scenario["package"],
@@ -137,3 +129,46 @@ def _hash_file(digest, root, path):
     mode = (path.stat().st_mode & 0o777).to_bytes(2, "big")
     for value in (name, mode, target, content):
         digest.update(len(value).to_bytes(8, "big") + value)
+
+
+def _admission(root, source, path, package):
+    """Resolve a bound reference report and the executed image identities."""
+    report = source.get("reference_report")
+    if report is not None:
+        v.text(report, "sources.reference_report")
+        from qb_cubie.benchmarks.swebench.admission import check_report
+        report_hash = check_report((root / report).resolve(), path, package)
+        report_data = v.read_data((root / report).resolve())
+        images = {row["instance_id"]: row["evidence"][0]["image_digest"] for row in report_data["scenarios"]}
+    else:
+        report_hash, images = None, {}
+    return (report_hash, images)
+
+
+def _source_cases(root, source, packages, admissions, scenarios):
+    """Collect one source while rejecting conflicting package admissions."""
+    path = _source(root, source)
+    package = load_package(path)
+    namespace, identity = package["namespace"], _identity(path, package)
+    report_hash, images = _admission(root, source, path, package)
+    v.require(namespace not in packages or packages[namespace] == identity, "namespace", f"conflicting package {namespace}")
+    v.require(namespace not in admissions or admissions[namespace] == report_hash, "reference_report", "conflicting reference admission for one package")
+    admissions[namespace] = report_hash
+    if namespace not in packages:
+        scenarios.extend({**scenario, **({"reference_report_sha256": report_hash, "reference_image_digest": images[scenario["id"]]} if report_hash else {})}
+                         for scenario in _scenarios(package, identity))
+    packages[namespace] = identity
+
+
+def _package_paths(root, package):
+    """Enumerate every declared package material path."""
+    manifests = [root / "package.json"]
+    paths = set(manifests)
+    if "dataset" in package:
+        paths.add(v.contained(root, package["dataset"], "dataset"))
+    if "swebench_import" in package:
+        paths.add(v.contained(root, package["swebench_import"], "swebench_import"))
+    for scenario in package["scenarios"]:
+        directory = root / scenario["manifest"]
+        paths.update(directory.parent.rglob("*"))
+    return paths

@@ -13,7 +13,7 @@ def main(argv=None):
     parser.add_argument("--suite", required=True)
     parser.add_argument("--calibration", action="append", required=True)
     parser.add_argument("--destination", required=True)
-    parser.add_argument("--exploratory", action="store_true", help="Keep human admission explicitly open")
+    parser.add_argument("--exploratory", action="store_true", help="Mark the study as exploratory, independently of reference admission")
     args = parser.parse_args(argv)
     try:
         result = freeze_pilot(calibration_archives=args.calibration, suite_path=args.suite,

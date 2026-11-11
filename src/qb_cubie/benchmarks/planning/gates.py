@@ -34,7 +34,10 @@ def population(gate, runs):
     try:
         selected = select_runs(runs, gate.get("select", {}))
         if gate["metric"] == "process_pass_rate":
-            selected = [run for run in selected if run["benchmark"] == "developer_agent"]
+            selected = [run for run in selected if run["benchmark"] == "developer_agent" and run.get("process_profile") != "issue_resolution"]
+        if gate["metric"] == "quality_pass_rate":
+            profiles = {run.get("process_profile", "builtin") for run in selected}
+            v.require(len(profiles) <= 1, "gates.select", "repair quality requires a separate population")
         v.require(bool(selected), "gates.select", "empty gate population")
         return selected
     except ValueError as error:

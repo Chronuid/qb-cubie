@@ -12,7 +12,7 @@ def archive_adapters(prepared, root):
     """Rewrite frozen configurations to point at bundled local adapter inputs."""
     for identifier, entry in prepared["agents"].items():
         agent = dict(entry["config"])
-        if agent["command"] != ["builtin:fake"]:
+        if agent["command"] != ["builtin:fake"] and "container_image" not in agent:
             target = root / "inputs/adapters" / identifier
             target.mkdir(parents=True)
             agent["command"] = _command(agent["command"], entry["cwd"], target)

@@ -23,8 +23,10 @@ def exchange(context, phase, artifacts, run_id=None):
 def _request(context, phase):
     """Build a phase request bound to the current task and workspace."""
     run = context["run"]
+    repair = run.get("process_profile") == "issue_resolution"
     return validate_agent_request({"schema_version": 1, "run_id": run["run_id"],
+        **({"process_profile": "issue_resolution"} if repair else {}),
         "scenario_id": run["scenario_id"], "benchmark": run["benchmark"], "phase": phase,
         "task": context["task"], "workspace": str(context["workspace"]),
         "criteria": context["scenario"]["criteria"], "budgets": run["budgets"],
-        "output_format": "review_v1" if run["benchmark"] == "review_agent" else "project_v1"})
+        "output_format": "patch_v1" if repair else "review_v1" if run["benchmark"] == "review_agent" else "project_v1"})

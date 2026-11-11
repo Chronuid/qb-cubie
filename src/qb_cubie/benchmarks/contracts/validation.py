@@ -24,6 +24,10 @@ def validate_package(path: str | Path, check_references: bool = False) -> dict:
     root = Path(path).resolve()
     package = load_package(root)
     v.require(type(check_references) is bool, "check_references", "expected boolean")
+    if check_references and any(s["evaluator"]["kind"] == "external.swebench_v1" for s in package["scenarios"]):
+        from qb_cubie.benchmarks.swebench.validation import validate_swebench_references
+        report = validate_swebench_references(root)
+        return {**report, "namespace": package["namespace"], "references_checked": True}
     scenarios = [_validate(root, s, check_references) for s in package["scenarios"]]
     return {"schema_version": 1, "namespace": package["namespace"], "valid": True,
             "references_checked": check_references, "scenarios": scenarios}

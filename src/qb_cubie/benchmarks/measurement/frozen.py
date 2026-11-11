@@ -33,7 +33,7 @@ def freeze_suite(suite_path: str | Path, destination: str | Path) -> dict:
 def _destination(destination, prepared):
     """Keep bundles outside declared scenario materials and adapter working directories."""
     roots = [material["base"] for material in _inputs._scenarios(prepared["packages"]).values()]
-    roots.extend(entry["cwd"] for entry in prepared["agents"].values())
+    roots.extend(entry["cwd"] for entry in prepared["agents"].values() if "container_image" not in entry["config"])
     v.require(not any(destination.is_relative_to(root) for root in roots), "destination", "must stay outside input material")
 
 
@@ -55,6 +55,11 @@ def _suite(root, suite, prepared, plan):
     """Resolve package and agent references relative to the bundled suite."""
     data = v.read_data(suite, toml=True)
     data["sources"] = [{"path": "packages/" + package["namespace"]} for package in plan["packages"]]
+    repair_namespaces = {run["package"]["namespace"] for run in plan["runs"] if run.get("process_profile") == "issue_resolution"}
+    for source in data["sources"]:
+        namespace = source["path"].split("/")[-1]
+        if namespace in repair_namespaces:
+            source["reference_report"] = "references/" + namespace + "/report.json"
     data["agents"] = ["agents/" + identifier + ".toml" for identifier in prepared["agents"]]
     data["output"] = "../results"
     write_toml(root / "inputs/suite.toml", data)

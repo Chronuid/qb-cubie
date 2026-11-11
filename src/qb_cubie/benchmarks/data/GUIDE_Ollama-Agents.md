@@ -85,10 +85,14 @@ Dubletten, beschädigte Archive und veränderte Aufgaben werden abgewiesen.
 Kalibrierungsergebnisse gehen nicht in die Pilotstatistik ein. Das Messpaket
 enthält vollständige Kopien der Kalibrierungsarchive und deren Hashbindung.
 
-Ohne zusätzliche Option benötigen alle ausgewählten Referenzen
-`independently_checked` mit zwei verschiedenen menschlichen Zustimmungen und
-privaten Belegdateien. `--exploratory` erlaubt Autorreferenzen und kennzeichnet
-das Messpaket entsprechend. Die Funktion erfindet keine menschlichen Belege.
+Offizielle Piloten erlauben `author_checked`-Referenzen ohne menschliche
+Prüfungen je Fall. Diese Prüfungen sind optional und keine Voraussetzung für
+Vollständigkeit. `independently_checked` erfordert weiterhin zwei verschiedene
+menschliche Zustimmungen mit privaten Belegdateien. Das Pilotmanifest weist
+diesen Status nur aus, wenn alle ausgewählten Referenzen ihn tragen; sonst
+steht dort `author_checked`. Die Einzelstatus bleiben erhalten.
+`--exploratory` kennzeichnet das Messziel unabhängig vom Prüfstatus. Die
+Funktion erfindet keine menschlichen Belege.
 
 Die öffentlichen Smokes lassen sich als vollständig archivierte explorative
 Messreihe mit zwei Kalibrierungs- und anschließend fünf Messwiederholungen ausführen:

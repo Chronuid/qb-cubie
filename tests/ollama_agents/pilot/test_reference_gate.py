@@ -1,4 +1,4 @@
-"""Keep author references usable for calibration and require independent pilot admission."""
+"""Keep human admission optional while validating any claimed independent approvals."""
 
 import pytest
 
@@ -8,16 +8,14 @@ from ...benchmarks.contracts import accepted, edit_json, rejected
 from .support import freeze, inventory, reference_paths
 
 
-@pytest.mark.parametrize("fault", ["author-only", "same-reviewer", "dispute", "missing-evidence", "visible-evidence"])
-def test_official_pilot_requires_two_distinct_private_documented_approvals(pilot_api, prepared, tmp_path, fault):
+@pytest.mark.parametrize("fault", ["same-reviewer", "dispute", "missing-evidence", "visible-evidence"])
+def test_claimed_independent_admission_requires_valid_documented_approvals(pilot_api, prepared, tmp_path, fault):
     gate = pilot_api()
     suite, archive = prepared
     reference = next(path for path in reference_paths(suite) if "review-" in str(path))
 
     def damage(value):
-        if fault == "author-only":
-            value.update(validation_status="author_checked", human_reviews=[])
-        elif fault == "same-reviewer":
+        if fault == "same-reviewer":
             value["human_reviews"][1]["reviewer_id"] = value["human_reviews"][0]["reviewer_id"]
         elif fault == "dispute":
             value["human_reviews"][1]["decision"] = "dispute"
@@ -60,3 +58,25 @@ def test_freeze_preserves_calibration_author_status_and_archives_new_admission(p
     assert references and all('"independently_checked"' in path.read_text(encoding="utf-8") for path in references)
     assert any(b'"author_checked"' in content for name, content in before.items()
                if name.endswith("evaluator/reference.json"))
+
+
+@pytest.mark.parametrize("all_author", [False, True])
+def test_official_pilot_accepts_author_references_without_claiming_independent_admission(
+        pilot_api, prepared, tmp_path, all_author):
+    from .support import read_json
+
+    gate = pilot_api()
+    suite, archive = prepared
+    selected = [path for path in reference_paths(suite) if "review-" in str(path)]
+    for path in selected if all_author else selected[:1]:
+        value = read_json(path)
+        for review in value["human_reviews"]:
+            (path.parent.parent / review["evidence"]).unlink()
+        edit_json(path, lambda value: value.update(validation_status="author_checked", human_reviews=[]))
+    bundle = tmp_path / "official"
+    freeze(gate, suite, [archive], bundle)
+    receipt = read_json(bundle / "measurement.json")["pilot"]
+    assert receipt["study_kind"] == "official"
+    assert receipt["reference_admission"] == "author_checked"
+    references = list((bundle / "inputs/packages").rglob("evaluator/reference.json"))
+    assert any(read_json(path)["validation_status"] == "author_checked" for path in references)

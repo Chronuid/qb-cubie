@@ -16,6 +16,7 @@ Kalendertag können aufeinanderfolgende Entwicklungsstände beschreiben.
 | [CONTRACT_CASES_9_1](CONTRACT_CASES_9_1.md), [9_2](CONTRACT_CASES_9_2.md) | Vertragskorrekturen und Betriebsnachweise zum [historischen Gutachten](../../GUTACHTEN.md). |
 | [BENCHMARK_CASES_10_1](BENCHMARK_CASES_10_1.md), [10_2](BENCHMARK_CASES_10_2.md), [10_3](BENCHMARK_CASES_10_3.md) | Öffentliche Verträge, installierter Durchstich und eigene Prozessagenten. Angekündigte spätere Phasen sind in den folgenden Nachweisen umgesetzt. |
 | [BENCHMARK_CASES_10_4](BENCHMARK_CASES_10_4.md), [10_5](BENCHMARK_CASES_10_5.md) | Basisdatensatz, Auswertung und Messbetrieb. Offline-Erfolge ersetzen keinen offiziellen realen Pilot. |
+| [BENCHMARK_CASES_SWE_BENCH](BENCHMARK_CASES_SWE_BENCH.md) | Neue ausführbare Rotphase für den SWE-bench-Loader; Anforderungen definiert, Produktumsetzung und reale Integrationsnachweise offen. |
 | [AGENTEN_CASES_5_1](AGENTEN_CASES_5_1.md), [5_2](AGENTEN_CASES_5_2.md), [5_3](AGENTEN_CASES_5_3.md) | Unterbau und Rollenkerne. Damals noch ausstehende Prozess-/Wheel-Prüfungen folgen in §5.4. |
 | [AGENTEN_CASES_5_4](AGENTEN_CASES_5_4.md) | Installationsnachweis und echte Smokes beider Rollen. |
 | [AGENTEN_CASES_5_5](AGENTEN_CASES_5_5.md) | Pilotfreigabe und tatsächliche explorative Zwei-/Fünf-Messreihe; [Messprotokoll](../../docs/misc/EXPERIMENT_Agenten-5-5.md). |

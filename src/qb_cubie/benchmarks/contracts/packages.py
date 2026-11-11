@@ -12,8 +12,10 @@ def load_package(path: str | Path) -> dict:
     root = Path(path).resolve()
     package = v.read_data(root / "package.json")
     _identity(package)
+    import_manifest = _import_manifest(root, package)
     paths = v.strings(package.get("scenarios"), "scenarios", nonempty=True)
     scenarios = [_scenario(root, name, package["namespace"]) for name in paths]
+    _import_summary(import_manifest, scenarios)
     _groups(scenarios)
     validate_catalog(root, package, scenarios)
     return {**package, "scenarios": scenarios}
@@ -59,8 +61,8 @@ def _materials(root, scenario):
     for dependency in scenario["requires"]:
         v.identifier(dependency, "requires", qualified=True)
     evaluator = v.mapping(scenario.get("evaluator"), "evaluator")
-    kind = "builtin.review_reference_v1" if scenario["benchmark"] == "review_agent" else "builtin.pytest_project_v1"
-    v.choice(evaluator.get("kind"), {kind}, "evaluator.kind")
+    kinds = _evaluator_kinds(scenario)
+    v.choice(evaluator.get("kind"), kinds, "evaluator.kind")
     reference = v.contained(root, evaluator.get("reference"), "evaluator.reference")
     v.require(not reference.is_relative_to(visible), "evaluator.reference", "must stay outside visible material")
     validate_reference(root, scenario, v.read_data(reference))
@@ -82,3 +84,33 @@ def _groups(scenarios):
         v.require(group not in splits or splits[group] == scenario["split"], "split", f"group {group} crosses splits")
         ids.add(identifier)
         splits[group] = scenario["split"]
+
+
+def _import_manifest(root, package):
+    """Verify an optional external import inventory."""
+    import_manifest = None
+    if package.get("swebench_import") is not None or (root / "swebench-import.json").exists():
+        v.require(package["swebench_import"] == "swebench-import.json", "swebench_import", "unsupported manifest")
+        from qb_cubie.benchmarks.swebench._common import verify_inventory
+        import_manifest = verify_inventory(root)
+    return import_manifest
+
+
+def _import_summary(import_manifest, scenarios):
+    """Attach public import provenance only to verified external packages."""
+    v.require(import_manifest is not None or not any(s["evaluator"]["kind"] == "external.swebench_v1" for s in scenarios),
+              "swebench_import", "external SWE-bench packages require their integrity manifest")
+    if import_manifest is not None:
+        for scenario in scenarios:
+            scenario["import_summary"] = {"excluded": import_manifest["plan"]["excluded"], "skipped": import_manifest["skipped"],
+                                          "potentially_known": True, "publication_status": "public"}
+
+
+def _evaluator_kinds(scenario):
+    """Choose the evaluator contract appropriate to the process profile."""
+    kind = "builtin.review_reference_v1" if scenario["benchmark"] == "review_agent" else "builtin.pytest_project_v1"
+    kinds = {kind}
+    if scenario.get("process_profile") == "issue_resolution" and scenario["benchmark"] == "developer_agent":
+        kinds = {"external.swebench_v1"}
+        v.require(scenario["requires"] == [], "requires", "repair episodes must be independent")
+    return kinds

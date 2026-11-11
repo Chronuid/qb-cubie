@@ -1,6 +1,7 @@
 """Run external agent sessions while the runner owns all observations."""
 
 import shutil
+from contextlib import nullcontext
 
 from qb_cubie.benchmarks.adapters._transport import JsonlProcess
 from qb_cubie.benchmarks.adapters.process import handshake
@@ -24,13 +25,31 @@ def perform(context):
     """Own a fresh process session for one review or development episode."""
     agent = context["agent"]
     directory = context["directory"] / "transport"
-    with JsonlProcess(agent["command"], agent["_cwd"], context["deadline"], directory) as peer:
+    repair = context["run"].get("process_profile") == "issue_resolution"
+    session = _session(context, agent, repair)
+    with session as command, JsonlProcess(command, agent["_cwd"], context["deadline"], directory) as peer:
         context["peer"] = peer
         identity = handshake(peer, agent, context["run"]["required_capabilities"])
         context["agent_version"] = identity["agent_version"]
         context["model_provenance"] = identity.get("model_provenance")
-        result = _review(context) if context["run"]["benchmark"] == "review_agent" else _develop(context)
+        result = _repair(context) if repair else _review(context) if context["run"]["benchmark"] == "review_agent" else _develop(context)
         return {**result, "agent_version": identity["agent_version"], "usage": context["usage"]}
+
+
+def _repair(context):
+    """Accept one complete patch without assigning TDD process credit."""
+    event = exchange(context, "repair")
+    _stop(context)
+    context["repair_container"].stop()
+    _artifacts(context, event)
+    v.require(event["artifacts"] == ["submission.patch"], "artifacts", "repair requires submission.patch")
+    from qb_cubie.benchmarks.swebench.evaluation import evaluate_patch, protect_tests
+    patch = context["workspace"] / "submission.patch"
+    protect_tests(patch.read_text(encoding="utf-8"), (context["base"] / context["reference"]["test_patch"]).read_text(encoding="utf-8"))
+    try:
+        return evaluate_patch(context, patch)
+    except (ValueError, OSError) as error:
+        raise ExecutionError("infrastructure_error", f"SWE-bench evaluator: {error}") from error
 
 
 def exchange(context, phase):
@@ -132,3 +151,13 @@ def _phase(context, phase):
     write_json(record, observed)
     return {**_entry(context, phase, observed["test_outcome"], snapshot, [record, record.with_suffix(".xml")]),
             "tests_changed": changed, "production_changed": phase == "red" and not _unchanged(context)}
+
+
+def _session(context, agent, repair):
+    """Select an isolated repair session or a local process session."""
+    if not repair:
+        return nullcontext(agent["command"])
+    from qb_cubie.benchmarks.swebench.agent import AgentContainer
+    session = AgentContainer(agent, context["run"]["run_id"], context["workspace"], context["directory"] / "agent-evidence")
+    context["repair_container"] = session
+    return session

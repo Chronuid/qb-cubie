@@ -32,5 +32,9 @@
   "acceptance_tests": "evaluator/acceptance.py.txt",
   "agent_tests": "evaluator/agent_test.py.txt",
   "pytest_agent_tests": "evaluator/pytest_agent_test.py.txt",
-  "submission_module": "net_amount.py"
+  "submission_module": "net_amount.py",
+  "expected_red_exception": {
+    "module": "net_amount.py",
+    "message": "net amount"
+  }
 }

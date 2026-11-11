@@ -45,18 +45,15 @@ def cell(run):
     return tuple(run[key] for key in ("scenario_id", "benchmark", "agent_id", "condition"))
 
 
-def validate_pilot(bundle, manifest, entries, exploratory):
+def validate_pilot(bundle, manifest, entries):
     """Validate the captured pilot rather than mutable pre-freeze source files."""
     planned = manifest["plan"]["runs"]
     v.require(cells(planned, 5, "pilot") == {cell(run) for _, run in entries},
               "calibration.selection", "pilot scenario, agent or condition cells differ")
     materials = _materials(bundle)
-    for run in planned:
-        material = materials[run["scenario_id"]]
-        if not exploratory:
-            v.require(material["reference"]["validation_status"] == "independently_checked",
-                      "reference_admission", "independently_checked references required for official pilot")
     _compare(entries, materials, planned)
+    statuses = {materials[run["scenario_id"]]["reference"]["validation_status"] for run in planned}
+    return "independently_checked" if statuses == {"independently_checked"} else "author_checked"
 
 
 def _materials(bundle):

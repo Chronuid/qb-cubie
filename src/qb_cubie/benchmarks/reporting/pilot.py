@@ -17,7 +17,7 @@ def summarize_pilot(archives: list[str | Path]) -> dict:
         compatible(entries)
         grouped = defaultdict(list)
         for _, run in entries:
-            grouped[run["benchmark"], run["agent_id"], run["condition"]].append(run)
+            grouped[run["benchmark"], run["agent_id"], run["condition"], run.get("process_profile", "builtin")].append(run)
         return {"schema_version": 1, **_provenance(entries), "pending_adjudications": _pending(entries),
                 "groups": [_group(key, grouped[key]) for key in sorted(grouped)]}
     except (KeyError, TypeError, IndexError, OSError) as error:
@@ -54,12 +54,14 @@ def _validate(run):
 def _group(key, runs):
     """Report quality, process, effort and project counts independently."""
     counts = stats.counts(runs)
-    result = dict(zip(("benchmark", "agent_id", "condition"), key, strict=True))
+    result = dict(zip(("benchmark", "agent_id", "condition"), key[:3], strict=True))
     result.update(counts=counts, scenario_count=len({run["scenario_id"] for run in runs}),
                   independent_groups=len({(run["package"]["namespace"], run["group_id"]) for run in runs}),
                   repetitions=sorted({run["repetition"] for run in runs}), statuses=dict(sorted(Counter(run["status"] for run in runs).items())),
                   quality_pass_rate=counts["quality_passed"] / counts["started"] if counts["started"] else None,
                   usage=stats.usage(runs))
+    if key[3] == "issue_resolution":
+        return _repair_group(result, runs)
     return {**result, **_details(key[0], runs)}
 
 
@@ -92,3 +94,13 @@ def _pending(entries):
     return [{"archive": str(root), "run_id": run["run_id"], "scenario_id": run["scenario_id"],
              "evidence": list(run["evidence"]), "reason": run.get("reason")}
             for root, run in entries if run["evaluation_status"] == "pending_adjudication"]
+
+
+def _repair_group(result, runs):
+    """Report repair quality by repository without TDD process credit."""
+    result["counts"]["process_passed"] = None
+    return {**result, "process_profile": "issue_resolution",
+            "independent_groups": len({run["source"]["repo"] for run in runs}),
+            "repositories": sorted({run["source"]["repo"] for run in runs}),
+            "regression_coverage_missing": sorted({run["scenario_id"] for run in runs if not run["regression_coverage"]}),
+            "provenance": [{"scenario_id": run["scenario_id"], "source": run["source"], "import_summary": run["import_summary"]} for run in runs]}

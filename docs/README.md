@@ -12,6 +12,8 @@ Für die Bedeutung von Qualität und bestandenen Prüfungen gelten die
 [Qualitätsbegriffe](GUIDE_Quality-Assurance.md) und die
 [Vertragssemantik](GUIDE_Contract-Semantics.md). Für Benchmarks führt der
 [Nutzungsleitfaden](GUIDE_Benchmark-Custom.md) durch den vorhandenen Funktionsumfang.
+Der [SWE-bench-Leitfaden](GUIDE_Benchmark-SWEbench.md) beschreibt den Import
+öffentlicher Reparaturaufgaben und ihren Betrieb mit dem Developer-Agenten.
 
 Relative Markdown-Links beziehen sich auf das jeweilige Dokument. Unverlinkte
 Repositorypfade und Shellbefehle beziehen sich, sofern nicht anders angegeben,

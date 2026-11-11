@@ -1,6 +1,8 @@
 """Validate and connect version-one external benchmark agents."""
 
 import time
+import uuid
+from contextlib import nullcontext
 from pathlib import Path
 
 from qb_cubie.benchmarks.adapters._transport import JsonlProcess
@@ -30,6 +32,9 @@ def validate_config(agent):
     v.text(agent.get("cwd", "."), "agent.cwd")
     if "model" in agent:
         validate_model(agent["model"])
+    if "container_image" in agent:
+        from qb_cubie.benchmarks.swebench.agent import image
+        image(agent)
 
 
 def handshake(peer, agent, required=()):
@@ -48,12 +53,20 @@ def handshake(peer, agent, required=()):
 def probe(agent, cwd, required=()):
     """Check the live peer with a bounded handshake and no scenario request."""
     try:
-        with JsonlProcess(agent["command"], cwd, time.monotonic() + 5) as peer:
+        with _session(agent) as command, JsonlProcess(command, cwd, time.monotonic() + 30) as peer:
             result = handshake(peer, agent, required)
             peer.finish()
             return result
     except (ExecutionError, OSError) as error:
         raise ValueError(f"agent handshake: {error}") from error
+
+
+def _session(agent):
+    """Select the configured isolation boundary for a capability probe."""
+    if "container_image" not in agent:
+        return nullcontext(agent["command"])
+    from qb_cubie.benchmarks.swebench.agent import AgentContainer
+    return AgentContainer(agent, "probe-" + uuid.uuid4().hex)
 
 
 def validate_agent(path: str | Path) -> dict:

@@ -1,6 +1,6 @@
 # Konzept: ReviewAgent und DeveloperAgent
 
-**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phasen 4–5 implementiert; explorative reale Smoke-Messreihe durchgeführt. Unabhängige Referenzaufnahme und offizieller Basisdatensatz-Pilot stehen aus.
+**Stand:** 10. November 2026. **Status:** Phasen 1–3 und die Produktfunktionen für Phasen 4–5 implementiert; explorative reale Smoke-Messreihe durchgeführt. Dokumentierte Referenzvalidierung und offizieller Basisdatensatz-Pilot stehen aus; menschliche Prüfungen je Fall sind optional.
 
 Die [gemeinsame Übersicht offener Punkte](OFFENE_PUNKTE_Benchmarks-Agenten.md)
 trennt fehlende Umsetzung, praktische Nachweise und optionale Erweiterungen
@@ -95,7 +95,7 @@ Historische Cubie-Fehler dienen als offen gekennzeichnete Kalibrierungsbeispiele
 
 ### 4.2 Referenzurteile und Antwortformat
 
-Jeder Fall hat eine von der Agentenantwort unabhängige Referenz: Kriterium, betroffene Stelle bzw. Symbol, Fehlermechanismus, beobachtbare Folge, zulässige Alternativerklärungen und möglichst ein ausführbares Gegenbeispiel. Der Goldstandard benennt ausdrücklich, welche Kriterien erfüllt sind. Für den offiziellen Basisdatensatz sollen zwei menschliche Prüfungen die Aufnahme bestätigen; Uneinigkeit wird vor der Messung geklärt oder der Fall bleibt explorativ. Eigene lokale Szenarien können mit einer vom Autor gepflegten Referenz starten; ihr Validierungsstand wird ausdrücklich ausgewiesen. Ein LLM kann Vorschläge liefern, aber nicht allein den Goldstandard festlegen.
+Jeder Fall hat eine von der Agentenantwort unabhängige Referenz: Kriterium, betroffene Stelle bzw. Symbol, Fehlermechanismus, beobachtbare Folge, zulässige Alternativerklärungen und möglichst ein ausführbares Gegenbeispiel. Der Goldstandard benennt ausdrücklich, welche Kriterien erfüllt sind. Auch offizielle Fälle dürfen eine vom Autor gepflegte, versionierte Referenz mit `author_checked` verwenden. Menschliche Prüfungen je Fall sind optional und keine Voraussetzung für Vollständigkeit oder offizielle Pilotfreigabe. Zwei unabhängige menschliche Prüfungen mit nachvollziehbaren Belegen erlauben zusätzlich `independently_checked`. Der tatsächliche Validierungsstand wird ausdrücklich ausgewiesen. Ausführbare Gegenbeispiele, Referenzlösungen und Mutanten sichern objektiv prüfbare Aussagen ab; ungeklärte Widersprüche dürfen nicht als bestätigte Qualitätsnachweise gelten. Ein LLM kann Vorschläge liefern; seine Ausgabe allein ersetzt keine nachvollziehbare Referenzvalidierung.
 
 Der Agent liefert ein versioniertes JSON-Objekt mit:
 
@@ -283,7 +283,7 @@ Eine unbekannte explizite ID, eine leere Auswahl oder ein positiver Typ-/Tagfilt
 
 Vor dem Lauf erzeugt `cubie-bench plan --suite ./sets/team-smoke.toml` einen lesbaren Plan; `--format json` liefert dessen maschinenlesbare Form. Darin stehen aufgelöste IDs und Versionen, Typen, Evaluatoren, benötigte Adapterfähigkeiten, Bedingungen, Wiederholungen, Anzahl Versuche und Budgetobergrenzen. Eine harte Laufzahl- oder Budgetgrenze wird nicht durch stilles Abschneiden der Auswahl erfüllt: Der Plan muss passen oder die Konfiguration muss geändert werden. Eine Kostenobergrenze kann nur zugesichert werden, wenn der Adapter die erforderliche Kostenmessung und Begrenzung unterstützt.
 
-`cubie-bench run --suite ./sets/team-smoke.toml` speichert den aufgelösten Plan samt Hashes als Laufmanifest. Budgetwerte sind global voreingestellt, können im Set und ausdrücklich pro Szenario überschrieben werden; globale harte Grenzen bleiben bindend. CLI-Overrides werden zuletzt angewendet und im Plan angezeigt. Ein späterer Vergleich prüft die tatsächlich aufgelösten Szenarien und Ausführungsbedingungen, nicht bloß den Set-Namen.
+`cubie-bench run --suite ./sets/team-smoke.toml` speichert den aufgelösten Plan samt Hashes als Laufmanifest. Budgetwerte sind global voreingestellt, können im Set und ausdrücklich pro Szenario überschrieben werden; globale harte Grenzen bleiben bindend. Der aktuelle Umfang verwendet ausschließlich Konfigurationsdateien für Auswahl und Budgets; zusätzliche CLI-Overrides gehören nicht zum zugesagten Umfang. Der aufgelöste Plan wird vor Ausführung angezeigt bzw. eingefroren. Ein späterer Vergleich prüft die tatsächlich aufgelösten Szenarien und Ausführungsbedingungen, nicht bloß den Set-Namen.
 
 ## 7. Runner, Adapter und Nachweise
 
@@ -442,7 +442,7 @@ Die mögliche Schlussfolgerung lautet beispielsweise: „Bei den untersuchten Da
 
 | Phase | Konkrete Lieferung | Voraussetzung für den nächsten Schritt |
 | --- | --- | --- |
-| 1. Öffentliche Verträge und Referenzen | Paket-/Szenarioschema, Agenten-/Evaluatorprotokoll und Set-Semantik; zwei Review-Fälle; ein Datei-Projekt mit drei Episoden | Aufgaben sind eindeutig; Referenz und Negativfälle sind unabhängig geprüft; Typen und Ablauf sind sauber getrennt |
+| 1. Öffentliche Verträge und Referenzen | Paket-/Szenarioschema, Agenten-/Evaluatorprotokoll und Set-Semantik; zwei Review-Fälle; ein Datei-Projekt mit drei Episoden | Aufgaben sind eindeutig; Referenz und Negativfälle sind nachvollziehbar validiert; menschliche Prüfungen sind optional; Typen und Ablauf sind sauber getrennt |
 | 2. Installierbarer Durchstich ohne Modell | CLI, Fake-Adapter, Planner, Phasensteuerung, Evaluator, Ergebnisdateien und Vorlagen | Smoke-Set läuft aus installiertem Wheel ohne Checkout; korrekte Lösung besteht, falsche fällt durch; fehlende Belege und Timeouts werden erkannt |
 | 3. Eigene Agenten und Szenarien | Prozessadapter, Tutorial, externes Beispielpaket, Typ-/Tagfilter und Laufvergleich | Entwickler können nach Anleitung einen eigenen Agenten und einen eigenen Fall ohne Core-Änderung anbinden; Ausführung benötigt keinen zweiten Agenten oder Produktvergleich |
 | 4. Basisdatensatz und Pilot | 24 Reviews, drei Datei-Projekte und ein Kontrollprojekt; optionaler pytest-Vergleich; Wiederholungen | Referenzen und Mutanten validiert; reale Läufe nachprüfbar; Streuung, Kosten und Bewertungsstreitfälle dokumentiert |
@@ -459,7 +459,7 @@ Die öffentliche API in `qb_cubie.benchmarks` implementiert diese Verträge;
 [die Anleitung](../GUIDE_Benchmark-Contracts.md) beschreibt ihre Verwendung.
 Laden und Planen führen keinen Szenario- oder Agentencode aus. Die Referenzen
 tragen weiterhin den Stand `author_checked`; eine unabhängige menschliche
-Aufnahmeprüfung steht aus. Der ausführende Durchstich folgt in Phase 2.
+Aufnahmeprüfung ist optional und steht aus. Der ausführende Durchstich folgt in Phase 2.
 
 Wesentliche Infrastrukturprüfungen sind: immer freigebender Reviewer wird an Fehlerfällen erkannt; immer ablehnender Reviewer an konformen Fällen; doppelte Findings erhöhen Recall nicht; Enthaltung ist keine Freigabe; veränderter Kontext entwertet alte Nachweise; grüne Tests ohne beobachtete Rotphase erfüllen den Prozess nicht; fachlicher Testfehlschlag und Importfehler bleiben unterscheidbar; fremde oder fehlende Ergebnisartefakte führen nie zum Erfolg. Diese Prüfungen sichern die Bewertungslogik und sind unabhängig von Modellantworten ausführbar.
 
@@ -535,7 +535,7 @@ beschreiben den implementierten Umfang. Referenzlösungen werden in allen zwölf
 Entwicklungsepisoden und beiden Bedingungen einschließlich Rot-/Grün-Prozess
 geprüft. Die deterministischen Prozess- und Fake-Agenten liefern ausschließlich
 Infrastrukturbelege. Referenzen bleiben `author_checked`; die unabhängige
-menschliche Aufnahme und reale Pilotmessung stehen weiterhin aus. Die
+menschliche Aufnahme ist optional; reale Pilotmessungen stehen weiterhin aus. Die
 Produktfunktionen sind implementiert, die methodische Pilotabnahme ist offen.
 
 ### 10.5 Messbetrieb
@@ -564,15 +564,28 @@ Die [EBT-Abnahmecases und der Schnittstellenvertrag](../../tests/docs_tmp/BENCHM
 dokumentieren die ursprüngliche Rotphase und ergänzende Integritätsprüfungen.
 Alle Gegenproben verwenden lokale deterministische Adapter und synthetische
 Aufgabenmetadaten. Sie veröffentlichen keine echten zurückgehaltenen Messfälle
-und liefern keinen Agentenleistungsnachweis. Unabhängige Referenzaufnahme,
+und liefern keinen Agentenleistungsnachweis. Dokumentierte Referenzvalidierung,
 reale Pilotmessung und Containerisolation stehen weiterhin aus. Harte
 Token-/Providerkostenlimits und automatisches Provisionieren beliebiger
 Adapterabhängigkeiten sind weiterhin nicht Teil des lokalen Runners.
+
+### 10.6 Datensatzausbau durch SWE-bench
+
+Die [Loader-Spezifikation](SWE_BENCH_LOADER_ANFORDERUNGEN.md) definiert die
+optionale automatisierte Aufnahme offizieller SWE-bench-Aufgaben. Sie trennt
+Beschaffung, Import, Referenzprüfung und Reparaturmessung. Die
+[EBT-Abnahmematrix](../../tests/docs_tmp/BENCHMARK_CASES_SWE_BENCH.md) enthält
+die ursprüngliche Rotphase und die ergänzenden Produktprüfungen. Loader,
+Referenzfreigabe und Developer-Agent-Reparaturbetrieb sind implementiert;
+die reale Download-/Containerintegration ist noch gesondert nachzuweisen.
+Der [SWE-bench-Leitfaden](../GUIDE_Benchmark-SWEbench.md) beschreibt die Nutzung.
+Öffentliche Aufgaben bleiben Entwicklungsfälle;
+der Import behauptet weder unverbrauchte Messdaten noch TDD-Prozessqualität.
 
 ## 11. Methodische Bezugspunkte
 
 Die folgenden Quellen stützen technische Umsetzungsmuster; Aufgaben, Kennzahlen und Entscheidungsregeln dieses Dokuments sind eigene Designvorschläge:
 
-- Der [SWE-bench Evaluation Harness](https://www.swebench.com/SWE-bench/reference/harness/) beschreibt eine Trennung von vorbereiteten Umgebungen, eingereichten Patches und Testauswertung. Das ist ein Bezugspunkt für die reproduzierbare externe Prüfung; eine Abhängigkeit von SWE-bench ist nicht vorgesehen.
+- Der [SWE-bench Evaluation Harness](https://www.swebench.com/SWE-bench/reference/harness/) beschreibt eine Trennung von vorbereiteten Umgebungen, eingereichten Patches und Testauswertung. Der optionale Datensatzausbau nach §10.6 soll ihn als gepinnten externen Evaluator anbinden; der bestehende lokale Durchstich benötigt ihn weiterhin nicht.
 - pytest dokumentiert [eigene Marker und deren Registrierung](https://docs.pytest.org/en/stable/how-to/mark.html) sowie [Marker mit eigenen Kommandozeilenoptionen](https://docs.pytest.org/en/stable/example/markers.html). Darauf kann die bewusste Freischaltung echter Agentenläufe aufbauen.
 - Cubies [Vertragssemantik](../GUIDE_Contract-Semantics.md), [RBT-Nutzungsmuster](../GUIDE_RBT-Usage-Pattern.md) und [Qualitätsbegriffe](../GUIDE_Quality-Assurance.md) definieren den lokalen Produktumfang und die Grenzen der Aussagen.

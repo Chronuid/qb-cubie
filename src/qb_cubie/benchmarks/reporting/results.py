@@ -3,6 +3,7 @@
 import json
 import platform
 
+from qb_cubie.benchmarks.measurement.provenance import capture
 from qb_cubie.benchmarks.reporting._files import (
     digest,
     inventory,
@@ -30,6 +31,7 @@ def _manifest(root, plan, inputs, runs):
                 "suite_sha256": digest(root / inputs["suite"][0]),
                 "resolved_plan_sha256": digest(root / inputs["plan"][0]),
                 "python_version": platform.python_version(), "wheel_sha256": wheel_hash(),
+                "runtime_provenance": capture(__file__),
                 "artifact_hashes": inventory(root)}
 
 
@@ -50,6 +52,7 @@ def _section(run):
              (f"Status: {run['status']}; quality_passed: {str(run['quality_passed']).lower()}; "
               f"process_passed: {json.dumps(run.get('process_passed'))}"), ""]
     lines.extend(f"- {key}: {value}" for key, value in run["criterion_results"].items())
+    _repair_lines(run, lines)
     lines.extend(_phases(run))
     if run.get("process_reason") or run.get("reason"):
         lines.extend(["", str(run.get("process_reason") or run["reason"])])
@@ -62,3 +65,12 @@ def _phases(run):
     return [f"- {phase['phase']}: {phase['test_outcome']} " +
             " ".join(f"[Evidence]({path})" for path in phase["evidence"])
             for phase in run.get("phases", [])]
+
+
+def _repair_lines(run, lines):
+    """Append repair provenance and repository coverage to the report."""
+    if run.get("process_profile") == "issue_resolution":
+        lines.extend(["", "Process profile: issue_resolution (no TDD process observation)",
+                      f"Repository group: {run['group_id']}; regression coverage: {run.get('regression_coverage')}",
+                      "", "Source: " + json.dumps(run.get("source"), ensure_ascii=False, sort_keys=True),
+                      "", "Import exclusions: " + json.dumps(run.get("import_summary"), ensure_ascii=False, sort_keys=True)])

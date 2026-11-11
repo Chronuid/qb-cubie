@@ -6,6 +6,9 @@ from qb_cubie.benchmarks.contracts.admission import validate_admission
 
 def validate_reference(root, scenario, reference):
     """Validate reference coverage without executing reference programs."""
+    if scenario["evaluator"]["kind"] == "external.swebench_v1":
+        _swebench(root, scenario, reference)
+        return
     v.decisions(reference.get("criterion_results"), scenario["criteria"])
     v.choice(reference.get("validation_status"), {"author_checked", "independently_checked"}, "validation_status")
     validate_admission(root, scenario, reference)
@@ -13,6 +16,20 @@ def validate_reference(root, scenario, reference):
         _review(root, scenario, reference)
     else:
         _project(root, scenario, reference)
+
+
+def _swebench(root, scenario, reference):
+    """Keep external patch references separate from builtin module references."""
+    from qb_cubie.benchmarks.swebench._common import commit, normalize
+    v.choice(reference.get("validation_status"), {"unvalidated"}, "validation_status")
+    v.require(reference.get("human_reviews") == [], "human_reviews", "imported references are unreviewed")
+    for field in ("gold_patch", "test_patch", "raw_record"):
+        _private(root, scenario, reference.get(field), field)
+    record = normalize(v.read_data(root / reference["raw_record"])["record"])
+    v.require(record["instance_id"] == scenario["id"], "instance_id", "reference differs from scenario")
+    v.require(reference.get("source") == scenario.get("source"), "source", "reference provenance differs from scenario")
+    _patch_record(root, reference, record)
+    commit(reference.get("harness_revision"), "harness_revision")
 
 
 def _review(root, scenario, reference):
@@ -81,3 +98,25 @@ def _execution_material(root, scenario, reference):
             _private(root, scenario, reference[field], field)
     if "submission_module" in reference:
         v.relative(reference["submission_module"], "submission_module")
+    if "expected_red_exception" in reference:
+        _red_exception(root, scenario, reference)
+
+
+def _patch_record(root, reference, record):
+    """Check private patch content and test-list provenance."""
+    for field, private in (("patch", "gold_patch"), ("test_patch", "test_patch")):
+        v.require((root / reference[private]).read_text(encoding="utf-8") == record[field], private, "patch differs from source record")
+    for field in ("FAIL_TO_PASS", "PASS_TO_PASS"):
+        v.require(reference.get(field) == record[field], field, "reference differs from record")
+
+
+def _red_exception(root, scenario, reference):
+    """Validate a declared production-stub exception."""
+    expected = v.mapping(reference["expected_red_exception"], "expected_red_exception")
+    v.require(set(expected) == {"module", "message"}, "expected_red_exception", "module and message required")
+    v.require(expected["module"] == reference.get("submission_module"),
+              "expected_red_exception.module", "must identify the production submission module")
+    visible = root / scenario["visible"]
+    module = expected["module"] if (visible / expected["module"]).is_file() else expected["module"] + ".txt"
+    v.contained(visible, module, "expected_red_exception.module")
+    v.text(expected["message"], "expected_red_exception.message")

@@ -170,7 +170,13 @@ Manifestpfad `manifest` sowie normalisierte `types`, `tags` und `requires`.
 Die Referenz ist selbst ein versioniertes JSON-Objekt. `criterion_results`
 deckt alle sichtbaren Kriterien genau einmal mit `pass`, `fail` oder `abstain`
 ab. `validation_status` und `human_reviews` halten den Prüfstand fest.
-`author_checked` bedeutet keine unabhängige menschliche Freigabe.
+`author_checked` ist auch für offizielle Fälle zulässig. Menschliche Prüfungen
+je Fall sind optional und keine Voraussetzung für Vollständigkeit.
+`independently_checked` verlangt weiterhin zwei verschiedene zustimmende
+Prüferkennungen und private Belegdateien; dieser Status wird nicht automatisch
+vergeben. Das Pilotmanifest meldet `reference_admission=independently_checked`
+nur, wenn alle ausgewählten Referenzen diesen Status tragen, sonst
+`author_checked`. Die Einzelstatus bleiben im eingefrorenen Paket erhalten.
 
 Review-Referenzen besitzen `findings` für die als fehlerhaft bewerteten
 Kriterien. Ein Finding benennt `criterion_id`, sichtbaren `path`, `symbol`,
@@ -315,3 +321,12 @@ Die öffentliche API bleibt unter `qb_cubie.benchmarks` verfügbar. `cli.py` und
 Die installierten Vorlagendaten bleiben unter `data/`. Interne Funktionen und
 Methoden besitzen erklärende Docstring-Einzeiler; die Styleguide-Prüfung sichert
 auch deren Vollständigkeit im Benchmark-Paket.
+
+## Versionierte Nachbewertung
+
+`apply_adjudication(archive_path, decisions_path, destination) -> dict` importiert
+begründete semantische Finding-Zuordnungen in ein neues Ergebnisarchiv.
+Ursprungsmanifest, Referenz und Antwort werden über Hashes gebunden. Das Original
+bleibt erhalten; Bericht und Gates werden konsistent neu berechnet. Schema,
+Betriebsregeln und Grenzen beschreibt der
+[Betriebsleitfaden](GUIDE_Benchmark-Betrieb.md).

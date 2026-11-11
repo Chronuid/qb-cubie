@@ -19,6 +19,10 @@ VERSION = 'ollama-developer-v4-jsonl-1'
 
 def prompt_hash(mode='cubie'):
     """Bind role, mode, framework documentation, schema and local tools."""
+    if mode == 'repair':
+        from . import repair
+        return hashlib.sha256(encode({'prompt': repair.PROMPT, 'schema': repair.SCHEMA, 'version': repair.PROMPT_VERSION,
+                                      'implementation_sha256': hashlib.sha256(Path(repair.__file__).read_bytes()).hexdigest()})).hexdigest()
     if mode not in FRAMEWORK_DOCS:
         raise invalid('Developer mode must be cubie or pytest')
     package = {'prompt': PROMPT, 'schema': SCHEMA, 'version': PROMPT_VERSION,
@@ -40,8 +44,9 @@ def load_config(path):
 
 def handshake(config):
     """Confirm configuration without loading a model or constructing an episode."""
+    capabilities = ['workspace_changes', 'project_patch', 'cancel', 'wall_time', 'tool_calls'] if config['mode'] == 'repair' else CAPABILITIES
     return {'schema_version': 1, 'type': 'capabilities', 'agent_id': config['agent_id'],
-            'agent_version': VERSION, 'capabilities': CAPABILITIES, 'model': config['model']}
+            'agent_version': VERSION, 'capabilities': capabilities, 'model': config['model']}
 
 
 def serve(config, reader, writer):
@@ -57,9 +62,12 @@ def serve(config, reader, writer):
             elif request.get('type') == 'request' and not finished:
                 if adapter is None:
                     # Reject an invalid first phase before creating external state.
-                    from .schema import validate_request
+                    if config['mode'] == 'repair':
+                        from .repair import validate_request
+                    else:
+                        from .schema import validate_request
                     validate_request(request)
-                    if request['phase'] != PHASES[0]:
+                    if request['phase'] != ('repair' if config['mode'] == 'repair' else PHASES[0]):
                         raise invalid('Developer episode must begin with test_design')
                     evidence = EvidenceWriter(archive_root=config['archive_root'], workspace=request['workspace'])
                     options = dict(config['model']['parameters'])
@@ -67,9 +75,13 @@ def serve(config, reader, writer):
                                           think=options.pop('think'), options=options)
                     budget = BudgetLedger(wall_time_seconds=request['budgets']['wall_time_seconds'],
                                           reserve_seconds=5, max_model_calls=12, max_tool_calls=40)
-                    adapter = DeveloperAdapter(client=client, budget=budget, evidence=evidence, mode=config['mode'])
+                    if config['mode'] == 'repair':
+                        from .repair import RepairAdapter
+                        adapter = RepairAdapter(client=client, budget=budget, evidence=evidence)
+                    else:
+                        adapter = DeveloperAdapter(client=client, budget=budget, evidence=evidence, mode=config['mode'])
                 event = adapter.develop(request)
-                finished = event['status'] != 'completed' or request['phase'] == PHASES[-1]
+                finished = event['status'] != 'completed' or request['phase'] in ('repair', PHASES[-1])
                 if finished:
                     assert evidence is not None
                     evidence.finalize()

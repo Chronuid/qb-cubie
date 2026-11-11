@@ -1,5 +1,12 @@
 # EBT-Abnahmecases: Kalibrierung und Pilot (§5, Schritt 5)
 
+> Aktualisierung vom 11. November 2026: Menschliche Prüfungen je offiziellem
+> Fall sind optional und kein Vollständigkeitskriterium. Offizielle Piloten
+> erlauben `author_checked`; nur der beanspruchte Status `independently_checked`
+> verlangt weiterhin zwei belegte unabhängige Zustimmungen. Frühere Aussagen
+> zu einer verpflichtenden menschlichen Aufnahme unten sind historisch.
+> Maßgeblich sind die [aktuellen Abschlusskriterien](../../docs/misc/OFFENE_PUNKTE_Benchmarks-Agenten.md).
+
 > Phasenbezogener Entwicklungsnachweis. Zahlen, Rotphasen und offene Folgearbeiten
 > beziehen sich auf den jeweils beschriebenen Stand. Einordnung und spätere
 > Nachweise: [Übersicht](README.md). Befehle werden aus der Repositorywurzel ausgeführt.

@@ -235,7 +235,7 @@ Projekte mit je drei separat auswählbaren Episoden. Abrechnungs-Export,
 Konfigurationspaket und Dokumentindex verwenden Dateien; die Funktionskontrolle
 prüft korrelierte Eingabe-/Erwartungspaare. Alle Fälle sind öffentliche
 Entwicklungsfälle und potenziell bekannt. Referenzen stehen auf `author_checked`;
-die Aufnahme durch zwei Menschen und reale Pilotmessergebnisse stehen aus.
+menschliche Prüfungen je Fall sind optional. Reale Pilotmessergebnisse stehen aus.
 
 Exportieren und prüfen Sie die installierten Materialien:
 
@@ -250,7 +250,8 @@ Arbeitsverzeichnissen aus. Objektive Reviews werden durch eigene pytest-Tests
 gegen das jeweilige Referenzurteil geprüft; Developer-Lösungen müssen bestehen
 und ihre Mutanten an den benannten Kriterien scheitern. Manuelle
 Wartbarkeitsurteile bleiben `manual_required`. Die Programmprüfung ersetzt keine
-menschliche Aufnahme. `dataset.json` dokumentiert Herkunft, Lizenz, Domäne und
+menschliche Aufnahme; diese ist auch für offizielle Fälle keine Voraussetzung
+für Vollständigkeit. `dataset.json` dokumentiert Herkunft, Lizenz, Domäne und
 Entwurfsgruppen und wird zusammen mit den Aufgaben gehasht und archiviert.
 
 Erstellen Sie ein Set für Ihren bereits konfigurierten Prozessadapter:
@@ -466,8 +467,11 @@ Signatur eines fremden Herausgebers.
 
 Python-Version, Cubie-Quellcodefingerprint und ein bekannter Wheel-Hash müssen
 zur Laufumgebung passen. Beim Quellcheckout kann `wheel_sha256` unbekannt sein.
-`dependency_lock_sha256` bleibt derzeit ausdrücklich unbekannt; das Bundle
-provisioniert keine Abhängigkeiten. Installieren Sie diese in Ihrer CI mit
+Ein gefundener Checkout-Lock wird als `dependency_lock_sha256` erfasst; ohne
+Checkout bleibt er unbekannt. Ein Fingerprint installierter Distributionsnamen
+und Versionen wird zusätzlich gebunden. Die Übereinstimmung der Installation
+mit dem Lock ist damit noch nicht bewiesen (`dependency_lock_verified=false`).
+Das Bundle provisioniert keine Abhängigkeiten. Installieren Sie diese in Ihrer CI mit
 einem vorab festgelegten Lockfile oder Image. Ein Seed fixiert die Planung,
 nicht die Antworten externer Modelle.
 
@@ -541,8 +545,8 @@ Auch eine Deklaration `potentially_known = false` beweist keine Unbekanntheit.
 Die mitgelieferten Testfixtures simulieren diese Metadaten und veröffentlichen
 keinen tatsächlichen privaten Messdatensatz.
 
-Für eine bestätigende Produktmessung folgen auf unabhängige menschliche
-Referenzaufnahme und einen realen Pilot vorab festgelegte primäre Kennzahlen,
+Für eine bestätigende Produktmessung folgen auf dokumentierte
+Referenzvalidierung und einen realen Pilot vorab festgelegte primäre Kennzahlen,
 ein praktisch relevanter Mindestvorteil beim Aufwand und eine tolerierte
 Qualitätsabweichung. Diese Festlegungen werden vor Sichtung neuer
 zurückgehaltener Ergebnisse eingefroren. Qualität, Prozess und Aufwand bleiben

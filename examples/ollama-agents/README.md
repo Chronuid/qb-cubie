@@ -358,9 +358,12 @@ cubie-bench run-frozen frozen-pilot --output results/pilot --format json
 cubie-bench summarize-pilot results/pilot/ARCHIV-ID --format json
 ```
 
-Ohne `--exploratory` benötigt jede ausgewählte Referenz zwei dokumentierte
-menschliche Zustimmungen und den Status `independently_checked`. Der Schalter
-erlaubt ausdrücklich explorative Messungen mit Autorreferenzen; deren Manifest
+Auch offizielle Piloten erlauben `author_checked` ohne menschliche Prüfungen
+je Fall. Diese sind optional und keine Voraussetzung für Vollständigkeit.
+`independently_checked` verlangt weiterhin zwei dokumentierte menschliche
+Zustimmungen. Das Manifest meldet diesen Status nur, wenn alle ausgewählten
+Referenzen ihn tragen, sonst `author_checked`. Der Schalter `--exploratory`
+kennzeichnet unabhängig davon das Messziel; dessen Manifest
 vermerkt `study_kind=exploratory`. Es werden keine Prüfbelege erzeugt oder
 Referenzstatus umgeschrieben. Das vorhandene Freeze-Format bindet Quellen,
 Prompts, Agenten, Modellkonfiguration und die mitkopierten Kalibrierungsarchive.
