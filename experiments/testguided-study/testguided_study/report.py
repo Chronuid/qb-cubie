@@ -103,7 +103,12 @@ def arm(rows):
             "process_metrics": {key: measured([r.get("agent", {}).get("process_metrics", {}).get(key)
                                                for r in rows])
                                 for key in ("rejected_retries", "tool_errors", "ebt_executed", "ebt_evaluated", "ebt_passed")},
-            "agent_stops": dict_counts(row.get("agent", {}).get("status", "unavailable") for row in rows)}
+            "agent_stops": dict_counts(row.get("agent", {}).get("status", "unavailable") for row in rows),
+            'internal_completion': dict_counts(row.get('agent', {}).get('completion', {}).get('status', 'unavailable') for row in rows),
+            'team_process_metrics': {key: measured([r.get('agent', {}).get('process_metrics', {}).get(key)
+                                                   for r in rows])
+                                     for key in ('information_requests', 'revision_rounds', 'edit_conflicts',
+                                                 'recoveries', 'ebt_evaluation_checked')}}
 
 
 def measured(values):

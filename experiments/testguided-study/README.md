@@ -117,6 +117,47 @@ laufen im jeweiligen Container; die Dateitools allein sind keine Sicherheitsgren
 
 ## Weiterentwicklung der Agenten
 
+Das [Konzept für Generation v6](AGENTENDESIGN-V6.md) aggregiert die bisherigen
+Ursachenhypothesen und entwirft ein Multi-Agenten-System aus Analyse-, QA- und
+Dev-Agent. Es beschreibt Rollenwerkzeuge und Schreibrechte, Kontextübergaben,
+EBT-Cases, Teständerungsschleifen, gemeinsame Budgets und einen beleggebundenen
+Abschluss durch den Analyse-Agenten. v6 ist als ausdrückliche Designversion
+implementiert; der Standard bleibt v5. Ein neuer Entwicklungslauf startet mit:
+
+```bash
+./study --mode pilot --config experiments/testguided-study/v6.toml
+```
+
+Die Konfiguration setzt `agent_version = 6`, `think = false` sowie ein gemeinsames
+Limit von 900 Sekunden, 48 Modell- und 96 Werkzeugaufrufen. Die Reserve umfasst
+180 Sekunden und sechs Modellaufrufe. Quellen, Rollenprompts, rollenspezifische
+Schemas und die Vorlagenrevision gehen in den Freeze ein. Größere Konfigurationswerte
+erweitern die Designlimits nicht. Für andere Varianten ist ein neuer Freeze nötig.
+
+`team.json`, `messages.json`, `contexts/`, `evidence/`, `actions/` und `steps/`
+enthalten Teamstand, öffentliche Übergaben, Kontextrevisionen, Testbelege sowie
+unveränderte Modellantworten einschließlich ungültiger Ausgaben. `full.patch`
+erhält den Workspacepatch; `production.patch` enthält die an den unabhängigen
+Evaluator übergebene Produktionsänderung. Interner Abschluss und private Lösung
+bleiben getrennt, auch bei einem unvollständigen Teamende. Der Monitor zeigt
+aktive Rolle, Auftrag, Kontext-/Suiteversion, Rückfragen, Reserve und Abschlussstatus.
+
+QA kann vorhandene Nodes registrieren oder mit `create_case` fehlende Testdateien
+aus strukturierten Cases erzeugen. `setup.code` enthält Imports, Hilfsfunktionen
+und Fixtures; `setup.fixtures` benennt Testargumente und `setup.body` lokale
+Beobachtungsadapter, die auf diese Fixtures zugreifen. `expected` enthält genau
+`returns` oder `raises` mit `type` und optionalem `match`. Korrelierte Wertepaare
+bleiben separate Cases. Fachliche Orakel und Adapter werden weiterhin inhaltlich
+von QA und Analyse beurteilt; die Strukturprüfung beweist ihre Richtigkeit nicht.
+
+Die [v6-EBT-Abnahmereihe](../../tests/testguided_study_design/V6_CASES.md)
+konkretisiert V6-A01 bis V6-A18 mit 98 ausführbaren Cases, darunter geprüfte
+Referenzvorlagen und Controllerverträge. Ergänzende [Laufzeittests](../../tests/testguided_study_design/test_v6_runtime.py)
+prüfen komplette serialisierte Teamläufe mit deterministischen Modellclients,
+echten Dateiwerkzeugen und pytest-Unterprozessen, Freeze, Monitor und EBT-Probe.
+Das qualifiziert die Mechanik, keine höhere Lösungsquote. Modellpiloten und die
+kontrollierte Studie stehen weiterhin aus.
+
 Die [Analyse des letzten Piloten vom 11. November 2026](PILOTANALYSE-20261111.md)
 wertet den abgeschlossenen v2-Lauf `20261111-163110` aus: ein gelöster
 pytest-Lauf, kein gelöster Cubie-Lauf und keine ausgeführte EBT-Prüfung.

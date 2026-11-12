@@ -223,3 +223,10 @@ def context_capacity(limits, model, schema):
     available = model['num_ctx'] - model['num_predict'] - 512
     # Two UTF-8 bytes/token is a conservative calibration for the archived code contexts.
     return max(0, min(limits['context_bytes'], available * 2 - schema_bytes))
+
+
+def __getattr__(name):
+    if name == 'TeamController':
+        from .team import TeamController
+        return TeamController
+    raise AttributeError(name)

@@ -69,6 +69,12 @@ identify a specific missing behavior. Runner feedback is based on observations.
 
 def default_design(mode, guides, *, version=5):
     from .iteration import compose
+    if version == 6:
+        from .team_design import COMMON, POLICY, TOOLS, contract
+        return compose(
+            {'id': 'testguided-core-v6', 'prompt': COMMON, 'tools': TOOLS,
+             'policy': POLICY, 'context': contract()},
+            {'id': mode + '-guide-v6', 'mode': mode, 'guide': guides[mode], 'examples': []})
     if version not in (3, 4, 5):
         raise ValueError("Unsupported default design version")
     schema = {3: V3_SCHEMA, 4: V4_SCHEMA, 5: V5_SCHEMA}[version]
@@ -87,6 +93,12 @@ def design_instruction(design):
 
 
 def design_schema(design):
+    if design['core']['context']['version'] == 6:
+        entries = {}
+        for schema in design['core']['context']['schemas'].values():
+            for entry in schema['oneOf']:
+                entries[entry['properties']['action']['const']] = entry
+        return {'oneOf': list(entries.values())}
     tools = design["core"]["tools"]
     entries = SCHEMA["oneOf"] + [labeled(
         "update_ledger", hypothesis=TEXT, next=TEXT,

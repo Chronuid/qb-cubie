@@ -33,12 +33,19 @@ def run_view(root, run_id, step=None):
     summary = directory.parent / 'agent.json'
     if summary.is_file():
         agent['stop_reason'] = read(summary).get('status')
+    team = directory.parent / 'team.json'
+    if team.is_file():
+        agent['team'] = read(team)
     if step is not None:
         for key, suffix in (("context", "request"), ("response", "response"), ("result", "tool")):
             path = directory / f"{step:04d}-{suffix}.json"
             if path.is_file():
                 data = read(path)
                 agent[key] = data.get("result", data) if key == "result" else data
+                if key == 'context' and isinstance(data, dict) and 'messages' in data:
+                    agent[key] = data['messages']
+                    agent['role'] = data.get('role')
+                    agent['schema'] = data.get('schema')
                 if key == "result" and isinstance(agent[key], dict):
                     agent[key].pop("junit_xml", None)
                 if key == "response":

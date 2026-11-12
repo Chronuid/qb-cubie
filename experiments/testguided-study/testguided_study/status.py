@@ -25,6 +25,11 @@ def display(args):
                       f"nicht verfügbar {state.get('unavailable_runs', 0)}")
                 print(f"Aktiv: {active.get('task_id', '—')} · {active.get('mode', '—')} · "
                       f"Schritt {active.get('step', '—')} · {active.get('operation', '—')}")
+                if active.get('role'):
+                    team = state.get('agent', {}).get('team', {})
+                    print(f"Team: {active['role']} · Auftrag {active.get('job_id', '—')} · "
+                          f"Kontext {active.get('context_revision', '—')} · "
+                          f"Abschluss {team.get('completion', {}).get('status', 'incomplete')}")
                 print(state.get("message", "Warte auf Studienstatus"), flush=True)
                 if args.view:
                     print(json.dumps(state.get("agent", {}).get(args.view), indent=2, ensure_ascii=False), flush=True)

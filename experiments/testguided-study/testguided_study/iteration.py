@@ -44,19 +44,44 @@ def compose(core, specialization):
     examples = specialization["examples"]
     if not isinstance(examples, list) or any(not isinstance(x, str) for x in examples):
         raise ValueError("specialization.examples must be a list of text")
+    team = isinstance(core.get('context'), dict) and core['context'].get('version') == 6
+    if team:
+        from .team_design import POLICY, ROLES
+        from .team_design import TOOLS as TEAM_TOOLS
+        _fields(core['context'], 'strategy version roles schemas templates', 'core.context')
+        if core['context']['strategy'] != 'team' or type(core['context']['version']) is not int:
+            raise ValueError('Invalid team context')
+        if set(core['context']['roles']) != set(ROLES) or set(core['context']['schemas']) != set(ROLES):
+            raise ValueError('Team requires analysis, qa and dev')
+        for role in ROLES:
+            _text(core['context']['roles'][role], 'role prompt')
+            entries = core['context']['schemas'][role].get('oneOf', [])
+            if not entries or any(e.get('properties', {}).get('action', {}).get('const') not in TEAM_TOOLS for e in entries):
+                raise ValueError('Invalid role schema')
+            from ollama_agents.errors import AdapterError
+            from ollama_agents.schema import check_schema
+            try:
+                check_schema(core['context']['schemas'][role])
+            except AdapterError as error:
+                raise ValueError('Invalid role schema') from error
+        _text(core['context']['templates'], 'template revision')
+        _fields(core['policy'], ' '.join(POLICY), 'core.policy')
+        if any(type(v) is not int or v < 0 for v in core['policy'].values()):
+            raise ValueError('Invalid team policy')
     tools = core["tools"]
-    if (not isinstance(tools, list) or not tools or any(not isinstance(t, str) or t not in TOOLS for t in tools)
+    if (not isinstance(tools, list) or not tools or any(not isinstance(t, str) or t not in (TEAM_TOOLS if team else TOOLS) for t in tools)
             or len(set(tools)) != len(tools)):
         raise ValueError("Invalid core tools")
-    _fields(core["policy"], "repeat_limit repair_calls", "core.policy")
+    if not team:
+        _fields(core["policy"], "repeat_limit repair_calls", "core.policy")
     if type(core["policy"]["repeat_limit"]) is not int or core["policy"]["repeat_limit"] < 2:
         raise ValueError("core.policy.repeat_limit must be at least two")
     if type(core["policy"]["repair_calls"]) is not int or core["policy"]["repair_calls"] not in (0, 1):
         raise ValueError("core.policy.repair_calls must be zero or one")
-    if not isinstance(core["context"], dict) or type(core["context"].get("version")) is not int or core["context"] not in ({"strategy": "ledger", "version": 1},
+    if not team and (not isinstance(core["context"], dict) or type(core["context"].get("version")) is not int or core["context"] not in ({"strategy": "ledger", "version": 1},
                                {"strategy": "evidence", "version": 3},
                                {"strategy": "evidence", "version": 4},
-                               {"strategy": "evidence", "version": 5}):
+                               {"strategy": "evidence", "version": 5})):
         raise ValueError("Unsupported core context strategy")
     return copy.deepcopy({"core": core, "specialization": specialization})
 

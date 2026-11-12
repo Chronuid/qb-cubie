@@ -77,7 +77,11 @@ def load_config(path):
     with Path(path).open("rb") as stream:
         config = tomllib.load(stream)
     fields(config, "schema_version study_id phase tasks seeds order_seed ollama budgets images guides", "study",
-           optional="selection planning designs campaign")
+           optional="selection planning designs campaign agent_version")
+    if 'agent_version' in config and (type(config['agent_version']) is not int or config['agent_version'] not in (3, 4, 5, 6)):
+        raise ValueError('Unsupported agent_version')
+    if config.get('agent_version') == 6 and config['ollama'].get('think') is not False:
+        raise ValueError('V6 requires explicit think=false')
     fields(config["ollama"], "endpoint model think temperature num_ctx num_predict", "ollama")
     fields(config["budgets"], "wall_seconds model_calls tool_calls command_seconds verification_seconds context_bytes output_chars", "budgets")
     fields(config["images"], "pytest cubie evaluator", "images")
@@ -212,7 +216,9 @@ def freeze(config_path, destination):
                 if designs[mode]["specialization"]["mode"] != mode:
                     raise ValueError("Design specialization mode does not match configuration")
             else:
-                designs[mode] = default_design(mode, guides)
+                designs[mode] = default_design(mode, guides, version=config.get('agent_version', 5))
+            if designs[mode]['core']['context']['version'] == 6 and config['ollama']['think'] is not False:
+                raise ValueError('V6 requires explicit think=false')
             freeze_design(designs[mode], destination / "designs" / f"{mode}.json")
         campaign.admit(config, frozen, designs, config_path, destination)
         rows = schedule(frozen, config["seeds"], config["order_seed"])

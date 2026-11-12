@@ -90,12 +90,31 @@ try:
                 break
         result = {'hits': hits[:80], 'start': offset, 'limit': 80,
                   'next_start': offset + 80 if len(hits) > 80 else None}
-    elif op == 'replace_text':
+    elif op in ('replace_text', 'replace_region'):
         p = target(arg['path'])
         if p.stat().st_size > 2_000_000:
             raise ValueError('File exceeds the editable size limit')
         original = p.read_bytes().decode('utf-8')
         current_hash = hashlib.sha256(p.read_bytes()).hexdigest()
+        if op == 'replace_region':
+            if arg.get('expected_sha256') != current_hash:
+                raise ValueError('Stale region: reread before editing')
+            lines = original.splitlines(keepends=True)
+            lines[arg['start']-1:arg['end']] = [arg['new_text']]
+            data = ''.join(lines).encode('utf-8')
+            if p.suffix == '.py':
+                compile(data.decode('utf-8'), arg['path'], 'exec')
+            import os, tempfile
+            with tempfile.NamedTemporaryFile(dir=p.parent, delete=False) as stream:
+                pending = pathlib.Path(stream.name)
+                stream.write(data)
+            try:
+                pending.chmod(p.stat().st_mode)
+                pending.replace(p)
+            finally:
+                pending.unlink(missing_ok=True)
+            print(json.dumps({'status': 'completed', 'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}))
+            sys.exit(0)
         matches = original.count(arg['old']) if arg['old'] else 0
         conflict = ('hash_mismatch' if arg.get('expected_sha256', current_hash) != current_hash else
                     'anchor_missing' if matches == 0 else 'anchor_ambiguous' if matches != 1 else None)
@@ -116,8 +135,14 @@ try:
             compile(data.decode('utf-8'), arg['path'], 'exec')
         p.write_bytes(data)
         result = {'written': arg['path'], 'sha256': hashlib.sha256(data).hexdigest()}
-    elif op in ('write_file', 'delete_file'):
+    elif op in ('write_file', 'delete_file', 'create_source_file', 'create_test_file', 'delete_source_file', 'delete_test_file'):
         p = target(arg['path'])
+        if op.startswith('create_'):
+            if p.exists():
+                raise ValueError('Creation cannot overwrite a file')
+            op = 'write_file'
+        elif op.startswith('delete_'):
+            op = 'delete_file'
         if op == 'write_file' and not p.exists() and (not p.name.strip() or not any(c.isalnum() for c in p.name)):
             raise ValueError('New filename must contain a letter or digit')
         if op == 'write_file' and p.suffix == '.py':
@@ -164,7 +189,8 @@ def command(script, *arguments):
 def execute(manager, sandbox, action, timeout, limit):
     if action["action"] in {"run_tests", "collect_tests", "check_baseline"}:
         return run_tests(manager, sandbox, action["targets"], timeout, limit,
-                         collect=action["action"] == "collect_tests", baseline=action["action"] == "check_baseline")
+                         collect=action["action"] == "collect_tests", baseline=action["action"] == "check_baseline",
+                         workspace=action.get('workspace'), team=action.get('team', False))
     result = manager.exec(sandbox, command(SCRIPT, json.dumps(action)), timeout=timeout)
     if result.exit_code:
         try:
@@ -202,15 +228,18 @@ def bounded(result, limit):
     return {"status": "tool_error", "error": "Result exceeds output_chars"}
 
 
-def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, baseline=False):
+def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, baseline=False, workspace=None, team=False):
     for target in targets:
         path = target.split("::", 1)[0]
         if not path or path.startswith(("/", "-")) or any(p in {"..", ".git"} for p in path.split("/")):
             return {"status": "tool_error", "error": "Use relative test paths or pytest node IDs"}
     report = f"/tmp/study-{uuid.uuid4().hex}.xml"
-    workspace = "/workspace"
+    prepared = workspace is not None
+    if prepared and not re.fullmatch(r'/tmp/v6-baseline-[a-zA-Z0-9_-]+', workspace):
+        return {'status': 'tool_error', 'error': 'Invalid prepared baseline workspace'}
+    workspace = workspace or "/workspace"
     cleanup = None
-    if baseline:
+    if baseline and not prepared:
         workspace = f"/tmp/study-baseline-{uuid.uuid4().hex}"
         setup = manager.exec(sandbox, command(BASELINE, workspace, json.dumps(targets)), timeout=timeout)
         if setup.exit_code:
@@ -219,7 +248,11 @@ def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, basel
     plugin_name = "study_probe_" + uuid.uuid4().hex
     plugin_path = f"/tmp/{plugin_name}.py"
     evidence = f"/tmp/{plugin_name}.json"
-    install = manager.exec(sandbox, command(INSTALL_PROBE, plugin_path, evidence), timeout=10)
+    install_script = INSTALL_PROBE
+    if team:
+        from .team_probe import PROBE as team_probe
+        install_script = 'import pathlib,sys; pathlib.Path(sys.argv[1]).write_text(' + repr(team_probe) + ".replace('EVIDENCE', repr(sys.argv[2])))"
+    install = manager.exec(sandbox, command(install_script, plugin_path, evidence), timeout=10)
     if install.exit_code:
         return {"status": "tool_error", "code": "probe_setup", "error": install.stderr[-1000:]}
     plugins = ','.join(getattr(manager, 'study_plugins', ()))
@@ -238,6 +271,7 @@ def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, basel
     if cleanup:
         manager.exec(sandbox, command(REMOVE_TREE, cleanup), timeout=10)
     diagnostics = test_diagnostics(xml.stdout, usage.get('test_ids', []), usage.get('collection_error_ids', []))
+    diagnostics['executed'] = sum(diagnostics['counts'].get(k, 0) for k in ('passed', 'failed'))
     if collect and result.exit_code == 0 and usage.get("collected", 0):
         observed = "collected"
         diagnostics['collected'] = usage['collected']
@@ -254,7 +288,7 @@ def run_tests(manager, sandbox, targets, timeout, limit, *, collect=False, basel
             "timed_out": result.timed_out, "stdout": result.stdout[:limit], "stderr": result.stderr[:limit],
             "output_truncated": len(result.stdout) > limit or len(result.stderr) > limit,
             "junit_xml": xml.stdout, "diagnostics": diagnostics, "framework_usage": usage,
-            "baseline": baseline, "collection_only": collect}
+            "baseline": baseline, "collection_only": collect, 'case_results': usage.get('case_results', {})}
 
 
 def classify(exit_code, xml, timed_out=False):

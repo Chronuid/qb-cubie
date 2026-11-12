@@ -59,6 +59,8 @@ class Observer:
             if run["run_id"] == result["run_id"]:
                 run.update(status=result.get("agent", {}).get("status", "unavailable"),
                            resolved=result["resolved"], total_seconds=result["total_seconds"])
+                if 'completion' in result.get('agent', {}):
+                    run['completion'] = result['agent']['completion']['status']
         complete = [run for run in self.state["runs"] if run["status"] not in {"pending", "running"}]
         self.emit("run_finished", f"{result['run_id']}: Ergebnis {result['resolved']}",
                   completed_runs=len(complete), resolved_runs=sum(r["resolved"] is True for r in complete),
