@@ -44,11 +44,14 @@ def compose(core, specialization):
     examples = specialization["examples"]
     if not isinstance(examples, list) or any(not isinstance(x, str) for x in examples):
         raise ValueError("specialization.examples must be a list of text")
-    team = isinstance(core.get('context'), dict) and core['context'].get('version') in (6, 7)
+    team = isinstance(core.get('context'), dict) and core['context'].get('version') in (6, 7, 8)
     if team:
         from .team_design import POLICY, ROLES
         from .team_design import TOOLS as TEAM_TOOLS
-        if core['context']['version'] == 7:
+        if core['context']['version'] == 8:
+            from .team_v8_design import POLICY
+            from .team_v8_design import TOOLS as TEAM_TOOLS
+        elif core['context']['version'] == 7:
             from .team_v7_design import POLICY
             from .team_v7_design import TOOLS as TEAM_TOOLS
         _fields(core['context'], 'strategy version roles schemas templates', 'core.context')

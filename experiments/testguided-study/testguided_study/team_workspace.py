@@ -86,6 +86,18 @@ class LocalWorkspace:
     def check(self, name):
         self.path(name)
 
+    def environment(self):
+        import importlib.metadata
+        import sys
+
+        packages = {}
+        for name in ('pytest', 'qb-cubie'):
+            try:
+                packages[name] = importlib.metadata.version(name)
+            except importlib.metadata.PackageNotFoundError:
+                pass
+        return {'python': sys.version.split()[0], 'packages': packages}
+
     def baseline(self):
         """Final tests, fixtures, configuration and environment; original production."""
         root = Path(tempfile.mkdtemp(prefix='v6-baseline-', dir=self.root.parent))
@@ -178,6 +190,15 @@ def inventory():
 op = a['op']
 if op == 'inventory':
     result = inventory()
+elif op == 'environment':
+    import importlib.metadata
+    packages = {}
+    for name in ('pytest', 'qb-cubie'):
+        try:
+            packages[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            pass
+    result = {'python': sys.version.split()[0], 'packages': packages}
 elif op == 'read':
     p = target(a['path'])
     if p.stat().st_size > 2_000_000:
@@ -262,6 +283,9 @@ class RemoteWorkspace:
     def check(self, name):
         canonical_path(name)
         self._call(op='check', path=name)
+
+    def environment(self):
+        return self._call(op='environment')
 
     def baseline(self):
         result = self._call(op='baseline', manifest=self.manifest)

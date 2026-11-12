@@ -64,6 +64,8 @@ try:
         result = {'path': arg['path'], 'start': start+1, 'total_lines': len(lines),
                   'text': '\n'.join(lines[start:start+160]),
                   'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
+        if arg.get('inclusive_lines'):
+            result['text'] = ''.join(p.read_bytes().decode('utf-8').splitlines(keepends=True)[start:arg['end']])
     elif op in ('search_text', 'search_files', 'search_content'):
         scope = target(arg['path']) if op != 'search_text' else root
         if not scope.exists():

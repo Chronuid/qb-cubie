@@ -288,7 +288,7 @@ def test_analysis_can_delegate_a_probe_while_answering_an_information_request(tm
     assert h.snapshot()['state'] == 'reproduce'
 
 
-@pytest.mark.parametrize('version', [6, 7])
+@pytest.mark.parametrize('version', [6, 7, 8])
 def test_real_incomplete_teams_reach_independent_evaluation_in_both_arms(tmp_path, managed_study, monkeypatch, version):
     import tarfile
 
@@ -341,11 +341,33 @@ def test_real_incomplete_teams_reach_independent_evaluation_in_both_arms(tmp_pat
                 AdapterError('invalid_output', 'truncated again', raw={'content': 'invalid-2'}, usage={'output_tokens': 8192}),
                 AdapterError('infrastructure_error', 'Provider unavailable after repairs'),
             ]
-            if version == 7:
+            if version == 8:
+                from v8_support import CASE as V8_CASE
+
+                def context(result):
+                    return a('finish', delivery={
+                        'requirements': [{'id': 'REQ-1', 'text': 'Clamp to lower boundary', 'refs': ['issue:REQ-1']}],
+                        'facts': [], 'source_refs': [result['evidence_id']], 'test_paths': ['tests'],
+                        'test_command': 'python -m pytest', 'baseline': [], 'hypotheses': [], 'open_questions': [],
+                    })
+
+                actions[1:6] = [context,
+                    a('read_file', path='tests/test_calc.py', start=1, end=1),
+                    lambda result: a('edit_tests', handle=result['handle'],
+                        new_text=render(case, config_mode[0]), reason='Lower-bound regression'),
+                    a('collect_tests', targets=[NODE]),
+                    a('finish', delivery={'cases': [V8_CASE | {'input': {'args': [-2, 0, 5]},
+                        'expected': {'returns': 0}}], 'targets': [NODE], 'regressions': [NODE]})]
+                actions[8] = lambda result: a('edit_source', handle=result['handle'],
+                    new_text='    return max(lower, min(value, upper))\n', reason='Clamp to specified bounds')
+            elif version == 7:
                 actions[1:3] = [lambda result: a('finish_orientation', requirements=[{
                     'id': 'REQ-1', 'text': 'Clamp to lower boundary', 'refs': ['issue:REQ-1'], 'status': 'confirmed'}],
                     source_refs=[result['evidence_id']], test_entry_refs=[], hypotheses=[], unknowns=[])]
+            if version in (7, 8):
                 for action in actions:
+                    if version == 8 and isinstance(action, dict) and action['action'] == 'run_tests':
+                        action.pop('purpose', None)
                     if isinstance(action, dict) and action['action'] == 'read_file':
                         action['line_start'] = action.pop('start')
                         action['line_end'] = action.pop('end', 2)
@@ -360,7 +382,13 @@ def test_real_incomplete_teams_reach_independent_evaluation_in_both_arms(tmp_pat
             validate(action, request['schema'])
             return {'action': action, 'raw': {'replay': True}, 'usage': {'input_tokens': 10, 'output_tokens': 10}}
 
-    monkeypatch.setattr(backend, 'manager', lambda *_: Manager())
+    config_mode = ['pytest']
+
+    def make_manager(image, *_):
+        config_mode[0] = 'cubie' if 'cubie' in image else 'pytest'
+        return Manager()
+
+    monkeypatch.setattr(backend, 'manager', make_manager)
     monkeypatch.setattr(backend, 'prepare', prepare)
     monkeypatch.setattr(team_agent, 'OllamaClient', lambda **_: Client())
     archive = Path(env.start(mode='smoke', config=config_path)['archive']) / 'frozen'
@@ -377,7 +405,7 @@ def test_real_incomplete_teams_reach_independent_evaluation_in_both_arms(tmp_pat
         directory = archive / 'runs' / row['run_id']
         assert 'tests/test_calc.py' in (directory / 'full.patch').read_text()
         assert 'tests/test_calc.py' not in (directory / 'production.patch').read_text()
-        raw = (directory / f'steps/{10 if version == 6 else 9:04d}-response.json').read_text()
+        raw = (directory / f'steps/{9 if version == 7 else 10:04d}-response.json').read_text()
         assert 'invalid-2' in raw
 
 

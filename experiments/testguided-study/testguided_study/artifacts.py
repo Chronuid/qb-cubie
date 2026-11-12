@@ -78,9 +78,9 @@ def load_config(path):
         config = tomllib.load(stream)
     fields(config, "schema_version study_id phase tasks seeds order_seed ollama budgets images guides", "study",
            optional="selection planning designs campaign agent_version")
-    if 'agent_version' in config and (type(config['agent_version']) is not int or config['agent_version'] not in (3, 4, 5, 6, 7)):
+    if 'agent_version' in config and (type(config['agent_version']) is not int or config['agent_version'] not in (3, 4, 5, 6, 7, 8)):
         raise ValueError('Unsupported agent_version')
-    if config.get('agent_version') in (6, 7) and config['ollama'].get('think') is not False:
+    if config.get('agent_version') in (6, 7, 8) and config['ollama'].get('think') is not False:
         raise ValueError('Team designs require explicit think=false')
     fields(config["ollama"], "endpoint model think temperature num_ctx num_predict", "ollama")
     fields(config["budgets"], "wall_seconds model_calls tool_calls command_seconds verification_seconds context_bytes output_chars", "budgets")
@@ -219,7 +219,7 @@ def freeze(config_path, destination):
                     raise ValueError("Design specialization mode does not match configuration")
             else:
                 designs[mode] = default_design(mode, guides, version=config.get('agent_version', 5))
-            if designs[mode]['core']['context']['version'] in (6, 7) and config['ollama']['think'] is not False:
+            if designs[mode]['core']['context']['version'] in (6, 7, 8) and config['ollama']['think'] is not False:
                 raise ValueError('Team designs require explicit think=false')
             freeze_design(designs[mode], destination / "designs" / f"{mode}.json")
         campaign.admit(config, frozen, designs, config_path, destination)

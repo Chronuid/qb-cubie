@@ -1,5 +1,19 @@
 # Testguided-Vergleichsstudie
 
+Das [Konzept für Generation v8](AGENTENDESIGN-V8.md) greift die ursprüngliche
+Drei-Agenten-Skizze und die v7-Kritik auf: kurze Rollenprompts, fachliche
+Wissenskarte, direkte Übergaben und stabile Werkzeuge. V8 ist als explizite
+Entwicklungsvariante implementiert; die empirische Qualifikation steht aus.
+Quellcode, Verträge und Verifikation beschreibt [IMPLEMENTIERUNG-V8.md](IMPLEMENTIERUNG-V8.md).
+Das Profil [v8.toml](v8.toml) wird mit
+`./study start --mode pilot --config experiments/testguided-study/v8.toml` ausgewählt.
+
+Die [v8-EBT-Abnahmereihe](../../tests/testguided_study_design/V8_CASES.md)
+konkretisiert die Replay-Verträge mit 39 Casegruppen und 92 pytest-Nodes.
+Alle 92 ursprünglichen Abnahmen bestehen. Zusätzliche Providerreplays prüfen
+echte Dateiänderungen, pytest und die EBT-Instrumentierung in beiden Armen.
+Der dokumentierte Ausgangsstand von 6 grün und 86 rot bleibt als Historie erhalten.
+
 V7 ist als explizite Entwicklungsvariante verfügbar. Konzept und Hypothesen
 stehen in [AGENTENDESIGN-V7.md](AGENTENDESIGN-V7.md), Implementierung und
 technische Abnahmen in [IMPLEMENTIERUNG-V7.md](IMPLEMENTIERUNG-V7.md),
