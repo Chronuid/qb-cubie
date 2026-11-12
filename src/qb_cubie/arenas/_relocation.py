@@ -23,7 +23,7 @@ def _unsupported(script: Path) -> RuntimeError:
 
 
 def _relocate(script: Path, base: Path, clone: Path) -> None:
-    if re.fullmatch(r"python(?:w|\d+(?:\.\d+)*)?(?:\.exe)?", script.name, re.IGNORECASE):
+    if re.fullmatch(r"(?:python|[π𝜋]thon)(?:w|\d+(?:\.\d+)*)?(?:\.exe)?", script.name, re.IGNORECASE):
         return
     if script.is_symlink():
         _relocate_link(script, base, clone)

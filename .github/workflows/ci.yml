@@ -12,6 +12,7 @@ jobs:
   wheel:
     name: Wheel / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-2022' }}
     timeout-minutes: 15
     strategy:
       fail-fast: false

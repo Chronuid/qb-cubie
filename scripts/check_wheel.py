@@ -42,7 +42,23 @@ def main():
         python = virtualenv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         environment["VIRTUAL_ENV"] = str(virtualenv)
         # Only the test venv may supply optional linter executables.
-        environment["PATH"] = str(python.parent)
+        if os.name == "nt":
+            system_root = os.environ.get("SystemRoot", r"C:\Windows")
+            system_paths = [
+                str(python.parent),
+                os.path.join(system_root, "System32"),
+                system_root,
+                os.path.join(system_root, "System32", "Wbem"),
+            ]
+            orig_path = os.environ.get("PATH", "")
+            if orig_path:
+                system_paths.append(orig_path)
+            environment["PATH"] = os.pathsep.join(system_paths)
+            for var in ("SystemRoot", "COMSPEC", "PATHEXT", "TEMP", "TMP"):
+                if var in os.environ:
+                    environment[var] = os.environ[var]
+        else:
+            environment["PATH"] = str(python.parent)
         tests = root / "tests"
         shutil.copytree(PROJECT_ROOT / "tests/wheel", tests)
         shutil.copytree(PROJECT_ROOT / "tests/benchmarks/fixtures/phase3", tests / "phase3-example")
