@@ -24,7 +24,7 @@ num_ctx = 32768
 num_predict = 8192
 
 [budgets]
-wall_seconds = 900
+wall_seconds = 1800
 model_calls = 0 # unlimited
 tool_calls = 0 # unlimited
 command_seconds = 120

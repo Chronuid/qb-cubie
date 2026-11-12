@@ -108,41 +108,41 @@ def test_repeated_search_receives_feedback_then_reaches_verified_submission(sess
     check(observe, ("submitted", 8, 7, True, True, True, True, "redirect", "implemented boundary"))
 
 
-def test_ignored_feedback_ends_stalled_and_preserves_evidence(session):
+def test_ignored_feedback_continues_and_preserves_evidence(session):
     run, _, _ = session
 
     def observe():
-        result, client, directory = run([SEARCH] * 12)
+        result, client, directory = run([SEARCH] * 12 + [SUBMIT])
         return result["status"], result["model_calls"], len(client.requests), (directory / "full.patch").exists()
-    check(observe, ("stalled", 6, 6, True))
+    check(observe, ("submitted", 13, 13, True))
 
 
 @pytest.mark.parametrize("errors,expected", [
     ([AdapterError("invalid_output", "missing action")], ("submitted", 2, 1)),
-    ([AdapterError("invalid_output", "missing action")] * 2, ("invalid_output", 2, 1)),
+    ([AdapterError("invalid_output", "missing action")] * 2, ("submitted", 3, 2)),
     ([AdapterError("infrastructure_error", "offline")], ("infrastructure_error", 1, 0)),
-    ([AdapterError("agent_timeout", "deadline")], ("agent_timeout", 1, 0)),
+    ([AdapterError("agent_timeout", "deadline")], ("submitted", 2, 1)),
 ])
-def test_action_repair_is_bounded_and_never_retries_transport_failures(session, errors, expected):
+def test_action_repairs_continue_while_transport_failures_remain_explicit(session, errors, expected):
     run, _, _ = session
 
     def observe():
         result, client, directory = run([*errors, SUBMIT])
-        if result["repairs"] and len(client.requests) > 1:
+        if errors[0].status == "invalid_output" and len(client.requests) > 1:
             assert "missing action" in json.dumps(client.requests[1]["messages"])
         assert read(directory / "steps/0000-response.json")["error"] == str(errors[0])
         return result["status"], result["model_calls"], result["repairs"]
     check(observe, expected)
 
 
-def test_repair_has_no_extra_model_call_allowance(session):
+def test_legacy_model_allowance_does_not_prevent_repair(session):
     run, config, _ = session
     config["budgets"]["model_calls"] = 1
 
     def observe():
         result, client, _ = run([AdapterError("invalid_output", "bad JSON"), SUBMIT])
         return result["status"], result["model_calls"], len(client.requests)
-    check(observe, ("invalid_output", 1, 1))
+    check(observe, ("submitted", 2, 2))
 
 
 def test_custom_design_controls_real_session_schema_and_prompt(session):
@@ -173,14 +173,14 @@ def test_ledger_update_is_visible_to_next_request(session):
     check(observe, ("lower bound missing", True, True))
 
 
-def test_tool_allowance_is_not_extended(session):
+def test_legacy_tool_allowance_does_not_stop_execution(session):
     run, config, _ = session
     config["budgets"]["tool_calls"] = 1
 
     def observe():
         result, _, _ = run([SEARCH, SEARCH, SUBMIT])
         return result["status"], result["tool_calls"], result["model_calls"]
-    check(observe, ("tool_budget", 1, 2))
+    check(observe, ("submitted", 2, 3))
 
 
 def test_clock_deadline_prevents_tool_execution(session):
@@ -243,4 +243,4 @@ def test_test_run_timing_noise_does_not_hide_repeated_green(session, monkeypatch
                 "stdout": f"1 passed in {count[0] / 100} seconds"}
 
     monkeypatch.setattr(agent, "execute", execute)
-    check(lambda: run([action("run_tests", targets=["tests/test_bounds.py"])] * 10)[0]["status"], "stalled")
+    check(lambda: run([action("run_tests", targets=["tests/test_bounds.py"])] * 10 + [SUBMIT])[0]["status"], "submitted")

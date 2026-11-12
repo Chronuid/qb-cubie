@@ -39,8 +39,7 @@ def options(args):
         config.setdefault("selection", {"seed": config["order_seed"], "task_count": 1})["task_types"] = args.task_type
     if args.agent_seconds is not None:
         config["budgets"]["wall_seconds"] = args.agent_seconds
-    if args.model_calls is not None:
-        config["budgets"]["model_calls"] = args.model_calls
+    config['budgets'].update(model_calls=0, tool_calls=0)
     if args.mode == "smoke":
         if args.tasks not in (None, 1) or args.task_type or args.tasks_manifest:
             raise ValueError("The synthetic smoke has exactly one task; task/type overrides require a real-task mode")

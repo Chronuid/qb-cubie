@@ -143,13 +143,13 @@ def test_p03_evicted_file_content_can_be_read_again(pilot_session):
     contract(observe, (True, "submitted", "completed", True))
 
 
-def test_p04_repeated_missing_paths_still_stop_without_mutations(pilot_session):
+def test_p04_repeated_missing_paths_continue_without_mutations(pilot_session):
     run, tree, _ = pilot_session
 
     def observe():
-        result, _, directory = run([action("read_file", path="missing.py", start=1)] * 20)
-        return result["status"], result["model_calls"] < 20, (directory / "full.patch").read_text(), (tree / "module.py").exists()
-    contract(observe, ("stalled", True, "", True))
+        result, _, directory = run([action("read_file", path="missing.py", start=1)] * 20 + [SUBMIT])
+        return result["status"], result["model_calls"] == 21, (directory / "full.patch").read_text(), (tree / "module.py").exists()
+    contract(observe, ("submitted", True, "", True))
 
 
 @pytest.mark.parametrize("mutate", [False, True])
@@ -298,14 +298,14 @@ def test_p10_length_repair_asks_for_a_small_action_instead_of_repeating_full_fil
     contract(observe, ("submitted", 1, True, 4096))
 
 
-def test_p11_two_truncated_answers_stop_without_executing_partial_write(pilot_session):
+def test_p11_two_truncated_answers_retry_without_executing_partial_write(pilot_session):
     run, _, _ = pilot_session
 
     def observe():
         result, client, directory = run([truncated_output(), truncated_output(), SUBMIT])
         return (result["status"], len(client.requests), result["tool_calls"],
                 len(list((directory / "steps").glob("*-response.json"))), (directory / "full.patch").read_text())
-    contract(observe, ("invalid_output", 2, 0, 2, ""))
+    contract(observe, ("submitted", 3, 0, 3, ""))
 
 
 def test_p12_live_monitor_keeps_rejected_raw_answer_visible(pilot_session, tmp_path):
@@ -313,18 +313,18 @@ def test_p12_live_monitor_keeps_rejected_raw_answer_visible(pilot_session, tmp_p
     observer = Observer(tmp_path / "monitor-root")
 
     def observe():
-        run([truncated_output(), truncated_output()], observer=observer)
+        run([truncated_output(), truncated_output(), AdapterError("infrastructure_error", "provider unavailable")], observer=observer)
         state = read(observer.directory / "state.json")
         response = state["agent"].get("response", {})
-        return response.get("status"), response.get("raw", {}).get("done_reason"), response.get("usage", {}).get("output_tokens")
-    contract(observe, ("invalid_output", "length", 4096))
+        return response.get("status"), (response.get("raw") or {}).get("done_reason"), (response.get("usage") or {}).get("output_tokens")
+    contract(observe, ("infrastructure_error", None, None))
 
 
 def test_p13_archived_monitor_exposes_failed_answer_without_claiming_valid_action(pilot_session, tmp_path):
     run, _, _ = pilot_session
 
     def observe():
-        _, _, directory = run([truncated_output(), truncated_output()])
+        _, _, directory = run([truncated_output(), truncated_output(), AdapterError("infrastructure_error", "provider unavailable", raw={"done_reason": "offline"})])
         archive = tmp_path / "public-archive"
         archive.mkdir()
         (archive / "runs").mkdir()
@@ -332,7 +332,7 @@ def test_p13_archived_monitor_exposes_failed_answer_without_claiming_valid_actio
         write(archive / "schedule.json", [{"run_id": "0001", "mode": "pytest"}])
         view = run_view(archive, "0001")
         return view["steps"], view["agent"]["action"], view["agent"]["response"]["raw"]["done_reason"]
-    contract(observe, ([0, 1], None, "length"))
+    contract(observe, ([0, 1, 2], None, "offline"))
 
 
 class LocalSandbox:

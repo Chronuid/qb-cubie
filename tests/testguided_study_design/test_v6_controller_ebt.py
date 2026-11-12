@@ -250,7 +250,7 @@ def test_a13_baseline_identity_matters_even_when_failure_counts_match(tmp_path, 
 
 
 @pytest.mark.parametrize("limit", ["wall", "models", "tools"])
-def test_a14_team_budget_is_shared_across_role_changes(tmp_path, limit):
+def test_a14_only_wall_budget_limits_role_changes(tmp_path, limit):
     def observe():
         h = Harness(tmp_path, extra_sources=100)
         h.suite()
@@ -266,13 +266,14 @@ def test_a14_team_budget_is_shared_across_role_changes(tmp_path, limit):
                 h.send("dev", "read_file", path=f"src/source_{index}.py", start=1)
         state = h.snapshot()
         return (state["status"], state["reason"], state["completion"]["status"],
-                state["metrics"]["model_calls"] <= 48, state["metrics"]["tool_calls"] <= 96)
-    contract(observe, ("incomplete", {"wall": "wall_budget", "models": "model_budget", "tools": "tool_budget"}[limit],
-                       "incomplete", True, True))
+                state["metrics"]["model_calls"] > 48, state["metrics"]["tool_calls"] > 96)
+    contract(observe, ("incomplete" if limit == "wall" else "running",
+                       "wall_budget" if limit == "wall" else None, "incomplete",
+                       limit == "models", limit == "tools"))
 
 
 @pytest.mark.parametrize("boundary", ["seconds", "model-calls"])
-def test_a14_reserve_allows_verification_but_no_new_repair_round(tmp_path, boundary):
+def test_a14_no_early_reserve_shortens_work(tmp_path, boundary):
     def observe():
         h = Harness(tmp_path)
         h.red()
@@ -285,7 +286,7 @@ def test_a14_reserve_allows_verification_but_no_new_repair_round(tmp_path, bound
                           evidence_ids=[], reason="Start another repair round")
         verified = h.run()
         return response["status"], verified["status"], h.snapshot()["budget"]["reserve_active"], h.snapshot()["budget"]["deadline"]
-    contract(observe, ("rejected", "completed", True, 900))
+    contract(observe, ("rejected", "completed", False, 900))
 
 
 def test_a14_rephrased_notes_do_not_reset_stagnation(tmp_path):
@@ -296,7 +297,7 @@ def test_a14_rephrased_notes_do_not_reset_stagnation(tmp_path):
             h.send("dev", "read_file", path="src/calc.py", start=1, note={"hypothesis": f"Rephrased note {index}"})
         state = h.snapshot()
         return state["status"], state["metrics"]["recoveries"], state["completion"]["allowed"]
-    contract(observe, ("incomplete", 1, False))
+    contract(observe, ("running", 2, False))
 
 
 @pytest.mark.parametrize("role", ["qa", "dev"])
@@ -368,9 +369,9 @@ def test_a18_incomplete_exit_preserves_patch_and_raw_evidence(tmp_path, cause):
         return (state["status"], state["completion"]["status"],
                 bool((archive / "full.patch").read_text()), (archive / "team.json").exists(),
                 state["private_evaluation_required"],
-                state["metrics"]["output_repairs"] == (1 if cause == "invalid-output" else 0),
+                state["metrics"]["output_repairs"] == (2 if cause == "invalid-output" else 0),
                 cause != "invalid-output" or all(f"invalid-json-{index}" in raw for index in range(2)))
-    contract(observe, ("incomplete", "incomplete", True, True, True, True, True))
+    contract(observe, ("incomplete" if cause == "deadline" else "running", "incomplete", True, True, True, True, True))
 
 
 @pytest.mark.parametrize("field", ["case_id", "requirement_id", "reason_ref", "target", "expected", "pytest_node"])

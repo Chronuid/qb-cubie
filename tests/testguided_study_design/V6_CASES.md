@@ -1,3 +1,8 @@
+> Aktualisierte Budgetanforderung: 30 Minuten gemeinsame Taskzeit. Die früheren
+> Aufruf-, Phasen-, Reserve- und Reparaturlimits in diesem Designkatalog sind
+> aufgehoben. Die ausführbaren Budgettests prüfen stattdessen Fortsetzung bis
+> zur gemeinsamen Deadline; erfolgreich geprüfte Einreichungen bleiben möglich.
+
 # EBT-Abnahmecases für Agentendesign v6
 
 Grundlage ist [AGENTENDESIGN-V6.md](../../experiments/testguided-study/AGENTENDESIGN-V6.md),

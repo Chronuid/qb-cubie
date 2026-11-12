@@ -34,7 +34,7 @@ def test_single_command_prepares_frozen_inputs_and_preserves_updated_guides(tmp_
     config = verify(args.output / "frozen")
     assert config["study_id"] == "plumbing-smoke-not-evidence-v3"
     assert config["seeds"] == [17]
-    assert config["budgets"]["model_calls"] == 2
+    assert config["budgets"]["model_calls"] == 0
     guides = read(args.output / "frozen/guides.json")
     assert guides["pytest"] == (ROOT / "guides/pytest.md").read_text()
     assert guides["cubie"] == (ROOT / "guides/cubie.md").read_text()
@@ -66,6 +66,6 @@ def test_real_modes_use_task_and_budget_overrides(tmp_path):
     assert config["selection"]["task_types"] == ["parsing_encoding"]
     assert config["seeds"] == [42, 137]
     assert config["budgets"]["wall_seconds"] == 600
-    assert config["budgets"]["model_calls"] == 20
+    assert config["budgets"]["model_calls"] == 00
     with pytest.raises(ValueError, match="exactly one"):
         launch.options(arguments(tmp_path, tasks=2))

@@ -30,7 +30,7 @@ def test_notes_do_not_consume_a_turn_or_overwrite_runner_facts(session):
     assert result['process_metrics']['first_read_call'] == 1
 
 
-def test_alternating_notes_and_failed_path_are_bounded(session, monkeypatch):
+def test_alternating_notes_and_failed_path_can_retry_while_time_remains(session, monkeypatch):
     run, _, guides = session
     executed = []
 
@@ -39,11 +39,11 @@ def test_alternating_notes_and_failed_path_are_bounded(session, monkeypatch):
         return {'status': 'tool_error', 'code': 'not_found', 'suggestions': ['src/requests/utils.py']}
     monkeypatch.setattr(agent, 'execute', fail)
     result, _, _ = run([action('read_file', path='requests/utils.py', start=1,
-                              note={'next': f'retry {i}'}) for i in range(20)],
+                              note={'next': f'retry {i}'}) for i in range(20)] + [action('submit', reason='Replay complete')],
                        design=default_design('cubie', guides, version=3), mode='cubie')
-    assert result['status'] == 'stalled'
-    assert len(executed) == 2
-    assert result['process_metrics']['rejected_retries'] >= 1
+    assert result['status'] == 'submitted'
+    assert len(executed) == 20
+    assert result['process_metrics']['rejected_retries'] == 0
 
 
 def test_conflict_requires_read_and_guard_does_not_execute_mutations():

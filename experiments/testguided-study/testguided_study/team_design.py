@@ -4,9 +4,9 @@ from .design import TEXT, action
 
 ROLES = ('analysis', 'qa', 'dev')
 POLICY = {
-    'wall_seconds': 900, 'model_calls': 48, 'tool_calls': 96,
-    'reserve_seconds': 180, 'reserve_model_calls': 6,
-    'revision_rounds': 3, 'information_requests': 6,
+    'wall_seconds': 1800, 'model_calls': 0, 'tool_calls': 0,
+    'reserve_seconds': 0, 'reserve_model_calls': 0,
+    'revision_rounds': 0, 'information_requests': 0,
     'repeat_limit': 3, 'repair_calls': 1, 'context_bytes': 80000,
 }
 COMMON = """Work serially in the shared workspace. Return exactly one JSON action.
@@ -19,7 +19,10 @@ requirement, skip failures or substitute a stub to get green. Collection, import
 skips and xfails are not behavioral red or successful verification.
 Every case needs a requirement, public reason, concrete inputs and an oracle.
 Information requests suspend your job and go through analysis. The controller
-shares all budgets across roles; reserve time is for verification and review.
+shares one 30-minute time budget across all roles. Model and tool calls, revisions,
+information requests and output repairs have no numerical limit. Repeated actions
+produce guidance, never an early stop. Continue investigating blockers while time
+remains; submit early only after successful verification.
 """
 PROMPTS = {
     'analysis': COMMON + """Your role is ANALYSIS. Understand the issue and environment;

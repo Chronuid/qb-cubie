@@ -132,20 +132,20 @@ def test_a05_conflict_read_and_small_corrected_edit_can_reach_submission(pilot_s
     contract(observe, ("submitted", "edit_conflict", "completed", 4, "UNIQUE_IMPLEMENTATION = 2\n", True))
 
 
-def test_a06_unchanged_conflict_read_cycles_still_terminate_without_mutation(pilot_session):
+def test_a06_unchanged_conflict_read_cycles_continue_without_mutation(pilot_session):
     run, tree, _ = pilot_session
     original = (tree / "module.py").read_bytes()
     wrong = edit("module.py", original, "missing anchor", "UNIQUE_IMPLEMENTATION = 2")
     cycle = [action("read_file", path="module.py", start=1), wrong]
 
     def observe():
-        result, _, directory = run(cycle * 10)
-        return (result["status"], result["model_calls"] < 20,
+        result, _, directory = run(cycle * 10 + [SUBMIT])
+        return (result["status"], result["model_calls"] == 21,
                 (tree / "module.py").read_bytes() == original,
                 result["process_metrics"]["first_production_change_call"],
                 (directory / "full.patch").read_text())
 
-    contract(observe, ("stalled", True, True, None, ""))
+    contract(observe, ("submitted", True, True, None, ""))
 
 
 @pytest.mark.parametrize("broken", [

@@ -1,5 +1,15 @@
 # Testguided-Vergleichsstudie
 
+V7 ist als explizite Entwicklungsvariante verfügbar. Konzept und Hypothesen
+stehen in [AGENTENDESIGN-V7.md](AGENTENDESIGN-V7.md), Implementierung und
+technische Abnahmen in [IMPLEMENTIERUNG-V7.md](IMPLEMENTIERUNG-V7.md),
+die Konfiguration in [v7.toml](v7.toml).
+Die Ursachenanalyse zum v7-Pilotabbruch `20261112-015457` dokumentiert
+[HYPOTHESIS-V7-GEMINI-ARGON-HIGH.md](HYPOTHESIS-V7-GEMINI-ARGON-HIGH.md) (Gemini-4-Argon).
+Pro Task und Behandlung gelten 30 Minuten Gesamtzeit und unbegrenzte
+Modell- und Werkzeugaufrufe. Nur erfolgreich geprüfte Lösungen enden vorzeitig;
+Stagnation und ungültige Antworten verbrauchen die verbleibende Taskzeit weiter.
+
 ## Direkt starten und live verfolgen
 
 Aus dem Repository genügt jetzt ein Befehl:
@@ -26,14 +36,14 @@ Suffix; ausdrücklich angegebene bestehende Ausgabeziele bleiben geschützt.
 
 | Modus | Zweck | Standardumfang |
 | --- | --- | --- |
-| `smoke` | synthetischer Techniklauf, kein Nutzenbeleg | 1 Aufgabe, 2 Agentenläufe, je höchstens 900 Sekunden |
+| `smoke` | synthetischer Techniklauf, kein Nutzenbeleg | 1 Aufgabe, 2 Agentenläufe, je höchstens 1800 Sekunden |
 | `pilot` | fachlicher Pilot mit getrennten Pilotaufgaben | 3 Aufgaben, 6 Agentenläufe |
-| `short` | Hauptstudie für ungefähr drei Stunden | 5 Aufgaben, 10 Agentenläufe |
-| `long` | Hauptstudie für ungefähr sechs Stunden | 10 Aufgaben, 20 Agentenläufe |
+| `short` | Hauptstudie, Profilname `short` | 5 Aufgaben, 10 Agentenläufe |
+| `long` | Hauptstudie, Profilname `long` | 10 Aufgaben, 20 Agentenläufe |
 
 ```bash
 ./study --mode smoke
-./study --mode short --tasks 5 --agent-seconds 900 --seeds 42 --keep-monitor
+./study --mode short --tasks 5 --agent-seconds 1800 --seeds 42 --keep-monitor
 ./study --mode long --tasks 3 --task-type parsing_encoding --monitor terminal
 ./study --mode pilot --prepare-only
 ./study start --help
@@ -128,11 +138,15 @@ implementiert; der Standard bleibt v5. Ein neuer Entwicklungslauf startet mit:
 ./study --mode pilot --config experiments/testguided-study/v6.toml
 ```
 
-Die Konfiguration setzt `agent_version = 6`, `think = false` sowie ein gemeinsames
-Limit von 900 Sekunden, 48 Modell- und 96 Werkzeugaufrufen. Die Reserve umfasst
-180 Sekunden und sechs Modellaufrufe. Quellen, Rollenprompts, rollenspezifische
-Schemas und die Vorlagenrevision gehen in den Freeze ein. Größere Konfigurationswerte
-erweitern die Designlimits nicht. Für andere Varianten ist ein neuer Freeze nötig.
+Die Konfiguration setzt `agent_version = 6`, `think = false` und 1800 Sekunden
+Gesamtzeit pro Task und Behandlung. Alle Rollen teilen diese Deadline. Modell-
+und Werkzeugaufrufe, Rückfragen, Revisionen und Ausgabereparaturen sind unbegrenzt.
+Es gibt keine vorgezogene Verifikationsreserve und keine lokalen Rollen- oder
+Antwortdeadlines. Wiederholungen erzeugen Diagnosehinweise, aber keinen Abbruch.
+Ein unvollständiger Task läuft bis zur Deadline weiter; eine erfolgreich geprüfte
+Lösung kann vorher eingereicht werden. Quellen, Rollenprompts, Schemas und
+Vorlagenrevision gehen weiterhin in den Freeze ein. Das konfigurierte Zeitbudget
+gilt auch bei älteren Designs mit kürzeren oder numerischen Limits.
 
 `team.json`, `messages.json`, `contexts/`, `evidence/`, `actions/` und `steps/`
 enthalten Teamstand, öffentliche Übergaben, Kontextrevisionen, Testbelege sowie
@@ -167,8 +181,8 @@ Lösungsquote muss in neuer Modellinferenz geprüft werden.
 
 Der [Designvorschlag zur iterativen Agentenentwicklung](AGENTENDESIGN.md) erläutert
 Pilotbefunde, Architektur und Abnahmeverträge. Neue Freezes verwenden den
-Agentenkern v3 mit Aktionsnotizen, beobachteter Ablaufsteuerung, begrenzter
-Aktionsreparatur, getrennter Pfad-/Inhaltssuche und verankerten Änderungen mit
+Agentenkern v3 mit Aktionsnotizen, beobachteter Ablaufsteuerung,
+Aktionsreparatur bis zur Taskdeadline, getrennter Pfad-/Inhaltssuche und verankerten Änderungen mit
 Ausgangshash. Wiederholte erfolglose Aktionen werden auch bei wechselnden
 Notizen erkannt; nach einem Änderungskonflikt ist erneutes Lesen erforderlich. Die historischen Archive
 werden nicht migriert. Geänderte Laufzeitquellen erfordern weiterhin einen neuen
@@ -176,7 +190,7 @@ Freeze; Testdateien gehören nicht mehr zum Laufzeitmanifest.
 
 `collect_tests` bestätigt Testziele, `check_baseline` führt die aktuellen
 sichtbaren Tests mit ursprünglichem Produktionscode in einer separaten Kopie aus.
-Beide Aktionen zählen gegen die bestehenden Budgets. V3-Qualifikation verlangt
+Beide Aktionen nutzen die gemeinsame Taskzeit. V3-Qualifikation verlangt
 zusätzlich identische Testversionen zwischen Rot und Grün; nach späteren
 Teständerungen ist eine erneute Reproduktion erforderlich. Fehlerdiagnosen und
 Framework-Laufzeitbelege bleiben archiviert. `ebt_executed`, `ebt_evaluated` und
@@ -377,14 +391,15 @@ Kandidatenplanung benötigt weder Docker noch Modellinferenz:
 
 | Profil | Aufgaben | Seeds je Aufgabe | Agentenläufe | Budget je Agent | Planung einschließlich Referenzprüfung und Rüstzeit |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Pilot | 3 | 1 | 6 | 15 Minuten | 2:06 Stunden |
-| Drei Stunden | 5 | 1 | 10 | 15 Minuten | 3:30 Stunden |
-| Sechs Stunden | 10 | 1 | 20 | 15 Minuten | 7:00 Stunden |
+| Pilot | 3 | 1 | 6 | 30 Minuten | 3:36 Stunden |
+| Drei Stunden | 5 | 1 | 10 | 30 Minuten | 6:00 Stunden |
+| Sechs Stunden | 10 | 1 | 20 | 30 Minuten | 12:00 Stunden |
 
-Alle Standardprofile verwenden 900 Sekunden pro Agent und Aufgabe. `model_calls = 0`
-und `tool_calls = 0` bedeuten unbegrenzte Aufrufzahlen; positive Werte setzen
-weiterhin explizite Grenzen. `--model-calls 0` ist auch über den Starter möglich.
-Das Zeitlimit und die Erkennung ausbleibenden Fortschritts bleiben aktiv.
+Alle Standardprofile sowie v6 und v7 verwenden 1800 Sekunden pro Agent und Aufgabe.
+`model_calls` und `tool_calls` bleiben als Kompatibilitätsfelder mit Wert `0`
+erhalten. Positive Werte aus älteren Konfigurationen und `--model-calls` werden
+ignoriert; Aufrufzahlen können das Zeitbudget nicht verkürzen. Ausbleibender
+Fortschritt und wiederholte ungültige Ausgaben beenden den Task ebenfalls nicht.
 Die Modelloption `num_predict = 8192` begrenzt die **Ausgabe** pro Antwort;
 `num_ctx = 32768` ist das Gesamtfenster, `context_bytes = 80000` die zusätzliche
 hostseitige Kontextgrenze. Die Laufzeit reserviert weiterhin Platz für Schema
@@ -393,7 +408,7 @@ und Ausgabe, sodass das tatsächlich nutzbare Eingabebudget kleiner ist.
 Die Aufgabenzahlen bleiben unverändert. Mit dem höheren Zeitbudget können die
 bisherigen Drei-/Sechs-Stunden-Profile ihre nominellen Planungsziele überschreiten;
 `fits_allowance` weist dies aus. Für die bisherigen Zeitzielwerte passen nach der
-bisherigen Planungsformel vier bzw. acht Aufgaben. Sichtbare Baselineprofile,
+bisherigen Planungsformel zwei bzw. fünf Aufgaben. Sichtbare Baselineprofile,
 Imagebau und tatsächliche Setups können zusätzlichen Aufwand verursachen.
 
 Die beiden Hauptprofile verwenden dieselben Modell- und Agentenbudgets. Ein

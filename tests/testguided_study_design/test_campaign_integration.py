@@ -74,8 +74,8 @@ def test_measurement_rejects_unqualified_or_changed_evidence(qualified, fault, m
             design["core"]["prompt"] += "revised"
             write(source / f"new-{mode}.json", design)
     elif fault == "budget":
-        previous = load_config(config)["budgets"]["model_calls"]
-        config.write_text(config.read_text().replace(f"model_calls = {previous}", f"model_calls = {previous + 1}"))
+        previous = load_config(config)["budgets"]["wall_seconds"]
+        config.write_text(config.read_text().replace(f"wall_seconds = {previous}", f"wall_seconds = {previous + 1}"))
     elif fault in {"unavailable", "tamper"}:
         directory = archive / "runs/0001"
         result = read(directory / "result.json")

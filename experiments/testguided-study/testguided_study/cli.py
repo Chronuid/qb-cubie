@@ -32,7 +32,7 @@ def main():
     launch.add_argument("--seeds", type=int, nargs="+")
     launch.add_argument("--task-type", action="append")
     launch.add_argument("--agent-seconds", type=positive)
-    launch.add_argument("--model-calls", type=call_limit, help='Maximum model steps; 0 means unlimited')
+    launch.add_argument("--model-calls", type=call_limit, help='Deprecated; model and tool calls are always unlimited')
     launch.add_argument("--regression-tests", type=positive, default=8)
     launch.add_argument("--catalog", type=Path, default=ROOT / "candidate-catalog.json")
     launch.add_argument("--source", type=Path)

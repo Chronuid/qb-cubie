@@ -16,7 +16,7 @@ from .controller import (
     session_context,
 )
 from .design import default_design, design_instruction, design_schema
-from .iteration import compose, context, event_signature, identity, progress
+from .iteration import compose, context, identity, progress
 from .telemetry import emit
 from .workspace import bounded, execute, patch
 
@@ -53,7 +53,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         raise ValueError("Design specialization does not match run mode")
     if row.get("design_id", identity(design)) != identity(design):
         raise ValueError("Design identity does not match frozen run")
-    if design['core']['context']['version'] == 6:
+    if design['core']['context']['version'] in (6, 7):
         from .team_agent import develop as develop_team
         return develop_team(manager, sandbox, task, row, config, guides, directory,
                             client=client, observer=observer, design=design, clock=clock,
@@ -68,7 +68,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
     started = clock()
     emit(observer, "agent_started", "Agentenschleife gestartet", active={"agent_started_at": time.time()})
     history, usage, observations = [], [], []
-    status, calls, tools = "model_budget", 0, 0
+    status, calls, tools = "running", 0, 0
     system = design_instruction(design)
     ledger, events, repairs = {}, [], 0
     if visible_baseline is not None:
@@ -76,7 +76,6 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         ledger['visible_baseline'] = compact_observation(visible_baseline, 3000)
         ledger['visible_baseline']['scope'] = 'Original visible suite before any agent or private patch; existing failures are not new regressions.'
     workspace_patch = patch(manager, sandbox)
-    repeat_signature, repeats = None, 0
     v3 = design["core"]["context"]["version"] >= 3
     v4 = design["core"]["context"]["version"] >= 4
     v5 = design["core"]["context"]["version"] == 5
@@ -91,8 +90,6 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         write(directory / "initial-evidence.json", {"repository": ledger["repository"], "versions": versions})
     public_task = task.problem_statement
     for step in count():
-        if limits['model_calls'] and calls >= limits['model_calls']:
-            break
         remaining = limits["wall_seconds"] - (clock() - started)
         if remaining <= 0:
             status = "wall_budget"
@@ -115,6 +112,10 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
                                          "tool_calls": tools},
              agent={"context": request, "action": None, "result": None, "response": None})
         before = clock()
+        remaining = limits['wall_seconds'] - (before - started)
+        if remaining <= 0:
+            status = 'wall_budget'
+            break
         try:
             active_schema = analysis.schema(schema) if analysis else schema
             if recovering:
@@ -128,7 +129,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             status = error.status
             emit(observer, "model_error", f"Modellaufruf: {error.status}", state="model_error",
                  agent={"response": rejected, "last_error": {**rejected, 'step': step + 1}})
-            if error.status == "invalid_output" and repairs < policy["repair_calls"]:
+            if error.status in {"invalid_output", "agent_timeout"}:
                 repairs += 1
                 ledger["action_error"] = str(error)[:1000]
                 ledger["next"] = "Return one valid JSON action matching the schema. Keep it short."
@@ -141,7 +142,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
                 continue
             break
         recovering = False
-        status = "model_budget"
+        status = "running"
         ledger.pop("action_error", None)
         usage.append(response["usage"])
         write(directory / f"steps/{step:04d}-response.json", response)
@@ -157,13 +158,10 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         if action["action"] == "submit":
             status = "submitted"
             break
-        if limits['tool_calls'] and tools >= limits["tool_calls"]:
-            status = "tool_budget"
-            break
         tools += 1
         emit(observer, "tool_started", f"Werkzeug läuft: {action['action']}", state="tool_wait",
              active={"tool_calls": tools})
-        timeout = max(1, min(limits["command_seconds"], int(limits["wall_seconds"] - (clock() - started))))
+        timeout = max(0.001, limits["wall_seconds"] - (clock() - started))
         executed_action = controller.bind_edit(action) if v4 else action
         if action["action"] == "analyze" and analysis:
             result = analysis.analyze(action)
@@ -186,7 +184,8 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
             controller.metrics["first_production_change_call"] = calls
         if analysis:
             analysis.observe(action, result)
-        stopped = controller.observe(action, result, versions, calls) if v3 else False
+        if v3:
+            controller.observe(action, result, versions, calls)
         write(directory / f"steps/{step:04d}-tool.json", {"action": action, "result": result,
                                                          "executed_action": executed_action,
                                                          "elapsed_seconds": clock() - before})
@@ -208,9 +207,6 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
                         {"role": "user", "content": json.dumps(visible)}])
         event = {"action": action, "result": visible, "workspace_sha256": identity(workspace_patch)}
         events.append(event)
-        signature = event_signature(event)
-        repeats = repeats + 1 if signature == repeat_signature else 1
-        repeat_signature = signature
         directive = progress(events, policy["repeat_limit"])
         hints = {
             "redirect": "No new evidence: narrow the search, read a located file, or change the implementation.",
@@ -230,9 +226,6 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         if "observation" in result:
             ledger["last_test"] = {"targets": action.get("targets"), "observation": result["observation"]}
         write(directory / f"steps/{step:04d}-progress.json", {"directive": directive, "ledger": ledger})
-        if stopped or repeats >= 2 * policy["repeat_limit"]:
-            status = "stalled"
-            break
     final = patch(manager, sandbox)
     (directory / "full.patch").write_text(final, encoding="utf-8")
     emit(observer, "agent_finished", f"Agentenschleife beendet: {status}",

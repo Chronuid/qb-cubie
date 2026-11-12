@@ -31,6 +31,13 @@ class TeamController:
     execute is a trusted public filesystem/test-service port, never a model
     result. store optionally supplies the same boundary inside a container.
     """
+    def __new__(cls, **kwargs):
+        design = kwargs.get('design')
+        if cls is TeamController and design and design['core']['context']['version'] == 7:
+            from .team_v7 import V7TeamController
+            return object.__new__(V7TeamController)
+        return object.__new__(cls)
+
     def __init__(self, *, workspace, artifact_dir, mode, issue, guides, manifest,
                  policy=None, execute, clock=time.monotonic, store=None, design=None):
         if mode not in {'pytest', 'cubie'}:
@@ -46,6 +53,9 @@ class TeamController:
         for name, value in self.policy.items():
             if type(value) is not int or value < 0:
                 raise ValueError(f'Invalid team policy: {name}')
+        # Legacy frozen policies may contain call allowances. Only elapsed time
+        # limits an attempt; these fields remain for archive compatibility.
+        self.policy.update(model_calls=0, tool_calls=0)
         self.clock, self.started, self.execute = clock, clock(), execute
         self.store = store or LocalWorkspace(workspace, manifest)
         self.manifest = self.store.manifest
@@ -104,9 +114,7 @@ class TeamController:
 
     @property
     def reserve(self):
-        return (self.clock() - self.started >= self.policy['wall_seconds'] - self.policy['reserve_seconds']
-                or (self.policy['model_calls'] > 0 and self.metrics['model_calls'] >=
-                    self.policy['model_calls'] - self.policy['reserve_model_calls']))
+        return False
 
     def _stop(self, reason):
         self.status, self.reason = 'incomplete', reason
@@ -124,8 +132,6 @@ class TeamController:
         reason = None
         if self.clock() - self.started >= self.policy['wall_seconds']:
             reason = 'wall_budget'
-        elif kind and self.policy[kind] and self.metrics[kind] >= self.policy[kind]:
-            reason = 'model_budget' if kind == 'model_calls' else 'tool_budget'
         if reason:
             self._stop(reason)
         return not reason
@@ -196,9 +202,9 @@ class TeamController:
         self._refresh()
         if not self._budget('model_calls'):
             return None
-        schema = copy.deepcopy(self.schemas[self.role])
+        schema = self._schema(self.role)
         if self.output_repair:
-            schema['oneOf'] = [e for e in schema['oneOf'] if e['properties']['action']['const'] == 'read_file']
+            schema = self._repair_schema(schema)
         system = self.prompts[self.role] + f'\nTesting framework: {self.mode}\n' + self.guide
         if self.design:
             system = self.design['core']['prompt'] + '\n' + system
@@ -210,7 +216,7 @@ class TeamController:
         if self.recovery_active:
             ledger['recovery'] = 'No new evidence. Read a different relevant source or run one focused diagnostic.'
         if self.output_repair:
-            ledger['output_error'] = 'Return one short complete read_file JSON action matching the repair schema.'
+            ledger['output_error'] = self._output_error()
         try:
             messages = session_context(system, self.issue, self.histories[self.role], ledger,
                                        self.policy['context_bytes'])
@@ -222,6 +228,17 @@ class TeamController:
         request = {'role': self.role, 'messages': messages, 'schema': schema}
         write(self.directory / f'steps/{self.metrics["model_calls"] - 1:04d}-request.json', request)
         return request
+
+    def _schema(self, role):
+        names = {e['properties']['action']['const'] for e in SCHEMAS.get(role, {}).get('oneOf', [])}
+        return {'oneOf': [copy.deepcopy(e) for e in self.schemas.get(role, {}).get('oneOf', [])
+                          if e['properties']['action']['const'] in names]}
+
+    def _repair_schema(self, schema):
+        return {'oneOf': [e for e in schema['oneOf'] if e['properties']['action']['const'] == 'read_file']}
+
+    def _output_error(self):
+        return 'Return one short complete read_file JSON action matching the repair schema.'
 
     def record_response(self, response, seconds=0):
         write(self.directory / f'steps/{self.metrics["model_calls"] - 1:04d}-response.json', response)
@@ -239,11 +256,9 @@ class TeamController:
         self.metrics['roles'][self.role]['invalid_outputs'] += 1
         if raw is None or (isinstance(raw, dict) and raw.get('message', {}).get('content') == ''):
             self.metrics['roles'][self.role]['empty_outputs'] += 1
-        if self.metrics['output_repairs'] < self.policy['repair_calls']:
+        if self._budget():
             self.metrics['output_repairs'] += 1
             self.output_repair = True
-        else:
-            self._stop('invalid_output')
         self._archive()
 
     def dispatch(self, role, action):
@@ -252,20 +267,23 @@ class TeamController:
         if not self._budget('tool_calls'):
             return {'status': 'rejected', 'reason': self.reason or self.status}
         op = action.get('action') if isinstance(action, dict) else None
-        names = {entry['properties']['action']['const'] for entry in self.schemas.get(role, {}).get('oneOf', [])}
-        names &= {entry['properties']['action']['const'] for entry in SCHEMAS.get(role, {}).get('oneOf', [])}
+        schema = self._schema(role)
+        if self.output_repair:
+            schema = self._repair_schema(schema)
+        names = {entry['properties']['action']['const'] for entry in schema['oneOf']}
         if role != self.role or op not in names:
             return {'status': 'rejected', 'reason': 'Action is not available to the active role'}
         if self.reserve and op in REPAIR:
             return {'status': 'rejected', 'reason': 'Verification reserve: no new repair round'}
         self.metrics['tool_calls'] += 1
+        tool_call = self.metrics['tool_calls']
         self.metrics['roles'][role]['tool_calls'] += 1
         before_versions = dict(self.versions)
         try:
             from ollama_agents.errors import AdapterError
             from ollama_agents.schema import validate
             try:
-                validate(action, self.schemas[role])
+                validate(action, schema)
             except AdapterError as error:
                 raise ValueError(str(error)) from error
             result = self._dispatch(op, action)
@@ -273,6 +291,19 @@ class TeamController:
             self.metrics['tool_errors'] += 1
             result = {'status': 'rejected', 'reason': str(error)[:500]}
         self._refresh()
+        self._track_progress(op, action, result, before_versions)
+        self.histories[role].append(({'role': 'assistant', 'content': json.dumps(action)},
+                                     {'role': 'user', 'content': json.dumps(compact_observation(result))}))
+        elapsed = self.clock() - tool_started
+        self.metrics['roles'][role]['tool_seconds'] += elapsed
+        self.metrics['roles'][role]['seconds'] += elapsed
+        write(self.directory / f'actions/{tool_call:04d}.json',
+              {'actor': 'model', 'role': role, 'action': action, 'result': result, 'versions': self.versions})
+        self._budget()
+        self._archive()
+        return copy.deepcopy(result)
+
+    def _track_progress(self, op, action, result, before_versions):
         # Only file/test/information evidence counts as progress. Notes and
         # rephrasing, runner UUIDs, routing and role switches do not reset idle.
         evidence_actions = {'read_file', 'run_tests', 'check_baseline', 'collect_tests', 'find_paths',
@@ -291,23 +322,10 @@ class TeamController:
             else:
                 self.idle += 1
             if self.idle >= self.policy['repeat_limit']:
-                if self.recovery_active:
-                    self._stop('stagnation')
-                else:
-                    self.recovery_active = True
-                    self.metrics['recoveries'] += 1
-                    self.idle = 0
-                    result['recovery'] = 'Read a different relevant source or run a focused diagnostic.'
-        self.histories[role].append(({'role': 'assistant', 'content': json.dumps(action)},
-                                     {'role': 'user', 'content': json.dumps(compact_observation(result))}))
-        elapsed = self.clock() - tool_started
-        self.metrics['roles'][role]['tool_seconds'] += elapsed
-        self.metrics['roles'][role]['seconds'] += elapsed
-        write(self.directory / f'actions/{self.metrics["tool_calls"]:04d}.json',
-              {'role': role, 'action': action, 'result': result, 'versions': self.versions})
-        self._budget()
-        self._archive()
-        return copy.deepcopy(result)
+                self.recovery_active = True
+                self.metrics['recoveries'] += 1
+                self.idle = 0
+                result['recovery'] = 'Read a different relevant source or run a focused diagnostic.'
 
     def _dispatch(self, op, a):
         if op == 'read_file':
@@ -452,9 +470,6 @@ class TeamController:
             record = self._record({'status': 'completed', **a}, diagnosis=True)
             return record
         if op == 'ask_analysis':
-            if self.metrics['information_requests'] >= self.policy['information_requests']:
-                self._stop('information_budget')
-                raise ValueError('Information request limit reached')
             self._refs(a.get('refs', []))
             mid = self._message('analysis', 'information_request', a, a.get('refs', []))
             self.stack.append((self.role, self.state, copy.deepcopy(self.active_job), mid))
@@ -548,14 +563,10 @@ class TeamController:
             self.completion = {'allowed': True, 'status': status}
             return {'status': 'completed'}
         if op == 'finish_incomplete':
-            self._stop(a['reason'])
-            return {'status': 'completed'}
+            raise ValueError('Time remains: investigate the blocker and continue the active job')
         raise ValueError('Unknown action')
 
     def _round(self):
-        if self.metrics['revision_rounds'] >= self.policy['revision_rounds']:
-            self._stop('revision_budget')
-            raise ValueError('QA/Dev revision limit reached')
         self.metrics['revision_rounds'] += 1
 
     def _invalidate(self):

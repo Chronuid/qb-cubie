@@ -44,14 +44,6 @@ class Controller:
                     "repair": "Read the relevant current lines before a small replacement; the runner supplies its hash."}
         if action['action'] == 'replace_text' and action['path'] in self.blocked_edits:
             return {"status": "tool_error", "code": "read_required", "repair": "Read the current file before another edit."}
-        # Successful reads may have been evicted from the model context. Replaying
-        # them is safe; unchanged results still advance the idle/stall counter.
-        if action['action'] == 'read_file' and self.key(action) in self.readable:
-            return None
-        if self.attempts[self.key(action)] >= 2:
-            self.metrics['rejected_retries'] += 1
-            return {"status": "tool_error", "code": "repeated_action", "repair":
-                    "No new evidence: locate an existing path, read current source, or choose a different focused test."}
         return None
 
     def observe(self, action, result, versions, call):

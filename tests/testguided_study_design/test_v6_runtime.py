@@ -169,7 +169,7 @@ def test_case_revision_without_file_change_invalidates_old_reproduction(tmp_path
 
 
 @pytest.mark.parametrize('kind,limit', [('information', 6), ('revision', 3)])
-def test_round_limits_are_shared_and_stop_before_extra_handoff(tmp_path, kind, limit):
+def test_legacy_round_limits_allow_extra_handoffs(tmp_path, kind, limit):
     h = Harness(tmp_path, repeat_limit=100)
     red = h.red()
     for _ in range(limit):
@@ -184,8 +184,8 @@ def test_round_limits_are_shared_and_stop_before_extra_handoff(tmp_path, kind, l
     action = ('ask_analysis', {'question': 'one too many', 'refs': []}) if kind == 'information' else (
         'request_test_change', {'case_ids': ['C-1'], 'requirement_id': 'REQ-1', 'evidence_ids': [red['evidence_id']], 'reason': 'one too many'})
     response = h.send('dev', action[0], **action[1])
-    assert response['status'] == 'rejected'
-    assert h.snapshot()['reason'] == ('information_budget' if kind == 'information' else 'revision_budget')
+    assert response['status'] == 'completed'
+    assert h.snapshot()['status'] == 'running'
 
 
 def test_nested_analysis_probe_resumes_both_interrupted_jobs(tmp_path):
@@ -288,7 +288,8 @@ def test_analysis_can_delegate_a_probe_while_answering_an_information_request(tm
     assert h.snapshot()['state'] == 'reproduce'
 
 
-def test_real_incomplete_v6_teams_reach_independent_evaluation_in_both_arms(tmp_path, managed_study, monkeypatch):
+@pytest.mark.parametrize('version', [6, 7])
+def test_real_incomplete_teams_reach_independent_evaluation_in_both_arms(tmp_path, managed_study, monkeypatch, version):
     import tarfile
 
     from ollama_agents.errors import AdapterError
@@ -296,10 +297,10 @@ def test_real_incomplete_v6_teams_reach_independent_evaluation_in_both_arms(tmp_
 
     env = managed_study
     config = load_config(env.project / 'profiles/pilot.toml')
-    config['agent_version'] = 6
+    config['agent_version'] = version
     config['ollama']['think'] = False
     config['guides'] = {mode: str(env.project / 'guides' / f'{mode}.md') for mode in ('pytest', 'cubie')}
-    config_path = env.project / 'v6.toml'
+    config_path = env.project / f'v{version}.toml'
     save_config(config_path, config)
 
     class Manager(HostContainer):
@@ -326,7 +327,7 @@ def test_real_incomplete_v6_teams_reach_independent_evaluation_in_both_arms(tmp_
     class Client:
         def __init__(self):
             case = CASE | {'target': 'bounds.bounded', 'args': [-2, 0, 5], 'expected': {'returns': 0}}
-            self.actions = iter([
+            actions = [
                 a('read_file', path='bounds.py', start=1),
                 lambda result: a('publish_context', requirements=[{'id': 'REQ-1', 'text': 'Clamp to lower boundary', 'refs': ['issue:REQ-1']}],
                                  sources=[result['evidence_id']], baseline=[], open_questions=[]),
@@ -338,7 +339,17 @@ def test_real_incomplete_v6_teams_reach_independent_evaluation_in_both_arms(tmp_
                 lambda result: a('replace_region', handle=result['handle'], new_text='    return max(lower, min(value, upper))\n', reason='Clamp to specified bounds'),
                 AdapterError('invalid_output', 'truncated', raw={'content': 'invalid-1'}, usage={'output_tokens': 8192}),
                 AdapterError('invalid_output', 'truncated again', raw={'content': 'invalid-2'}, usage={'output_tokens': 8192}),
-            ])
+                AdapterError('infrastructure_error', 'Provider unavailable after repairs'),
+            ]
+            if version == 7:
+                actions[1:3] = [lambda result: a('finish_orientation', requirements=[{
+                    'id': 'REQ-1', 'text': 'Clamp to lower boundary', 'refs': ['issue:REQ-1'], 'status': 'confirmed'}],
+                    source_refs=[result['evidence_id']], test_entry_refs=[], hypotheses=[], unknowns=[])]
+                for action in actions:
+                    if isinstance(action, dict) and action['action'] == 'read_file':
+                        action['line_start'] = action.pop('start')
+                        action['line_end'] = action.pop('end', 2)
+            self.actions = iter(actions)
 
         def chat(self, **request):
             action = next(self.actions)
@@ -357,16 +368,16 @@ def test_real_incomplete_v6_teams_reach_independent_evaluation_in_both_arms(tmp_
     results = [read(archive / 'runs' / row['run_id'] / 'result.json') for row in rows]
     assert len(results) == 2
     assert {row['mode'] for row in rows} == {'pytest', 'cubie'}
-    assert all(result['agent']['reason'] == 'invalid_output' for result in results)
+    assert all(result['agent']['reason'] == 'infrastructure_error' for result in results)
     assert all(result['agent']['status'] == 'incomplete' for result in results)
     assert all(result['resolved'] is True for result in results)
-    assert all(result['agent']['repairs'] == 1 for result in results)
+    assert all(result['agent']['repairs'] == 2 for result in results)
     assert all(manager.cleaned for manager in env.managers)
     for row in rows:
         directory = archive / 'runs' / row['run_id']
         assert 'tests/test_calc.py' in (directory / 'full.patch').read_text()
         assert 'tests/test_calc.py' not in (directory / 'production.patch').read_text()
-        raw = (directory / 'steps/0010-response.json').read_text()
+        raw = (directory / f'steps/{10 if version == 6 else 9:04d}-response.json').read_text()
         assert 'invalid-2' in raw
 
 
@@ -400,14 +411,14 @@ def test_context_republication_cannot_erase_an_unresolved_runner_question(tmp_pa
     assert another['message_id'] in h.snapshot()['pending_requests']
 
 
-def test_rephrased_context_without_new_evidence_also_stops_after_one_recovery(tmp_path):
+def test_rephrased_context_receives_guidance_without_stopping(tmp_path):
     h = Harness(tmp_path)
     source = h.ok('analysis', 'read_file', path='src/calc.py', start=1)
     for index in range(8):
         h.send('analysis', 'publish_context', requirements=[{'id': 'REQ-1', 'text': f'Rephrasing {index}', 'refs': ['issue:REQ-1']}],
                sources=[source['evidence_id']], baseline=[], open_questions=[])
-    assert h.snapshot()['reason'] == 'stagnation'
-    assert h.snapshot()['metrics']['recoveries'] == 1
+    assert h.snapshot()['status'] == 'running'
+    assert h.snapshot()['metrics']['recoveries'] >= 1
 
 
 def test_remote_baseline_preserves_original_production_and_rejects_git_tag_tampering(tmp_path):

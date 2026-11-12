@@ -108,7 +108,29 @@ def arm(rows):
             'team_process_metrics': {key: measured([r.get('agent', {}).get('process_metrics', {}).get(key)
                                                    for r in rows])
                                      for key in ('information_requests', 'revision_rounds', 'edit_conflicts',
-                                                 'recoveries', 'ebt_evaluation_checked')}}
+                                                 'recoveries', 'ebt_evaluation_checked', 'controller_tool_calls',
+                                                 'duplicate_actions', 'cursor_errors', 'scope_not_found')},
+            'workflow': workflow(rows) if any('milestones' in r.get('agent', {}).get('process_metrics', {})
+                                              for r in rows) else None}
+
+
+def workflow(rows):
+    """Report missing milestones explicitly; durations use reached runs only."""
+    milestones = ('qa', 'dev', 'case', 'suite', 'test_run', 'red', 'production_change', 'verification')
+    runs = [r.get('agent', {}).get('process_metrics', {}).get('milestones', {}) for r in rows]
+    result = {}
+    for name in milestones:
+        reached = [run[name] for run in runs if name in run]
+        result[name] = {'reached': len(reached), 'scheduled': len(rows),
+                        'not_reached': len(rows) - len(reached),
+                        'per_scheduled': len(reached) / len(rows) if rows else None,
+                        'duration_denominator': len(reached),
+                        'mean_seconds_when_reached': statistics.mean(r['seconds'] for r in reached) if reached else None,
+                        'mean_model_calls_when_reached': statistics.mean(r['model_calls'] for r in reached) if reached else None}
+    result['suite_per_started_qa'] = {
+        'numerator': result['suite']['reached'], 'denominator': result['qa']['reached'],
+        'rate': result['suite']['reached'] / result['qa']['reached'] if result['qa']['reached'] else None}
+    return result
 
 
 def measured(values):

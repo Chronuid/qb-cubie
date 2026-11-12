@@ -1,4 +1,4 @@
-"""Run one serial v6 team within one frozen study attempt and budget."""
+"""Run one serial, versioned team within one frozen study attempt and budget."""
 
 import time
 
@@ -19,8 +19,9 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
             client=None, observer=None, clock=None, visible_baseline=None, store=None, io=None):
     clock = clock or time.monotonic
     limits, model = config['budgets'], config['ollama']
+    version = design['core']['context']['version']
     if model['think'] is not False:
-        raise ValueError('V6 requires explicit think=false; freeze another variant to change it')
+        raise ValueError('Team designs require explicit think=false; freeze another variant to change it')
     if design['specialization']['mode'] != row['mode'] or row.get('design_id', identity(design)) != identity(design):
         raise ValueError('Team design does not match the frozen run')
     client = client or OllamaClient(endpoint=model['endpoint'], model=model['model'], think=False,
@@ -29,15 +30,12 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
     started = clock()
     store = store or RemoteWorkspace(manager, sandbox)
     policy = dict(design['core']['policy'])
-    # Configuration may tighten a frozen design budget, never extend it.
-    for key in ('wall_seconds', 'model_calls', 'tool_calls', 'context_bytes'):
-        configured, frozen = limits[key], policy[key]
-        if configured:
-            policy[key] = min(configured, frozen) if frozen else configured
+    # One configured clock spans setup and every role, including legacy designs.
+    policy.update(wall_seconds=limits['wall_seconds'], model_calls=0, tool_calls=0)
     policy['context_bytes'] = min(policy['context_bytes'], context_capacity(limits, model, design_schema(design)))
 
     def port(action):
-        timeout = max(1, min(limits['command_seconds'], policy['wall_seconds'] - (clock() - started)))
+        timeout = max(0.001, policy['wall_seconds'] - (clock() - started))
         return execute(manager, sandbox, {**action, 'team': True}, timeout, limits['output_chars'])
 
     team = TeamController(workspace='/workspace', artifact_dir=directory, mode=row['mode'],
@@ -46,13 +44,15 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
                           store=store, design=design)
     # Setup time belongs to this same attempt, not a fresh role budget.
     team.started = started
+    for job in getattr(team, 'jobs', {}).values():
+        job['deadline'] = started + policy['wall_seconds']
     write(directory / 'team-design.json', design)
     if visible_baseline is not None:
         record = team._record(visible_baseline, baseline=True, scope='original visible suite before agent edits')
         team.context['visible_baseline'] = compact_observation(record, 3000)
-    emit(observer, 'agent_started', 'V6-Team gestartet', active={'agent_started_at': time.time(),
+    emit(observer, 'agent_started', f'V{version}-Team gestartet', active={'agent_started_at': time.time(),
          'role': team.role, 'wall_seconds': policy['wall_seconds'],
-         'max_model_calls': policy['model_calls'], 'max_tool_calls': policy['tool_calls']})
+         'max_model_calls': None, 'max_tool_calls': None})
     usage, observations = [], []
     while team.status == 'running':
         request = team.request()
@@ -69,14 +69,16 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
         before = clock()
         remaining = policy['wall_seconds'] - (before - started)
         if remaining <= 0:
-            team.finish('wall_budget')
+            team.finish('budget_exhausted' if version == 7 else 'wall_budget')
             break
         try:
-            response = client.chat(messages=request['messages'], schema=request['schema'], timeout=remaining)
+            response = client.chat(messages=request['messages'], schema=request['schema'],
+                                   timeout=min(remaining, request.get('timeout_seconds', remaining)))
         except AdapterError as error:
             usage.append(error.usage or {})
-            if error.status == 'invalid_output':
-                team.reject_output(raw=error.raw, usage=error.usage or {}, seconds=clock() - before)
+            if error.status in {'invalid_output', 'agent_timeout'}:
+                metadata = {'status': error.status} if version == 7 else {}
+                team.reject_output(raw=error.raw, usage=error.usage or {}, seconds=clock() - before, **metadata)
             else:
                 team.record_response({'status': error.status, 'error': str(error), 'raw': error.raw,
                                       'usage': error.usage or {}}, clock() - before)
@@ -85,6 +87,13 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
                  agent={'last_error': {'error': str(error), 'status': error.status, 'step': team.metrics['model_calls']}})
             continue
         usage.append(response.get('usage', {}))
+        if version == 7 and clock() - before >= request['timeout_seconds']:
+            team.reject_output(raw=response.get('raw', response), usage=response.get('usage', {}),
+                               seconds=clock() - before, status='agent_timeout')
+            emit(observer, 'model_error', f'{role}: agent_timeout', state='model_error',
+                 agent={'last_error': {'error': 'Response exceeded the active deadline',
+                                      'status': 'agent_timeout', 'step': team.metrics['model_calls']}})
+            continue
         team.record_response(response, clock() - before)
         action = response['action']
         emit(observer, 'tool_started', f"{role}: {action['action']}", state='tool_wait',
@@ -107,7 +116,13 @@ def develop(manager, sandbox, task, row, config, guides, directory, *, design,
     submitted = store.production_patch() if hasattr(store, 'production_patch') else final
     (directory / 'production.patch').write_text(submitted, encoding='utf-8')
     state = team.snapshot()
-    emit(observer, 'agent_finished', f"V6-Team beendet: {state['status']} · {state['completion']['status']}",
+    if version == 7:
+        observations = [{'targets': e['targets'], 'observation': e.get('observation'),
+                         'baseline': e.get('baseline', False), **e['versions'],
+                         'role': 'dev', 'evidence_id': e['evidence_id']}
+                        for e in team.evidence.values() if e.get('purpose') in {'focused', 'regression'}
+                        and not e.get('collection_only')]
+    emit(observer, 'agent_finished', f"V{version}-Team beendet: {state['status']} · {state['completion']['status']}",
          state='agent_finished', active={'agent_finished_at': time.time(), 'operation': 'evaluation'},
          agent={'stop_reason': state['reason'] or state['status'], 'team': state})
     return {'design_id': identity(design), 'status': state['status'], 'reason': state['reason'],
