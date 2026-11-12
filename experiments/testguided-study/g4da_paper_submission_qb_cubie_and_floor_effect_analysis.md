@@ -1,17 +1,25 @@
 **GOOGLE GEMMA 4 DEVELOPER AGENT COMPETITION · PAPER TRACK**
 
-# qb-cubie in a Test-Guided Coding Agent: Methodology, Development, and Exploratory Pilot Findings
+# About Test-Guided Coding Agents: Methodology, Development, and Exploratory Pilot Findings
 
 *An A/B Evaluation of Example-Based Testing (qb-cubie 0.0.3) vs. pytest on Consumer Hardware Across Single-Agent (v1–v5) and Multi-Agent (v6–v9) Architectures*
 
-**Author & Project Lead:** Dominick Wirzba · **Paper Synthesis:** Gemini-App (Gemini-4-Argon) · **Telemetry & Audit Analyses:** Antigravity (Gemini-3.8-Flash) & Codex (GPT-6.1-Sol)  
-**Data Cutoff:** November 12, 2026 (v1–v5: Nov 11; v6–v9: Nov 12) · **Artifacts:** Published on PyPI (`qb-cubie 0.0.3`) and GitHub (https://github.com/Chronuid/qb-cubie/, MIT License; latest documentation on GitHub).
+**Author & Project Lead:** Dominick Wirzba  
+**Paper Synthesis:** Gemini-App (Gemini-4-Argon)  
+**Telemetry & Audit Analyses:** Antigravity (Gemini-3.8-Flash) & Codex (GPT-6.1-Sol)  
+
+**Data Cutoff:** November 12, 2026 (v1–v5: Nov 11; v6–v9: Nov 12)   
+**Artifacts:** Published on PyPI (`qb-cubie 0.0.3`) and GitHub (https://github.com/Chronuid/qb-cubie/, MIT License; latest documentation on GitHub).  
 
 ---
 
 > **ABSTRACT —** Evaluating open-weights coding agents on everyday consumer hardware requires harnesses that separate genuine code repair from test manipulation. We present `qb-cubie` (v0.0.3), an open-source Python quality assurance framework providing declarative Example-Based Testing (EBT), and evaluate whether providing `qb-cubie` and its structured guide improves the resolution rate of a local `gemma4:12b` agent on real-world SWE-bench Python tasks compared to standard `pytest`. Both arms run under identical budgets and repository snapshots, while an independent, Cubie-free container strips all agent test edits and evaluates only the production patch against private `FAIL_TO_PASS` and `PASS_TO_PASS` suites.
 >
-> Across the single-agent series, private resolutions occurred in 3 of 42 runs (7.1%): twice with `pytest` (v2, v4) and once with `qb-cubie`, while EBT contracts went unused in 19 of 21 Cubie runs (90.5%). In Pilot v5 (`think=true`), both arms resolved 0/3 tasks: 11 of 67 model calls hit the 8,192-token cap emitting only thinking tokens without a JSON action, consuming 87.3% of output tokens and 79.6% of runtime. A follow-up series across four serial multi-agent generations (v6–v9; 17 runs, 1,441 model calls, 8.55M input tokens) eliminated infrastructural errors in v9, but removing v8's forced handoff while overloading the `finish` schema caused the model to invoke `finish` zero times across 1,184 steps (974 duplicates, 82.6%), locking execution in Analysis before the QA-scoped `qb-cubie` guide could be injected.
+> Across the single-agent series, private resolutions occurred in 3 of 42 runs (7.1%): twice with `pytest` (v2, v4) and once with `qb-cubie`, while EBT contracts went unused in 19/21 Cubie runs (90.5%). In Pilot v5 (`think=true`), both arms resolved 0/3 tasks: 11/67 model calls hit the 8,192-token cap emitting only thinking tokens without JSON actions, consuming 87.3% of output tokens and 79.6% of runtime. Across four multi-agent generations (v6–v9; 17 runs, 1,441 model calls, 8.55M input tokens), v9 eliminated infrastructural errors, but removing v8's forced handoff while overloading `finish` yielded 0 `finish` calls across 1,184 steps (974 duplicates, 82.6%), locking execution in Analysis before QA-scoped `qb-cubie` injection.
+
+---
+
+> *Curious readers inspecting the repository artifacts will notice a recursive layer: the QA, coding, and audit agents building, packaging, and analyzing this study were themselves under observation.*
 
 ---
 
@@ -19,21 +27,21 @@
 
 Deploying autonomous coding agents on everyday consumer hardware using compact open-weights models such as `gemma4:12b` (11.9B parameters, 4-bit quantized `Q4_K_M`) exposes operational bottlenecks that are often masked by frontier cloud APIs or permissive benchmarks. When an agent must reproduce a bug, author a test, and patch production code, failure rarely stems from a single root cause; instead, inference limits, pre-training biases, noisy repository baselines, and tool-interface friction interact as a compound bottleneck cascade [8].
 
-To investigate how test methodology interacts with these constraints, we introduce `qb-cubie` (v0.0.3) and conduct a cryptographically frozen A/B study asking [4]: *Does access to `qb-cubie` and its specified guidance improve the independently verified resolution rate of a test-guided coding agent powered by Ollama and `gemma4:12b` under a fixed working budget compared to the exact same agent using standard `pytest`?* Because the intervention pairs the library with its instructional prompt [6], the study evaluates the combined package offering. Furthermore, because upstream inference and orchestration bottlenecks prevented EBT execution in 90.5% of v1–v5 runs and 100% of v9 runs, this study serves primarily as a forensic architectural bottleneck diagnosis rather than a conclusive head-to-head test of EBT efficacy [4, 10].
+To investigate how test methodology interacts with these constraints, we introduce `qb-cubie` (v0.0.3) in a cryptographically frozen A/B study asking [4]: *Does access to `qb-cubie` and its guidance improve the independently verified resolution rate of a test-guided `gemma4:12b` Ollama agent under a fixed budget compared to the identical agent using `pytest`?* Pairing library and instructional prompt evaluates the combined offering [6]. Because upstream inference and orchestration bottlenecks prevented EBT execution in 90.5% of v1–v5 runs and 100% of v9 runs, this study serves primarily as a forensic bottleneck diagnosis rather than a conclusive EBT efficacy test [4, 10].
 
 ### 1.1 Declarative Contract Semantics of qb-cubie and Epistemological Boundaries
 
-The open-source package `qb-cubie` unifies declarative Example-Based Testing (EBT), natural-language Review-Based Testing (RBT), execution arenas (`TempFS`, `PyVenv`), static analysis orchestrators (`AstLinter`, `CstLinter`), and a benchmark subsystem (`qb_cubie.benchmarks` / `cubie-bench`) with native SWE-bench support [9]. An EBT contract defines a finite set of concrete executions of a callable target via mutable `WorldState` dataclasses [9]. While the structure "pre-state – operation – post-state" is inspired by a Hoare triple $\{P\}\ S\ \{Q\}$ [1], `WorldState` is a concrete data pattern rather than a formal state predicate [9]. Passing an EBT contract demonstrates observed conformance over finite inputs rather than a formal correctness proof. Because all inputs in `pre` are checked against the shared set `post`, correlated input/output pairs require separate EBT contracts (e.g., via `pytest.mark.parametrize`), and `WorldState(returns=None)` explicitly requires `None` whereas `qb_cubie.UNSPECIFIED` disables return checking [9]. In our study, an EBT contract counts as utilized only if executed via `.run()` and verified via `assert result.evaluation is True` [4].
-
-An internal audit of the repository disclosed three core edge cases that did not affect the agent runs and are scheduled for patching in version 0.0.4 [9]: (B1, P1) `PyVenv` workspace IPC file collisions; (B2, P1) `PytestReporter` asserts ignored under `python -O`; and (B3, P2) `CstLinter` returning `[]` on missing paths. Following an early audit warning against circular validation, all 698+ verification nodes for the study controllers were written with standard `pytest` assertions rather than EBT contracts [9, 10].
+The open-source package `qb-cubie` unifies declarative Example-Based Testing (EBT), natural-language Review-Based Testing (RBT), execution arenas (`TempFS`, `PyVenv`), static linters (`AstLinter`, `CstLinter`), and a benchmark subsystem (`qb_cubie.benchmarks` / `cubie-bench`) with SWE-bench support [9]. An EBT contract defines finite concrete executions of a target callable via mutable `WorldState` dataclasses [9]. Inspired by Hoare triples $\{P\}\ S\ \{Q\}$ [1], `WorldState` represents a concrete data pattern rather than a formal predicate; passing demonstrates observed conformance over finite inputs, not formal proof [9]. Because all `pre` inputs check against shared `post` states, correlated input/output pairs require separate contracts (e.g., `pytest.mark.parametrize`), and `WorldState(returns=None)` requires `None` whereas `qb_cubie.UNSPECIFIED` disables return checks [9]. Here, EBT utilization requires execution via `.run()` and verification via `assert result.evaluation is True` [4]. Following an audit recommendation against circular validation, all 698+ controller verification nodes were implemented with standard `pytest` assertions rather than EBT contracts [9, 10].
 
 ## 2. Related Works
 
-Repository-level coding benchmarks are anchored by SWE-bench, SWE-bench Lite, and SWE-bench Verified [2], which evaluate whether generated patches resolve real GitHub issues against Fail-to-Pass and Pass-to-Pass test suites. Agentic frameworks such as SWE-agent, AutoCodeRover, and Agentless [3] show that structured navigation, search, and localized editing interfaces strongly influence resolution rates, though most published baselines rely on frontier models. Our work extends this literature in three ways: (1) we introduce `qb-cubie` as a declarative EBT alternative to procedural `pytest` assertions [9]; (2) we enforce a zero-leakage evaluation boundary that permits agents to freely edit visible tests during test-guided repair while stripping all test edits prior to private container evaluation [4]; and (3) we provide a forensic failure taxonomy of a 4-bit quantized 12B model across nine single- and multi-agent architectures [8, 10].
+Repository-level benchmarks such as SWE-bench, Lite, and Verified [2] evaluate patches against Fail-to-Pass and Pass-to-Pass suites. Frameworks including SWE-agent, AutoCodeRover, and Agentless [3] show that structured navigation and editing interfaces strongly shape resolution rates, mostly using frontier models. We extend this work by: (1) introducing `qb-cubie` as a declarative EBT alternative to procedural `pytest` assertions [9]; (2) enforcing a zero-leakage boundary allowing visible test edits during repair while stripping all test edits before private container evaluation [4]; and (3) providing a forensic failure taxonomy of 4-bit quantized `gemma4:12b` across nine single- and multi-agent architectures [8, 10].
 
 ## 3. Methodology, SWE-bench Dataset, and Zero-Leakage Harness
 
 The study task pool comprises 129 real-world GitHub pull requests and issues in the SWE-bench schema [2] across four Python repositories: 67 from FastAPI, 48 from Rich, 13 from Requests, and 1 from HTTPX [5, 10]. In addition, `cubie` provides a native SWE-bench module under `src/qb_cubie/benchmarks/swebench/` supporting official Hugging Face datasets [9]. A manual audit of 39 tasks [5] identified 26 qualified candidates, 9 conditional cases, 3 deferred cases, and 1 excluded case (90 unaudited). Three tasks were frozen with Seed 42 for the iterative pilot series [4]:
+
+**Table 1:** Evaluated SWE-bench Pilot Tasks.
 
 | Task ID | Repository & Category | Required Modification | FAIL_TO_PASS | PASS_TO_PASS |
 | :--- | :--- | :--- | ---: | ---: |
@@ -46,6 +54,8 @@ Before each run, git history and reference patches are stripped. Both arms run s
 ## 4. Single-Agent Experiments (Generations v1–v5)
 
 The single-agent core evolved across five frozen designs [6]: early unversioned (basic tools, 600 s / 24 calls), v2 (working ledger, anchored edits, output repair), v3 (action-coupled notes, baseline counter-checks, EBT tracking; expanded in revised v3 to 900 s, unlimited calls, and 32k/8k tokens), v4 (runner-bound file hashes, oracle checks), and v5 (mandatory analysis checkpoints plus `think=true`). Table 2 summarizes all seven completed pilots (42 runs) and one prepared-only archive (`180104`; a separate 60 s smoke check in `local/live-pilot-validation` is excluded) [4]:
+
+**Table 2:** Single-Agent Pilot Progression (Generations v1–v5).
 
 | Archive ID | Core & Thinking | Budget (Time / Calls · Ctx / Out) | pytest Resolved | Cubie Resolved |
 | :--- | :--- | :--- | ---: | ---: |
@@ -60,6 +70,8 @@ The single-agent core evolved across five frozen designs [6]: early unversioned 
 * **90.5% EBT Non-Utilization & Baseline Pollution:** Across all 21 Cubie runs in v1–v5, EBT contracts were executed in only 2 runs (9.5%, both in `180702`) and never executed in 19 runs (90.5%) [10]. Visible suites also contained pre-existing failures before agent edits [7]: FastAPI had 8 collection errors (missing `pydantic_settings`); Requests had 577 passed, 5 failed, 15 skipped; and Rich had 746 passed, 65 failed, 24 skipped.
 
 ### 4.1 Deep Dive into Pilot v5 (Archive 20261111-200641)
+
+**Table 3:** Pilot v5 Execution Breakdown (Archive 20261111-200641).
 
 | Run | Task & Arm | Agent Time | Model / Tool Calls | Termination & Final Patch |
 | :--- | :--- | ---: | ---: | :--- |
@@ -82,6 +94,8 @@ Independent post-hoc audits by Antigravity and Codex [8] formalize why the 7.1% 
 
 To test whether role specialization overcomes single-agent overload, a follow-up study on November 12 evaluated four serial multi-agent generations (v6–v9: Analysis, QA, and Dev sharing the workspace under `gemma4:12b`, Seed 42, `think=false`, `temperature=0.15`, `num_ctx=32768`, `num_predict=8192`, and up to 1,800 s budget) [10]:
 
+**Table 4:** Multi-Agent Follow-Up Progression (Generations v6–v9).
+
 | Generation & Archive | Exec. / Plan | Model / Tool Calls | Tokens (In / Out) | Reached Roles & Termination Cause |
 | :--- | ---: | ---: | ---: | :--- |
 | **v6** (`20261112-002038`) | 6 / 6 | 66 / 65 | 422,512 / 16,749 | Analysis (100%) · `finished`: $6\times$ `stagnation` stop (0/6 resolved) |
@@ -100,9 +114,11 @@ Across all 1,432 tool actions in v6–v9, 90.7% were `search_content` (795, 55.5
 3. **v8 (Archive `20261112-030527`) — Forced Handoff vs. Amnesia & Cursor Traps:** A deterministic controller rule (`repeat_count >= 3` activating QA) triggered QA, which sent two `ask_analysis` queries (`job-12`, `job-20`). Analysis found the exact target in `fastapi/dependencies/utils.py` (lines 253–280), but because it did not call `update_context`, the read files were lost (`materials: []` in `job-20`), while passing `"cursor": "0"` triggered 30+ consecutive `cursor_error` rejections [10].
 4. **v9 (Archive `20261112-035522`) — Infrastructural Maturity vs. Controller-Prompt Lock-In:** v9 introduced transactional Zero-Admin Memory, cursor-free schemas, symmetric read/search rights, and clean Markdown prompts, while removing v8's forced handoff [10]. Over 1,184 model calls and 1,179 tool steps (6.98M input tokens), infrastructural errors dropped to 0 cursor errors, 0 tool errors, and 0 context overflows, and Analysis located the target files within steps 0–13 on every task. However, removing the forced handoff while describing `finish` primarily with review parameters (`verdict=verified/rework`, raising `ValueError('Orientation cannot verify a repair')` in `orient` at `team_v9.py:381`) caused the model to invoke `finish` zero times (0 calls) across 1,184 steps and fall into 974 duplicate actions (82.6%). Because `team_v9.py:615` injects the framework guide only upon entering QA, the `qb-cubie` instructions were never presented to the model in any v9 run [10].
 
-## 7. Conclusion
+## 7. Threats to Validity and Conclusion
 
-Across nine agent generations (59 executed runs: 42 single-agent in v1–v5 and 17 multi-agent in v6–v9), we contribute an open-source declarative testing framework (`qb-cubie 0.0.3`), a zero-leakage SWE-bench evaluation harness, and forensic evidence of the floor effects governing 12B models on everyday hardware. While flat single-agent architectures achieved three verified repairs—including a proof-of-concept resolution executing six EBT contracts in archive `180702`—upstream bottlenecks (87.3% reasoning token starvation in v5, 90.5% EBT non-utilization from `pytest` priors, and phase-transition lock-in in v6–v9) prevented downstream test methodologies from being systematically exercised. Overcoming this floor requires decoupling reasoning budgets, enforcing dedicated contract-authoring tools, and pairing unambiguous phase transitions with higher-capacity models.
+**Threats to Validity:** Three methodological constraints bound our findings: (1) *Custom Evaluation Harness:* Rather than using the stock competition harness, we built a custom study runner and `qb_cubie.benchmarks` subsystem under sprint constraints to enforce paired A/B container parity and zero-leakage test stripping; full cross-harness verification remains future work. (2) *Exploratory Iterative Progression:* Generations v1–v9 evolved rapidly via post-hoc error audits between frozen archives rather than a single pre-registered architecture, making cross-generation comparisons exploratory. (3) *AI-Assisted Provenance:* While software architecture, `qb-cubie` engineering, and experimental execution were led by the human author, telemetry audits and manuscript synthesis utilized LLM assistance as transparently disclosed, verified against SHA-256-frozen logs.
+
+**Conclusion:** Across nine generations (59 runs: 42 single-agent, 17 multi-agent), we contribute `qb-cubie 0.0.3`, a zero-leakage SWE-bench harness, and forensic evidence of 12B floor effects on consumer hardware. While single-agent runs achieved three verified repairs—including one executing six EBT contracts (`180702`)—reasoning starvation (87.3% in v5), `pytest` priors (90.5% EBT non-use), and handoff lock-in (v6–v9) masked downstream testing effects, motivating decoupled reasoning budgets, dedicated contract tools, and 30B+ replication.
 
 ## 8. References and Frozen Study Artifacts
 
