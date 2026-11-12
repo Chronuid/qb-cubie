@@ -105,9 +105,50 @@ Cubie-/Pytest-Agenten und einem Cubie-freien Vergleichscontainer.
 Der gesamte Bereich einschließlich Adapter, Datensätzen und Messfunktionen
 gehört nicht zum qb-cubie Core.
 
-### Replikation und Download der Experimentdaten (Study-Runs)
+## Testguided-Vergleichsstudie (`experiments/testguided-study`)
 
-Die vollständigen Rohdaten und Telemetrieläufe der empirischen Vergleichsstudie (~1,1 GB entpackt, ~918 MB komprimiert) sind zum Schutz vor Repository-Überlastung aus dem Git-Tracking und PyPI-Paket ausgeschlossen. Sie stehen als GitHub-Release-Asset bereit und können mit dem mitgelieferten Validierungs- und Downloadskript automatisch heruntergeladen, per SHA-256 kryptografisch verifiziert und entpackt werden:
+Im Verzeichnis [`experiments/testguided-study`](./experiments/testguided-study/README.md) befindet sich eine unabhängige empirische A/B-Vergleichsstudie (eingereicht im *Google Gemma 4 Developer Agent Competition – Paper Track*). Die Studie untersucht, ob der Zugang zu **qb-cubie** und dessen deklarativen EBT-Verträgen (Example-Based Testing) die Lösungsquote eines lokalen, testgeführten Programmieragenten gegenüber regulärem **pytest** auf realen Software-Engineering-Aufgaben steigert.
+
+### Forschungsfrage und Versuchsaufbau
+
+- **Zentrale Fragestellung:** Verbessert das Angebot von `qb-cubie` (Version 0.0.3) samt strukturierter Anleitung die unabhängig evaluierte Lösungsquote eines mit `gemma4:12b` (Ollama, Consumer-Hardware) betriebenen Coding-Agenten unter identischen Ressourcen- und Zeitbudgets gegenüber der Standard-Kontrollbedingung mit `pytest`?
+- **Zero-Leakage-Evaluationsharness:** Beide Agentenarme starten mit identischen Repository-Snapshots und dürfen während der Bearbeitung sichtbare Testdateien im Workspace frei erstellen und modifizieren. Nach Abschluss extrahiert ein separater, Cubie-freier Evaluator-Container ausschließlich den veränderten Produktionscode (`production.patch`), verwirft alle Teständerungen des Agenten und bewertet die Reparatur gegen private, dem Modell verborgene `FAIL_TO_PASS`- und `PASS_TO_PASS`-Testsuiten.
+- **Aufgabenbasis:** 129 SWE-bench-kompatible Aufgaben aus 4 realen Python-Repositories (FastAPI, Requests, Rich, HTTPX). Ein Katalog von 39 manuell auditierten Aufgaben ([KANDIDATEN.md](./experiments/testguided-study/KANDIDATEN.md)) bildet die Basis; die iterativen Piloten verwenden standardmäßig 3 fest gefrorene Referenzaufgaben (FastAPI `#9425`, Requests `#6589`, Rich `#3278`, Seed 42).
+
+### Agentengenerationen und empirische Befunde
+
+Die Studie dokumentiert zwei Hauptentwicklungsphasen und neun Architekturiterationen:
+
+1. **Single-Agent-Generationen (v1–v5):**
+   - 42 evaluierte Läufe (7 abgeschlossene Piloten à 6 Läufe). Private Gesamtlösungsquote: 7,1 % (3 von 42 Läufen privat gelöst: 2× pytest in v2 und v4; 1× Cubie in v3 rev. mit 6 ausgeführten EBT-Verträgen).
+   - **Floor-Effekt und Prior-Dominanz:** In 90,5 % der Cubie-Läufe (19 von 21) wurden keine EBT-Verträge ausgeführt, da das 12B-Modell unter kognitiver Last stark zu gelernten prozeduralen `assert`-Mustern aus dem Pretraining tendierte.
+   - **Reasoning Token Starvation (Pilot v5):** Bei aktiviertem Denken (`think=true`) verbrauchten 11 von 67 Modellaufrufen das vollständige Ausgabelimit von 8.192 Tokens ausschließlich mit internem CoT-Thinking ohne ausführbare JSON-Aktion (87,3 % aller Output-Tokens, 79,6 % der Laufzeit).
+2. **Multi-Agent-Generationen (v6–v9):**
+   - Rollenteilung in *Analysis*, *QA* und *Dev* mit gemeinsamem Workspace, synchronen Lese-/Suchrechten und Markdown-Kontext.
+   - 17 durchgeführte Läufe über vier Generationen (1.441 Modellaufrufe, 8,55 Mio. Input-Tokens).
+   - **Infrastrukturreife vs. Controller-Lock-In:** Generation v9 behob alle infrastrukturellen Fehler (0 Cursor-Fehler, 0 Tool-Fehler, 0 Kontextüberläufe). Durch die Entfernung der erzwungenen Übergabe aus v8 und ein überladenes `finish`-Schema rief das Modell in v9 jedoch über 1.184 Schritte kein einziges Mal `finish` auf (82,6 % Aktionsduplikate), wodurch die Ausführung in der Orientierungsphase verharrte und die erst in QA injizierte Cubie-Anleitung nie erreicht wurde (0/17 gelöst).
+
+### Ausführung und Replikation
+
+Die Studie bringt einen eigenständigen CLI-Starter [`./study`](./study) mit integriertem Web- und Terminal-Monitor mit:
+
+```bash
+# Fachlichen Piloten (3 Aufgaben, 6 Läufe) starten
+./study --mode pilot
+
+# Bestimmtes Generationsprofil ausführen (z. B. v9 Multi-Agent)
+./study --mode pilot --config experiments/testguided-study/v9.toml
+
+# Synthetischen Techniklauf ausführen
+./study --mode smoke
+
+# Monitor für ein laufendes oder abgeschlossenes Archiv öffnen
+./study monitor /pfad/zum/studienarchiv --port 8765
+```
+
+### Download der Experimentdaten (Study-Runs)
+
+Die vollständigen Rohdaten, Telemetrie- und Schrittprotokolle aller Piloten (~1,1 GB entpackt, ~918 MB komprimiert) sind als GitHub-Release-Asset hinterlegt und können mit dem mitgelieferten Validierungs- und Downloadskript automatisch heruntergeladen, per SHA-256 kryptografisch verifiziert und entpackt werden:
 
 ```bash
 python scripts/download_study_runs.py
@@ -118,6 +159,19 @@ Das Skript entpackt die Läufe nach `experiments/testguided-study/runs/`. Altern
 ```bash
 python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar.gz
 ```
+
+### Wichtige Dokumente und Artefakte
+
+| Dokument | Inhalt |
+| :--- | :--- |
+| [experiments/testguided-study/README.md](./experiments/testguided-study/README.md) | Vollständige Dokumentation zu Studienaufbau, Starter-CLI, Profilen und Container-Images |
+| [G4DA Paper Submission](./experiments/testguided-study/g4da_paper_submission_qb_cubie_and_floor_effect_analysis.md) | Wettbewerbs-Paper: *qb-cubie and Floor-Effect Analysis* (v1–v9 A/B-Evaluation) |
+| [PAPER.md](./experiments/testguided-study/PAPER.md) | Ursprünglicher Studienbericht und Methodik der Single-Agent-Reihen (v1–v5) |
+| [PROTOKOLL.md](./experiments/testguided-study/PROTOKOLL.md) | Verbindliches Studienprotokoll, Messgrößen und Hypothesendefinitionen |
+| [ANALYSE-GENERATIONEN-V6-V9.md](./experiments/testguided-study/ANALYSE-GENERATIONEN-V6-V9.md) | Detaillierte Telemetrie- und Ursachenanalyse der Multi-Agenten-Generationen v6 bis v9 |
+| [DATEN.md](./experiments/testguided-study/DATEN.md) / [KANDIDATEN.md](./experiments/testguided-study/KANDIDATEN.md) | SWE-bench-Aufgabenpool, Audit-Befunde und reproduzierbare Aufgabenselektion |
+| [AGENTENDESIGN-V9.md](./experiments/testguided-study/AGENTENDESIGN-V9.md) | Architektur und Spezifikation der Multi-Agenten-Generation v9 |
+| [HYPOTHESEN-URSACHENANALYSE.md](./experiments/testguided-study/HYPOTHESEN-URSACHENANALYSE-20261111.md) | Ursachenanalyse zu Inferenzengpässen und Floor-Effekten (Antigravity & Codex) |
 
 ## Wheel-Prüfung und CI
 
@@ -233,6 +287,7 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
 
 [↦ | Experimentelle Benchmarks außerhalb des Core | ↤](./docs/GUIDE_Benchmarks.md)  
+[↦ | Testguided-Vergleichsstudie | ↤](./experiments/testguided-study/README.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
 </center>
