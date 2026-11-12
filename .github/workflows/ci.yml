@@ -12,12 +12,14 @@ jobs:
   wheel:
     name: Wheel / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.os == 'windows-2022' }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15, windows-2022]
+        # Note: windows-2022 is temporarily frozen until native Windows console
+        # launcher relocation and subprocess PATH handling are addressed.
+        # See docs/CI_PLATFORM_STATUS.md for details.
+        os: [ubuntu-24.04, macos-15]
         python: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v4

@@ -111,8 +111,10 @@ Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kan
 
 | Prüfung | Python | Betriebssystem / GitHub-Runner |
 | --- | --- | --- |
-| Wheel bauen, installieren und prüfen | 3.13, 3.14 | Linux (`ubuntu-24.04`), macOS (`macos-15`), Windows (`windows-2022`) |
+| Wheel bauen, installieren und prüfen | 3.13, 3.14 | Linux (`ubuntu-24.04`), macOS (`macos-15`) *(Windows vorübergehend eingefroren)* |
 | Vollständige Repository-Testsuite mit provisionierten Arena-Basen | 3.13, 3.14 | Linux (`ubuntu-24.04`) |
+
+Details zum Plattformstatus und den vorübergehend eingefrorenen Windows-Checks dokumentiert [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md).
 
 Die Wheel-Jobs bauen zunächst eine Quelldistribution und daraus das Wheel. Lokale Arena-Basen werden aus beiden Distributionen ausgeschlossen. [check_wheel.py](./scripts/check_wheel.py) erzeugt eine neue virtuelle Umgebung ohne Zugriff auf die Hostpakete und prüft zunächst Paketimport und EBT nur mit den deklarierten Pflichtabhängigkeiten, ohne pytest oder Analysewerkzeuge. Anschließend wird pytest ausdrücklich als Testtreiber installiert und die Kerninstallation geprüft. Danach wird dasselbe Wheel mit dem Extra `linters` installiert und erneut geprüft. `pip check` prüft die Abhängigkeiten. Die [Installationstests](./tests/wheel/smoke_installed.py) laufen außerhalb des Checkouts mit isoliertem Python, ohne die Repository-`conftest.py`, zusätzliche pytest-Plugins oder `PYTHONPATH=src`.
 
@@ -194,7 +196,7 @@ Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen
 
 Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-Aufrufe setzen die EBT-Laufdaten zurück. Das setzt weder Target-Seiteneffekte noch bereits veränderte Argumente zurück. `WorldState(returns=None)` erwartet ausdrücklich `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Mehrere Eingänge teilen dieselbe Zielmenge; korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge. Ein `JsonReporter` persistiert Ergebnisse, erhebt aber selbst keine fachliche Assertion. Die genaue Vertragsbedeutung steht in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
 
-Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS und Windows erhalten begrenzte Wheel-Prüfungen, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](tests/docs_tmp/CONTRACT_CASES_9_2.md).
+Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS erhält die begrenzte Wheel-Prüfung, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die Windows-Checks sind bis zur Bereitstellung nativer Windows-Launcher-Anpassungen vorübergehend eingefroren (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)). Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](tests/docs_tmp/CONTRACT_CASES_9_2.md).
 
 ---
 
