@@ -1467,3 +1467,27 @@ Die experimentelle API liegt unter `qb_cubie.benchmarks`. `cli.py` und
 Die installierten Vorlagendaten bleiben unter `data/`. Interne Funktionen und
 Methoden besitzen erklärende Docstring-Einzeiler; die Styleguide-Prüfung sichert
 auch deren Vollständigkeit im Benchmark-Paket.
+
+---
+
+## Experimentdaten und Reproduzierbarkeit
+
+Die vollständigen Rohdaten der empirischen Vergleichsstudie (`experiments/testguided-study/runs/`, ca. 1,1 GB entpackt) werden separat über die GitHub Releases bereitgestellt.
+
+### Download- und Verifikationsskript
+
+Mit [scripts/download_study_runs.py](../scripts/download_study_runs.py) können die Daten mit Fortschrittsanzeige heruntergeladen, per SHA-256 verifiziert und entpackt werden:
+
+```bash
+# Automatischer Download vom GitHub-Release v0.0.3 und Entpacken nach experiments/testguided-study/runs:
+python scripts/download_study_runs.py
+
+# Optional: Lokale Archivdatei manuell prüfen und entpacken:
+python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar.gz
+
+# Benutzerdefiniertes Zielverzeichnis:
+python scripts/download_study_runs.py --target-dir /pfad/zu/runs
+```
+
+Erwarteter SHA-256-Hash des Archivs `testguided-study-runs.tar.gz`:
+`3234d440dd3d2df85299ccc98bfe42a2c34b9fa266b7be9d7918f51217277278`

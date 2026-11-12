@@ -105,6 +105,20 @@ Cubie-/Pytest-Agenten und einem Cubie-freien Vergleichscontainer.
 Der gesamte Bereich einschließlich Adapter, Datensätzen und Messfunktionen
 gehört nicht zum qb-cubie Core.
 
+### Replikation und Download der Experimentdaten (Study-Runs)
+
+Die vollständigen Rohdaten und Telemetrieläufe der empirischen Vergleichsstudie (~1,1 GB entpackt, ~918 MB komprimiert) sind zum Schutz vor Repository-Überlastung aus dem Git-Tracking und PyPI-Paket ausgeschlossen. Sie stehen als GitHub-Release-Asset bereit und können mit dem mitgelieferten Validierungs- und Downloadskript automatisch heruntergeladen, per SHA-256 kryptografisch verifiziert und entpackt werden:
+
+```bash
+python scripts/download_study_runs.py
+```
+
+Das Skript entpackt die Läufe nach `experiments/testguided-study/runs/`. Alternativ kann ein bereits heruntergeladenes Archiv geprüft und entpackt werden:
+
+```bash
+python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar.gz
+```
+
 ## Wheel-Prüfung und CI
 
 Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:

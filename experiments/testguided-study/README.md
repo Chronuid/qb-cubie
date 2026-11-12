@@ -625,3 +625,21 @@ Kontext-, Ausgabe- und Zeitbudgets bleiben unverändert. v3/v4 sind weiterhin ü
 `default_design(..., version=3)` bzw. `version=4` auswählbar. Thinking ist unabhängig
 von der Designversion konfigurierbar; Variantenvergleiche müssen beide Einstellungen
 explizit einfrieren. Historische Archive werden nicht geändert.
+
+
+## Replikation: Download der vollständigen Telemetrie-Runs
+
+Die 1,1 GB Rohdaten der Pilot- und Multi-Agenten-Läufe (`experiments/testguided-study/runs/`) sind nicht im Git-Checkout enthalten. Sie stehen als Release-Asset des GitHub-Releases bereit und können mit dem automatisierten Download- und Validierungsskript bezogen werden:
+
+```bash
+# Aus dem Repository-Wurzelverzeichnis:
+python scripts/download_study_runs.py
+```
+
+Das Skript verifiziert die Datenintegrität über den SHA-256-Hash (`3234d440dd3d2df85299ccc98bfe42a2c34b9fa266b7be9d7918f51217277278`) und entpackt alle Läufe sicher in das lokale `runs/`-Verzeichnis.
+
+Für die lokale Validierung einer bereits vorhandenen Archivdatei:
+
+```bash
+python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar.gz
+```
