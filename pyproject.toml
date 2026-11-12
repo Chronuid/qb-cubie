@@ -33,9 +33,9 @@ swebench = ["pyarrow>=19,<24"]
 cubie-bench = "qb_cubie.benchmarks.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Chronuid/cubie"
-Repository = "https://github.com/Chronuid/cubie"
-Issues = "https://github.com/Chronuid/cubie/issues"
+Homepage = "https://github.com/Chronuid/qb-cubie"
+Repository = "https://github.com/Chronuid/qb-cubie"
+Issues = "https://github.com/Chronuid/qb-cubie/issues"
 
 [dependency-groups]
 dev = [

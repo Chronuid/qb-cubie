@@ -17,7 +17,7 @@ import tempfile
 import urllib.request
 
 DEFAULT_RELEASE_URL = (
-    "https://github.com/Chronuid/cubie/releases/download/v0.0.3/testguided-study-runs.tar.gz"
+    "https://github.com/Chronuid/qb-cubie/releases/download/v0.0.3/testguided-study-runs.tar.gz"
 )
 EXPECTED_SHA256 = "3234d440dd3d2df85299ccc98bfe42a2c34b9fa266b7be9d7918f51217277278"
 

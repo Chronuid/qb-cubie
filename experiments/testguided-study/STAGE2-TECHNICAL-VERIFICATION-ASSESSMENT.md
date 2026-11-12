@@ -135,6 +135,6 @@ Prior to the deadline (November 12, 2026, at 11:59 PM UTC), ensure the following
 1. **Title & Abstract:** Ensure the title matches `qb-cubie in a Test-Guided Coding Agent: Methodology, Development, and Exploratory Pilot Findings` and paste the 278-word abstract.
 2. **Kaggle Writeup Text Body:** Insert the markdown source of Revision -2 (2,851 body words).
 3. **Public Project Link:** Link directly to the arXiv-ready PDF [`G4DA Paper Submission - qb-cubie and Floor-Effect Analysis-2.pdf`](file:///home/symphonie/PycharmProjects/cubie/experiments/testguided-study/G4DA%20Paper%20Submission%20-%20qb-cubie%20and%20Floor-Effect%20Analysis-2.pdf).
-4. **Public Notebook / Code Link:** Provide the GitHub repository link ([`https://github.com/Chronuid/cubie`](https://github.com/Chronuid/cubie)) and PyPI package link ([`qb-cubie 0.0.3`](https://pypi.org/project/qb-cubie/)).
+4. **Public Notebook / Code Link:** Provide the GitHub repository link ([`https://github.com/Chronuid/qb-cubie`](https://github.com/Chronuid/qb-cubie)) and PyPI package link ([`qb-cubie 0.0.3`](https://pypi.org/project/qb-cubie/)).
 
 **Final Reviewer Rating:** **4.40 / 5.00 — Strong Accept (Recommended for Award Recognition).**
