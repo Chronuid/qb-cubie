@@ -69,8 +69,10 @@ identify a specific missing behavior. Runner feedback is based on observations.
 
 def default_design(mode, guides, *, version=5):
     from .iteration import compose
-    if version in (6, 7, 8):
-        if version == 8:
+    if version in (6, 7, 8, 9):
+        if version == 9:
+            from .team_v9_design import COMMON, POLICY, TOOLS, contract
+        elif version == 8:
             from .team_v8_design import COMMON, POLICY, TOOLS, contract
         elif version == 7:
             from .team_v7_design import COMMON, POLICY, TOOLS, contract
@@ -98,7 +100,7 @@ def design_instruction(design):
 
 
 def design_schema(design):
-    if design['core']['context']['version'] in (6, 7, 8):
+    if design['core']['context']['version'] in (6, 7, 8, 9):
         entries = {}
         for schema in design['core']['context']['schemas'].values():
             for entry in schema['oneOf']:

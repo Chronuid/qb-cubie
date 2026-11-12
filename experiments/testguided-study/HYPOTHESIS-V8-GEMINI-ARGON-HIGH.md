@@ -6,7 +6,6 @@
 - **Modell:** Gemini-4-Argon
 - **Reasoning-Effort:** High
 - **Analysedatum:** 12. November 2026 (~03:25 Uhr)
-- **Untersuchter Pilotlauf:** [`runs/20261112-015457`](file:///home/symphonie/PycharmProjects/cubie/experiments/testguided-study/runs/20261112-015457) (`fastapi_9425`, Seed 42, Modus `cubie`, Run-ID `0001` bei Call 74)
 
 ---
 

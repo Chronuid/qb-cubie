@@ -1,5 +1,17 @@
 # Testguided-Vergleichsstudie
 
+Das [Konzept für Generation v9](AGENTENDESIGN-V9.md) entwickelt die ursprüngliche
+Drei-Agenten-Skizze anhand der [neuen v8-Hypothese](HYPOTHESIS-V8-GEMINI-ARGON-HIGH.md)
+weiter: automatisch geteilte Fundstellen, Lese- und Suchzugriff für alle Rollen,
+getrennte Schreibzuständigkeiten und ein Markdown-Arbeitskontext. Es enthält
+Werkzeugverträge, Ablauf, Abnahmekriterien und einen empirischen Prüfplan.
+V9 ist als eigene Entwicklungsvariante implementiert. Quellcode und technische
+Prüfung beschreibt [IMPLEMENTIERUNG-V9.md](IMPLEMENTIERUNG-V9.md); die empirische
+Qualifikation steht aus. Das Profil [v9.toml](v9.toml) wird mit
+`./study start --mode pilot --config experiments/testguided-study/v9.toml` ausgewählt.
+Die ursprünglichen [134 V9-Abnahmen](../../tests/testguided_study_design/V9_CASES.md)
+werden durch Providerreplays mit echten Testläufen ergänzt.
+
 Das [Konzept für Generation v8](AGENTENDESIGN-V8.md) greift die ursprüngliche
 Drei-Agenten-Skizze und die v7-Kritik auf: kurze Rollenprompts, fachliche
 Wissenskarte, direkte Übergaben und stabile Werkzeuge. V8 ist als explizite

@@ -33,6 +33,9 @@ class TeamController:
     """
     def __new__(cls, **kwargs):
         design = kwargs.get('design')
+        if cls is TeamController and design and design['core']['context']['version'] == 9:
+            from .team_v9 import V9TeamController
+            return object.__new__(V9TeamController)
         if cls is TeamController and design and design['core']['context']['version'] == 8:
             from .team_v8 import V8TeamController
             return object.__new__(V8TeamController)

@@ -53,7 +53,7 @@ def develop(manager, sandbox, task, row, config, guides, directory, client=None,
         raise ValueError("Design specialization does not match run mode")
     if row.get("design_id", identity(design)) != identity(design):
         raise ValueError("Design identity does not match frozen run")
-    if design['core']['context']['version'] in (6, 7, 8):
+    if design['core']['context']['version'] in (6, 7, 8, 9):
         from .team_agent import develop as develop_team
         return develop_team(manager, sandbox, task, row, config, guides, directory,
                             client=client, observer=observer, design=design, clock=clock,
