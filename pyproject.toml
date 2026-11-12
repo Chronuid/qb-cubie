@@ -11,6 +11,12 @@ authors = [{name = "Dominick Wirzba"}]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Testing",
+]
 dependencies = [
     "msgspec>=0.22,<0.23",
     "loky>=3.7,<4",
@@ -25,6 +31,11 @@ swebench = ["pyarrow>=19,<24"]
 
 [project.scripts]
 cubie-bench = "qb_cubie.benchmarks.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Chronuid/cubie"
+Repository = "https://github.com/Chronuid/cubie"
+Issues = "https://github.com/Chronuid/cubie/issues"
 
 [dependency-groups]
 dev = [

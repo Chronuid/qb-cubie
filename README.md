@@ -17,6 +17,12 @@ Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 
 </center>
 
+## Installation
+
+```bash
+pip install qb-cubie
+```
+
 ## Einstieg
 
 Voraussetzung ist Python ≥ 3.13. Der öffentliche Distributionsname lautet `qb-cubie`, der Python-Importname `qb_cubie`. In den internen Handbüchern wird weiterhin „cubie“ verwendet. Frühere Importe aus `cubie` müssen auf `qb_cubie` umgestellt werden.
