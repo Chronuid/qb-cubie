@@ -20,7 +20,7 @@ Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 ## Installation
 
 ```bash
-pip install qb-cubie
+uv pip install qb-cubie
 ```
 
 ## Einstieg
