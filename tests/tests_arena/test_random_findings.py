@@ -43,8 +43,8 @@ def test_ebt_pyvenv_codecs_enforce_decontams_during_runtime_imports() -> None:
         ],
         post=WorldState(
             raises=ExceptionExpectation(
-                TypeError,
-                match=r"PhantomObject 'statistics\.mean' cannot be called",
+                RuntimeError,
+                match=r"Arena Error: TypeError: PhantomObject 'statistics\.mean' cannot be called",
             )
         ),
         custom_id="finding_msgspec_runtime_decontam_bypass",
