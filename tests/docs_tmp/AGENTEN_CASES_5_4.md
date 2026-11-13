@@ -22,7 +22,7 @@ Quellen direkt ein; es gibt keine separat gepflegte Implementierungskopie.
 - ein Reviewer-Set mit konformem und fehlerhaftem Versandgrenzfall;
 - ein Developer-Set mit einer vollständigen Entwicklungsepisode;
 - Rohmetadaten des Providers, deren Hash und den installierten Wheel-Hash;
-- einen [eigenständigen Nutzungsleitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md).
+- einen [eigenständigen Nutzungsleitfaden](../../experiments/benchmarks/cubie_benchmarks/data/GUIDE_Ollama-Agents.md).
 
 Die Prozesse bestätigen Modell-Digest, Provider-/Adapterversion, Prompt-Hash
 und Parameter im Handshake. Die Initialisierung erfasst zusätzlich Quantisierung

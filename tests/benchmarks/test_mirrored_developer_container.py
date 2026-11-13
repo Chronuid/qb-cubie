@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import compare_runs, init_suite, run_suite
-from qb_cubie.benchmarks.measurement._toml import write_toml
+from cubie_benchmarks import compare_runs, init_suite, run_suite
+from cubie_benchmarks.measurement._toml import write_toml
 
 BASE = os.environ.get("CUBIE_TEST_BASELINE_IMAGE")
 pytestmark = pytest.mark.skipif(not BASE, reason="set CUBIE_TEST_BASELINE_IMAGE to a local Python/pytest image digest")

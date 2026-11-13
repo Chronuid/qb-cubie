@@ -3,6 +3,7 @@
 import ast
 import io
 import tokenize
+from pathlib import Path
 
 import pytest
 
@@ -55,10 +56,11 @@ def test_docstrings(src_files):
     assert not violations, "\n" + "\n".join(violations)
 
 
-def test_benchmark_functions_have_docstrings(src_files):
+def test_benchmark_functions_have_docstrings():
+    benchmark_root = Path(__file__).resolve().parents[1] / "experiments/benchmarks/cubie_benchmarks"
     missing = []
-    for path in src_files:
-        if "benchmarks" not in path.parts:
+    for path in sorted(benchmark_root.rglob("*.py")):
+        if "__pycache__" in path.parts or "data" in path.parts:
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         missing.extend(f"{path}:{node.lineno}: {node.name}" for node in ast.walk(tree)

@@ -2,7 +2,7 @@
 
 import subprocess
 
-from qb_cubie.benchmarks.measurement.provenance import capture
+from cubie_benchmarks.measurement.provenance import capture
 
 
 def test_installed_runtime_has_no_fabricated_repository_or_lock(tmp_path):

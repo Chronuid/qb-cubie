@@ -1,6 +1,6 @@
 """EBT phase observations, protocol validation and byte-bound artifact checks."""
 
-from qb_cubie.benchmarks.contracts.protocols import validate_agent_event
+from cubie_benchmarks.contracts.protocols import validate_agent_event
 
 from ...benchmarks.contracts import accepted
 from .support import hashes, request

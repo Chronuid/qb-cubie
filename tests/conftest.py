@@ -4,14 +4,15 @@ from pathlib import Path
 
 import pytest
 
-pytest_plugins = ["qb_cubie.benchmarks.pytest_plugin"]
-
 # conftest.py is located in /tests, so the parent directory is your project root
 PROJECT_ROOT = Path(__file__).parent.parent
 # 1. Override the IDE's right-click behavior: force the CWD to the project root
 os.chdir(PROJECT_ROOT)
-# 2. Fix the pytest runner: make the src/ directory known for Cubie's framework modules
+# 2. Fix the pytest runner: make src/ and experimental benchmark sources importable
+sys.path.insert(0, str(PROJECT_ROOT / "experiments/benchmarks"))
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+pytest_plugins = ["cubie_benchmarks.pytest_plugin"]
 
 
 @pytest.fixture(scope="session")

@@ -8,16 +8,16 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import (
+from cubie_benchmarks import (
     import_swebench,
     load_package,
     plan_suite,
     plan_swebench_import,
     validate_swebench_references,
 )
-from qb_cubie.benchmarks.execution._inputs import _copy_package
-from qb_cubie.benchmarks.swebench.admission import check_report, copy_report
-from qb_cubie.benchmarks.swebench.evaluation import evaluate_patch, protect_tests
+from cubie_benchmarks.execution._inputs import _copy_package
+from cubie_benchmarks.swebench.admission import check_report, copy_report
+from cubie_benchmarks.swebench.evaluation import evaluate_patch, protect_tests
 
 from .conftest import GOLD, TEST_PATCH, git, rewrite_snapshot
 from .test_reference_validation import executor_fixture
@@ -73,7 +73,7 @@ def test_private_manifest_participates_in_planning_identity(config, tmp_path):
     root = tmp_path / 'package'
     import_swebench(config, root)
     package = load_package(root)
-    from qb_cubie.benchmarks.planning._planning import _identity
+    from cubie_benchmarks.planning._planning import _identity
     before = _identity(root, package)
     path = root / 'swebench-import.json'
     path.write_bytes(path.read_bytes() + b'\n')
@@ -144,8 +144,8 @@ def test_agent_patch_cannot_replace_private_tests():
 
 
 def test_freeze_keeps_repair_admission_without_runtime_or_agent_start(config, tmp_path):
-    from qb_cubie.benchmarks import freeze_suite
-    from qb_cubie.benchmarks.measurement._bundle import verify
+    from cubie_benchmarks import freeze_suite
+    from cubie_benchmarks.measurement._bundle import verify
     root = tmp_path / 'package'
     import_swebench(config, root)
     execute, _ = executor_fixture()
@@ -162,8 +162,8 @@ def test_freeze_keeps_repair_admission_without_runtime_or_agent_start(config, tm
 
 
 def test_imported_dataset_uses_regular_mirrored_developer_planning_and_freeze(config, tmp_path):
-    from qb_cubie.benchmarks import freeze_suite
-    from qb_cubie.benchmarks.measurement._bundle import verify
+    from cubie_benchmarks import freeze_suite
+    from cubie_benchmarks.measurement._bundle import verify
     root = tmp_path / 'package'
     import_swebench(config, root)
     execute, _ = executor_fixture()
@@ -201,8 +201,8 @@ def test_frozen_repair_runs_through_real_jsonl_transport_and_reporting(config, t
     """Replace only the container/executor boundaries; exercise the full runner."""
     import sys
 
-    from qb_cubie.benchmarks import freeze_suite, run_frozen_suite, summarize_pilot
-    from qb_cubie.benchmarks.swebench import agent, runtime
+    from cubie_benchmarks import freeze_suite, run_frozen_suite, summarize_pilot
+    from cubie_benchmarks.swebench import agent, runtime
 
     root = tmp_path / 'package'
     import_swebench(config, root)

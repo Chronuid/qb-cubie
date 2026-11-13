@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from qb_cubie.benchmarks.execution import _pytest
+from cubie_benchmarks.execution import _pytest
 
 from ...benchmarks.contracts import accepted
 from .support import (

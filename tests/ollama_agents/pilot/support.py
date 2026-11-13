@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from qb_cubie.benchmarks import init_smoke_suite, run_suite
+from cubie_benchmarks import init_smoke_suite, run_suite
 
 from ...benchmarks.contracts import accepted, edit_json
 

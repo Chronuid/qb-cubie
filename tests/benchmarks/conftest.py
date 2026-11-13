@@ -20,11 +20,11 @@ def package(tmp_path):
 def public_api():
     def resolve(name):
         try:
-            module = importlib.import_module("qb_cubie.benchmarks")
+            module = importlib.import_module("cubie_benchmarks")
         except ModuleNotFoundError as error:
-            if error.name != "qb_cubie.benchmarks":
+            if error.name != "cubie_benchmarks":
                 raise
-            pytest.fail("Phase 10.1: public qb_cubie.benchmarks API is not implemented", pytrace=False)
+            pytest.fail("Phase 10.1: public cubie_benchmarks API is not implemented", pytrace=False)
         target = getattr(module, name, None)
         assert callable(target), f"Missing public benchmark function: {name}"
         return target

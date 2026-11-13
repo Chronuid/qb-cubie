@@ -47,9 +47,10 @@ def external(tmp_path):
 
 def cli(*args, cwd):
     source = str(ROOT / "src")
-    code = ('import sys; sys.path.insert(0, sys.argv.pop(1)); '
-            'from qb_cubie.benchmarks.cli import main; raise SystemExit(main())')
-    return subprocess.run([sys.executable, "-I", "-c", code, source, *map(str, args)],
+    benchmarks_source = str(ROOT / "experiments/benchmarks")
+    code = ('import sys; sys.path.insert(0, sys.argv.pop(1)); sys.path.insert(0, sys.argv.pop(1)); '
+            'from cubie_benchmarks.cli import main; raise SystemExit(main())')
+    return subprocess.run([sys.executable, "-I", "-c", code, source, benchmarks_source, *map(str, args)],
                           cwd=cwd, capture_output=True, text=True, timeout=25, check=False)
 
 

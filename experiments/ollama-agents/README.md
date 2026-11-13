@@ -44,7 +44,7 @@ cubie-bench run --suite sets/developer.toml
 `init-ollama` liest lokale Modellmetadaten ohne Inferenz und friert Digest,
 Ollama-Version, Parameter, Adapterversion und Prompt-Hash ein. `--endpoint` und
 `--model` wählen Server und Modell explizit. Das Ziel darf noch nicht existieren.
-Der vollständige [installierte Leitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md)
+Der vollständige [installierte Leitfaden](../benchmarks/cubie_benchmarks/data/GUIDE_Ollama-Agents.md)
 wird als `README.md` mitexportiert. [Abnahme und tatsächliche Läufe](../../tests/docs_tmp/AGENTEN_CASES_5_4.md)
 trennen deterministische Wheel-Replays von echten Modell-Smokes.
 

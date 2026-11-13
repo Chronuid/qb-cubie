@@ -191,7 +191,7 @@ def test_unavailable_model_fails_without_creating_an_example_or_inference(tmp_pa
 def test_installed_two_plus_five_study_preserves_all_attempts_and_external_evidence(tmp_path, provider):
     from ollama_agents.pilot.live import measure_smoke
 
-    from qb_cubie.benchmarks.reporting.archives import read_archive
+    from cubie_benchmarks.reporting.archives import read_archive
 
     endpoint, calls = provider
     root = tmp_path / 'calibrated study'

@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from qb_cubie import EBT, JsonReporter, PytestReporter, WorldState
-from qb_cubie.benchmarks import run_suite
+from cubie_benchmarks import run_suite
 
 from ..benchmarks.phase3.conftest import write_suite
 from ..ollama_agents.reviewer.support import CRITERIA

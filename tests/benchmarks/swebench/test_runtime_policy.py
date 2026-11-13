@@ -8,8 +8,8 @@ from copy import deepcopy
 
 import pytest
 
-from qb_cubie.benchmarks.swebench.runtime import ContainerExecutor
-from qb_cubie.benchmarks.swebench.validation import LIMITS, bind_request
+from cubie_benchmarks.swebench.runtime import ContainerExecutor
+from cubie_benchmarks.swebench.validation import LIMITS, bind_request
 
 IMAGE = 'sha256:' + 'd' * 64
 

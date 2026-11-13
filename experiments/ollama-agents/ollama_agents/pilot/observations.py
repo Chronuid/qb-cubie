@@ -7,10 +7,10 @@ import subprocess
 import time
 from pathlib import Path
 
-from qb_cubie.benchmarks.contracts import _validation as v
-from qb_cubie.benchmarks.reporting._files import digest, now, write_json
-from qb_cubie.benchmarks.reporting.archives import read_archive
-from qb_cubie.benchmarks.scaffolding.ollama import _observe
+from cubie_benchmarks.contracts import _validation as v
+from cubie_benchmarks.reporting._files import digest, now, write_json
+from cubie_benchmarks.reporting.archives import read_archive
+from cubie_benchmarks.scaffolding.ollama import _observe
 
 from ..client import OllamaClient
 

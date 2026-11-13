@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import (
+from cubie_benchmarks import (
     compare_runs,
     freeze_suite,
     init_smoke_suite,
@@ -17,9 +17,9 @@ from qb_cubie.benchmarks import (
     plan_suite,
     run_suite,
 )
-from qb_cubie.benchmarks.execution._inputs import prepare
-from qb_cubie.benchmarks.measurement._bundle import verify
-from qb_cubie.benchmarks.swebench.agent import WITHOUT_CUBIE, AgentContainer
+from cubie_benchmarks.execution._inputs import prepare
+from cubie_benchmarks.measurement._bundle import verify
+from cubie_benchmarks.swebench.agent import WITHOUT_CUBIE, AgentContainer
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ def test_explicit_condition_comparison_pairs_specialists_without_rerunning(paire
     assert ordinary["scope"] == "incompatible"
     with pytest.raises(ValueError, match="condition"):
         compare_runs(archive, archive, before_condition="cubie")
-    from qb_cubie.benchmarks.cli import main
+    from cubie_benchmarks.cli import main
     assert main(["compare", archive, archive, "--before-condition", "cubie", "--after-condition", "pytest",
                  "--before-agent", "fake", "--after-agent", "pytest-specialist"]) == 0
     output = capsys.readouterr().out
@@ -74,7 +74,7 @@ def test_explicit_condition_comparison_pairs_specialists_without_rerunning(paire
 
 
 def test_cli_creates_mirrored_suite_from_existing_agents(paired):
-    from qb_cubie.benchmarks.cli import main
+    from cubie_benchmarks.cli import main
     root = paired.parent.parent
     target = paired.with_name("from-cli.toml")
     assert main(["init-suite", str(target), "--preset", "smoke", "--agent", str(root / "agents/fake.toml"),
@@ -108,7 +108,7 @@ def test_real_baseline_requires_container_before_any_agent_probe(paired):
 
 
 def test_container_mounts_only_visible_workspace_and_evidence(tmp_path, monkeypatch):
-    monkeypatch.setattr("qb_cubie.benchmarks.swebench.agent.docker", lambda *_: "docker")
+    monkeypatch.setattr("cubie_benchmarks.swebench.agent.docker", lambda *_: "docker")
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     agent = {"container_image": "sha256:" + "a" * 64, "command": ["python", "/adapter/process.py"]}

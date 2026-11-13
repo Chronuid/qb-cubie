@@ -91,7 +91,7 @@ def test_missing_independent_criterion_is_infrastructure_failure(smoke_suite, pu
 
 
 def test_global_time_limit_marks_remaining_attempts_not_started(smoke_suite, public_api, monkeypatch):
-    from qb_cubie.benchmarks import runner
+    from cubie_benchmarks import runner
 
     initialize_smoke(public_api, smoke_suite)
     ticks = iter([0])

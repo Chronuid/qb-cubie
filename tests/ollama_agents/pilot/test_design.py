@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import pytest
 
-from qb_cubie.benchmarks import plan_suite, summarize_pilot
+from cubie_benchmarks import plan_suite, summarize_pilot
 
 from ...benchmarks.contracts import accepted
 from .support import calibrate, read_json, suite_at

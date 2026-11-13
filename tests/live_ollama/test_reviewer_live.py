@@ -7,7 +7,7 @@ import urllib.request
 import pytest
 
 from qb_cubie import EBT, JsonReporter, PytestReporter, WorldState
-from qb_cubie.benchmarks.contracts.protocols import validate_agent_event
+from cubie_benchmarks.contracts.protocols import validate_agent_event
 
 from ..ollama_agents.reviewer.support import SOURCES, hashes, request
 

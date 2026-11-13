@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import init_smoke_suite, run_suite
+from cubie_benchmarks import init_smoke_suite, run_suite
 
 from ..contracts import edit_json
 from ..phase2.conftest import configure_fake

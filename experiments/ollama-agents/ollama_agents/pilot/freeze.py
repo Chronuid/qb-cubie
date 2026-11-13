@@ -4,10 +4,10 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from qb_cubie.benchmarks.contracts import _validation as v
-from qb_cubie.benchmarks.measurement import _bundle
-from qb_cubie.benchmarks.measurement.frozen import freeze_suite
-from qb_cubie.benchmarks.reporting._files import digest, now, write_json
+from cubie_benchmarks.contracts import _validation as v
+from cubie_benchmarks.measurement import _bundle
+from cubie_benchmarks.measurement.frozen import freeze_suite
+from cubie_benchmarks.reporting._files import digest, now, write_json
 
 from .validation import calibration, chronological, validate_pilot
 

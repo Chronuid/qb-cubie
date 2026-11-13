@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from qb_cubie.benchmarks import run_frozen_suite
+from cubie_benchmarks import run_frozen_suite
 
 from ...benchmarks.contracts import accepted, edit_json, rejected
 from ...benchmarks.phase4.conftest import replace_observation

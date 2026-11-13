@@ -6,12 +6,12 @@ import sys
 import tomllib
 from pathlib import Path
 
-from qb_cubie.benchmarks import run_frozen_suite, summarize_pilot
-from qb_cubie.benchmarks.contracts import _validation as v
-from qb_cubie.benchmarks.measurement._toml import write_toml
-from qb_cubie.benchmarks.measurement.frozen import freeze_suite
-from qb_cubie.benchmarks.reporting._files import inventory, now, write_json
-from qb_cubie.benchmarks.scaffolding.ollama import init_ollama
+from cubie_benchmarks import run_frozen_suite, summarize_pilot
+from cubie_benchmarks.contracts import _validation as v
+from cubie_benchmarks.measurement._toml import write_toml
+from cubie_benchmarks.measurement.frozen import freeze_suite
+from cubie_benchmarks.reporting._files import inventory, now, write_json
+from cubie_benchmarks.scaffolding.ollama import init_ollama
 
 from .freeze import freeze_pilot
 from .observations import environment, verify_evidence, warmup

@@ -4,7 +4,7 @@ Stand: 11. November 2026.
 
 > **Experimentell · kein Bestandteil des qb-cubie Core.** Der gesamte
 > Benchmark-Bereich ist ein separater experimenteller Bereich. Dazu gehören
-> `qb_cubie.benchmarks`, die CLI `cubie-bench`, die Extras `benchmarks` und
+> `cubie_benchmarks`, die CLI `cubie-bench`, die Extras `benchmarks` und
 > `swebench`, Agentenadapter, Szenariodatensätze sowie Vergleichs-, Bewertungs-
 > und CI-Messfunktionen. Sie werden derzeit im selben Paket ausgeliefert;
 > daraus folgt keine Zugehörigkeit zum Core.
@@ -711,7 +711,7 @@ Cubie importiert Python-Reparaturaufgaben aus den offiziellen Full-, Lite- und
 Verified-Datensätzen als eigene Szenariopakete. Der durchgängige Weg ist:
 Import → Basis-/Gold-Referenzprüfung → Suite → Freeze → Developer-Agent →
 unabhängige Patch-Abnahme. Die drei öffentlichen APIs stehen im installierten
-Paket unter `qb_cubie.benchmarks` zur Verfügung.
+Paket unter `cubie_benchmarks` zur Verfügung.
 
 Die importierten Datensätze sind Quellen der regulären Developer-Agent-Benchmark.
 Sie unterstützen auch `cubie-vs-pytest` mit getrennt spezialisierten
@@ -722,7 +722,7 @@ erhalten.
 ### Import
 
 ```python
-from qb_cubie.benchmarks import import_swebench, plan_swebench_import
+from cubie_benchmarks import import_swebench, plan_swebench_import
 
 config = {
     "schema_version": 1,
@@ -831,7 +831,7 @@ gemeinsamen Messung erkannt. Referenzen beginnen mit `unvalidated` und leeren
 ### Ausführende Referenzfreigabe
 
 ```python
-from qb_cubie.benchmarks import validate_swebench_references
+from cubie_benchmarks import validate_swebench_references
 
 reference = validate_swebench_references(result["package"])
 assert reference["valid"]
@@ -921,7 +921,7 @@ sources = [{path = "package", reference_report = "reference-evidence/report.json
 ```
 
 ```python
-from qb_cubie.benchmarks import freeze_suite, run_frozen_suite
+from cubie_benchmarks import freeze_suite, run_frozen_suite
 
 freeze_suite("suite.toml", "frozen-study")
 results = run_frozen_suite("frozen-study", "results")
@@ -1131,7 +1131,7 @@ python -m pytest tests/benchmarks -m agent_benchmark \
 ```
 
 Im Cubie-Repository ist das Plugin bereits eingebunden. Für eigene Tests laden
-Sie `-p qb_cubie.benchmarks.pytest_plugin` und markieren die Episoden mit
+Sie `-p cubie_benchmarks.pytest_plugin` und markieren die Episoden mit
 `agent_benchmark`, zusätzlich optional `review_agent` oder `developer_agent`.
 Ohne Freischaltung werden sie übersprungen, auch bei einer Markerwahl.
 Sammlung startet keinen Adapter. Bei tatsächlicher Freischaltung führen eine
@@ -1171,7 +1171,7 @@ Benchmark-Konzept gelten weiter.
 ### Nachbewertung
 
 `apply_adjudication(archive_path, decisions_path, destination)` aus
-`qb_cubie.benchmarks` veröffentlicht ein neues, separat prüfbares Archiv.
+`cubie_benchmarks` veröffentlicht ein neues, separat prüfbares Archiv.
 Das Ursprungsarchiv bleibt unverändert. Die Entscheidung muss folgende Form haben:
 
 ```json
@@ -1312,7 +1312,7 @@ Inkremente und fachlich begründete Testrevisionen sind noch nicht implementiert
 
 ## Technische Referenz
 
-Die experimentelle Python-API liegt unter `qb_cubie.benchmarks`. Laden, Planen
+Die experimentelle Python-API liegt unter `cubie_benchmarks`. Laden, Planen
 und Nachrichtenvalidierung benötigen keine zusätzlichen Abhängigkeiten und
 führen keinen Szenariocode aus. Für pytest-Unterprozesse braucht der Runner
 das Extra `benchmarks`. Alle Rückgaben sind JSON-kompatible Dictionaries und
@@ -1325,7 +1325,7 @@ abgelehnt.
 
 ```python
 from pathlib import Path
-from qb_cubie.benchmarks import init_smoke_suite, load_package, plan_suite, run_suite
+from cubie_benchmarks import init_smoke_suite, load_package, plan_suite, run_suite
 
 suite = Path("./sets/python-smoke.toml")
 init_smoke_suite(suite)
@@ -1452,7 +1452,7 @@ bewerteten Ergebnissen sind numerische Qualitätswerte unzulässig.
 
 ### Paketstruktur
 
-Die experimentelle API liegt unter `qb_cubie.benchmarks`. `cli.py` und
+Die experimentelle API liegt unter `cubie_benchmarks`. `cli.py` und
 `runner.py` bilden die zentralen Einstiegspunkte. Die Fachmodule sind gruppiert:
 
 | Unterpaket | Aufgabe |

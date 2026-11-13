@@ -118,10 +118,10 @@ def test_timeout_stops_a_blocking_process_with_an_outer_deadline(external, publi
     public_api("run_suite")
     configure_agent(external, "hang")
     suite = write_suite(external, 'ids = ["shop/review-correct"]', seconds=0.25)
-    code = ('import json,sys; sys.path.insert(0, sys.argv[1]); '
-            'from qb_cubie.benchmarks import run_suite; print(json.dumps(run_suite(sys.argv[2])))')
+    code = ('import json,sys; sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2]); '
+            'from cubie_benchmarks import run_suite; print(json.dumps(run_suite(sys.argv[3])))')
     process = accepted(lambda: subprocess.run(
-        [sys.executable, "-I", "-c", code, str(ROOT / "src"), str(suite)],
+        [sys.executable, "-I", "-c", code, str(ROOT / "src"), str(ROOT / "experiments/benchmarks"), str(suite)],
         cwd=external.parent, capture_output=True, text=True, timeout=12, check=False), expected=lambda p: p.returncode == 0)
     run, = json.loads(process.stdout)["runs"]
     assert run["status"] == "agent_timeout" and run["quality_passed"] is False

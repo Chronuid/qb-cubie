@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import freeze_suite, run_frozen_suite, summarize_pilot
+from cubie_benchmarks import freeze_suite, run_frozen_suite, summarize_pilot
 
 from ...benchmarks.contracts import accepted
 from .support import inventory, read_json, suite_at

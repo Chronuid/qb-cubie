@@ -2,7 +2,7 @@
 
 import pytest
 
-from qb_cubie.benchmarks import load_package
+from cubie_benchmarks import load_package
 
 from ...benchmarks.contracts import accepted, edit_json, rejected
 from .support import freeze, inventory, reference_paths

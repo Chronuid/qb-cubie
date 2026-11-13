@@ -8,7 +8,7 @@ import types
 
 import pytest
 
-from qb_cubie.benchmarks.execution import _review, evaluators
+from cubie_benchmarks.execution import _review, evaluators
 
 from ...benchmarks.contracts import accepted, rejected
 from .conftest import FIXTURES

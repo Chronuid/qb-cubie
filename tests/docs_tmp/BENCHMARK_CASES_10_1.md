@@ -15,7 +15,7 @@ Status: **Öffentliche Schnittstellen implementiert**, 10. November 2026.
 Diese Cases prüfen die öffentlichen Paket-, Agenten- und Set-Verträge;
 Nutzung: [Benchmark-Leitfaden](../../docs/GUIDE_Benchmarks.md#technische-referenz).
 Die beschriebenen Python-Schnittstellen sind in
-[`qb_cubie.benchmarks`](../../src/qb_cubie/benchmarks/__init__.py) implementiert.
+[`cubie_benchmarks`](../../experiments/benchmarks/cubie_benchmarks/__init__.py) implementiert.
 Der ausführende Benchmark-Runner folgt in Phase 2.
 
 Alle Cases werden regulär gesammelt, ohne `xfail`, Freischaltoptionen oder

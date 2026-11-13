@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import apply_adjudication, evaluate_gates, run_suite, summarize_pilot
-from qb_cubie.benchmarks.reporting._files import digest, inventory, write_json
-from qb_cubie.benchmarks.reporting.archives import read_archive
+from cubie_benchmarks import apply_adjudication, evaluate_gates, run_suite, summarize_pilot
+from cubie_benchmarks.reporting._files import digest, inventory, write_json
+from cubie_benchmarks.reporting.archives import read_archive
 from .conftest import write_suite
 
 

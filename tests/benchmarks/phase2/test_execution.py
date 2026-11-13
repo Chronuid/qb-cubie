@@ -125,11 +125,14 @@ def test_unusable_submissions_preserve_execution_failure(execute, behavior, stat
 def test_timeout_is_enforced_by_runner_not_only_reported_by_fake(smoke_suite, public_api):
     initialize_smoke(public_api, smoke_suite)
     configure_fake(smoke_suite, "hang", "review_agent")
+    import cubie_benchmarks
+
     source = str(Path(qb_cubie.__file__).resolve().parent.parent)
-    code = ("import json,sys; sys.path.insert(0, sys.argv[1]); "
-            "from qb_cubie.benchmarks import run_suite; print(json.dumps(run_suite(sys.argv[2])))")
+    benchmarks_source = str(Path(cubie_benchmarks.__file__).resolve().parent.parent)
+    code = ("import json,sys; sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2]); "
+            "from cubie_benchmarks import run_suite; print(json.dumps(run_suite(sys.argv[3])))")
     process = accepted(lambda: subprocess.run(
-        [sys.executable, "-I", "-c", code, source, str(smoke_suite)],
+        [sys.executable, "-I", "-c", code, source, benchmarks_source, str(smoke_suite)],
         capture_output=True, text=True, timeout=15, check=False), expected=lambda p: p.returncode == 0)
     result = json.loads(process.stdout)
     assert all(r["status"] == "agent_timeout" for r in result["runs"])

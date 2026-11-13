@@ -2,7 +2,7 @@
 
 import json
 
-from qb_cubie.benchmarks.contracts.protocols import validate_agent_event
+from cubie_benchmarks.contracts.protocols import validate_agent_event
 
 from ...benchmarks.contracts import accepted
 from ..conftest import tree_bytes

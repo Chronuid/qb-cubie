@@ -30,7 +30,7 @@ benchmarks = ["pytest>=9.2,<10"]
 swebench = ["pyarrow>=19,<24"]
 
 [project.scripts]
-cubie-bench = "qb_cubie.benchmarks.cli:main"
+cubie-bench = "cubie_benchmarks.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Chronuid/qb-cubie"
@@ -52,17 +52,18 @@ dev = [
 include-package-data = false
 
 [tool.setuptools.packages.find]
-where = ["src", "experiments/ollama-agents"]
-include = ["qb_cubie", "qb_cubie.*", "ollama_agents", "ollama_agents.*"]
+where = ["src", "experiments/ollama-agents", "experiments/benchmarks"]
+include = ["qb_cubie", "qb_cubie.*", "ollama_agents", "ollama_agents.*", "cubie_benchmarks", "cubie_benchmarks.*"]
 exclude = ["qb_cubie.arenas.arena_envs.*"]
 namespaces = false
 
 [tool.setuptools.package-dir]
 "" = "src"
 ollama_agents = "experiments/ollama-agents/ollama_agents"
+cubie_benchmarks = "experiments/benchmarks/cubie_benchmarks"
 
 [tool.setuptools.package-data]
-"qb_cubie.benchmarks" = ["data/**/*"]
+"cubie_benchmarks" = ["data/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from qb_cubie.benchmarks import run_frozen_suite, summarize_pilot
-from qb_cubie.benchmarks.measurement._toml import write_toml
-from qb_cubie.benchmarks.reporting.archives import read_archive
+from cubie_benchmarks import run_frozen_suite, summarize_pilot
+from cubie_benchmarks.measurement._toml import write_toml
+from cubie_benchmarks.reporting.archives import read_archive
 
 from ...benchmarks.contracts import accepted, rejected
 from .support import digest, freeze, inventory, pilot_inputs, read_json

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 
-from qb_cubie.benchmarks import (
+from cubie_benchmarks import (
     load_package,
     plan_suite,
     validate_agent_event,

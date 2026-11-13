@@ -5,7 +5,7 @@ import shutil
 
 import pytest
 
-from qb_cubie.benchmarks import run_suite
+from cubie_benchmarks import run_suite
 
 from ...benchmarks.contracts import accepted, edit_json, rejected
 from ...benchmarks.phase4.conftest import replace_observation

@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from qb_cubie.benchmarks.execution._pytest import observe
+from cubie_benchmarks.execution._pytest import observe
 
 
 @pytest.mark.parametrize("phase,exception,message,declared,setup,outcome", [

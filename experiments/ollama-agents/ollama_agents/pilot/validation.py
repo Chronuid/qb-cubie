@@ -4,10 +4,10 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from qb_cubie.benchmarks.contracts import _validation as v
-from qb_cubie.benchmarks.execution import _inputs
-from qb_cubie.benchmarks.reporting._files import inventory
-from qb_cubie.benchmarks.reporting.archives import read_archive
+from cubie_benchmarks.contracts import _validation as v
+from cubie_benchmarks.execution import _inputs
+from cubie_benchmarks.reporting._files import inventory
+from cubie_benchmarks.reporting.archives import read_archive
 
 
 def calibration(roots):

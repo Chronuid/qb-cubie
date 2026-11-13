@@ -23,10 +23,11 @@ def test_agent_episode():
 def run_probe(root, *args, plugin=True):
     probe = root / "test_opt_in_probe.py"
     probe.write_text(PROBE, encoding="utf-8")
-    code = 'import sys; sys.path.insert(0, sys.argv.pop(1)); import pytest; raise SystemExit(pytest.main(sys.argv[1:]))'
-    plugins = ["-p", "qb_cubie.benchmarks.pytest_plugin"] if plugin else []
-    return subprocess.run([sys.executable, "-I", "-c", code, str(ROOT / "src"), *plugins,
-                           "-q", "-o", "addopts=", str(probe), *map(str, args)], cwd=root,
+    code = ('import sys; sys.path.insert(0, sys.argv.pop(1)); sys.path.insert(0, sys.argv.pop(1)); '
+            'import pytest; raise SystemExit(pytest.main(sys.argv[1:]))')
+    plugins = ["-p", "cubie_benchmarks.pytest_plugin"] if plugin else []
+    return subprocess.run([sys.executable, "-I", "-c", code, str(ROOT / "src"), str(ROOT / "experiments/benchmarks"),
+                           *plugins, "-q", "-o", "addopts=", str(probe), *map(str, args)], cwd=root,
                           env={**os.environ, "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTEST_ADDOPTS": ""},
                           capture_output=True, text=True, timeout=30, check=False)
 
