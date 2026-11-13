@@ -2,6 +2,13 @@
 
 Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention) als auch **funktional** (echte Ausführung in einer isolierten `Arena`) absichert.
 
+> [!NOTE]
+> 
+> **Wichtiger Disclaimer (Garantieumfang & Abgrenzung):**
+> Auch wenn `DocEnsurance` überprüft, ob jedes Code-Beispiel durchläuft und die dokumentierte Ausgabe tatsächlich erzeugt wird, ist dies **noch keine generelle Testabdeckung** und **keine Garantie für die inhaltliche Korrektheit der Informationen** in den Dokumentationen:
+> * **Kein Ersatz für systematische Tests:** Ein einzelnes Positiv-Beispiel im Guide beweist nur diesen einen konkreten Aufruf, ersetzt aber keine Äquivalenzklassen-, Randfall- und Negativ-Prüfungen über `EBT`-Verträge in der Test-Suite.
+> * **Keine semantische Prüfung des Fließtextes:** `DocEnsurance` prüft, *ob* eine Erklärung vor dem Code-Block existiert, kann aber nicht bewerten, ob die Aussagen im Text fachlich vollständig oder zutreffend sind.
+
 In einer bestehenden Test-Suite (wie `tests/test_styleguide.py`) genügt ein einziger Aufruf, um sämtliche Markdown-Dokumente des Projekts automatisch zu verifizieren:
 
 ```python
@@ -59,13 +66,13 @@ Pattern: cubie-doc-style | Pre-Regeln: 1 | Post-Regeln: 1
 `DocEnsurance` ist so vorkonfiguriert, dass es ohne Boilerplate-Pfade sofort das gesamte Projekt absichert, sich bei Bedarf aber auch gezielt auf einzelne Dateien oder Strings richten lässt:
 
 * **`target=None` (Standard):** Durchsucht standardmäßig das gesamte Projektverzeichnis rekursiv nach `*.md`-Dateien (unter automatischer Beachtung von `DEFAULT_EXCLUDES` wie `.venv`, `.git` und `__pycache__`).
-* **`excludes=(...)`:** Schließt zusätzliche Ordner oder einzelne Dateien (wie `"experiments"`, `"docs_tmp"` oder `"GUTACHTEN.md"`) gezielt vom Scan aus.
-* **`target=Path(...)` oder `str`:** Akzeptiert wahlweise ein spezifisches Unterverzeichnis, eine einzelne `.md`-Datei oder einen mehrzeiligen In-Memory-Markdown-String.
+* **`excludes=(...)`:** Schließt zusätzliche Ordner, Dateien oder relative Teilpfade (wie `"experiments"`, `"docs/drafts"` oder `"GUTACHTEN.md"`) relativ zum Zielverzeichnis vom Scan aus.
+* **`target=Path(...)` oder `str`:** Akzeptiert wahlweise ein spezifisches Unterverzeichnis, eine einzelne `.md`-Datei oder einen mehrzeiligen In-Memory-Markdown-String. Nicht existierende Datei- oder Ordnerpfade werden sofort durch einen `FileNotFoundError`-`STATE-GUARD` abgefangen.
 * **`reporter=PytestReporter()` (Standard):** Löst bei strukturellen Verstößen oder abweichenden Ausgaben direkt einen formatierten `AssertionError` für `pytest` aus. Mit `reporter=None` lässt sich das `DocReport`-Ergebnis programmatisch auswerten.
 
 Das folgende Beispiel legt im aktuellen Workspace eine einzelne Markdown-Datei an und wertet deren `DocReport` direkt aus:
 
-````python
+```python
 from pathlib import Path
 from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
 
@@ -85,7 +92,7 @@ guide_file.write_text(markdown_content, encoding="utf-8")
 
 report = DocEnsurance(target=guide_file, pattern=CUBIE_DOC_STYLE, reporter=None).run()
 print(f"passed={report.passed}, outputs={report.sessions[0].actual_outputs}")
-````
+```
 
 <details>
 <summary>Ergebnis</summary>
@@ -186,7 +193,7 @@ Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb ba
 
 Möchte ein Entwicklerteam beispielsweise auf Pflicht-Erklärungen und `<details>`-Tags verzichten und stattdessen direkt unter jedem `python`-Block einen einfachen `text`-Codeblock für den erwarteten Output verlangen, genügt eine neue `ExamplePattern`-Konfiguration:
 
-````python
+```python
 from qb_cubie.services import CodeSnippet, DocEnsurance, ExamplePattern
 
 minimal_pattern = ExamplePattern(
@@ -205,7 +212,7 @@ minimal_doc = (
 
 report = DocEnsurance(target=minimal_doc, pattern=minimal_pattern, reporter=None).run()
 print(f"pattern={minimal_pattern.name} | passed={report.passed} | out={report.sessions[0].actual_outputs[0]}")
-````
+```
 
 <details>
 <summary>Ergebnis</summary>
@@ -221,7 +228,7 @@ Der interne Markdown-Scanner zerlegt jedes Dokument in flache `MdBlock(kind, con
 
 Um eine völlig eigene Strukturregel zu definieren, implementiert man das `DocBlockProtocol` (Property `role` sowie die Methoden `matches(block)` und `extract(block)`). Das folgende Beispiel definiert einen eigenen Baustein `HeadingRequirement`, der verlangt, dass direkt über jedem Code-Beispiel eine `### Beispiel:`-Überschrift steht:
 
-````python
+```python
 from dataclasses import dataclass
 from qb_cubie.services import CodeSnippet, DocEnsurance, ExamplePattern, MdBlock
 
@@ -252,7 +259,7 @@ fence = "```"
 custom_doc = f"### Beispiel: Vektor-Betrag\n\n{fence}python\nprint(abs(-42))\n{fence}"
 report = DocEnsurance(target=custom_doc, pattern=heading_pattern, reporter=None).run()
 print(f"passed={report.passed} | output={report.sessions[0].actual_outputs[0]}")
-````
+```
 
 <details>
 <summary>Ergebnis</summary>

@@ -101,6 +101,6 @@ def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
     DocEnsurance(
         pattern=CUBIE_DOC_STYLE,
-        excludes=("experiments", "docs_tmp", "GUTACHTEN.md"),
+        excludes=("experiments", "GUTACHTEN.md"),
     ).run()
 

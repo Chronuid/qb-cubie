@@ -378,15 +378,16 @@ class DocEnsurance:
         """Builds the final DocReport and delegates it to the configured reporter."""
         __tracebackhide__ = True
         is_memory = bool(self._sources) and self._sources[0][0] == "IN_MEMORY"
-        target_label = "IN_MEMORY" if is_memory else str(self.target)
-        self.report_result = DocReport(
-            target=target_label,
+        label = "IN_MEMORY" if is_memory else str(self.target)
+        report = DocReport(
+            target=label,
             passed=not bool(self._diagnostics),
             sessions=tuple(self._traces),
             diagnostics=tuple(self._diagnostics),
         )
+        self.report_result = report
         if self.reporter is not None:
-            self.reporter.report(self.report_result)
+            self.reporter.report(report)
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
     @classmethod
@@ -397,12 +398,45 @@ class DocEnsurance:
         if isinstance(target, str):
             if not target.strip():
                 raise ValueError("STATE-GUARD: Markdown target string must not be empty.")
-            if "\n" not in target and (target.endswith(".md") or Path(target).exists()):
-                return cls._load_path_sources(Path(target), excludes)
+            if cls._looks_like_path(target):
+                return cls._load_path_sources(Path(target.strip()), excludes)
             return [("IN_MEMORY", target)]
         raise TypeError(
             f"STATE-GUARD: target must be a Markdown str or Path; received {type(target).__name__}."
         )
+
+    @staticmethod
+    def _looks_like_path(target: str) -> bool:
+        """Distinguishes single-line filesystem path strings from in-memory Markdown."""
+        stripped = target.strip()
+        if "\n" in stripped:
+            return False
+        return (
+                stripped.endswith(".md")
+                or "/" in stripped
+                or "\\" in stripped
+                or " " not in stripped
+                or Path(stripped).exists()
+        )
+
+    @classmethod
+    def _crawl_directory(cls, root: Path, excludes: set[str]) -> list[Path]:
+        """Recursively collects sorted Markdown files while respecting relative exclusions."""
+        resolved = root.resolve()
+        return [
+            path for path in sorted(resolved.rglob("*.md"))
+            if path.is_file() and not cls._is_excluded(path.relative_to(resolved), resolved.name, excludes)
+        ]
+
+    @staticmethod
+    def _is_excluded(rel_path: Path, root_name: str, excludes: set[str]) -> bool:
+        """Checks whether a path relative to root matches any segment or subpath exclusion."""
+        rel_posix = rel_path.as_posix()
+        for excl in excludes:
+            norm = excl.strip("/").removeprefix(f"{root_name}/")
+            if norm in rel_path.parts or rel_posix == norm or rel_posix.startswith(f"{norm}/"):
+                return True
+        return False
 
     @classmethod
     def _load_path_sources(cls, target: Path, excludes: set[str]) -> list[tuple[str, str]]:
@@ -415,14 +449,6 @@ class DocEnsurance:
         if not files:
             raise ValueError(f"STATE-GUARD: No Markdown files found in directory: {target}")
         return [(str(path), path.read_text(encoding="utf-8")) for path in files]
-
-    @staticmethod
-    def _crawl_directory(root: Path, excludes: set[str]) -> list[Path]:
-        """Recursively collects sorted Markdown files while respecting exclusions."""
-        return [
-            path for path in sorted(root.rglob("*.md"))
-            if path.is_file() and not any(excl in path.parts for excl in excludes)
-        ]
 
     def _execute_session(self, session: ExampleSession) -> tuple[SessionTrace, list[DocDiagnostic]]:
         """Runs a single session in the arena and evaluates all step outcomes."""
