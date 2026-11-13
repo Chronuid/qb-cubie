@@ -1,10 +1,10 @@
 # GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation
 
-Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention) als auch **funktional** (echte Ausführung in einer isolierten `Arena`) absichert.
+Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention) als auch **funktional** (echte Ausführung in einer `Arena`) absichert.
 
 > [!NOTE]
 > 
-> **Wichtiger Disclaimer (Garantieumfang & Abgrenzung):**
+> **Wichtiger Disclaimer (Garantieumfang & Abgrenzung):**  
 > Auch wenn `DocEnsurance` überprüft, ob jedes Code-Beispiel durchläuft und die dokumentierte Ausgabe tatsächlich erzeugt wird, ist dies **noch keine generelle Testabdeckung** und **keine Garantie für die inhaltliche Korrektheit der Informationen** in den Dokumentationen:
 > * **Kein Ersatz für systematische Tests:** Ein einzelnes Positiv-Beispiel im Guide beweist nur diesen einen konkreten Aufruf, ersetzt aber keine Äquivalenzklassen-, Randfall- und Negativ-Prüfungen über `EBT`-Verträge in der Test-Suite.
 > * **Keine semantische Prüfung des Fließtextes:** `DocEnsurance` prüft, *ob* eine Erklärung vor dem Code-Block existiert, kann aber nicht bewerten, ob die Aussagen im Text fachlich vollständig oder zutreffend sind.
@@ -13,8 +13,6 @@ In einer bestehenden Test-Suite (wie `tests/test_styleguide.py`) genügt ein ein
 
 ```python
 from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
-
-
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
     DocEnsurance(
@@ -35,9 +33,9 @@ def test_docs_code_examples() -> None:
 
 Analog zum Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus `EBT` betrachtet `DocEnsurance` jedes Code-Beispiel in einer Markdown-Datei als dreiteiligen Vertrag rund um einen **Anker-Block**:
 
-* **Pre-Block ($P$ – Erklärung):** Vor dem Code-Block muss ein erklärender Textabsatz stehen, der das Beispiel einordnet.
-* **Anchor-Block ($S$ – Code-Snippet):** Ein ausführbarer `python`-Code-Block triggert die Prüfung.
-* **Post-Block ($Q$ – Erwartetes Ergebnis):** Direkt unter dem Code-Block dokumentiert ein aufklappbarer `<details>`-Block die erwartete Konsolenausgabe (`stdout`) oder Fehlermeldung.
+* **Pre-Block ( $P$ – Erklärung):** Vor dem Code-Block muss ein erklärender Textabsatz stehen, der das Beispiel einordnet.
+* **Anchor-Block ( $S$ – Code-Snippet):** Ein ausführbarer `python`-Code-Block triggert die Prüfung.
+* **Post-Block ( $Q$ – Erwartetes Ergebnis):** Direkt unter dem Code-Block dokumentiert ein aufklappbarer `<details>`-Block die erwartete Konsolenausgabe (`stdout`) oder Fehlermeldung.
 
 Reguläres Markdown außerhalb dieser unmittelbaren Nachbarschaft – wie Kapitelüberschriften, Aufzählungslisten, Architekturskizzen oder weiterführende Absätze – wird vom Scanner automatisch übersprungen.
 

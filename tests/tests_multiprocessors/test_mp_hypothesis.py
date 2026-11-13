@@ -212,6 +212,7 @@ def scalable_fuzzing_batch(draw, max_width: int, max_depth: int):
 
 
 # ==========  PYTEST-PARAMETRISIERUNG  |   KARTESISCHE-PRODUKTE  =======================================================
+@pytest.mark.slow
 @pytest.mark.parametrize("width, depth", [
         (2, 5),      # Stufe 1: Flacher Baum
         (10, 20),    # Stufe 2: Tiefer Wald

@@ -90,7 +90,11 @@ def assert_no_fallback(case, preferred, fallback, recwarn):
     assert preferred.priority == 100
     assert fallback.priority == 10
     assert fallback.requests == []
-    assert len(recwarn) == 0
+    unexpected = [
+        warning for warning in recwarn
+        if not (issubclass(warning.category, DeprecationWarning) and "fork()" in str(warning.message))
+    ]
+    assert unexpected == []
     assert case.run_trace is None
 
 

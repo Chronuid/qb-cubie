@@ -87,6 +87,7 @@ def test_custom_fs_ignores_green(reference_fs):
     ebt_run.FS_IGNORES = {"custom_log.txt"} # The custom log is explicitly ignored
     ebt_run.run()
 
+@pytest.mark.slow
 def test_empty_arena_ignores_red():
     """Verifies: Wiping ARENA_IGNORES strictly forces PyVenv to evaluate all volatile environment metadata."""
     ebt_run = EBT(

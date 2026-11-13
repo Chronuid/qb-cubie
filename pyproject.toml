@@ -67,3 +67,18 @@ cubie_benchmarks = "experiments/benchmarks/cubie_benchmarks"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--strict-markers -m 'not slow'"
+markers = [
+    "fast: Fast unit and contract tests (default local suite)",
+    "slow: Heavy, scaling, subprocess-heavy, watchdog-timeout, or network tests",
+    "ebt: Core EBT engine and contract tests",
+    "arena: Arena isolation, TempFS, PyVenv, IPC, and resource-limit tests",
+    "multiprocess: Multiprocessing backend, scaling, and xdist tests",
+    "linter: Linter integration tests (Ruff, Pylint, MyPy, LibCST)",
+    "services: Service tests such as DocEnsurance",
+    "workflows: User workflow and acceptance tests",
+    "reviewer: RBT and human/headless reviewer tests",
+    "meta: Repository meta-contracts, styleguide, and offline/tk checks",
+    "lint: Static analysis and documentation checks (ruff, pylint, mypy, docs)",
+    "hypothesis: Property-based tests using Hypothesis",
+]
