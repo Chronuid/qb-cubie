@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import json
 import math
@@ -6,10 +8,13 @@ from pathlib import Path
 import re
 import tempfile
 import types
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from .protocols import EvaluationTrace, ReviewData, RunTrace, UNSPECIFIED
 from ._execution import exception_details, qualified_name
+
+if TYPE_CHECKING:
+    from .services.protocols import ServiceReportProtocol
 
 # ========== PYTEST REPORTER ===========================================================================================
 
@@ -29,11 +34,14 @@ class PytestReporter:
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
 
-    def report(self, trace: RunTrace | ReviewData) -> None:
+    def report(self, trace: RunTrace | ReviewData | ServiceReportProtocol) -> None:
         """Evaluates the final run status and raises an assertion with formatted trace details on failure."""
         __tracebackhide__ = True
         if isinstance(trace, ReviewData):
             assert trace.passed, self._generate_review_report(trace)
+            return
+        if not isinstance(trace, RunTrace):
+            assert trace.passed, self._generate_service_report(trace)
             return
         if trace.evaluation is False:
             ctx = ReportContext(verbosity=self.verbosity, max_diff_items=self.max_diff_items)
@@ -47,6 +55,16 @@ class PytestReporter:
         """Formats review diagnostics for a failed run."""
         lines = ["\n--- Report ---"]
         lines.extend(f"- {key}: {value}" for key, value in result.report.items())
+        return "\n".join(lines)
+
+    @staticmethod
+    def _generate_service_report(result: ServiceReportProtocol) -> str:
+        """Formats diagnostics for a failed service run (e.g. DocEnsurance)."""
+        lines = [f"\n--- Service Report ({result.target}) ---"]
+        lines.extend(
+            f"- [{d.rule_id}] {d.file_path}:{d.line}: {d.message}"
+            for d in result.diagnostics
+        )
         return "\n".join(lines)
 
     def _generate_report(self, run_trace: RunTrace, ctx: ReportContext) -> str:

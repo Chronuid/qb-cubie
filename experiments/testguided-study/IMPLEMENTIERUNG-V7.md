@@ -43,26 +43,26 @@ Werkzeugversuch zählt. Recovery führt eine budgetierte Diagnose aus und änder
 das zulässige Schema. Reine Kommentar-/Formatänderungen an Python-Produktion
 zählen nicht als Arbeitsfortschritt.
 
-Die 41 ursprünglichen [V7-EBT-Abnahmen](../../tests/testguided_study_design/V7_CASES.md)
+Die 41 ursprünglichen [V7-EBT-Abnahmen](../tests/testguided_study_design/V7_CASES.md)
 umfassen Controllerverträge und zwei echte Runner-Replays, jeweils mit
 pytest-Unterprozessen, fachlichem Rot, Produktionspatch und Grün. Weitere
-[Grenzprüfungen](../../tests/testguided_study_design/test_v7_boundaries.py)
+[Grenzprüfungen](../tests/testguided_study_design/test_v7_boundaries.py)
 decken unter anderem Provider-Timeouts, verspätete Antworten, Reparaturschemas,
 unterbrochene QA-Fristen, Recovery, Reserve und Berichtsnenner ab.
-[Runtime-Regressionen](../../tests/testguided_study_design/test_v6_runtime.py)
+[Runtime-Regressionen](../tests/testguided_study_design/test_v6_runtime.py)
 prüfen zusätzlich die unabhängige private Evaluation intern unvollständiger
 V6- und V7-Läufe in beiden Armen.
 
 ```bash
 .venv/bin/python -m pytest \
-  tests/testguided_study_design/test_v7_controller_ebt.py \
-  tests/testguided_study_design/test_v7_runtime_ebt.py \
-  tests/testguided_study_design/test_v7_boundaries.py \
-  tests/testguided_study_design/test_v6_runtime.py -q
+  experiments/tests/testguided_study_design/test_v7_controller_ebt.py \
+  experiments/tests/testguided_study_design/test_v7_runtime_ebt.py \
+  experiments/tests/testguided_study_design/test_v7_boundaries.py \
+  experiments/tests/testguided_study_design/test_v6_runtime.py -q
 ```
 
 Technischer Prüfstand vom 12. November 2026: Die vollständige Suite
-`tests/testguided_study_design` besteht mit **439 Tests**, darunter alle
+`experiments/tests/testguided_study_design` besteht mit **439 Tests**, darunter alle
 41 ursprünglichen V7-EBT-Abnahmen und 27 zusätzliche V7-Grenzprüfungen. Ruff
 meldet für den Studiencode und die geänderten Tests keine Befunde. Die lokalen
 asyncio-Evaluationsprüfungen wurden außerhalb der Sandbox ausgeführt, nachdem

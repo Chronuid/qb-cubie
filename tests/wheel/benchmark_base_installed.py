@@ -24,7 +24,7 @@ def cli(*args, cwd):
 
 
 def test_installed_base_is_complete_relocatable_and_discoverable(tmp_path):
-    module = importlib.import_module("qb_cubie.benchmarks")
+    module = importlib.import_module("cubie_benchmarks")
     assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
     original = tmp_path / "base"
     contract(lambda: cli("init-base", original, "--format", "json", cwd=tmp_path), expected=lambda value: value.returncode == 0)
@@ -37,7 +37,7 @@ def test_installed_base_is_complete_relocatable_and_discoverable(tmp_path):
 
 
 def test_installed_base_executes_paired_repeats_and_archives_its_catalog(tmp_path):
-    module = importlib.import_module("qb_cubie.benchmarks")
+    module = importlib.import_module("cubie_benchmarks")
     module.init_base_package(tmp_path / "base")
     module.init_smoke_suite(tmp_path / "sets/smoke.toml")
     suite = tmp_path / "sets/pilot.toml"
@@ -59,7 +59,7 @@ def test_installed_base_executes_paired_repeats_and_archives_its_catalog(tmp_pat
 
 
 def test_installed_objective_and_manual_references_keep_distinct_validation_statuses(tmp_path):
-    module = importlib.import_module("qb_cubie.benchmarks")
+    module = importlib.import_module("cubie_benchmarks")
     root = tmp_path / "selected base"
     module.init_base_package(root)
     names = {"review-correctness-warehouse-correct", "review-correctness-warehouse-faulty",

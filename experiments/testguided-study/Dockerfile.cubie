@@ -5,4 +5,4 @@ COPY ${CUBIE_WHEEL} /tmp/cubie-wheel/
 RUN python -m pip install --no-cache-dir /tmp/cubie-wheel/*.whl \
     && rm -rf /tmp/cubie-wheel
 # The treatment exposes Cubie's testing API, without the historical experiment data.
-RUN python -c "import pathlib, qb_cubie, shutil; root = pathlib.Path(qb_cubie.__file__).parent; shutil.rmtree(root / 'benchmarks'); shutil.rmtree(root.parent / 'ollama_agents'); pathlib.Path('/usr/local/bin/cubie-bench').unlink(missing_ok=True)"
+RUN python -c "import pathlib, qb_cubie, shutil; site = pathlib.Path(qb_cubie.__file__).resolve().parents[1]; shutil.rmtree(site / 'cubie_benchmarks', ignore_errors=True); shutil.rmtree(site / 'ollama_agents', ignore_errors=True); pathlib.Path('/usr/local/bin/cubie-bench').unlink(missing_ok=True)"

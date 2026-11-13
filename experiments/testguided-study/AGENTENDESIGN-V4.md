@@ -41,8 +41,8 @@ Pilot-Replays mit Modell-Hashes prüfen ausdrücklich v3.
 Prüfung:
 
 ```bash
-.venv/bin/python -m pytest experiments/testguided-study/tests tests/testguided_study_design -q
-.venv/bin/python -m ruff check experiments/testguided-study tests/testguided_study_design
+.venv/bin/python -m pytest experiments/testguided-study/tests experiments/tests/testguided_study_design -q
+.venv/bin/python -m ruff check experiments/testguided-study experiments/tests/testguided_study_design
 ```
 
 Diese Tests prüfen Implementierungsverträge. Eine höhere Lösungsquote muss ein

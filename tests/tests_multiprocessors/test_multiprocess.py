@@ -197,6 +197,7 @@ def test_multiprocess_with_types(
     assert run_trace.evaluation is True
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("scale", [10, 50, 150])
 @pytest.mark.parametrize("arena_factory", ARENAS)
 @pytest.mark.parametrize("processor_factory", PROCESSORS[:3])  # Standard, Pickle, Loky
@@ -226,6 +227,7 @@ def test_forall_multiprocessing_scaling(
 
 
 # Scaling: 10 (warm-up), 50 (load), 150 (stress for the chunking heuristic)
+@pytest.mark.slow
 @pytest.mark.parametrize("scale", [10, 50, 150])
 @pytest.mark.parametrize("arena_factory", ARENAS[1:])  # Important: Only safe arenas due to I/O!
 @pytest.mark.parametrize("processor_factory", PROCESSORS[:3]) # Standard, Pickle, Loky
@@ -254,6 +256,7 @@ def test_heavy_workload_scaling(
 
 
 MUTATION_TARGETS = TARGETS[2:] # We filter our targets: FS adapter, venv mutation, in-memory mutation
+@pytest.mark.slow
 @pytest.mark.parametrize("scale", [10, 50])  # Scaling for parallel mutation conflicts
 @pytest.mark.parametrize("arena_factory", ARENAS[1:]) # IMPORTANT: TempFS and PyVenv only!
 @pytest.mark.parametrize("processor_factory", PROCESSORS[:3])  # Standard, Pickle, Loky

@@ -47,7 +47,7 @@ def configure(path):
 
 
 def test_installed_wheel_exposes_custom_workflow_commands(own_example):
-    module = importlib.import_module("qb_cubie.benchmarks")
+    module = importlib.import_module("cubie_benchmarks")
     assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
     contract(lambda: cli("--help", cwd=own_example), expected=lambda p: p.returncode == 0 and all(
         name in p.stdout for name in ["init-agent", "validate-agent", "init-scenario", "validate", "list", "compare"]))

@@ -265,7 +265,7 @@ _MSGSPEC_RUNNER = """
                     target_info = data["target"]
                     decontams = data.get("decontams", [])
                     # ----- 2. Activate the hook and load the target into the context. -----
-                    with _cubie_phantom.activate_hook(decontams):
+                    with _cubie_phantom.activate_hook(decontams) as imports:
                         mod = importlib.import_module(target_info["module"])
                         parts = target_info["qualname"].split('.')
                         if target_info["type"] == "instance":
@@ -277,17 +277,18 @@ _MSGSPEC_RUNNER = """
                         else:
                             func = mod
                             for part in parts: func = getattr(func, part)
-                    # ----- 3. Execute target and report successful result -----
-                    capture = target_info.get("capture_exception", False)
-                    status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
-                    try:
-                        res = func(*data["args"], **data["kwargs"])
-                    except Exception as error:
-                        if not capture: raise
-                        status = "TARGET_EXCEPTION"
-                        res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
-                               "message": str(error),
-                               "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+                        imports.finish()
+                        # ----- 3. Execute target and report successful result -----
+                        capture = target_info.get("capture_exception", False)
+                        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+                        try:
+                            res = func(*data["args"], **data["kwargs"])
+                        except Exception as error:
+                            if not capture: raise
+                            status = "TARGET_EXCEPTION"
+                            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                                   "message": str(error),
+                                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
                     with open({out_path}, 'wb') as f: f.write(msgspec.msgpack.encode([status, res]))
                 except Exception as e: # Exception abfangen und an den Host melden
                     error_msg = f"{{type(e).__name__}}: {{str(e)}}"

@@ -29,7 +29,7 @@ die Adapter, eingefrorene Agenten-TOMLs und getrennte Rollen-Smoke-Sets.
 ## Aus installiertem Wheel (§5.4)
 
 ```bash
-python -m pip install '/absoluter/pfad/qb_cubie-0.0.3-py3-none-any.whl[benchmarks]'
+python -m pip install '/absoluter/pfad/qb_cubie-0.0.4-py3-none-any.whl[benchmarks]'
 cubie-bench init-ollama ./ollama-demo
 cd ollama-demo
 cubie-bench validate-agent agents/reviewer.toml
@@ -44,7 +44,7 @@ cubie-bench run --suite sets/developer.toml
 `init-ollama` liest lokale Modellmetadaten ohne Inferenz und friert Digest,
 Ollama-Version, Parameter, Adapterversion und Prompt-Hash ein. `--endpoint` und
 `--model` wählen Server und Modell explizit. Das Ziel darf noch nicht existieren.
-Der vollständige [installierte Leitfaden](../../src/qb_cubie/benchmarks/data/GUIDE_Ollama-Agents.md)
+Der vollständige [installierte Leitfaden](../benchmarks/cubie_benchmarks/data/GUIDE_Ollama-Agents.md)
 wird als `README.md` mitexportiert. [Abnahme und tatsächliche Läufe](../../tests/docs_tmp/AGENTEN_CASES_5_4.md)
 trennen deterministische Wheel-Replays von echten Modell-Smokes.
 
@@ -160,9 +160,9 @@ stderr enthält nur Archivkennung, Manifestpfad und Manifesthash.
 Aus dem Repositorywurzelverzeichnis:
 
 ```bash
-.venv/bin/python -m pytest tests/ollama_agents -q
-.venv/bin/python -m ruff check examples/ollama-agents tests/ollama_agents
-.venv/bin/python -m mypy --check-untyped-defs --warn-unreachable examples/ollama-agents
+.venv/bin/python -m pytest experiments/tests/ollama_agents -q
+.venv/bin/python -m ruff check experiments/ollama-agents experiments/tests/ollama_agents
+.venv/bin/python -m mypy --check-untyped-defs --warn-unreachable experiments/ollama-agents
 ```
 
 Die [Kriterienmatrix](../../tests/docs_tmp/AGENTEN_CASES_5_1.md) beschreibt den Vertrag
@@ -245,13 +245,13 @@ exakte Finding-Felder.
 ## Kleinen echten EBT-Smoke ausführen
 
 ```bash
-CUBIE_RUN_OLLAMA_SMOKE=1 .venv/bin/python -m pytest tests/live_ollama -q
+CUBIE_RUN_OLLAMA_SMOKE=1 .venv/bin/python -m pytest experiments/tests/live_ollama -q
 ```
 
 Aus dem Repositorywurzelverzeichnis prüft dies zwei konkrete Fälle mit echten
 Aufrufen an das installierte `gemma4:12b`: Freigabe des konformen Renderers und
 Erkennung des Ampersand-Fehlers. Standardmäßig bleiben die Tests ausgeschaltet.
-[Aufruf, Belege und erster tatsächlicher Lauf](../../tests/live_ollama/README.md)
+[Aufruf, Belege und erster tatsächlicher Lauf](../tests/live_ollama/README.md)
 dokumentieren die Erwartungen und die Grenzen der semantischen Befundqualität.
 
 Der Promptstand `reviewer-v2` verlangt bei Befunden eine auslösende Eingabe,
@@ -275,11 +275,11 @@ Reviewer als JSONL-v1-Prozess bereit. Die Konfiguration enthält `agent_id`,
 bereits vor dem Handshake und startet dort kein Modell.
 
 Eine vollständig ausführbare Konfigurationserzeugung samt Agenten-TOML zeigt
-[test_benchmark_rbt_live.py](../../tests/live_ollama/test_benchmark_rbt_live.py).
+[test_benchmark_rbt_live.py](../tests/live_ollama/test_benchmark_rbt_live.py).
 Der Test friert lokale Modellmetadaten explizit ein und führt eine einzelne
 konforme Episode mit dem echten Benchmark-Runner aus. Seine EBT-Abnahme prüft
 unabhängige Evaluation, RBT-Aufzeichnung und die Identität beider Berichte.
-Aufruf und Grenzen stehen in der [Live-Testbeschreibung](../../tests/live_ollama/README.md).
+Aufruf und Grenzen stehen in der [Live-Testbeschreibung](../tests/live_ollama/README.md).
 Dieser Prozessanschluss ersetzt den zuvor noch offenen JSONL-Nachweis für den
 Reviewer. Die Wheel-Installation und vollständigen Rollen-Smoke-Sets sind oben beschrieben.
 

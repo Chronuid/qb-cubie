@@ -28,14 +28,25 @@ Das API-Interface agiert agnostisch und akzeptiert nahtlos Objekte vom Typ `Unio
 from pathlib import Path
 from qb_cubie import AstLinter, Pylint
 
+Path("src").mkdir(exist_ok=True)
+Path("src/main.py").write_text('"""Demo module."""\n', encoding="utf-8")
+
 # 1. Analyse eines gesamten Repositories (Auto-Discovery)
 linter = AstLinter(Pylint())
 diagnostics = linter.check()
 
 # 2. Gezielte Analyse einer einzelnen Datei
 diagnostics_file = linter.check(Path("src/main.py"))
-
+print(len(diagnostics), len(diagnostics_file))
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+0 0
+```
+</details>
 
 ### 1.2. Analyseumfang und Ausschlüsse
 
@@ -56,23 +67,43 @@ stdout und stderr aus. Der Fehler propagiert auch durch `AstLinter` und EBT;
 Unstrukturierte Agenten-Ausgaben oder generierter Code aus dem Arbeitsspeicher können direkt als String übergeben werden. In-Memory-Strings werden dynamisch über `stdin` an die CLI-Tools geroutet.
 
 ```python
+from qb_cubie import AstLinter, Pylint
+
 llm_code = "def foo():\n    pass\n"
 
 # Analyse rein im RAM, ohne Festplatten-I/O
 diagnostics = AstLinter(Pylint()).check(llm_code)
-
+print([d.rule_id for d in diagnostics])
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+['C0114', 'C0116', 'C0104']
+```
+</details>
 
 ### 1.4 Rule-Management: Regeln deaktivieren
 
 Oft ist es nötig, kontextbezogen Regeln abzuschalten (z. B. die Docstring-Pflicht in simplen Test-Skripten). Der `Pylint`-Worker nimmt hierfür eine `disable`-Liste im Konstruktor entgegen, was sich nahtlos in die entsprechenden CLI-Flags übersetzt.
 
 ```python
+from qb_cubie import AstLinter, Pylint
+
 # Schaltet C0114 (Missing module docstring) und C0116 (Missing function docstring) ab
 relaxed_pylint = Pylint(disable=["C0114", "C0116"])
-diagnostics = AstLinter(relaxed_pylint).check("x = 1\n")
-
+diagnostics = AstLinter(relaxed_pylint).check("X_VAL = 1\n")
+print(diagnostics)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+[]
+```
+</details>
 
 ---
 
@@ -116,7 +147,7 @@ Die Basisklasse löst zwei große Probleme für den Entwickler:
 
 Hier ist ein komplettes Beispiel für eine Regel, die Type-Hints für alle Funktions-Rückgaben (außer bei `__init__`) erzwingt. Wir nutzen dafür deklaratives Pattern Matching via `libcst.matchers`, um uns endlose `if`-Verschachtelungen zu ersparen.
 
-```python
+```python session=cst_rule
 import libcst as cst
 import libcst.matchers as m
 from qb_cubie import CstRule, CstLinter
@@ -138,11 +169,19 @@ class RequireReturnTypeRule(CstRule):
             )
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 ### 3.3 Ausführung im System
 
 Um die eigene Regel nun auf Code anzuwenden, wird sie instanziiert und dem `CstLinter` übergeben:
 
-```python
+```python session=cst_rule
 bad_code = """
 def helfer_funktion(x):
     pass
@@ -153,8 +192,15 @@ diagnostics = linter.check(bad_code) # Analyse ausführen
 
 for d in diagnostics:
     print(f"[{d.rule_id}] {d.message} (Zeile: {d.line})")
-    # Output: [CST002] Der Funktion 'helfer_funktion' fehlt die Return-Type-Annotation. (Zeile: 2)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+[CST002] Der Funktion 'helfer_funktion' fehlt die Return-Type-Annotation. (Zeile: 2)
+```
+</details>
 
 ---
 

@@ -120,7 +120,7 @@ Er nutzt das externe `loky`-Backend (auf Basis von `cloudpickle`). Seine `check_
 
 ## Entwicklungs-Leitfaden: Multiprocessor DI 
 
-Die Architektur ist strikt nach dem Open-Closed-Prinzip gestaltet. Um ein eigenes Backend (z. B. für verteilte Cluster-Berechnungen via `Ray`) einzubinden, müssen keine Framework-Klassen verändert werden. 
+Die Architektur ist strikt nach dem Open-Closed-Prinzip gestaltet. Um ein eigenes Backend (z. B. über `ThreadPoolExecutor` oder verteilte Cluster-Berechnungen wie `Ray`) einzubinden, müssen keine Framework-Klassen verändert werden. 
 
 ---
 
@@ -131,57 +131,72 @@ Der Mapper kapselt die physische Interaktion mit dem Backend. Hier werden archit
 * **Laufzeit-Heuristiken (Chunking):** `PickleMapper` und `LokyMapper` begrenzen die Workerzahl auf `min(os.cpu_count() or 1, n_tasks)` und gegebenenfalls `max_workers`. Die Task-Blöcke richten sich nach der effektiven Workerzahl: `chunksize = max(1, n_tasks // (n_worker * 4))`. Ein Pool benötigt mindestens eine Aufgabe.
 * **Das Mapping-Interface:** Die `.map()`-Methode nimmt das auszuführende Target und die entpackten `WorldState`-Iterables entgegen und liefert die Ergebnisse an die EBT-Engine zurück.
 
-```python
-from typing import Callable, Iterable, Any
+Dieses Beispiel kapselt einen `ThreadPoolExecutor` als eigenen Context-Manager-Mapper:
 
-class RayMapper:
-    def __init__(self, n_tasks: int):
+```python session=custom_mp
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable, Iterable
+
+
+class ThreadMapper:
+    def __init__(self, n_tasks: int, max_workers: int | None = None):
         self.n_tasks = n_tasks
-        
-    def __enter__(self) -> 'RayMapper':
-        import ray
-        ray.init(ignore_reinit_error=True) # Aufbau des Backends
+        self.max_workers = max_workers or min(4, max(1, n_tasks))
+        self._executor: ThreadPoolExecutor | None = None
+
+    def __enter__(self) -> "ThreadMapper":
+        self._executor = ThreadPoolExecutor(max_workers=self.max_workers)
         return self
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        import ray
-        ray.shutdown() # Garantiertes Teardown
-        
-    def map(self, fn: Callable, *iterables: Iterable) -> Iterable[Any]:
-        import ray
-        # Ray benötigt kein iteratives Chunking, es nutzt Remote-Graphen
-        remote_fn = ray.remote(fn)
-        futures = [remote_fn.remote(*args) for args in zip(*iterables)]
-        return ray.get(futures)
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        if self._executor is not None:
+            self._executor.shutdown(wait=True)
+
+    def map(self, fn: Callable[..., Any], *iterables: Iterable[Any]) -> list[Any]:
+        assert self._executor is not None
+        return list(self._executor.map(fn, *iterables))
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
 
 ```
+</details>
 
 ---
 
 ### Schritt 2: Den Prozessor (Hook) definieren
 
-Der eigentliche Prozessor agiert primär als Filter oder Trigger (Hook) und als Factory für den Mapper. Die Methode `create_handler` reicht hierbei lediglich die Task-Anzahl an die Mapper-Instanz weiter. Das eigentliche Routing durch die Responsibility Chain wird durch die Kombination aus Priorität und der `check_condition`-Funktion umgesetzt.
-
-Das folgende vereinfachte Ray-Beispiel zeigt die bisherige Schnittstelle ohne Benutzerlimit. Für die Nutzung mit `EBT(max_workers=...)` muss die Factory zusätzlich `max_workers` annehmen und der Mapper die Parallelität des Backends entsprechend begrenzen.
+Der eigentliche Prozessor agiert primär als Filter oder Trigger (Hook) und als Factory für den Mapper. Die Methode `create_handler` reicht hierbei lediglich die Task-Anzahl sowie das optionale `max_workers`-Limit an die Mapper-Instanz weiter. Das eigentliche Routing durch die Responsibility Chain wird durch die Kombination aus Priorität und der `check_condition`-Funktion umgesetzt.
 
 * **Der Hook (Spezifischer Trigger):** mit spezifischen `check_condition` (z.B. Scannen der `pre_states` nach einem bestimmten Datentyp oder einer spezifischen Arena), kann man Prozessoren bauen, die nur bei ganz bestimmten Testfällen eingreifen.
 * **Priority-Chain** man kann die spezifischen Trigger breiter setzen und über die priority die Evaluation des Objekts in der Kette beeinflussen. Setzt man eine sehr hohe Priorität für einen Multiprocessor, überwiegt dieser in seiner Wertung für die Auswahl gegenüberen weniger hoch priorisierten Multiprocessors in der Registry, insofern beide check_condition-Prüfungen zutreffen.
 * **Der Total-Override:** Gibt die `check_condition` immer `True` zurück, übernimmt dieser Prozessor die Priorität stets die Ausführung, insofern dessen priority-Wert am höchsten ist.
 
-```python
-class RayProcessor:
+Die folgende Prozessor-Klasse bindet den Mapper über `priority`, `check_condition` und `create_handler` ein:
+
+```python session=custom_mp
+class ThreadProcessor:
     priority = 99  # Überschreibt Pickle (1) und Loky (1)
-    
+
     @staticmethod
     def check_condition(pre_states: list, post_states: list) -> bool:
-        # Ein Total-Override: Ray soll in diesem Projekt IMMER greifen
-        return True  
-        
+        return True
+
     @staticmethod
-    def create_handler(n_tasks: int) -> RayMapper:
-        return RayMapper(n_tasks)
+    def create_handler(n_tasks: int, *, max_workers: int | None = None) -> ThreadMapper:
+        return ThreadMapper(n_tasks, max_workers=max_workers)
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
 
 ```
+</details>
 
 ---
 
@@ -189,21 +204,34 @@ class RayProcessor:
 
 Die Injection erfolgt direkt im Konstruktor der `EBT`-Engine.
 
-```python
+```python session=custom_mp
 import qb_cubie as qb
 
-my_ray_proc = RayProcessor()
-my_ray_proc.priority = 150 # Mutability zur Laufzeit
 
-qb.EBT(
-    target=my_heavy_function,
-    pre=[...],
-    post=[...],
+def square(x: int) -> int:
+    return x * x
+
+
+my_proc = ThreadProcessor()
+my_proc.priority = 150  # Mutability zur Laufzeit
+
+result = qb.EBT(
+    target=square,
+    pre=[qb.WorldState(args=(3,)), qb.WorldState(args=(4,))],
+    post=[qb.WorldState(returns=9), qb.WorldState(returns=16)],
     multiprocessing=True,
-    multiprocessors=[my_ray_proc] # DI-Hook
+    multiprocessors=[my_proc],  # DI-Hook
 ).run()
-
+print(result.evaluation)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+True
+```
+</details>
 
 **⚠️ Architektur-Disclaimer zum EBT-Standard (`MULTIPROCESSORS`):**
 Wenn das Argument `multiprocessors=[...]` übergeben wird, nutzt die `EBT`-Klasse intern ein "Gentleman's Agreement" via `.extend()`. Das bedeutet, die injizierten Prozessoren werden *zusätzlich* zu den nativen Standards (`Pickle` und `Loky`) in die Hook-Registry geladen. Der Resolver wählt dann den besten Kandidaten anhand der Priorität.

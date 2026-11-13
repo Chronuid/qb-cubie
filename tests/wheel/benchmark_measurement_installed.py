@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from qb_cubie import EBT, WorldState
-from qb_cubie.benchmarks import (
+from cubie_benchmarks import (
     evaluate_gates,
     freeze_suite,
     init_example,
@@ -81,6 +81,6 @@ def test_installed_pytest_plugin_skips_episodes_without_explicit_enablement(tmp_
     probe.write_text('import pytest\nfrom pathlib import Path\n@pytest.mark.agent_benchmark\n'
                      'def test_episode():\n    Path("must-not-start").touch()\n', encoding="utf-8")
     process = contract(lambda: subprocess.run([sys.executable, "-I", "-m", "pytest", "-q", "-p",
-        "qb_cubie.benchmarks.pytest_plugin", str(probe)], cwd=tmp_path, capture_output=True,
+        "cubie_benchmarks.pytest_plugin", str(probe)], cwd=tmp_path, capture_output=True,
         text=True, timeout=30, check=False), expected=lambda value: value.returncode == 0)
     assert "1 skipped" in process.stdout and not (tmp_path / "must-not-start").exists()

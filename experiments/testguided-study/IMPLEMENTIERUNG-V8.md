@@ -106,8 +106,8 @@ auch unvollständige Läufe gelangen zur privaten Prüfung.
 ## Deterministische Verifikation
 
 ```bash
-.venv/bin/python -m pytest tests/testguided_study_design/test_v8_* -q
-.venv/bin/python -m pytest tests/testguided_study_design -q
+.venv/bin/python -m pytest experiments/tests/testguided_study_design/test_v8_* -q
+.venv/bin/python -m pytest experiments/tests/testguided_study_design -q
 ```
 
 Verifiziert am 12. November 2026: **555 Studien-Tests bestanden**, darunter
@@ -115,13 +115,13 @@ Verifiziert am 12. November 2026: **555 Studien-Tests bestanden**, darunter
 unter `experiments/testguided-study/tests` ergeben **64 bestanden, 3 übersprungen**.
 Ruff und `git diff --check` sind ohne Befund.
 
-Die ursprüngliche [EBT-Abnahmereihe](../../tests/testguided_study_design/V8_CASES.md)
+Die ursprüngliche [EBT-Abnahmereihe](../tests/testguided_study_design/V8_CASES.md)
 umfasst 92 Nodes. Zusätzliche Grenzfälle prüfen unter anderem inkrementelle
 Kontextpflege, nicht löschbare Informationslücken, Fallmetadatenrevisionen,
 Teständerungsablehnung und begründete Aufgaben ohne reproduzierbares Rot.
 
 Die Providerreplays in
-[test_v8_runtime.py](../../tests/testguided_study_design/test_v8_runtime.py)
+[test_v8_runtime.py](../tests/testguided_study_design/test_v8_runtime.py)
 führen die tatsächlichen Workspace-Skripte, git-Baselines, pytest-Unterprozesse,
 EBT-Instrumentierung, Design-Freeze und Monitoransicht aus. Die Testklammer passt
 nur Containerpfad und Python-Interpreter an. Sie belegt außerdem, dass ausgeführte

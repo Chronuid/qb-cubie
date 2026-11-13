@@ -133,6 +133,11 @@ class PyVenv(_ArenaState):
                 f"STATE-GUARD: Base arena not found: {base_env}. "
                 "Provision it explicitly with ArenaBuilder(path).build() before running PyVenv."
             )
+        if _environment_python(base_env).exists() and not (base_env / "pyvenv.cfg").is_file():
+            raise RuntimeError(
+                f"STATE-GUARD: Invalid virtual environment (missing pyvenv.cfg): {base_env}. "
+                "Remove any incomplete directory and provision it with ArenaBuilder(path).build()."
+            )
         return base_env
 
     def _hydrate(self) -> None:

@@ -4,7 +4,7 @@ Stand: 11. November 2026.
 
 > **Experimentell · kein Bestandteil des qb-cubie Core.** Der gesamte
 > Benchmark-Bereich ist ein separater experimenteller Bereich. Dazu gehören
-> `qb_cubie.benchmarks`, die CLI `cubie-bench`, die Extras `benchmarks` und
+> `cubie_benchmarks`, die CLI `cubie-bench`, die Extras `benchmarks` und
 > `swebench`, Agentenadapter, Szenariodatensätze sowie Vergleichs-, Bewertungs-
 > und CI-Messfunktionen. Sie werden derzeit im selben Paket ausgeliefert;
 > daraus folgt keine Zugehörigkeit zum Core.
@@ -609,19 +609,29 @@ import json
 import sys
 from pathlib import Path
 
-root = Path("study").resolve()
-sys.path.insert(0, str(root / "adapter"))
-from ollama_agents.developer.process import prompt_hash
 
-original = json.loads((root / "adapter/developer.json").read_text())
-for mode in ("cubie", "pytest"):
-    config = copy.deepcopy(original)
-    config.update(agent_id=f"developer-{mode}", mode=mode,
-                  archive_root="/agent-evidence",
-                  endpoint="http://host.docker.internal:11434")
-    config["model"]["prompt_sha256"] = prompt_hash(mode)
-    (root / f"adapter/developer-{mode}.json").write_text(json.dumps(config, indent=2))
+def prepare_developer_configs(study_dir: str | Path = "study") -> None:
+    root = Path(study_dir).resolve()
+    sys.path.insert(0, str(root / "adapter"))
+    from ollama_agents.developer.process import prompt_hash
+
+    original = json.loads((root / "adapter/developer.json").read_text())
+    for mode in ("cubie", "pytest"):
+        config = copy.deepcopy(original)
+        config.update(agent_id=f"developer-{mode}", mode=mode,
+                      archive_root="/agent-evidence",
+                      endpoint="http://host.docker.internal:11434")
+        config["model"]["prompt_sha256"] = prompt_hash(mode)
+        (root / f"adapter/developer-{mode}.json").write_text(json.dumps(config, indent=2))
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 Die beiden JSON-Dateien können getrennt angepasst werden. Der Modus bindet das
 jeweilige Frameworkwissen in den Modellprompt ein. Für weitergehende
@@ -692,12 +702,12 @@ sind für belastbare Aussagen nötig.
 
 ### Technische Nachweise
 
-Offline-Verträge: `python -m pytest tests/benchmarks/test_mirrored_developer.py`.
+Offline-Verträge: `python -m pytest experiments/tests/benchmarks/test_mirrored_developer.py`.
 Der echte Docker-Durchstich ist ausdrücklich zuschaltbar:
 
 ```bash
 CUBIE_TEST_BASELINE_IMAGE=<lokales-Python-mit-Pytest-Image> \
-  python -m pytest tests/benchmarks/test_mirrored_developer_container.py
+  python -m pytest experiments/tests/benchmarks/test_mirrored_developer_container.py
 ```
 
 Er baut aus dem lokalen Image einen temporären synthetischen Vergleichsagenten,
@@ -711,7 +721,7 @@ Cubie importiert Python-Reparaturaufgaben aus den offiziellen Full-, Lite- und
 Verified-Datensätzen als eigene Szenariopakete. Der durchgängige Weg ist:
 Import → Basis-/Gold-Referenzprüfung → Suite → Freeze → Developer-Agent →
 unabhängige Patch-Abnahme. Die drei öffentlichen APIs stehen im installierten
-Paket unter `qb_cubie.benchmarks` zur Verfügung.
+Paket unter `cubie_benchmarks` zur Verfügung.
 
 Die importierten Datensätze sind Quellen der regulären Developer-Agent-Benchmark.
 Sie unterstützen auch `cubie-vs-pytest` mit getrennt spezialisierten
@@ -721,28 +731,45 @@ erhalten.
 
 ### Import
 
-```python
-from qb_cubie.benchmarks import import_swebench, plan_swebench_import
+Das folgende Beispiel kapselt Planung und Import eines SWE-bench-Datensatzes mit expliziter Revision:
 
-config = {
-    "schema_version": 1,
-    "dataset_name": "SWE-bench/SWE-bench_Lite",
-    "revision": dataset_commit,  # vollständiger geprüfter 40-stelliger Commit
-    "split": "test",
-    "cache_dir": "/data/swebench-cache",
-    "offline": False,
-    "namespace": "swebench-lite-study",
-    "version": "1.0.0",
-    "instance_ids": selected_instance_ids,
-    "seed": 17,
-    "include_hints": False,
-    "on_error": "fail",
-    "process_profile": "issue_resolution",
-    "harness_revision": harness_commit,
-}
-plan = plan_swebench_import(config)
-result = import_swebench(config, "/data/scenarios/swebench-lite-study")
+```python
+from cubie_benchmarks import import_swebench, plan_swebench_import
+
+
+def import_swebench_study(
+    dataset_commit: str,
+    selected_instance_ids: list[str],
+    harness_commit: str,
+) -> tuple[dict, dict]:
+    config = {
+        "schema_version": 1,
+        "dataset_name": "SWE-bench/SWE-bench_Lite",
+        "revision": dataset_commit,  # vollständiger geprüfter 40-stelliger Commit
+        "split": "test",
+        "cache_dir": "/data/swebench-cache",
+        "offline": False,
+        "namespace": "swebench-lite-study",
+        "version": "1.0.0",
+        "instance_ids": selected_instance_ids,
+        "seed": 17,
+        "include_hints": False,
+        "on_error": "fail",
+        "process_profile": "issue_resolution",
+        "harness_revision": harness_commit,
+    }
+    plan = plan_swebench_import(config)
+    result = import_swebench(config, "/data/scenarios/swebench-lite-study")
+    return plan, result
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 Für Download und anschließende Messung installieren Sie
 `python -m pip install 'qb-cubie[benchmarks,swebench]'`; der Downloadadapter
@@ -830,13 +857,26 @@ gemeinsamen Messung erkannt. Referenzen beginnen mit `unvalidated` und leeren
 
 ### Ausführende Referenzfreigabe
 
-```python
-from qb_cubie.benchmarks import validate_swebench_references
+Nach dem Import prüft `validate_swebench_references` die Basis- und Gold-Referenzen gegen das Paket:
 
-reference = validate_swebench_references(result["package"])
-assert reference["valid"]
-print(reference["report"])  # separate dauerhafte Belegablage
+```python
+from cubie_benchmarks import validate_swebench_references
+
+
+def check_swebench_references(package_path: str) -> dict:
+    reference = validate_swebench_references(package_path)
+    assert reference["valid"]
+    print(reference["report"])  # separate dauerhafte Belegablage
+    return reference
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 Der Standardexecutor setzt Docker, einen aus exakt `harness_commit`
 installierten offiziellen `swebench`-Harness mit VCS-Provenienz und vorher
@@ -920,12 +960,24 @@ agents = ["agent.toml"]
 sources = [{path = "package", reference_report = "reference-evidence/report.json"}]
 ```
 
-```python
-from qb_cubie.benchmarks import freeze_suite, run_frozen_suite
+Nach dem Erstellen von `suite.toml` friert `freeze_suite` die Konfiguration ein und `run_frozen_suite` führt die Messung aus:
 
-freeze_suite("suite.toml", "frozen-study")
-results = run_frozen_suite("frozen-study", "results")
+```python
+from cubie_benchmarks import freeze_suite, run_frozen_suite
+
+
+def execute_frozen_study() -> dict:
+    freeze_suite("suite.toml", "frozen-study")
+    return run_frozen_suite("frozen-study", "results")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 Freeze archiviert das Paket, die Referenzbelege und die Digestkonfiguration des
 Adapters. Das Adapterimage selbst bleibt eine separat bereitzustellende
@@ -1126,12 +1178,12 @@ Pytest-Developer und SWE-bench sind in den jeweiligen Abschnitten beschrieben.
 Die echte pytest-Ausführung bleibt ausdrücklich freizuschalten:
 
 ```bash
-python -m pytest tests/benchmarks -m agent_benchmark \
+python -m pytest experiments/tests/benchmarks -m agent_benchmark \
   --run-agent-benchmarks --suite sets/team.toml
 ```
 
 Im Cubie-Repository ist das Plugin bereits eingebunden. Für eigene Tests laden
-Sie `-p qb_cubie.benchmarks.pytest_plugin` und markieren die Episoden mit
+Sie `-p cubie_benchmarks.pytest_plugin` und markieren die Episoden mit
 `agent_benchmark`, zusätzlich optional `review_agent` oder `developer_agent`.
 Ohne Freischaltung werden sie übersprungen, auch bei einer Markerwahl.
 Sammlung startet keinen Adapter. Bei tatsächlicher Freischaltung führen eine
@@ -1171,7 +1223,7 @@ Benchmark-Konzept gelten weiter.
 ### Nachbewertung
 
 `apply_adjudication(archive_path, decisions_path, destination)` aus
-`qb_cubie.benchmarks` veröffentlicht ein neues, separat prüfbares Archiv.
+`cubie_benchmarks` veröffentlicht ein neues, separat prüfbares Archiv.
 Das Ursprungsarchiv bleibt unverändert. Die Entscheidung muss folgende Form haben:
 
 ```json
@@ -1312,7 +1364,7 @@ Inkremente und fachlich begründete Testrevisionen sind noch nicht implementiert
 
 ## Technische Referenz
 
-Die experimentelle Python-API liegt unter `qb_cubie.benchmarks`. Laden, Planen
+Die experimentelle Python-API liegt unter `cubie_benchmarks`. Laden, Planen
 und Nachrichtenvalidierung benötigen keine zusätzlichen Abhängigkeiten und
 führen keinen Szenariocode aus. Für pytest-Unterprozesse braucht der Runner
 das Extra `benchmarks`. Alle Rückgaben sind JSON-kompatible Dictionaries und
@@ -1323,24 +1375,38 @@ abgelehnt.
 
 ### Python-Einstieg
 
+Das folgende Beispiel initialisiert eine Smoke-Suite im Arbeitsverzeichnis, plant und startet den Lauf und lädt anschließend die enthaltenen Szenarien:
+
 ```python
 from pathlib import Path
-from qb_cubie.benchmarks import init_smoke_suite, load_package, plan_suite, run_suite
+from cubie_benchmarks import init_smoke_suite, load_package, plan_suite, run_suite
 
 suite = Path("./sets/python-smoke.toml")
 init_smoke_suite(suite)
 plan = plan_suite(suite)
 print(len(plan["runs"]), plan["total_wall_time_seconds"])
 result = run_suite(suite)
-print(result["output"])
+print(Path(result["output"]).exists())
 
 package = load_package(Path("./scenarios/smoke"))
 for scenario in package["scenarios"]:
     print(scenario["qualified_id"], scenario["benchmark"], scenario["types"])
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+3 60
+True
+smoke/review-paid-correct review_agent []
+smoke/review-paid-faulty review_agent []
+smoke/index-initial developer_agent ['file_workflow', 'initial_development']
+```
+</details>
+
 Ein reines Planungsbeispiel mit fünf Szenarien liegt unter
-[tests/benchmarks/fixtures/phase1](../tests/benchmarks/fixtures/phase1/package.json).
+[experiments/tests/benchmarks/fixtures/phase1](../experiments/tests/benchmarks/fixtures/phase1/package.json).
 Sein Agentenkommando existiert absichtlich nicht. Für ausführbare Vorlagen dienen
 `init_smoke_suite` oder `init-example`.
 
@@ -1406,7 +1472,7 @@ die mitgelieferten vertrauenswürdigen Beispiele gesondert aus.
 ### Agenten- und Evaluatornachrichten
 
 Die vollständigen Beispiele stehen in den
-[Protokoll-Cases](../tests/benchmarks/test_protocol_contracts.py).
+[Protokoll-Cases](../experiments/tests/benchmarks/test_protocol_contracts.py).
 Alle Nachrichten tragen `schema_version = 1`, `run_id` und `scenario_id`.
 Die Validierungsfunktionen geben gültige Nachrichten ohne erfundene Werte
 zurück; Ergebniskennungen müssen zur mitgegebenen Anfrage passen.
@@ -1452,7 +1518,7 @@ bewerteten Ergebnissen sind numerische Qualitätswerte unzulässig.
 
 ### Paketstruktur
 
-Die experimentelle API liegt unter `qb_cubie.benchmarks`. `cli.py` und
+Die experimentelle API liegt unter `cubie_benchmarks`. `cli.py` und
 `runner.py` bilden die zentralen Einstiegspunkte. Die Fachmodule sind gruppiert:
 
 | Unterpaket | Aufgabe |

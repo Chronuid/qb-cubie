@@ -39,7 +39,20 @@ class Bankkonto:
         
     def einzahlen(self, betrag):
         self.saldo += betrag  # Veränderung des Kontexts (Seiteneffekt!)
+
+
+konto = Bankkonto(100.0)
+konto.einzahlen(50.0)
+print(konto.saldo)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+150.0
+```
+</details>
 
 Der FP-Weg:
 Hier ziehen wir sämtliche Attribute in eine reine Datenstruktur (das "Interface") und nutzen eine Kompositionsfunktion:
@@ -57,6 +70,15 @@ neuer_kontext = einzahlen_fp(start_kontext, 50.0)  # Gibt neues Interface zurüc
 print(start_kontext.saldo)  # 100.0 (Unverändert)
 print(neuer_kontext.saldo)  # 150.0 (Neuer Zustand)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+100.0
+150.0
+```
+</details>
 
 In diesem FP-Beispiel fungiert das NamedTuple als dein Interface. Die Funktion einzahlen_fp verändert nichts, sondern nimmt den Kontext entgegen und gibt einen neuen, transformierten Kontext zurück.
 
@@ -203,9 +225,14 @@ Hier ist die konkrete Architektur, wie du dieses System zentralisierst, Typsiche
 ## Die zentrale Architektur (Das Protokoll)
 Wir definieren ein zentrales Protokoll, das den mathematischen Zustand (State) und die Transformationslogik vorschreibt. Jede Struktur – ob FP-Datenstruktur oder OOP-Klasse – muss sich diesem Protokoll fügen.
 
-```python
+```python session=iso
 from typing import Protocol, TypeVar, Generic, Any
-# Generischer Typ für den inneren ZustandS = TypeVar("S", covariant=True)  # State ist schreibgeschützt (FP-freundlich)A = TypeVar("A")                  # Argument für die Transformation
+
+# Generischer Typ für den inneren Zustand
+S = TypeVar("S", covariant=True)  # State ist schreibgeschützt (FP-freundlich)
+A = TypeVar("A")                  # Argument für die Transformation
+
+
 class IsomorpherKontext(Protocol[S]):
     """Das zentrale Protokoll, das die semantische Struktur erzwingt."""
     @property
@@ -221,6 +248,14 @@ class IsomorpherKontext(Protocol[S]):
         ...
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 ---
 
 ## Implementierung der beiden Welten unter dem zentralen Auge des Type-Checkers
@@ -228,7 +263,9 @@ Der statische Type-Checker überwacht nun penibel, dass sowohl das funktionale D
 
 ### Der FP-Zweig (Immutable Record + Pure Function)
 
-```python
+Die funktionale Variante speichert den Zustand in einem unveränderlichen `NamedTuple`:
+
+```python session=iso
 from typing import NamedTuple
 class BankState(NamedTuple):
     saldo: float
@@ -247,9 +284,19 @@ class FPBankKontext:
         return self
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 ### Der OOP-Zweig (Klassische Kapselung)
 
-```python
+Die objektorientierte Variante mutiert ihr internes Attribut und projiziert den Zustand über das Property:
+
+```python session=iso
 class OOPBankKontext:
     def __init__(self, saldo: float):
         self._saldo = saldo
@@ -266,6 +313,14 @@ class OOPBankKontext:
         return self
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 ---
 
 ## Erweiterung um Sonderfälle (Extensibility)
@@ -274,12 +329,23 @@ In der echten Softwareentwicklung treten immer Sonderfälle auf (z. B. Logging, 
 Wenn eine Funktion eine andere Signatur hat, nutzen wir Funktionskomposition (functools.partial), um sie zur Laufzeit in das erwartete Format des Protokolls zu "gießen" (Adapter-Pattern für FP).
 ### B. Sonderfall: Dynamische Typerweiterung mit TypeGuard
 Wenn ein Sonderfall eintritt, bei dem sich die Struktur je nach Zustand anders verhalten muss (z. B. ein gesperrtes Konto), nutzen wir TypeGuard für ein sicheres, statisches Type-Narrowing zur Laufzeit:
-```python
+```python session=iso
 from typing import TypeGuard
 def ist_premium_kontext(kontext: IsomorpherKontext[Any]) -> TypeGuard[OOPBankKontext]:
     """Prüft zur Laufzeit einen Sonderfall und garantiert dem Type-Checker das exakte OOP-Objekt."""
     return hasattr(kontext, "_saldo") and kontext.state.saldo > 1000000
+
+
+print(ist_premium_kontext(OOPBankKontext(2_000_000.0)))
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+True
+```
+</details>
 
 ## Zusammenfassung des Styleguide-Regelwerks
 Um dieses System im Team als Standard (Styleguide) zu etablieren, gelten drei goldene Regeln für den Type-Checker:

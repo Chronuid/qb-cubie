@@ -64,12 +64,27 @@ def calculate_tax(net, rate):
 
 
 def test_tax():
-    EBT(
+    result = EBT(
         target=calculate_tax,
         pre=WorldState(args=(100, 19)),
         post=WorldState(returns=119),
     ).run()
+    print(result.evaluation)
+
+
+if __name__ == "__main__":
+    test_tax()
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+True
+```
+</details>
+
+Starte das Beispiel anschließend mit pytest:
 
 ```bash
 .venv/bin/python -m pytest -q test_tax.py
@@ -89,7 +104,7 @@ Die Analysewerkzeuge LibCST, MyPy und Pylint sind über das Extra `linters` erh�
 .venv/bin/python -m pip install -e '.[linters]' pytest
 ```
 
-Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.3-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
+Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.4-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
 
 Veröffentlichte Abhängigkeiten haben Mindestversionen und eine Obergrenze vor der nächsten Hauptversion; bei dem noch mit `0.x` versionierten `msgspec` liegt sie vor der nächsten Nebenversion. Diese Grenzen bilden den vorgesehenen Kompatibilitätsrahmen, keine Zusage, dass jede Kombination geprüft wurde. Die Entwicklungsgruppe `dev` enthält pytest, Hypothesis, pytest-xdist, Ruff und festgelegte Analysewerkzeuge. Sie wird nicht als Paket-Extra veröffentlicht. `uv.lock` hält die genauen direkten und transitiven Versionen für Entwicklung und Repository-CI fest; konsumierende Projekte lösen innerhalb der veröffentlichten Bereiche selbst auf.
 
@@ -234,6 +249,14 @@ def test_logging_review():
     ).run()
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 Die Datei muss vom Reviewer selbst geöffnet und beurteilt werden. Ein positives Review bleibt eine Beurteilung unter den jeweiligen Bedingungen. Eigene automatisierte Reviewer lassen sich injizieren; ein fertiger LLM-Adapter wird nicht mitgeliefert.
 
 Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebener Terminaleingabe:
@@ -244,17 +267,15 @@ Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebe
 
 Antworte nach der Prüfung mit `y` oder `n` und gib optional einen Bericht ein. Eine Ablehnung lässt den Test fehlschlagen.
 
-Die Python-Beispiele dieser README werden direkt aus den Codeblöcken gelesen und mit pytest ausgeführt. Die Prüfung benötigt keine Arena-Basen und lässt sich separat starten:
+Die Python-Beispiele dieser README und der Dokumentation werden durch `DocEnsurance` nach dem `CUBIE_DOC_STYLE` direkt ausgeführt und gegen ihre erwarteten `<details>`-Ergebnisse geprüft:
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_readme_examples.py
+.venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
-
-Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit einer fehlerhaften Steuerberechnung und einem abgelehnten Review müssen fehlschlagen; so wird auch abgesichert, dass die Beispiele tatsächlich `.run()` ausführen und Fehler an pytest melden.
 
 ## Bekannte Einschränkungen
 
-Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und [Regressionstests](tests/docs_tmp/CONTRACT_CASES_9_1.md) abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Abschnitt 9.2 ergänzt den Kernbetrieb ohne Tk, aktuelle Dateivergleiche und einen geprüften Unterstützungsumfang für kopierte Konsolenskripte. Weiterhin gelten:
+Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen Stand. Die Punkte B1–B5 aus Abschnitt 9.1 sind inzwischen durch Produktivkorrekturen und Regressionstests abgesichert: EBT bewertet den kopierten Vertragsstand, Phantom-Aufrufe scheitern ausdrücklich, die Linter prüfen Status und Ausgabe, und jeder grafische Review beginnt ohne Entscheidung. Abschnitt 9.2 ergänzt den Kernbetrieb ohne Tk, aktuelle Dateivergleiche und einen geprüften Unterstützungsumfang für kopierte Konsolenskripte. Weiterhin gelten:
 
 - **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten ihre Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Referenzdateien werden ebenfalls nicht archiviert.
 - **PyVenv-Importhilfen:** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes pytest unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; relevante Laufzeitaufrufe benötigen die echte Bibliothek. Die Importbedingungen bleiben Teil des Testvertrags.
@@ -264,7 +285,7 @@ Das [Gutachten vom 10. November 2026](./GUTACHTEN.md) dokumentiert den damaligen
 
 Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-Aufrufe setzen die EBT-Laufdaten zurück. Das setzt weder Target-Seiteneffekte noch bereits veränderte Argumente zurück. `WorldState(returns=None)` erwartet ausdrücklich `None`; ohne `returns` oder mit `returns=qb_cubie.UNSPECIFIED` bleibt die Rückgabe ungeprüft. Mehrere Eingänge teilen dieselbe Zielmenge; korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge. Ein `JsonReporter` persistiert Ergebnisse, erhebt aber selbst keine fachliche Assertion. Die genaue Vertragsbedeutung steht in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
 
-Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS erhält die begrenzte Wheel-Prüfung, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die Windows-Checks sind bis zur Bereitstellung nativer Windows-Launcher-Anpassungen vorübergehend eingefroren (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)). Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 stehen in den [Vertragsfällen](tests/docs_tmp/CONTRACT_CASES_9_2.md).
+Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS erhält die begrenzte Wheel-Prüfung, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die Windows-Checks sind bis zur Bereitstellung nativer Windows-Launcher-Anpassungen vorübergehend eingefroren (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)). Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 sind in den zugehörigen Vertrags- und Plattformtests abgesichert.
 
 ---
 
@@ -285,6 +306,9 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
+[↦ | Services: DocEnsurance | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+[↦ | Testsuite-Leitfaden & Profile | ↤](./tests/README.md)  
+[↦ | Changelog | ↤](./CHANGELOG.md)  
 
 [↦ | Experimentelle Benchmarks außerhalb des Core | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Testguided-Vergleichsstudie | ↤](./experiments/testguided-study/README.md)  

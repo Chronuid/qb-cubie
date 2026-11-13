@@ -52,7 +52,7 @@ def test_distribution_exposes_benchmark_extra_and_cli():
     entries = [ep for ep in distribution.entry_points if ep.group == "console_scripts"
                and ep.name == "cubie-bench"]
     assert len(entries) == 1 and callable(entries[0].load())
-    module = __import__("qb_cubie.benchmarks", fromlist=["benchmarks"])
+    module = __import__("cubie_benchmarks", fromlist=["cubie_benchmarks"])
     assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
     assert sys.prefix != sys.base_prefix
 
@@ -64,7 +64,7 @@ def test_help_gives_offline_smoke_commands(tmp_path):
 
 def test_installed_cli_and_python_api_produce_identical_plan(installed_suite, tmp_path):
     initialize_cli(installed_suite)
-    from qb_cubie.benchmarks import plan_suite
+    from cubie_benchmarks import plan_suite
 
     result = contract(lambda: cli("plan", "--suite", installed_suite, "--format", "json", cwd=tmp_path),
                       expected=lambda p: p.returncode == 0)
@@ -73,7 +73,7 @@ def test_installed_cli_and_python_api_produce_identical_plan(installed_suite, tm
 
 def test_packaged_templates_are_relocatable(installed_suite, tmp_path):
     initialize_cli(installed_suite)
-    from qb_cubie.benchmarks import plan_suite
+    from cubie_benchmarks import plan_suite
 
     destination = tmp_path / "relocated"
     shutil.copytree(installed_suite.parent.parent, destination)
@@ -85,7 +85,7 @@ def test_packaged_templates_are_relocatable(installed_suite, tmp_path):
 
 def test_installed_smoke_runs_both_benchmarks_and_persists_evidence(installed_suite, tmp_path):
     initialize_cli(installed_suite)
-    from qb_cubie.benchmarks import plan_suite
+    from cubie_benchmarks import plan_suite
 
     plan = plan_suite(installed_suite)
     contract(lambda: cli("run", "--suite", installed_suite, cwd=tmp_path),

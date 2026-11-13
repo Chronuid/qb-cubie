@@ -65,7 +65,16 @@ from qb_cubie.arenas.pyvenv import ArenaBuilder
 arena = ArenaBuilder(".arenas/my_env").with_packages([
     "cloudpickle==3.1.2",
 ]).build(codec=CloudpickleCodec())
+print(type(arena).__name__)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+PyVenv
+```
+</details>
 
 Bei späteren Läufen genügt `PyVenv(".arenas/my_env", codec=CloudpickleCodec())`. Ein Wechsel des Codecs kann erneute ausdrückliche Provisionierung erfordern. Auch ein Basispfad aus `pre.arena` muss bereits vollständig vorbereitet sein.
 
@@ -112,12 +121,21 @@ Laufzeit und zusammen 64 KiB stdout/stderr aus:
 ```python
 from qb_cubie import EBT, TempFS, WorldState
 
-EBT(
+result = EBT(
     target=lambda: "fertig",
     arena=TempFS(timeout=5, max_output_bytes=65536),
     post=WorldState(returns="fertig"),
 ).run()
+print(result.evaluation)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+True
+```
+</details>
 
 Für eine vorbereitete Umgebung gilt entsprechend
 `PyVenv(".arenas/my_env", timeout=5, max_output_bytes=65536)`.

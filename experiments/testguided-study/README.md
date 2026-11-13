@@ -9,7 +9,7 @@ V9 ist als eigene Entwicklungsvariante implementiert. Quellcode und technische
 Prüfung beschreibt [IMPLEMENTIERUNG-V9.md](IMPLEMENTIERUNG-V9.md); die empirische
 Qualifikation steht aus. Das Profil [v9.toml](v9.toml) wird mit
 `./study start --mode pilot --config experiments/testguided-study/v9.toml` ausgewählt.
-Die ursprünglichen [134 V9-Abnahmen](../../tests/testguided_study_design/V9_CASES.md)
+Die ursprünglichen [134 V9-Abnahmen](../tests/testguided_study_design/V9_CASES.md)
 werden durch Providerreplays mit echten Testläufen ergänzt.
 
 Das [Konzept für Generation v8](AGENTENDESIGN-V8.md) greift die ursprüngliche
@@ -20,7 +20,7 @@ Quellcode, Verträge und Verifikation beschreibt [IMPLEMENTIERUNG-V8.md](IMPLEME
 Das Profil [v8.toml](v8.toml) wird mit
 `./study start --mode pilot --config experiments/testguided-study/v8.toml` ausgewählt.
 
-Die [v8-EBT-Abnahmereihe](../../tests/testguided_study_design/V8_CASES.md)
+Die [v8-EBT-Abnahmereihe](../tests/testguided_study_design/V8_CASES.md)
 konkretisiert die Replay-Verträge mit 39 Casegruppen und 92 pytest-Nodes.
 Alle 92 ursprünglichen Abnahmen bestehen. Zusätzliche Providerreplays prüfen
 echte Dateiänderungen, pytest und die EBT-Instrumentierung in beiden Armen.
@@ -54,7 +54,7 @@ es gibt keine Cloud-Inferenz und keinen automatischen Modell-Download.
 Der Freeze ist dabei ein automatischer interner Schritt. Auch nach Änderungen
 an Agentenquellen oder Guides genügt wieder `./study --mode pilot`; separate
 `freeze`-/`preflight`-Befehle sind für diesen Einstieg nicht erforderlich.
-Die [EBT-Verträge zur automatischen Laufverwaltung](../../tests/testguided_study_design/RUN_MANAGEMENT_CASES.md)
+Die [EBT-Verträge zur automatischen Laufverwaltung](../tests/testguided_study_design/RUN_MANAGEMENT_CASES.md)
 sichern diesen Ablauf auch bei Starts in derselben Sekunde, beim Archivschutz
 abgewiesener Low-Level-Neustarts und beim Wheel-Cache nach einem Versionswechsel
 ab. Automatische Archivnamen erhalten bei Kollisionen selbstständig einen freien
@@ -190,9 +190,9 @@ Beobachtungsadapter, die auf diese Fixtures zugreifen. `expected` enthält genau
 bleiben separate Cases. Fachliche Orakel und Adapter werden weiterhin inhaltlich
 von QA und Analyse beurteilt; die Strukturprüfung beweist ihre Richtigkeit nicht.
 
-Die [v6-EBT-Abnahmereihe](../../tests/testguided_study_design/V6_CASES.md)
+Die [v6-EBT-Abnahmereihe](../tests/testguided_study_design/V6_CASES.md)
 konkretisiert V6-A01 bis V6-A18 mit 98 ausführbaren Cases, darunter geprüfte
-Referenzvorlagen und Controllerverträge. Ergänzende [Laufzeittests](../../tests/testguided_study_design/test_v6_runtime.py)
+Referenzvorlagen und Controllerverträge. Ergänzende [Laufzeittests](../tests/testguided_study_design/test_v6_runtime.py)
 prüfen komplette serialisierte Teamläufe mit deterministischen Modellclients,
 echten Dateiwerkzeugen und pytest-Unterprozessen, Freeze, Monitor und EBT-Probe.
 Das qualifiziert die Mechanik, keine höhere Lösungsquote. Modellpiloten und die
@@ -226,7 +226,7 @@ Das Kontextbudget reserviert Schema und Ausgabe anhand einer konservativen
 Byteschätzung, die im Ergebnis ausdrücklich als Schätzung ausgewiesen wird.
 
 Die technischen Befunde des Piloten `20261111-171515` sind inzwischen durch
-[32 EBT-Verträge](../../tests/testguided_study_design/PILOT_TECHNICAL_CASES.md)
+[32 EBT-Verträge](../tests/testguided_study_design/PILOT_TECHNICAL_CASES.md)
 und zusätzliche Integrationsfälle abgesichert. Große Testergebnisse liefern
 verdichtete Counts und Fehlerursachen; `read_test_details(step, start)` liest
 vollständige Diagnosen aus früheren sichtbaren Testschritten seitenweise nach.
@@ -237,7 +237,7 @@ Aufgabe und Frameworkanleitung bleiben obligatorisch. Erfolgreiche Leseaktionen
 dürfen wiederholt werden, während identische erfolglose Aktionen weiter begrenzt
 werden. Testziele beeinflussen die Produktionsversionsmetrik nicht mehr.
 
-Die [48 Abnahmefälle zum Piloten `20261111-180702`](../../tests/testguided_study_design/PILOT_180702_CASES.md)
+Die [48 Abnahmefälle zum Piloten `20261111-180702`](../tests/testguided_study_design/PILOT_180702_CASES.md)
 sind ebenfalls umgesetzt. Python-Änderungen werden vor dem Schreiben kompiliert;
 Änderungskonflikte unterscheiden falschen Hash, fehlenden und mehrdeutigen Anker.
 Collectiondiagnosen verwenden tatsächlich aufgezeichnete Collector-IDs. Bei
@@ -336,7 +336,7 @@ vergleicht zusätzlich konkrete Modell-, Image- und swegemma-Identitäten.
 Ein selbst gesetztes `qualification: true` ersetzt keine Belege.
 `campaign.json` im Freeze hält Zulassung und Belegmomentaufnahmen fest.
 
-Die 29 ursprünglichen EBT-Verträge unter `tests/testguided_study_design` sind
+Die 29 ursprünglichen EBT-Verträge unter `experiments/tests/testguided_study_design` sind
 um Session-, Freeze-, Berichts-, Qualifikations- und Workspace-Integrationstests
 ergänzt. Diese Tests und deterministische Modell-Replays belegen technische
 Eigenschaften. Eine höhere Lösungsquote muss erst in neuen Entwicklungsversuchen
