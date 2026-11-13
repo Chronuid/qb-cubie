@@ -29,7 +29,7 @@ die Adapter, eingefrorene Agenten-TOMLs und getrennte Rollen-Smoke-Sets.
 ## Aus installiertem Wheel (§5.4)
 
 ```bash
-python -m pip install '/absoluter/pfad/qb_cubie-0.0.3-py3-none-any.whl[benchmarks]'
+python -m pip install '/absoluter/pfad/qb_cubie-0.0.4-py3-none-any.whl[benchmarks]'
 cubie-bench init-ollama ./ollama-demo
 cd ollama-demo
 cubie-bench validate-agent agents/reviewer.toml

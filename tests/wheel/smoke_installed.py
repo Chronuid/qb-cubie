@@ -148,3 +148,18 @@ def test_installed_core_without_tk(tmp_path, feature, missing):
         cwd=tmp_path, capture_output=True, text=True, timeout=20, check=False,
     )
     assert process.returncode == 0, process.stdout + process.stderr
+
+
+def test_doc_ensurance_installed_service(tmp_path):
+    from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+
+    doc = tmp_path / "GUIDE.md"
+    doc.write_text(
+        "Diese Erklaerung beschreibt ein kleines installiertes Beispiel.\n\n"
+        "```python\nprint(21 * 2)\n```\n\n"
+        "<details>\n<summary>Ergebnis</summary>\n\n```text\n42\n```\n</details>\n",
+        encoding="utf-8",
+    )
+    report = DocEnsurance(target=doc, pattern=CUBIE_DOC_STYLE, reporter=None).run()
+    assert report.passed is True
+    assert report.sessions[0].actual_outputs == ("42",)

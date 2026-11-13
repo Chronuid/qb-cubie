@@ -56,4 +56,4 @@ Sobald die neuen Prüf-Services aus Phase 1 bereitstehen, werden sie eingesetzt,
 
 ## 4. Phase 3: Abarbeitung der Punkte aus dem Gutachten (`GUTACHTEN.md`)
 
-Im Anschluss an die strukturelle Bereinigung werden die drei im internen Audit (`./GUTACHTEN.md`) dokumentierten und ursprünglich für die Version `0.0.4` vorgemerkten Randfälle im bereinigten Kern analysiert.
+Im Anschluss an die strukturelle Bereinigung werden die drei im internen Audit (`./GUTACHTEN.md`) dokumentierten und ursprünglich für die Version `0.0.4` vorgemerkten Randfälle im bereinigten Kern analysiert und in späteren Releases addressiert.

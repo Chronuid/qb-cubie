@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qb-cubie"
-version = "0.0.3"
+version = "0.0.4"
 description = "Declarative acceptance tests, reviews, and static code analysis for Python"
 readme = "README.md"
 authors = [{name = "Dominick Wirzba"}]
@@ -14,6 +14,7 @@ requires-python = ">=3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Testing",
 ]
