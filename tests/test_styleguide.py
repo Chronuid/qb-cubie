@@ -3,7 +3,6 @@
 import ast
 import io
 import tokenize
-from pathlib import Path
 
 import pytest
 
@@ -56,18 +55,6 @@ def test_docstrings(src_files):
     assert not violations, "\n" + "\n".join(violations)
 
 
-def test_benchmark_functions_have_docstrings():
-    benchmark_root = Path(__file__).resolve().parents[1] / "experiments/benchmarks/cubie_benchmarks"
-    missing = []
-    for path in sorted(benchmark_root.rglob("*.py")):
-        if "__pycache__" in path.parts or "data" in path.parts:
-            continue
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        missing.extend(f"{path}:{node.lineno}: {node.name}" for node in ast.walk(tree)
-                       if isinstance(node, FUNCTIONS) and not ast.get_docstring(node))
-    assert not missing, "Missing benchmark function docstrings:\n" + "\n".join(missing)
-
-
 def body_lines(source, node):
     """Count physical code lines after the signature and optional docstring."""
     body = node.body[1:] if ast.get_docstring(node) is not None else node.body
@@ -104,3 +91,16 @@ def test_body_counter(kind, size):
 def test_body_counter_statements(body, expected):
     source = f"def sample(flag=True):\n    {body}\n"
     assert len(body_lines(source, ast.parse(source).body[0])) == expected
+
+# ========== DOCUMENTATION =============================================================================================
+
+from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+
+
+def test_docs_code_examples() -> None:
+    """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
+    DocEnsurance(
+        pattern=CUBIE_DOC_STYLE,
+        excludes=("experiments", "docs_tmp", "GUTACHTEN.md"),
+    ).run()
+

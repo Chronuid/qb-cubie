@@ -91,15 +91,15 @@ Fragen und Belege. Private Lösungsevaluation bleibt eine separate Ergebnisachse
 ## Reproduzierbare Prüfung
 
 ```bash
-.venv/bin/python -m pytest tests/testguided_study_design/test_v9_memory_ebt.py \
-  tests/testguided_study_design/test_v9_tools_ebt.py \
-  tests/testguided_study_design/test_v9_workflow_ebt.py \
-  tests/testguided_study_design/test_v9_calibration_ebt.py \
-  tests/testguided_study_design/test_v9_runtime.py -q
-.venv/bin/python -m pytest tests/testguided_study_design -q
+.venv/bin/python -m pytest experiments/tests/testguided_study_design/test_v9_memory_ebt.py \
+  experiments/tests/testguided_study_design/test_v9_tools_ebt.py \
+  experiments/tests/testguided_study_design/test_v9_workflow_ebt.py \
+  experiments/tests/testguided_study_design/test_v9_calibration_ebt.py \
+  experiments/tests/testguided_study_design/test_v9_runtime.py -q
+.venv/bin/python -m pytest experiments/tests/testguided_study_design -q
 ```
 
-Die ursprünglichen 134 Nodes sind in [V9_CASES.md](../../tests/testguided_study_design/V9_CASES.md)
+Die ursprünglichen 134 Nodes sind in [V9_CASES.md](../tests/testguided_study_design/V9_CASES.md)
 beschrieben; dessen roter Status dokumentiert die Situation vor dieser Umsetzung.
 Zusätzliche Laufzeitreplays prüfen Freeze/Load, das V9-Profil, echte öffentliche
 Workspaceoperationen und die echte EBT-Instrumentierung in beiden Armen. Ein

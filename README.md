@@ -64,12 +64,27 @@ def calculate_tax(net, rate):
 
 
 def test_tax():
-    EBT(
+    result = EBT(
         target=calculate_tax,
         pre=WorldState(args=(100, 19)),
         post=WorldState(returns=119),
     ).run()
+    print(result.evaluation)
+
+
+if __name__ == "__main__":
+    test_tax()
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+True
+```
+</details>
+
+Starte das Beispiel anschließend mit pytest:
 
 ```bash
 .venv/bin/python -m pytest -q test_tax.py
@@ -234,6 +249,14 @@ def test_logging_review():
     ).run()
 ```
 
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
+
 Die Datei muss vom Reviewer selbst geöffnet und beurteilt werden. Ein positives Review bleibt eine Beurteilung unter den jeweiligen Bedingungen. Eigene automatisierte Reviewer lassen sich injizieren; ein fertiger LLM-Adapter wird nicht mitgeliefert.
 
 Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebener Terminaleingabe:
@@ -244,13 +267,11 @@ Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebe
 
 Antworte nach der Prüfung mit `y` oder `n` und gib optional einen Bericht ein. Eine Ablehnung lässt den Test fehlschlagen.
 
-Die Python-Beispiele dieser README werden direkt aus den Codeblöcken gelesen und mit pytest ausgeführt. Die Prüfung benötigt keine Arena-Basen und lässt sich separat starten:
+Die Python-Beispiele dieser README und der Dokumentation werden durch `DocEnsurance` nach dem `CUBIE_DOC_STYLE` direkt ausgeführt und gegen ihre erwarteten `<details>`-Ergebnisse geprüft:
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_readme_examples.py
+.venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
-
-Dabei wird die Terminaleingabe für das RBT-Beispiel vorgegeben. Gegenproben mit einer fehlerhaften Steuerberechnung und einem abgelehnten Review müssen fehlschlagen; so wird auch abgesichert, dass die Beispiele tatsächlich `.run()` ausführen und Fehler an pytest melden.
 
 ## Bekannte Einschränkungen
 

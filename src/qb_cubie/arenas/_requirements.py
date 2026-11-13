@@ -41,7 +41,11 @@ distributions = [
     for dist in importlib.metadata.distributions()
     if dist.metadata["Name"]
 ]
-print(json.dumps({"environment": environment, "distributions": distributions}))
+print(json.dumps({
+    "environment": environment,
+    "distributions": distributions,
+    "is_venv": sys.prefix != sys.base_prefix,
+}))
 """
 
 
@@ -101,9 +105,15 @@ def _inspect_environment(python_exe: Path) -> dict:
 
 def _read_snapshot(python_exe: Path, stdout: str) -> dict:
     try:
-        return json.loads(stdout)
+        snapshot = json.loads(stdout)
     except json.JSONDecodeError as error:
         raise RuntimeError(f"Invalid package metadata response from {python_exe}: {stdout}") from error
+    if not snapshot.get("is_venv", True):
+        raise RuntimeError(
+            f"Could not inspect arena requirements using {python_exe}: "
+            "target is not an isolated virtual environment (missing pyvenv.cfg)."
+        )
+    return snapshot
 
 
 class _Requirements:

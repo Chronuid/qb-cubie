@@ -5,6 +5,7 @@ Run with the project interpreter after `uv sync --locked --group dev`:
 This is an installation step and may access the network. Pytest never calls it.
 """
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -24,8 +25,20 @@ PROFILES = {
 }
 
 
+def _is_valid_venv(path: Path) -> bool:
+    has_python = (path / "bin" / "python").exists() or (path / "Scripts" / "python.exe").exists()
+    return (path / "pyvenv.cfg").is_file() and has_python
+
+
+def _remove_incomplete_venv(path: Path) -> None:
+    if path.exists() and not _is_valid_venv(path):
+        print(f"Removing incomplete arena base {path}", flush=True)
+        shutil.rmtree(path)
+
+
 def main():
     for path, packages in PROFILES.items():
+        _remove_incomplete_venv(path)
         print(f"Provisioning {path}", flush=True)
         ArenaBuilder(str(path)).with_packages(packages).build()
 

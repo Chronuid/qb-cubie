@@ -1,5 +1,6 @@
 """Only explicit provisioning installs packages; arena setup validates its base."""
 
+import importlib.util
 import subprocess
 import sysconfig
 import venv
@@ -188,3 +189,40 @@ def test_setup_error_is_not_masked_by_teardown(tmp_path):
         EBT(target=sum, arena=arena,
             pre=WorldState(args=([1],)), post=WorldState(returns=1)).run()
     assert any("Arena teardown also failed" in note for note in error.value.__notes__)
+
+
+@pytest.mark.parametrize("codec", [None, PickleCodec()], ids=["msgspec", "pickle"])
+def test_setup_rejects_incomplete_venv_without_pyvenv_cfg(base_env, codec):
+    (base_env / "pyvenv.cfg").unlink()
+    arena = PyVenv(env_path=str(base_env), codec=codec)
+    with pytest.raises(RuntimeError, match="missing pyvenv\\.cfg"):
+        arena.setup(WorldState())
+    assert arena.workspace_path is None
+
+
+def test_probe_rejects_incomplete_venv_without_installing(base_env, installer_calls):
+    (base_env / "pyvenv.cfg").unlink()
+    with pytest.raises(RuntimeError, match=r"Could not inspect arena requirements.*missing pyvenv\.cfg"):
+        ArenaBuilder(str(base_env)).with_packages(["demo"]).build()
+    assert installer_calls == []
+
+
+def test_provision_script_clears_only_incomplete_venvs(tmp_path, base_env):
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "provision_test_arenas.py"
+    spec = importlib.util.spec_from_file_location("provision_test_arenas", script_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    incomplete = tmp_path / "incomplete"
+    (incomplete / "bin").mkdir(parents=True)
+    (incomplete / "bin" / "activate").write_text("# stub\n", encoding="utf-8")
+
+    module._remove_incomplete_venv(incomplete)
+    assert not incomplete.exists()
+
+    module._remove_incomplete_venv(base_env)
+    assert base_env.exists()
+
+
+def test_src_files_prunes_incomplete_venv_stubs(src_files):
+    assert not any(path.name == "activate_this.py" for path in src_files)

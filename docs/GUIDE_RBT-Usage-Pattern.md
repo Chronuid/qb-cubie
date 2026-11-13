@@ -12,6 +12,8 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 
 ## Interaktives Review
 
+Das Standardbeispiel delegiert eine manuelle Prüfregel interaktiv an das Terminal:
+
 ```python
 from qb_cubie.rbt import RBT
 
@@ -22,6 +24,14 @@ def test_logging_review():
         check="Öffne die Datei und prüfe, ob Passwörter im Klartext geloggt werden.",
     ).run()
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `qb_cubie.rbt` ausdrücklich injiziert werden.
 
@@ -59,7 +69,23 @@ def test_nonempty_document(tmp_path):
         check="Die benannte Datei existiert und ist nicht leer.",
         reviewer=NonEmptyFileReviewer(),
     ).run()
+
+
+if __name__ == "__main__":
+    from tempfile import TemporaryDirectory
+
+    with TemporaryDirectory() as tmp_dir:
+        test_nonempty_document(Path(tmp_dir))
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Ein LLM-Reviewer wäre ebenfalls eine eigene Implementierung dieses Protokolls. Quellenübergabe, Modellaufruf, Modellversion, Wiederholungen und Bewertungsnachweise muss dieser Adapter selbst regeln. Eine Klasse `AgentReviewer` wird nicht mitgeliefert.
 

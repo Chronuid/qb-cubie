@@ -30,6 +30,11 @@ Die VmArena muss nahtlos in die Cubie-Architektur integriert werden und das stri
 
 
 ```python
+from pathlib import Path
+from typing import Any, Optional, Protocol, runtime_checkable
+
+from qb_cubie import WorldState
+
 
 @runtime_checkable
 class Arena(Protocol):
@@ -56,6 +61,14 @@ class Arena(Protocol):
         """Destroys the workspace and cleans up all temporary environment states."""
         ...
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+
+```
+</details>
 
 * State-Guard Pattern: Sofortiger, harter Abbruch der Pipeline, wenn deklarierte Ressourcen (wie das Basis-Image) auf dem Host physisch fehlen.
 * Topologische FS-Hydration und Abfrage: Projizierung der in WorldState.fs deklarierten Host-Dateien in den virtuellen Workspace und lässt sich abfragen.

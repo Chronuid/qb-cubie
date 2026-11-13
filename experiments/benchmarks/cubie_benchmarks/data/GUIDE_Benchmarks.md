@@ -692,12 +692,12 @@ sind für belastbare Aussagen nötig.
 
 ### Technische Nachweise
 
-Offline-Verträge: `python -m pytest tests/benchmarks/test_mirrored_developer.py`.
+Offline-Verträge: `python -m pytest experiments/tests/benchmarks/test_mirrored_developer.py`.
 Der echte Docker-Durchstich ist ausdrücklich zuschaltbar:
 
 ```bash
 CUBIE_TEST_BASELINE_IMAGE=<lokales-Python-mit-Pytest-Image> \
-  python -m pytest tests/benchmarks/test_mirrored_developer_container.py
+  python -m pytest experiments/tests/benchmarks/test_mirrored_developer_container.py
 ```
 
 Er baut aus dem lokalen Image einen temporären synthetischen Vergleichsagenten,
@@ -1126,7 +1126,7 @@ Pytest-Developer und SWE-bench sind in den jeweiligen Abschnitten beschrieben.
 Die echte pytest-Ausführung bleibt ausdrücklich freizuschalten:
 
 ```bash
-python -m pytest tests/benchmarks -m agent_benchmark \
+python -m pytest experiments/tests/benchmarks -m agent_benchmark \
   --run-agent-benchmarks --suite sets/team.toml
 ```
 
@@ -1340,7 +1340,7 @@ for scenario in package["scenarios"]:
 ```
 
 Ein reines Planungsbeispiel mit fünf Szenarien liegt unter
-[tests/benchmarks/fixtures/phase1](../tests/benchmarks/fixtures/phase1/package.json).
+[experiments/tests/benchmarks/fixtures/phase1](../experiments/tests/benchmarks/fixtures/phase1/package.json).
 Sein Agentenkommando existiert absichtlich nicht. Für ausführbare Vorlagen dienen
 `init_smoke_suite` oder `init-example`.
 
@@ -1406,7 +1406,7 @@ die mitgelieferten vertrauenswürdigen Beispiele gesondert aus.
 ### Agenten- und Evaluatornachrichten
 
 Die vollständigen Beispiele stehen in den
-[Protokoll-Cases](../tests/benchmarks/test_protocol_contracts.py).
+[Protokoll-Cases](../experiments/tests/benchmarks/test_protocol_contracts.py).
 Alle Nachrichten tragen `schema_version = 1`, `run_id` und `scenario_id`.
 Die Validierungsfunktionen geben gültige Nachrichten ohne erfundene Werte
 zurück; Ergebniskennungen müssen zur mitgegebenen Anfrage passen.

@@ -8,4 +8,4 @@ include tests/wheel/benchmark_custom_installed.py
 include tests/wheel/benchmark_base_installed.py
 include tests/wheel/benchmark_measurement_installed.py
 include tests/wheel/ollama_agents_installed.py
-recursive-include tests/benchmarks/fixtures/phase3 *.json *.toml *.md *.py *.txt
+recursive-include experiments/tests/benchmarks/fixtures/phase3 *.json *.toml *.md *.py *.txt

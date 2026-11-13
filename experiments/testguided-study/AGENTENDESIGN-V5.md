@@ -70,6 +70,6 @@ Invalidierung eines Reviews nach Änderungen. Bestehende historische Replays nen
 ihre Designversion explizit; der Studienstart-Replay durchläuft die neuen Phasen.
 
 ```bash
-.venv/bin/python -m pytest experiments/testguided-study/tests tests/testguided_study_design -q
-.venv/bin/python -m ruff check experiments/testguided-study tests/testguided_study_design
+.venv/bin/python -m pytest experiments/testguided-study/tests experiments/tests/testguided_study_design -q
+.venv/bin/python -m ruff check experiments/testguided-study experiments/tests/testguided_study_design
 ```

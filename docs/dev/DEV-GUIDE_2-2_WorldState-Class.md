@@ -10,12 +10,23 @@
 
 </center>
 
+Ein `WorldState`-Paar beschreibt Eingangsargumente (`pre`) und das erwartete Rückgabemuster (`post`):
+
 ```python
 from qb_cubie import WorldState
 
 pre = WorldState(args=([1, 2],), kwargs={"strict": True})
 post = WorldState(returns=None)
+print(pre.args, post.returns)
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+([1, 2],) None
+```
+</details>
 
 `args` hält Positionsargumente. Eine äußere Liste oder ein Tupel wird entpackt; deshalb wird eine Liste als einzelnes Argument in ein zusätzliches Tupel verpackt. `kwargs` muss ein Dictionary sein oder `None`. Es gibt keine automatische Inferenz eines primitiven `pre`-Werts in diese Felder.
 

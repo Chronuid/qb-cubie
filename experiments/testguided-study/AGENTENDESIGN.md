@@ -153,7 +153,7 @@ aber noch keinen aussagekräftigen Vergleich des beabsichtigten Nutzens.
 ## Ausführbare EBT-Anforderungen
 
 Die regulär gesammelte Suite liegt unter
-`tests/testguided_study_design/test_iteration_ebt.py`. Sie formuliert bewusst
+`experiments/tests/testguided_study_design/test_iteration_ebt.py`. Sie formuliert bewusst
 rote Sollverträge ohne Skip, xfail oder Ersatzimplementierung. Imports erfolgen
 im einzelnen Fall, damit fehlende APIs nicht die übrige Sammlung verhindern.
 Die vorgeschlagene Fassade `testguided_study.iteration` bündelt folgende
@@ -205,14 +205,14 @@ Laufzeitmodule ersetzt werden; eingefrorene historische Belege bleiben erhalten.
 
 ## Verifikation dieser Anforderungsänderung
 
-- `.venv/bin/python -m pytest tests/testguided_study_design --collect-only -q`:
+- `.venv/bin/python -m pytest experiments/tests/testguided_study_design --collect-only -q`:
   29 Cases regulär gesammelt.
-- `.venv/bin/python -m pytest tests/testguided_study_design -q --tb=no`:
+- `.venv/bin/python -m pytest experiments/tests/testguided_study_design -q --tb=no`:
   29 rot, weil `testguided_study.iteration` noch fehlt. Keine Aussage über eine
   bereits umgesetzte v2-Architektur.
 - `.venv/bin/python -m pytest experiments/testguided-study/tests -q`:
   57 bestanden, 3 Docker-Integrationstests übersprungen.
-- `.venv/bin/ruff check tests/testguided_study_design`: bestanden.
+- `.venv/bin/ruff check experiments/tests/testguided_study_design`: bestanden.
 
 Die erste Implementierungsaufgabe ist damit die vorgeschlagene Fassade; danach
 werden die einzelnen Verhaltensverträge wirksam. Ein grüner Import allein genügt

@@ -30,11 +30,27 @@ def test_double(value, expected):
         pre=WorldState(args=(value,)),
         post=WorldState(returns=expected),
     ).run()
+
+
+if __name__ == "__main__":
+    for val, exp in [(1, 2), (2, 4), (-1, -2)]:
+        test_double(val, exp)
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 `args=[1, 2]` bedeutet zwei Positionsargumente. Eine Liste als einzelnes Argument wird mit `args=([1, 2],)` übergeben. `kwargs={"value": 1}` übergibt ein Schlüsselwortargument. `target=double` übergibt die Funktion; `target=double(...)` würde sie bereits vor dem Testlauf ausführen.
 
 ## Mehrere Eingänge, ein gemeinsames Muster
+
+Mehrere Eingänge in `pre` prüfen gemeinsam dasselbe erwartete Muster in `post`:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -54,11 +70,26 @@ def test_normalize():
         ],
         post=WorldState(returns="text"),
     ).run()
+
+
+if __name__ == "__main__":
+    test_normalize()
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Jeder dieser drei Eingänge wird einmal ausgeführt. Ohne Arena laufen die Aufrufe im aufrufenden Prozess und teilen dessen Zustand. Diese Liste begründet keine Aussage über alle anderen Strings.
 
 ## Parallelität begrenzen
+
+Mit `multiprocessing=True` und `max_workers` wird die Anzahl paralleler Worker begrenzt:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -72,11 +103,24 @@ def test_normalize_parallel():
     EBT(
         target=normalize_parallel,
         pre=[WorldState(args=(text,)) for text in [" TEXT ", "text", "TeXt"]],
-        post=WorldState(returns="text"),
+        post=WorldState(returns=lambda value: value == "text"),
         multiprocessing=True,
         max_workers=2,
     ).run()
+
+
+if __name__ == "__main__":
+    test_normalize_parallel()
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Pickle und Loky verwenden hier höchstens zwei Worker, zusätzlich begrenzt durch die gemeldeten CPUs und die Anzahl der Eingänge. Ohne `max_workers` oder mit `None` gelten nur CPU- und Aufgabengrenze. `max_workers` muss eine positive Ganzzahl sein; `True` und `False` sind nicht zulässig. Bei unbekannter CPU-Zahl wird ein Worker verwendet. Ein Worker führt die Aufgaben weiterhin im Kindprozess aus. Die Grenze gilt je EBT-Instanz; bei pytest-xdist können mehrere solcher Pools gleichzeitig laufen. Bei `multiprocessing=False` wird kein Pool angelegt.
 
@@ -91,6 +135,8 @@ den Vertrag für eigene Backends beschreibt das
 [Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
 ## Erlaubte und verbotene Ergebnisse
+
+Über `expect=False` lassen sich einzelne Rückgabewerte explizit als unerwünscht ausschließen:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -109,7 +155,20 @@ def test_status():
             WorldState(returns="ERROR", expect=False),
         ],
     ).run()
+
+
+if __name__ == "__main__":
+    test_status()
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Die beobachtete Ausgabe muss zu mindestens einem positiven und zu keinem negativen Muster passen. Ohne positive Muster werden nur die negativen Muster ausgeschlossen. Ein zusätzliches negatives Muster ist hier zur Veranschaulichung enthalten; die beiden positiven Werte schließen `"ERROR"` bereits aus.
 
@@ -120,6 +179,8 @@ Das gleiche Prinzip kann einen beobachteten Würfelwert auf den Bereich `1` bis 
 `EBT(expect=False)` negiert dagegen das Gesamtergebnis. Es prüft keine erwartete Exception; Target-Ausnahmen propagieren weiterhin.
 
 ## Rückgabemuster
+
+Strukturierte Rückgaben lassen sich deklarativ mit regulären Ausdrücken, Typen und `None` prüfen:
 
 ```python
 import re
@@ -148,11 +209,27 @@ def test_none_return():
         target=lambda: None,
         post=WorldState(returns=None),
     ).run()
+
+
+if __name__ == "__main__":
+    test_payload()
+    test_none_return()
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. `returns=None` erwartet explizit `None`, wie im zweiten Beispiel. Ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` deaktiviert die Rückgabeprüfung. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
 
 ## Dateitransformation mit expliziter Arena
+
+Für Datei-Workflows hydriert `TempFS()` deklarierte Quelldateien in einen isolierten Workspace und vergleicht das Ergebnis:
 
 ```python
 from pathlib import Path
@@ -176,13 +253,31 @@ def test_uppercase_file(tmp_path):
         pre=WorldState(fs={"input.txt": str(source)}),
         post=WorldState(fs={"output.txt": str(expected)}),
     ).run()
+
+
+if __name__ == "__main__":
+    from tempfile import TemporaryDirectory
+
+    with TemporaryDirectory() as tmp_dir:
+        test_uppercase_file(Path(tmp_dir))
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Das Mapping lautet `{relativer_Zielpfad: Hostquelle}`. `pre.fs` kopiert Quellen, `post.fs` vergleicht die angegebenen Pfade. Andere Dateien im Workspace sind in diesem Beispiel nicht Teil der Erwartung. Für einen Vergleich aller Dateien kann `post.fs={".": "fixtures/post"}` mit einem vorhandenen Referenzverzeichnis verwendet werden. Leere Unterverzeichnisse werden rekursiv nicht mitverglichen.
 
 Alternativ sind Sammlungen wie `fs={"fixtures/input.txt"}` erlaubt; sie kopieren hier nach `input.txt`. Ein einzelner String wie `fs="fixtures/input.txt"` wird nicht unterstützt. Gleichnamige Quellen können bei der Normalisierung kollidieren; verwende explizite Mappings. Absolute Zielpfade und `..` werden nicht abgefangen und können außerhalb des Workspace schreiben.
 
 ## Dateiinhalte mit einem Prädikat prüfen
+
+Anstelle einer statischen Referenzdatei kann `post.fs` eine Prüffunktion übergeben werden:
 
 ```python
 import json
@@ -206,11 +301,26 @@ def test_report():
         arena=TempFS(),
         post=WorldState(fs={"report.json": valid_report}),
     ).run()
+
+
+if __name__ == "__main__":
+    test_report()
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Das Prädikat erhält einen `Path` im noch bestehenden Workspace. Nach dem Vergleich wird die Arena aufgeräumt. `returns` prüft den Python-Rückgabewert; Konsolenausgaben sind kein `WorldState`-Feld.
 
 ## Erwartete Ausnahmen und persistente Berichte
+
+Mit `ExceptionExpectation` und `JsonReporter` lassen sich erwartete Fehler dokumentieren und als JSON-Bericht sichern:
 
 ```python
 import json
@@ -234,7 +344,24 @@ def test_rejected_order(tmp_path):
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report["schema_version"] == 1
     assert report["evaluation"] is True
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    from tempfile import TemporaryDirectory
+
+    with TemporaryDirectory() as tmp_dir:
+        test_rejected_order(Path(tmp_dir))
+    print("OK")
 ```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK
+```
+</details>
 
 Typ und Meldung der Ausnahme müssen passen. `returns` und `raises` im selben
 Post-Zustand sind ungültig; alternative normale Rückgaben und Exceptions werden
