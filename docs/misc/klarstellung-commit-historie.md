@@ -33,4 +33,4 @@ Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgen
 
 ## Human Note
 
-Diese Datei wurde von Gemini generiert und iterativ mutiert, während ich es auf diverse Arten prüfte. Auch der Code entstand zu 95% auf diese Weise.
+Diese Datei wurde von Gemini generiert und iterativ mutiert, während ich es auf diverse Arten prüfte. Auch der Code entstand zu 95% auf diese Weise. Jeder Beitrag entstand auf Basis menschlicher und maschineller Analysen, Mutationen und Reviews. Ich habe die Commits zu ca. 95% selber abgegeben. Ungefähr 5% fanden durch KI-Agenten statt, eng von mir begleitet.
