@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [0.0.6] - 2026-11-14
+
+### Neu
+- **Erweiterbares Regel-System (`DocRuleProtocol` & `CUBIE_DOC_RULES`) für `DocEnsurance`:**
+  - Neue konfigurierbare Standardregeln in [doc_rules.py](./src/qb_cubie/services/doc_rules.py): `NoOutput`/`NoOutputRule` (`DOC-NO-OUTPUT`), `HighComplexity`/`HighComplexityRule` (`DOC-HIGH-COMPLEXITY`), `LargeOutput`/`LargeOutputRule` (`DOC-LARGE-OUTPUT`) und `RawTraceback`/`RawTracebackRule` (`DOC-RAW-TRACEBACK`) sowie das gebündelte Preset `CUBIE_DOC_RULES`.
+  - Modulare Regel- und Pattern-Bausteine in [doc_patterns.py](./src/qb_cubie/services/doc_patterns.py): `ExplanationRule`, `CodeRule`, `DocLinterRule` (Adapter für `AstLinter`, `CstLinter`, `Pylint` und `MyPy`), `OutputRule`, `MissingOutputRule` (`DOC-OUT-MISSING`), `OutputMatchRule` (`DOC-OUT`) sowie `DEFAULT_DOC_RULES`.
+  - `DocEnsurance` unterstützt den Parameter `rules` sowie `register_rule(*rules)` zur deterministischen Registrierung und Überschreibung anhand von `rule_id`; `DocDiagnostic` unterstützt `severity` (`"error"` oder `"warning"`, validiert via `validate_severity`/`VALID_SEVERITIES`).
+- **Neues Qualitätssicherungs-Handbuch & Release-Leitfaden:** Neues Handbuch [GUIDE_Quality-Assurance.md](./docs/GUIDE_Quality-Assurance.md) (inklusive `expect=False`-Vertragsinversion) sowie verbindlicher Release-Ablauf in [DEV-GUIDE_Release-Preparation.md](./docs/dev/DEV-GUIDE_Release-Preparation.md).
+- **Erweiterte Service-Testsuiten:** Neue Testmodule [test_doc_ensurance_arenas.py](./tests/tests_services/test_doc_ensurance_arenas.py), [test_doc_ensurance_rules.py](./tests/tests_services/test_doc_ensurance_rules.py), [test_doc_linter_feedback.py](./tests/tests_services/test_doc_linter_feedback.py), [test_doc_rule_edge_cases.py](./tests/tests_services/test_doc_rule_edge_cases.py) und [test_doc_rules.py](./tests/tests_services/test_doc_rules.py).
+
+### Geändert
+- **Core von Basis-Umgebungs-Provisionierung bereinigt:** `src/qb_cubie/arenas/arena_envs` entfernt; `PyVenv` und `ArenaBuilder` nutzen ohne expliziten Pfad nun `default_arena_path()` im Benutzer-Cache (`QB_CUBIE_DEFAULT_ARENA` bzw. `~/.cache/qb-cubie/arenas/py<major>.<minor>-empty`). `MANIFEST.in`, `pyproject.toml`, `scripts/provision_test_arenas.py`, `tests/conftest.py` und [GUIDE_Arena-Management.md](./docs/GUIDE_Arena-Management.md) entsprechend aktualisiert.
+- **`DocEnsurance` modularisiert & Warnungs-Handling ergänzt:** Markdown-Scanning nach [\_markdown_scanner.py](./src/qb_cubie/services/_markdown_scanner.py) und Pattern-/Regelbausteine nach [doc_patterns.py](./src/qb_cubie/services/doc_patterns.py) ausgelagert; `PytestReporter` emittiert `"warning"`-Diagnosen als `UserWarning` ohne Testabbruch und schlägt nur bei `"error"`-Diagnosen fehl.
+- **Core-Robustheitsfixes:** Gemeinsamer `normalize_fs`-Helper in [\_hydration.py](./src/qb_cubie/arenas/_hydration.py) für `EBT` und Arena-Hydratisierung mit `STATE-GUARD` gegen mehrdeutige Zielnamen; `AstLinter` ergänzt um `name` und `register_excludes(...)`; `MultiprocessManager` nutzt nach `PickleProcessor`-Fehlern oder bei nicht-pickelbaren Callables gezielt `LokyProcessor` als Fallback.
+- **Dokumentations- & Styleguide-Prüfung verschärft:** `test_docs_code_examples` in [test_styleguide.py](./tests/test_styleguide.py) prüft alle Markdown-Guides zusätzlich mit `rules=CUBIE_DOC_RULES`; [GUIDE_DocEnsurance.md](./docs/services/GUIDE_DocEnsurance.md) und weitere Guides auf den neuen Regel- und Warnungsstand aktualisiert.
+
 ## [0.0.5] - 2026-11-14
 
 ### Neu
