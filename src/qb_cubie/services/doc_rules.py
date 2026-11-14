@@ -64,7 +64,7 @@ class HighComplexity:
     """Flags overly long code examples and suggests didactic simplifications."""
 
     max_lines: int = 30
-    severity: str = "warning"
+    severity: str = "error"
     rule_id: str = "DOC-HIGH-COMPLEXITY"
 
     def __post_init__(self) -> None:
@@ -174,7 +174,7 @@ RawTracebackRule = RawTraceback
 
 CUBIE_DOC_RULES: Final[tuple[DocRuleProtocol, ...]] = (
     NoOutput(severity="warning"),
-    HighComplexity(max_lines=30, severity="warning"),
+    HighComplexity(max_lines=30, severity="error"),
     LargeOutput(max_lines=25, severity="warning"),
     RawTraceback(severity="warning"),
 )

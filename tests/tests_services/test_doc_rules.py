@@ -76,12 +76,11 @@ def test_ebt_cubie_doc_rules_preset_clean_and_multi_warning_execution() -> None:
     Gesetz:
     1. Ein kompaktes Code-Beispiel (<= 30 Zeilen) mit dokumentierter Ausgabe (<= 25 Zeilen)
        besteht `CUBIE_DOC_RULES` komplett ohne Warnungen.
-    2. Triggern `NoOutput` und `HighComplexity` im Standard-Preset `CUBIE_DOC_RULES`,
+    2. Triggern `NoOutput` und `LargeOutput` im Standard-Preset `CUBIE_DOC_RULES`,
        emittiert `PytestReporter` entsprechende `UserWarning`s, ohne den Lauf abzubrechen (`passed=True`).
     """
     clean_doc = _build_doc("value = 21 * 2\nprint(value)", "42")
-    noisy_code = "\n".join(f"step_{i} = {i}" for i in range(31))
-    noisy_doc = _build_doc(noisy_code, "")
+    noisy_doc = _build_doc("for i in range(26):\n    print(i)", "")
 
     EBT(
         target=_run_preset_with_pytest_reporter,
@@ -97,7 +96,7 @@ def test_ebt_cubie_doc_rules_preset_clean_and_multi_warning_execution() -> None:
                 returns={
                     "passed": True,
                     "warning_count": 2,
-                    "rule_ids": ["DOC-NO-OUTPUT", "DOC-HIGH-COMPLEXITY"],
+                    "rule_ids": ["DOC-NO-OUTPUT", "DOC-LARGE-OUTPUT"],
                 }
             ),
         ],
@@ -189,9 +188,9 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
     """
     Gesetz:
     1. Ein Code-Block mit exakt 30 Zeilen besteht `HighComplexity(max_lines=30)` ohne Diagnose.
-    2. Ab 31 Zeilen feuert `DOC-HIGH-COMPLEXITY` mit Angabe der Zeilenzahl sowie den
-       Empfehlungen zu `session=<id>` und `pre_state=WorldState(fs=...)`.
-    3. Eigene Limits und Severities (z. B. `HighComplexity(max_lines=5, severity='error')`)
+    2. Ab 31 Zeilen feuert `DOC-HIGH-COMPLEXITY` im Preset `CUBIE_DOC_RULES` als harter Fehler (`severity='error'`)
+       mit Angabe der Zeilenzahl sowie den Empfehlungen zu `session=<id>` und `pre_state=WorldState(fs=...)`.
+    3. Eigene Limits und Severities (z. B. `HighComplexity(max_lines=5, severity='warning')`)
        lassen sich frei konfigurieren.
     """
     code_30_lines = "\n".join([*(f"v_{i} = {i}" for i in range(29)), "print(v_28)"])
@@ -204,7 +203,7 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
             WorldState(args=(_build_doc(code_30_lines, "28"),)),
             WorldState(args=(_build_doc(code_31_lines, "29"),)),
             WorldState(
-                args=(_build_doc(code_6_lines, "4"), [HighComplexity(max_lines=5, severity="error")])
+                args=(_build_doc(code_6_lines, "4"), [HighComplexity(max_lines=5, severity="warning")])
             ),
         ],
         post=[
@@ -213,12 +212,12 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
             ),
             WorldState(
                 returns={
-                    "passed": True,
+                    "passed": False,
                     "outputs": [["29"]],
                     "diagnostics": [
                         (
                             "DOC-HIGH-COMPLEXITY",
-                            "warning",
+                            "error",
                             re.compile(
                                 r"^Code example has 31 lines \(limit: 30\)[\s\S]*session=<id>[\s\S]*pre_state"
                             ),
@@ -228,12 +227,12 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
             ),
             WorldState(
                 returns={
-                    "passed": False,
+                    "passed": True,
                     "outputs": [["4"]],
                     "diagnostics": [
                         (
                             "DOC-HIGH-COMPLEXITY",
-                            "error",
+                            "warning",
                             re.compile(r"^Code example has 6 lines \(limit: 5\)"),
                         )
                     ],
@@ -241,6 +240,69 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
             ),
         ],
         custom_id="doc_std_rules_high_complexity_boundaries",
+    ).run()
+
+
+_QA_GUIDE_SECTION_1_EXAMPLE_DOC = (
+    "Das folgende Einstiegsbeispiel zeigt das Grundmuster eines deklarativen `EBT`-Vertrags "
+    "anhand der Standardfunktion `divmod` für zwei Eingabepaare:\n\n"
+    "```python\n"
+    "from qb_cubie import EBT, WorldState\n\n"
+    "trace = EBT(\n"
+    "    target=divmod,\n"
+    "    pre=[WorldState(args=(17, 5)), WorldState(args=(20, 4))],\n"
+    "    post=[\n"
+    "        WorldState(returns=(3, 2)),\n"
+    "        WorldState(returns=(5, 0)),\n"
+    "    ],\n"
+    "    reporter=None,\n"
+    ").run()\n"
+    'print(f"Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")\n\n'
+    '"""\n'
+    "buuut...\n\n"
+    "you know ...\n\n"
+    "what if ...\n\n\n"
+    + "\n\n".join("..." for _ in range(66))
+    + '\n"""\n'
+    "```\n\n"
+    "<details>\n"
+    "<summary>Ergebnis</summary>\n\n"
+    "```text\n"
+    "Vertrag erfüllt: True | Geprüfte Paare: 4\n"
+    "```\n"
+    "</details>"
+)
+
+
+def _run_cubie_doc_service(doc: str) -> None:
+    """Runs DocEnsurance blackbox with CUBIE_DOC_STYLE, CUBIE_DOC_RULES, and PytestReporter."""
+    DocEnsurance(
+        target=doc,
+        pattern=CUBIE_DOC_STYLE,
+        rules=CUBIE_DOC_RULES,
+        arena=TempFS(),
+        reporter=PytestReporter(),
+    ).run()
+
+
+def test_ebt_high_complexity_fails_on_oversized_qa_guide_example() -> None:
+    """
+    Soll-Gesetz (TGD Red-Phase):
+    Das 153-zeilige Einstiegsbeispiel aus `docs/GUIDE_Quality-Assurance.md` (Abschnitt 1)
+    überschreitet das 30-Zeilen-Limit und muss den `DocEnsurance`-Service mit
+    `CUBIE_DOC_RULES` hart fehlschlagen lassen (`AssertionError` mit `DOC-HIGH-COMPLEXITY`),
+    statt stillschweigend grün durchzulaufen.
+    """
+    EBT(
+        target=_run_cubie_doc_service,
+        pre=WorldState(args=(_QA_GUIDE_SECTION_1_EXAMPLE_DOC,)),
+        post=[
+            WorldState(
+                raises=ExceptionExpectation(AssertionError, match=r"DOC-HIGH-COMPLEXITY")
+            ),
+            WorldState(returns=None, expect=False),
+        ],
+        custom_id="doc_std_rules_qa_guide_section_1_complexity_failure",
     ).run()
 
 
