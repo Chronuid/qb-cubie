@@ -1,4 +1,4 @@
-"""Tries to verify target resolution, project root discovery, exclusions, and TTL timeouts in DocEnsurance."""
+"""**Tries to** verify target resolution, project root discovery, exclusions, and TTL timeouts in DocEnsurance."""
 
 from pathlib import Path
 from typing import Any, Sequence

@@ -98,7 +98,7 @@ class DocLinterRule:
 
     def _map_diagnostic(self, example: ExtractedExample, diag: LinterDiagnostic) -> DocDiagnostic:
         """Converts a LinterDiagnostic into a file-relative DocDiagnostic."""
-        is_warn = diag.severity in ("warning", "note", "convention", "refactor")
+        is_warn = diag.severity.lower() in ("warning", "note", "convention", "refactor", "info")
         sev = self.severity or ("warning" if is_warn else "error")
         line = example.line + max(1, diag.line)
         return DocDiagnostic(

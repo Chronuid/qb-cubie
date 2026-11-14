@@ -1,4 +1,4 @@
-"""Tries to verify scanner, matcher, path-heuristic, and runtime edge cases in DocEnsurance."""
+"""**Tries to** verify scanner, matcher, path-heuristic, and runtime edge cases in DocEnsurance."""
 
 import re
 from typing import Any

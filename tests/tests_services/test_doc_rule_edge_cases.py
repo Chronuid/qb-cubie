@@ -1,4 +1,4 @@
-"""Tries to verify rule coercion, scanner traps, scope asymmetries, and runtime edge cases in DocEnsurance."""
+"""**Tries to** verify rule coercion, scanner traps, scope asymmetries, and runtime edge cases in DocEnsurance."""
 
 from collections.abc import Sequence
 from typing import Any

@@ -1,4 +1,4 @@
-"""Tries to verify isomorphisms between Markdown-hosted code fences and Python-hosted docstrings."""
+"""**Tries to** verify isomorphisms between Markdown-hosted code fences and Python-hosted docstrings."""
 
 import ast
 from typing import Any, Sequence

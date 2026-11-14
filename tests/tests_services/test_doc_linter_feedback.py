@@ -1,6 +1,9 @@
-"""Verifies actionable, unswallowed linter diagnostics and end-to-end reporter UX in DocEnsurance."""
+"""**Tries to** verify actionable, unswallowed linter diagnostics and end-to-end reporter UX in DocEnsurance."""
 
+from dataclasses import dataclass
+from pathlib import Path
 import re
+import tempfile
 import warnings
 from collections.abc import Sequence
 from typing import Any
@@ -12,7 +15,9 @@ from qb_cubie import (
     CstLinter,
     CstRule,
     EBT,
+    LinterDiagnostic,
     MyPy,
+    Pylint,
     PytestReporter,
     TempFS,
     WorldState,
@@ -20,8 +25,12 @@ from qb_cubie import (
 from qb_cubie.services import (
     CUBIE_DOC_RULES,
     CUBIE_DOC_STYLE,
+    CodeSnippet,
+    CollapsibleResult,
     DocEnsurance,
     DocLinterRule,
+    ExamplePattern,
+    Explanation,
 )
 
 # ---------- Test-Fixtures & Markdown-Korpus ---------------------------------------------------------------------------
@@ -97,7 +106,7 @@ _SESSION_MULTISTEP_LINT_DOC = (
     "print(factor)\n"
     "```\n\n"
     "<details>\n<summary>Ergebnis</summary>\n\n```text\n21\n```\n</details>\n\n"
-    "Schritt 2 nutzt factor aus Schritt 1, verletzt aber in Zeile 16 die eval-Architekturregel.\n\n"
+    "Schritt 2 nutzt factor aus Schritt 1, verletzt aber in Zeile 20 die eval-Architekturregel.\n\n"
     "```python session=lint_ux\n"
     "doubled = factor * 2\n"
     "print(eval('doubled'))\n"
@@ -177,8 +186,10 @@ def test_ebt_guide_scenario_reproduction_and_actionable_output() -> None:
                         (
                             "DOC-OUT",
                             "error",
-                            14,
-                            re.compile(r"expected 'Linter: AstLinter\(CST-Linter\).*got 'Linter: AST-Linter\(CST-Linter\)"),
+                            3,
+                            re.compile(
+                                r"^Output mismatch: expected 'Linter: AstLinter\(CST-Linter\).*got 'Linter: AST-Linter\(CST-Linter\)"
+                            ),
                         )
                     ],
                 }
@@ -339,7 +350,7 @@ def test_ebt_multistep_session_linter_preserves_context_and_concrete_message() -
                     "passed": False,
                     "outputs": [["21", "42"]],
                     "diagnostics": [
-                        ("ARCH-NO-EVAL", "error", 16, "eval() verletzt die Sicherheitsarchitektur.")
+                        ("ARCH-NO-EVAL", "error", 20, "eval() verletzt die Sicherheitsarchitektur.")
                     ],
                 }
             ),
@@ -380,7 +391,7 @@ def test_ebt_pytest_reporter_surfaces_concrete_linter_messages_end_to_end() -> N
                 returns={
                     "asserted": True,
                     "error_text": re.compile(
-                        r"--- Service Report \(IN_MEMORY\) ---[\s\S]*"
+                        r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
                         r"- \[ARCH-NO-EVAL\] IN_MEMORY:5: eval\(\) verletzt die Sicherheitsarchitektur\."
                     ),
                     "warnings": [],
@@ -399,11 +410,201 @@ def test_ebt_pytest_reporter_surfaces_concrete_linter_messages_end_to_end() -> N
             WorldState(
                 returns={
                     "asserted": True,
-                    "error_text": re.compile(r"^((?!eval\(\) verletzt die Sicherheitsarchitektur\.).)*$"),
+                    "error_text": re.compile(r"^((?!eval\(\) verletzt die Sicherheitsarchitektur\.)[\s\S])*$"),
                     "warnings": [],
                 },
                 expect=False,
             ),
         ],
         custom_id="doc_linter_ux_pytest_reporter_end_to_end",
+    ).run()
+
+
+# ======================================================================================================================
+# 6. ÄQUIVALENZKLASSE: MYPY & PYLINT END-TO-END INKL. INFO-SEVERITY & MULTI-STEP FEHLER-MELDUNGEN
+# ======================================================================================================================
+
+_SESSION_MYPY_ERROR_DOC = (
+    "Schritt 1 legt factor als Ganzzahl in der gemeinsamen Session an.\n\n"
+    "```python session=mypy_ux\n"
+    "factor: int = 21\n"
+    "print(factor)\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n```text\n21\n```\n</details>\n\n"
+    "Schritt 2 weist factor fälschlich einen Text zu und provoziert eine MyPy-Typmeldung.\n\n"
+    "```python session=mypy_ux\n"
+    'factor = "oops"\n'
+    "print(factor)\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n```text\noops\n```\n</details>"
+)
+
+
+@dataclass
+class _InfoSeverityLinter:
+    """Stub linter emitting an info-level diagnostic to verify non-error mapping."""
+
+    name: str = "InfoStub"
+
+    def register_excludes(self, excludes: list[str]) -> None:
+        """Accepts exclude patterns per Linter protocol."""
+
+    def check(self, target: str | Path) -> list[LinterDiagnostic]:
+        """Emits an info-level diagnostic on line 1."""
+        return [
+            LinterDiagnostic(
+                file_path=str(target),
+                linter_name=self.name,
+                rule_id="I0001",
+                line=1,
+                column=0,
+                message="Informational linter hint.",
+                severity="info",
+            )
+        ]
+
+
+def test_ebt_mypy_pylint_and_info_severity_reach_reporter() -> None:
+    """Verifies that MyPy, Pylint, and info-level diagnostics reach DocEnsurance and PytestReporter."""
+    EBT(
+        target=_run_pytest_reporter_ux,
+        pre=[
+            WorldState(args=(_SESSION_MYPY_ERROR_DOC, [*CUBIE_DOC_RULES, AstLinter(MyPy())])),
+            WorldState(args=(_EVAL_VIOLATION_DOC, [Pylint()])),
+            WorldState(args=(_EVAL_VIOLATION_DOC, [_InfoSeverityLinter()])),
+        ],
+        post=[
+            WorldState(
+                returns={
+                    "asserted": True,
+                    "error_text": re.compile(
+                        r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
+                        r"- \[assignment\] IN_MEMORY:19: Incompatible types in assignment"
+                    ),
+                    "warnings": [],
+                }
+            ),
+            WorldState(
+                returns={
+                    "asserted": False,
+                    "error_text": "",
+                    "warnings": lambda ws: any(
+                        "[W0123] IN_MEMORY:5: Use of eval" in w for w in ws
+                    ),
+                }
+            ),
+            WorldState(
+                returns={
+                    "asserted": False,
+                    "error_text": "",
+                    "warnings": ["[I0001] IN_MEMORY:4: Informational linter hint."],
+                }
+            ),
+        ],
+        custom_id="doc_linter_ux_mypy_pylint_info_end_to_end",
+    ).run()
+
+
+# ======================================================================================================================
+# 7. ÄQUIVALENZKLASSE: REGISTER_RULE, BLOCK-ATTACHED LINTER & DATEIPFAD-REPORTING
+# ======================================================================================================================
+
+
+class _NoPrintArchRule(CstRule):
+    """Flags print() calls to verify multi-linter registration without slot collisions."""
+
+    def visit_Call(self, node: cst.Call) -> None:
+        """Records an ARCH-NO-PRINT diagnostic with a concrete message."""
+        if isinstance(node.func, cst.Name) and node.func.value == "print":
+            self.add_diagnostic(node, "ARCH-NO-PRINT", "print() ist in Bibliotheksbeispielen unerwünscht.")
+
+
+def _run_registration_and_file_flows(mode: str) -> dict[str, Any]:
+    """Exercises register_rule collision safety, pattern block rules, and file-path PytestReporter output."""
+    if mode == "register_rule_collision_safe":
+        svc = DocEnsurance(
+            target=_EVAL_VIOLATION_DOC,
+            rules=[
+                *CUBIE_DOC_RULES,
+                CstLinter(rules=[_NoEvalArchRule()]),
+                DocLinterRule(CstLinter(rules=[_NoPrintArchRule()]), severity="warning"),
+            ],
+            arena=TempFS(),
+            reporter=None,
+        )
+        svc.register_rule(DocLinterRule(CstLinter(rules=[_NoPrintArchRule()]), severity="warning"))
+        report = svc.run()
+        return {
+            "passed": report.passed,
+            "diagnostics": [(d.rule_id, d.severity, d.line, d.message) for d in report.diagnostics],
+        }
+    if mode == "pattern_block_rule":
+        pattern = ExamplePattern(
+            pre=(Explanation(min_chars=20),),
+            anchor=CodeSnippet(lang="python", rules=[AstLinter(CstLinter(rules=[_NoEvalArchRule()]))]),
+            post=(CollapsibleResult(),),
+        )
+        report = DocEnsurance(
+            target=_EVAL_VIOLATION_DOC, pattern=pattern, rules=[], arena=TempFS(), reporter=None
+        ).run()
+        return {
+            "passed": report.passed,
+            "diagnostics": [(d.rule_id, d.severity, d.line, d.message) for d in report.diagnostics],
+        }
+    with tempfile.TemporaryDirectory() as tmpdir:
+        md_file = Path(tmpdir) / "guide.md"
+        md_file.write_text(_EVAL_VIOLATION_DOC, encoding="utf-8")
+        try:
+            DocEnsurance(
+                target=md_file,
+                rules=[AstLinter(CstLinter(rules=[_NoEvalArchRule()]))],
+                arena=TempFS(),
+                reporter=PytestReporter(),
+            ).run()
+            error_text = ""
+        except AssertionError as exc:
+            error_text = str(exc)
+        return {"passed": False, "error_text": error_text, "file_str": str(md_file)}
+
+
+def test_ebt_all_registration_and_file_reporting_interfaces() -> None:
+    """Verifies register_rule slot preservation, block-attached linters, and real file path reporting."""
+    EBT(
+        target=_run_registration_and_file_flows,
+        pre=[
+            WorldState(args=("register_rule_collision_safe",)),
+            WorldState(args=("pattern_block_rule",)),
+            WorldState(args=("file_target",)),
+        ],
+        post=[
+            WorldState(
+                returns={
+                    "passed": False,
+                    "diagnostics": [
+                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                        ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
+                        ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
+                    ],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": False,
+                    "diagnostics": [
+                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                    ],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": False,
+                    "error_text": re.compile(
+                        r"^\n--- Service Report \(.+guide\.md\) ---[\s\S]*"
+                        r"- \[ARCH-NO-EVAL\] .+guide\.md:5: eval\(\) verletzt die Sicherheitsarchitektur\."
+                    ),
+                    "file_str": str,
+                }
+            ),
+        ],
+        custom_id="doc_linter_ux_registration_and_file_reporting",
     ).run()

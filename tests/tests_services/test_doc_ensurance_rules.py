@@ -1,4 +1,4 @@
-"""Tries to verify pluggable rules, linter adapters, and severity contracts in DocEnsurance."""
+"""**Tries to** verify pluggable rules, linter adapters, and severity contracts in DocEnsurance."""
 
 import re
 import warnings

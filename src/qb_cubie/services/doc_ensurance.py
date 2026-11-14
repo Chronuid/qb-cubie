@@ -155,12 +155,12 @@ class DocEnsurance:
             registry.pop("DOC-OUT-MISSING", None)
         return list(registry.values())
 
-    @staticmethod
-    def _index_existing_rules(rules: Sequence[DocRuleProtocol]) -> dict[str, DocRuleProtocol]:
+    @classmethod
+    def _index_existing_rules(cls, rules: Sequence[DocRuleProtocol]) -> dict[str, DocRuleProtocol]:
         """Indexes existing rules into a mutable registry while preserving duplicate linter slots."""
         registry: dict[str, DocRuleProtocol] = {}
         for rule in rules:
-            key = rule.rule_id if rule.rule_id not in registry else f"{rule.rule_id}#{len(registry)}"
+            key = cls._unique_rule_key(registry, rule.rule_id) if rule.rule_id in registry else rule.rule_id
             registry[key] = rule
         return registry
 
@@ -170,10 +170,18 @@ class DocEnsurance:
         existing = registry.get(rule.rule_id)
         if existing is not None and isinstance(rule, DocLinterRule) and isinstance(existing, DocLinterRule):
             merged = cls._merge_linter_rules(existing, rule)
-            key = rule.rule_id if merged is not None else f"{rule.rule_id}#{len(registry)}"
+            key = rule.rule_id if merged is not None else cls._unique_rule_key(registry, rule.rule_id)
             registry[key] = merged if merged is not None else rule
             return
         registry[rule.rule_id] = rule
+
+    @staticmethod
+    def _unique_rule_key(registry: dict[str, DocRuleProtocol], rule_id: str) -> str:
+        """Finds a collision-free slot key when multiple linters share the same rule_id."""
+        idx = len(registry)
+        while f"{rule_id}#{idx}" in registry:
+            idx += 1
+        return f"{rule_id}#{idx}"
 
     @staticmethod
     def _merge_linter_rules(existing: DocLinterRule, incoming: DocLinterRule) -> DocLinterRule | None:

@@ -1,4 +1,4 @@
-"""Verifies CUBIE_DOC_RULES and standard didactic rules (NoOutput, HighComplexity, LargeOutput, RawTraceback)."""
+"""**Tries to** verify CUBIE_DOC_RULES and standard didactic rules (NoOutput, HighComplexity, LargeOutput, RawTraceback)."""
 
 import re
 import warnings

@@ -172,8 +172,8 @@ class _MarkdownScanner:
         match = _SUMMARY_RE.search(outer_text)
         meta = match.group(1).strip() if match else ""
         cleaned_outer = _SUMMARY_RE.sub("", outer_text, count=1)
-        cleaned_outer = re.sub(r"<details[^>]*>", "", cleaned_outer, count=1).split("\n")
-        body = "\n".join(cls._merge_details_lines(tagged, cleaned_outer)).strip()
+        cleaned_lines = re.sub(r"<details[^>]*>", "", cleaned_outer, count=1).split("\n")
+        body = "\n".join(cls._merge_details_lines(tagged, cleaned_lines)).strip()
         return MdBlock(kind="details", content=body, line=line_no, meta=meta)
 
     @classmethod
