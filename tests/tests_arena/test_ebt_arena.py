@@ -1,6 +1,10 @@
 import os
-from qb_cubie import EBT, WorldState, PyVenv
 from pathlib import Path
+
+import pytest
+
+import qb_cubie
+from qb_cubie import EBT, PyVenv, WorldState
 
 # ======================================================================================================================
 # These tests verify that the arenas are isolated from the host (cubie).
@@ -108,10 +112,54 @@ def get_default_virtual_env():
 def test_default_pyvenv_execution():
     """Checks whether the PyVenv arena can be successfully invoked without specifying a path."""
     EBT(
-        arena=PyVenv(), # Uses the default path for the included empty_venv
+        arena=PyVenv(),  # Uses the external default base arena
         target=return_true_in_default,
         post=WorldState(returns=True)
     ).run()
+
+
+def test_default_pyvenv_resolves_outside_core_package(tmp_path, monkeypatch):
+    """Verifies the default PyVenv base lives outside qb_cubie and runs independently of CWD."""
+    package_root = Path(qb_cubie.__file__).resolve().parent
+    default_arena = PyVenv()
+    assert not default_arena.env_path.resolve().is_relative_to(package_root)
+    assert not (package_root / "arenas" / "arena_envs").exists()
+    monkeypatch.chdir(tmp_path)
+    EBT(
+        arena=PyVenv(),
+        target=return_true_in_default,
+        post=WorldState(returns=True),
+    ).run()
+
+
+def test_default_pyvenv_env_override(monkeypatch):
+    """Verifies QB_CUBIE_DEFAULT_ARENA redirects PyVenv() to an explicit provisioned base."""
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(Path("tests/.arenas/cowsay_env").resolve()))
+    EBT(
+        arena=PyVenv(),
+        target=check_arena_isolation,
+        post=WorldState(returns=True),
+    ).run()
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(Path("tests/.arenas/empty_venv").resolve()))
+    EBT(
+        arena=PyVenv(),
+        target=check_arena_isolation,
+        post=WorldState(returns=True),
+        expect=False,
+    ).run()
+
+
+def test_default_pyvenv_missing_base_fails_without_installing(tmp_path, monkeypatch):
+    """Verifies unprovisioned default arenas fail via STATE-GUARD without auto-creating venvs."""
+    missing = tmp_path / "unprovisioned_default_arena"
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(missing))
+    with pytest.raises(RuntimeError, match="Base arena not found"):
+        EBT(
+            arena=PyVenv(),
+            target=return_true_in_default,
+            post=WorldState(returns=True),
+        ).run()
+    assert not missing.exists()
 
 def test_default_pyvenv_isolation():
     """Verifies that the default arena is correctly loaded as a cloned, isolated 'cubie_arena_' environment."""
@@ -187,15 +235,21 @@ def test_arena_uses_clone_path():
 def test_arena_teardown_destroys_clone():
     base_arena = "tests/.arenas/empty_venv"
     arena_instance = PyVenv(base_arena)
-    EBT(
+    result = EBT(
         arena=arena_instance,
-        target=check_path_isolation,
-        pre=WorldState(args=(str(Path(base_arena).absolute()),)),
-        post=WorldState(returns=True)
+        target=get_virtual_env_path,
+        post=WorldState(
+            returns=lambda path: (
+                path is not None
+                and "cubie_arena_" in path
+                and path != str(Path(base_arena).absolute())
+            )
+        ),
     ).run()
-    if hasattr(arena_instance, '_clone_path') and arena_instance._clone_path:
-        assert not os.path.exists(arena_instance._clone_path), \
-            "STATE-GUARD: Clone folder was not deleted by the teardown!"
+    clone_venv = Path(result.traces[0].outcome.returns)
+    assert arena_instance.workspace_path is None
+    assert arena_instance.virtual_path is None
+    assert not clone_venv.exists(), "STATE-GUARD: Clone folder was not deleted by the teardown!"
 
 
 # ======================================================================================================================

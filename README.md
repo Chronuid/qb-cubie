@@ -295,9 +295,8 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 
 ![Error while trying to load the image](./docs/.assets/cubie-small.png)
 
-## Dokumentation
-
-[Dokumentationsübersicht und Einordnung der Ablagen](docs/README.md)
+[Dokumentationsübersicht und Einordnung der Ablagen](docs/README.md)  
+[↦ | Services: DocEnsurance | ↤](./docs/services/GUIDE_DocEnsurance.md)
 
 [↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./docs/GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  
@@ -306,10 +305,9 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
-[↦ | Services: DocEnsurance | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+
 [↦ | Testsuite-Leitfaden & Profile | ↤](./tests/README.md)  
 [↦ | Changelog | ↤](./CHANGELOG.md)  
-
 [↦ | Experimentelle Benchmarks außerhalb des Core | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Testguided-Vergleichsstudie | ↤](./experiments/testguided-study/README.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)

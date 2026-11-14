@@ -4,7 +4,6 @@ venv/
 env/
 .env/
 .arenas/
-/src/qb_cubie/arenas/arena_envs/empty_test_env/
 
 # Lokale IDE-Konfiguration
 .idea/

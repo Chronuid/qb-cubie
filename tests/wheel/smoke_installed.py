@@ -40,7 +40,9 @@ def test_imports_and_distribution():
     assert all(hasattr(qb_cubie, name) for name in qb_cubie.__all__)
     for module in pkgutil.walk_packages(qb_cubie.__path__, "qb_cubie."):
         importlib.import_module(module.name)
-    assert not list((package.parent / "arenas/arena_envs").glob("*/pyvenv.cfg"))
+    assert not (package.parent / "arenas/arena_envs").exists()
+    assert importlib.util.find_spec("qb_cubie.arenas.arena_envs") is None
+    assert not qb_cubie.PyVenv().env_path.resolve().is_relative_to(package.parent.resolve())
 
 
 def test_ebt_accepts_matching_result():
@@ -91,10 +93,12 @@ def test_tempfs_runner_and_files(tmp_path):
     assert source.read_text(encoding="utf-8") == "wheel"
 
 
-def test_pyvenv_runner_and_packaged_phantom_hook(tmp_path):
+def test_pyvenv_runner_and_packaged_phantom_hook(tmp_path, monkeypatch):
     base = tmp_path / "base"
     venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
-    arena = qb_cubie.PyVenv(env_path=str(base), codec=qb_cubie.PickleCodec())
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(base))
+    arena = qb_cubie.PyVenv(codec=qb_cubie.PickleCodec())
+    assert arena.env_path == base
     trace = EBT(target="builtins:sum", arena=arena,
                 pre=WorldState(args=([1, 2, 3],)),
                 post=WorldState(returns=6)).run()

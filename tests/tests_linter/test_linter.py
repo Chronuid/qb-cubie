@@ -29,7 +29,7 @@ def test_linter_custom_excludes():
     """Verifies: The linter checks only the defined folders, taking 'excludes' configurations into account."""
     linter = AstLinter(Pylint(excludes=["custom_dir"]))
     EBT(
-        arena=PyVenv(codec=CloudpickleCodec()),
+        arena=PyVenv("tests/.arenas/linter_env", codec=CloudpickleCodec()),
         target=linter.check,
         pre=WorldState(
             args=(Path("src")),

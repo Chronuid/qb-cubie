@@ -19,6 +19,30 @@ from .codecs import MSGspecCodec
 # ========== PYVENV-ARENA ==============================================================================================
 
 CURRENT_DIR = Path(__file__).parent
+DEFAULT_ARENA_ENV_VAR = "QB_CUBIE_DEFAULT_ARENA"
+
+
+def default_arena_path() -> Path:
+    """Return the default external base arena path for the active Python version."""
+    override = os.environ.get(DEFAULT_ARENA_ENV_VAR, "").strip()
+    if override:
+        return Path(override).expanduser()
+    tag = f"py{sys.version_info.major}.{sys.version_info.minor}-empty"
+    return _cache_root() / "qb-cubie" / "arenas" / tag
+
+
+def _cache_root() -> Path:
+    """Resolve the platform-appropriate user cache root directory."""
+    xdg_cache = os.environ.get("XDG_CACHE_HOME", "").strip()
+    if xdg_cache:
+        return Path(xdg_cache).expanduser()
+    if os.name == "nt":
+        local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
+        if local_app_data:
+            return Path(local_app_data)
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Caches"
+    return Path.home() / ".cache"
 
 
 class _ArenaState:
@@ -45,7 +69,7 @@ class PyVenv(_ArenaState):
 
     def __init__(
         self,
-        env_path: str = str(CURRENT_DIR / "arena_envs" / "empty_test_env"),
+        env_path: str | os.PathLike[str] | None = None,
         codec: Optional[IPCC] = None,
         decontams: Optional[List] = None,
         custom_id: str | None = None,
@@ -59,7 +83,7 @@ class PyVenv(_ArenaState):
         self.codec = codec or MSGspecCodec()
         self.custom_id = custom_id or f"{self.__class__.__name__.lower()}"
         self.arena_id = f"cubie_arena_{self.custom_id}_{uuid.uuid4().hex[:8]}"
-        self.env_path = Path(env_path)
+        self.env_path = Path(env_path) if env_path is not None else default_arena_path()
         super().__init__()
         self._decontams = list(decontams or [])
 
@@ -330,8 +354,8 @@ class PyVenv(_ArenaState):
 class ArenaBuilder:
     """Programmatically provisions base environments and constructs PyVenv arenas via a fluent interface."""
 
-    def __init__(self, env_path: str):
-        self.env_path = Path(env_path)
+    def __init__(self, env_path: str | os.PathLike[str] | None = None):
+        self.env_path = Path(env_path) if env_path is not None else default_arena_path()
         self._packages: list[str] = []
 
     # ----- Services ---------------------------------------------------------------------------------------------------

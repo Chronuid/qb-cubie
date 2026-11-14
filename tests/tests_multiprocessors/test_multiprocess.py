@@ -120,7 +120,7 @@ TARGETS = [
 ARENAS = [
     lambda: None,
     lambda: TempFS(),
-    lambda: PyVenv()
+    lambda: PyVenv("tests/.arenas/empty_venv")
 ]
 
 PROCESSORS = [

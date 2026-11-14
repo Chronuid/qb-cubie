@@ -2,15 +2,17 @@
 
 import importlib.util
 import subprocess
+import sys
 import sysconfig
 import venv
 from pathlib import Path
 
 import pytest
 
+import qb_cubie.arenas
 from qb_cubie import EBT, CloudpickleCodec, PickleCodec, PyVenv, WorldState
 from qb_cubie.arenas._requirements import _environment_python, _requirements_satisfied
-from qb_cubie.arenas.pyvenv import ArenaBuilder
+from qb_cubie.arenas.pyvenv import ArenaBuilder, default_arena_path
 
 
 @pytest.fixture
@@ -226,3 +228,41 @@ def test_provision_script_clears_only_incomplete_venvs(tmp_path, base_env):
 
 def test_src_files_prunes_incomplete_venv_stubs(src_files):
     assert not any(path.name == "activate_this.py" for path in src_files)
+
+
+def test_default_arena_path_resolution_and_no_core_arena_envs(tmp_path, monkeypatch):
+    package_root = Path(qb_cubie.__file__).resolve().parent
+    assert not hasattr(qb_cubie.arenas, "arena_envs")
+    assert importlib.util.find_spec("qb_cubie.arenas.arena_envs") is None
+
+    monkeypatch.delenv("QB_CUBIE_DEFAULT_ARENA", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg-cache"))
+    expected_tag = f"py{sys.version_info.major}.{sys.version_info.minor}-empty"
+    resolved = default_arena_path()
+    assert resolved == tmp_path / "xdg-cache" / "qb-cubie" / "arenas" / expected_tag
+    assert not resolved.resolve().is_relative_to(package_root)
+    assert PyVenv().env_path == resolved
+
+    override = tmp_path / "custom-default"
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(override))
+    assert default_arena_path() == override
+    assert PyVenv().env_path == override
+    assert ArenaBuilder().env_path == override
+
+
+def test_default_builder_provisions_configured_default_base(base_env, installer_calls, monkeypatch):
+    monkeypatch.setenv("QB_CUBIE_DEFAULT_ARENA", str(base_env))
+    arena = ArenaBuilder().build(codec=PickleCodec())
+    assert arena.env_path == base_env
+    assert installer_calls == []
+
+
+def test_provision_script_profiles_stay_outside_core_package():
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "provision_test_arenas.py"
+    spec = importlib.util.spec_from_file_location("provision_test_arenas", script_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    package_root = Path(qb_cubie.__file__).resolve().parent
+    assert default_arena_path() in module.PROFILES
+    assert all(not Path(path).resolve().is_relative_to(package_root) for path in module.PROFILES)

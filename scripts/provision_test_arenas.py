@@ -12,13 +12,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from qb_cubie.arenas.pyvenv import CURRENT_DIR, ArenaBuilder
+from qb_cubie.arenas.pyvenv import ArenaBuilder, default_arena_path
 
 # Keep codec versions aligned with uv.lock. All bases support both codecs
 # without needing another provisioning step when a test switches codecs.
 CODEC_PACKAGES = ["msgspec==0.22.0", "cloudpickle==3.1.2"]
 PROFILES = {
-    CURRENT_DIR / "arena_envs" / "empty_test_env": CODEC_PACKAGES,
+    default_arena_path(): CODEC_PACKAGES,
     PROJECT_ROOT / "tests/.arenas/empty_venv": CODEC_PACKAGES,
     PROJECT_ROOT / "tests/.arenas/cowsay_env": [*CODEC_PACKAGES, "cowsay==6.1"],
     PROJECT_ROOT / "tests/.arenas/linter_env": [*CODEC_PACKAGES, "pylint==4.1.3"],

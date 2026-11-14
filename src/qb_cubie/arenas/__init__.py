@@ -15,15 +15,18 @@
 # Phantom Middleware / Hooks:
 #     Provides explicit import placeholders and limited pytest declarations; runtime calls fail.
 
-from . import arena_envs, codecs, phantom_hook, pyvenv, tempfs
+from . import codecs, phantom_hook, pyvenv, tempfs
 from .codecs import MSGspecCodec, CloudpickleCodec, PickleCodec
+from .pyvenv import ArenaBuilder, DEFAULT_ARENA_ENV_VAR, default_arena_path
 
 __all__ = [
-    "arena_envs",
     "codecs",
     "phantom_hook",
     "pyvenv",
     "tempfs",
+    "ArenaBuilder",
+    "DEFAULT_ARENA_ENV_VAR",
+    "default_arena_path",
     "MSGspecCodec",
     "PickleCodec",
     "CloudpickleCodec",

@@ -21,7 +21,7 @@ def calculate_sum(a: int, b: int) -> int:
         return d.file_path == "<string>" and d.severity == "error" and d.line == 3
     EBT(
         target=AstLinter(MyPy()).check,
-        arena=PyVenv(codec=CloudpickleCodec()),
+        arena=PyVenv("tests/.arenas/empty_venv", codec=CloudpickleCodec()),
         pre=WorldState(kwargs={"target": bad_code}),
         post=WorldState(returns=validate_diagnostics)
     ).run()
@@ -58,7 +58,7 @@ def test_mypy_cross_module_inference(cross_module_fs: Path):
         return "main.py" in d.file_path and d.rule_id == "assignment"
     EBT(
         target=AstLinter(MyPy()).check,
-        arena=PyVenv(codec=CloudpickleCodec()),
+        arena=PyVenv("tests/.arenas/empty_venv", codec=CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path("src")},
             fs={
@@ -92,7 +92,7 @@ def test_mypy_ignores_venv_directory(mypy_venv_fs: Path):
     """
     EBT(
         target=AstLinter(MyPy()).check,
-        arena=PyVenv(codec=CloudpickleCodec()),
+        arena=PyVenv("tests/.arenas/empty_venv", codec=CloudpickleCodec()),
         pre=WorldState(
             kwargs={"target": Path(".")},  # Scannt Root, inklusive .venv
             fs={

@@ -47,9 +47,9 @@ generierten Code. Details stehen in der
 
 ## PyVenv: kopierte virtuelle Umgebung
 
-`PyVenv(env_path)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
+`PyVenv(env_path=None)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ohne `env_path` greift `default_arena_path()`: Ist `QB_CUBIE_DEFAULT_ARENA` gesetzt, wird dieser Pfad verwendet; andernfalls zeigt der Standard auf ein interpreter-spezifisches Verzeichnis im Benutzer-Cache (z. B. `~/.cache/qb-cubie/arenas/py3.13-empty` bzw. `$XDG_CACHE_HOME`), vollständig außerhalb des Core-Pakets. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
 
-Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert; auch der Standardpfad `src/qb_cubie/arenas/arena_envs/empty_test_env` muss vor der Verwendung von `PyVenv()` lokal provisioniert werden. `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
+Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert und nicht im Core-Paket gehalten; auch der Standardpfad von `PyVenv()` muss vor der ersten Nutzung lokal provisioniert werden (z. B. über `ArenaBuilder().build()` oder `scripts/provision_test_arenas.py`). `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
 
 Nach dem Kopieren passt `setup()` übliche POSIX-Python-Einstiegsskripte an den Klon an: absolute Python-Shebangs und die üblichen `/bin/sh`-Trampoline mit `'''exec'`. Damit funktionieren auch Pfade mit Leerzeichen und langen Interpreterpfaden. Die Basis bleibt unverändert. Nicht unterstützte ausführbare Skripte mit Basisreferenzen sowie zusätzliche `.exe`-Launcher werden vor dem Target-Aufruf mit `RuntimeError` abgelehnt. Die Python-Interpreter selbst sind von dieser `.exe`-Einschränkung ausgenommen. Absolute interne Skriptlinks werden auf den Klon umgebogen; externe Skriptlinks werden abgelehnt.
 
@@ -91,7 +91,7 @@ Unter Windows den Projektinterpreter `.venv\Scripts\python.exe` verwenden. Das S
 
 | Basis | Pakete zusätzlich zur Python-Standardbibliothek |
 | --- | --- |
-| `src/qb_cubie/arenas/arena_envs/empty_test_env` (`PyVenv()`-Standard) | `msgspec==0.22.0`, `cloudpickle==3.1.2` |
+| Benutzer-Cache `qb-cubie/arenas/py<major>.<minor>-empty` (`PyVenv()`-Standard, über `QB_CUBIE_DEFAULT_ARENA` überschreibbar) | `msgspec==0.22.0`, `cloudpickle==3.1.2` |
 | `tests/.arenas/empty_venv` | dieselben Codec-Pakete |
 | `tests/.arenas/cowsay_env` | Codec-Pakete und `cowsay==6.1` |
 | `tests/.arenas/linter_env` | Codec-Pakete und `pylint==4.1.3` samt Abhängigkeiten |

@@ -93,16 +93,12 @@ def _is_venv_dir(path: Path) -> bool:
 @pytest.fixture(scope="session")
 def src_files():
     """Discover project sources while pruning caches and generated virtualenvs."""
-    arena_envs_dir = PROJECT_ROOT / "src" / "qb_cubie" / "arenas" / "arena_envs"
     files = []
     for directory, children, names in (PROJECT_ROOT / "src").walk():
-        if directory == arena_envs_dir:
-            children[:] = []
-        else:
-            children[:] = [
-                name for name in children
-                if name != "__pycache__" and not _is_venv_dir(directory / name)
-            ]
+        children[:] = [
+            name for name in children
+            if name != "__pycache__" and not _is_venv_dir(directory / name)
+        ]
         files.extend(directory / name for name in names if name.endswith(".py"))
     assert files, "No Python sources found under src/."
     return tuple(sorted(files))

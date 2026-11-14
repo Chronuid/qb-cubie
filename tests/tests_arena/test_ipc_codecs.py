@@ -58,7 +58,7 @@ class TestIPCCodecContract:
 
     @pytest.fixture
     def arena(self) -> PyVenv:
-        return PyVenv(codec=qb_cubie.CloudpickleCodec())
+        return PyVenv("tests/.arenas/empty_venv", codec=qb_cubie.CloudpickleCodec())
 
     def test_pure_function_serialization(self, arena: PyVenv):
         """Ein Codec muss reine Funktionen übertragen können."""

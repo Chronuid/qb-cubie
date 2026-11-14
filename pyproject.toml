@@ -55,7 +55,6 @@ include-package-data = false
 [tool.setuptools.packages.find]
 where = ["src", "experiments/ollama-agents", "experiments/benchmarks"]
 include = ["qb_cubie", "qb_cubie.*", "ollama_agents", "ollama_agents.*", "cubie_benchmarks", "cubie_benchmarks.*"]
-exclude = ["qb_cubie.arenas.arena_envs.*"]
 namespaces = false
 
 [tool.setuptools.package-dir]

@@ -7,9 +7,7 @@ from src.qb_cubie.arenas.tempfs import TempFS
 from src.qb_cubie.arenas.pyvenv import PyVenv
 
 ########################################################################################################################
-# ==========  ARENAS:  PyVenv("tests/arenas/empty_venv")  |  TempFS()  =================================================
-
-test_arena=PyVenv()
+# ==========  ARENAS:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()  ================================================
 
 
 # ========== TARGETS ===================================================================================================
@@ -159,7 +157,7 @@ def test_ebt_multiprocessing_with_pyvenv():
     """Checks whether subprocesses (fork/spawn conflicts) survive within the workers."""
     engine = EBT(
         target=target_execute_in_venv,
-        arena=PyVenv(),
+        arena=PyVenv("tests/.arenas/empty_venv"),
         pre=[
             WorldState(args=("print('Worker 1')",)),
             WorldState(args=("print('Worker 2')",))
