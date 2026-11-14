@@ -332,3 +332,32 @@ def test_ebt_standard_rules_state_guards() -> None:
         ),
         custom_id="doc_std_rules_state_guards",
     ).run()
+
+
+# ======================================================================================================================
+# 6. ÄQUIVALENZKLASSE: REGEL-KLASSEN-COERCION & INTERAKTION MIT RAISES=<EXCEPTION>
+# ======================================================================================================================
+_RAISES_WITH_STD_RULES_DOC = (
+    "Ausreichend lange Erklärung für ein erwartetes Negativ-Beispiel.\n\n"
+    "```python raises=ValueError\n"
+    "raise ValueError('invalid threshold')\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n```text\nValueError: invalid threshold\n```\n</details>"
+)
+
+
+def test_ebt_standard_rule_classes_and_raises_compatibility() -> None:
+    """Verifies that standard rule classes coerce via type and do not false-alarm on raises= snippets."""
+    rule_classes = (NoOutput, HighComplexity, LargeOutput, RawTraceback)
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(args=(_RAISES_WITH_STD_RULES_DOC, rule_classes)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [["ValueError: invalid threshold"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_std_rules_class_coercion_and_raises",
+    ).run()

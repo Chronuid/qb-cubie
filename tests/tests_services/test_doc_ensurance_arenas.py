@@ -199,3 +199,42 @@ def test_ebt_arena_timeout_and_output_budget_alarms() -> None:
         pre=WorldState(args=(flood_doc, TempFS(max_output_bytes=256))),
         post=WorldState(raises=ExceptionExpectation(RuntimeError, match=r"output limit exceeded")),
     ).run()
+
+
+# ======================================================================================================================
+# SZENARIO 6: CWD- & ENVIRON-ISOLATION ZWISCHEN TEMPFS-SESSIONS
+# ======================================================================================================================
+_CWD_AND_ENV_ISOLATION_DOC = (
+    "Session 1 wechselt das Arbeitsverzeichnis und mutiert os.environ.\n\n"
+    "```python session=s1\n"
+    "import os\n"
+    "from pathlib import Path\n"
+    "sub = Path('nested_dir')\n"
+    "sub.mkdir()\n"
+    "os.chdir(sub)\n"
+    "os.environ['CUBIE_DOC_ISOLATION_TEST'] = 'mutated'\n"
+    "print(Path.cwd().name, os.environ['CUBIE_DOC_ISOLATION_TEST'])\n"
+    "```\n\n<details>\n<summary>Ergebnis</summary>\n\n```text\nnested_dir mutated\n```\n</details>\n\n"
+    "Session 2 startet in einer frischen TempFS-Arena ohne CWD- oder Env-Leak.\n\n"
+    "```python session=s2\n"
+    "import os\n"
+    "from pathlib import Path\n"
+    "print(Path.cwd().name != 'nested_dir', 'CUBIE_DOC_ISOLATION_TEST' not in os.environ)\n"
+    "```\n\n<details>\n<summary>Ergebnis</summary>\n\n```text\nTrue True\n```\n</details>"
+)
+
+
+def test_ebt_tempfs_cwd_and_environ_isolation_across_sessions() -> None:
+    """Verifies that os.chdir() and os.environ mutations in one session do not leak into the next."""
+    EBT(
+        target=_run_with_arena,
+        pre=WorldState(args=(_CWD_AND_ENV_ISOLATION_DOC, TempFS())),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [["nested_dir mutated"], ["True True"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_arena_cwd_and_environ_isolation",
+    ).run()

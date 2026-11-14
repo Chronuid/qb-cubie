@@ -138,10 +138,10 @@ def test_ebt_exclude_does_not_match_parent_directories_above_root() -> None:
 
 
 # ======================================================================================================================
-# 4. TIPPFEHLER BEI STRING-PFADEN (VERZEICHNIS & DATEI EXISTIEREN NICHT)
+# 4. TIPPFEHLER BEI STRING-PFADEN & PFAD-HEURISTIK (_looks_like_path)
 # ======================================================================================================================
 def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
-    """Verifies that non-existent directory or file strings raise FileNotFoundError instead of passing."""
+    """Verifies that non-existent directory, file, or single-token/slash strings raise FileNotFoundError."""
     EBT(
         target=_run_config_scenario,
         arena=TempFS(),
@@ -150,10 +150,23 @@ def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
             WorldState(args=("docs/missing_subfolder",)),
             WorldState(args=("docs/missing folder",)),
             WorldState(args=("docs/missing_guide.md",)),
+            WorldState(args=("Hello",)),
+            WorldState(args=("Read/write operations in Python.",)),
             WorldState(args=(Path("docs_typo"),)),
         ],
         post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:")),
         custom_id="doc_config_missing_target_guards",
+    ).run()
+
+
+def test_ebt_spaced_filename_without_slash_falls_back_to_in_memory() -> None:
+    """Verifies that a non-existent filename with spaces and no slash is parsed as IN_MEMORY."""
+    EBT(
+        target=_run_config_scenario,
+        arena=TempFS(),
+        pre=WorldState(args=("my guide.md",)),
+        post=WorldState(returns={"passed": True, "session_count": 0, "diagnostics": []}),
+        custom_id="doc_config_spaced_filename_in_memory_fallback",
     ).run()
 
 
