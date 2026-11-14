@@ -238,3 +238,105 @@ def test_ebt_tempfs_cwd_and_environ_isolation_across_sessions() -> None:
         ),
         custom_id="doc_arena_cwd_and_environ_isolation",
     ).run()
+
+
+# ======================================================================================================================
+# SZENARIO 7: PRE-STATE LISTEN-KURZFORM (`WorldState(fs=[...])`) (BEFUND 5 VIA expect=False)
+# ======================================================================================================================
+def _run_list_fs_pre_state() -> dict[str, Any]:
+    """Passes a list-based WorldState.fs shorthand directly into DocEnsurance."""
+    seed = Path("seed_list.txt")
+    seed.write_text("v1", encoding="utf-8")
+    doc = (
+        "Prüft, ob WorldState(fs=[...]) als Listen-Kurzform in DocEnsurance hydratisiert wird.\n\n"
+        "```python\n"
+        "from pathlib import Path\n"
+        "print(Path('seed_list.txt').read_text(encoding='utf-8'))\n"
+        "```\n\n"
+        "<details>\n<summary>Ergebnis</summary>\n\n```text\nv1\n```\n</details>"
+    )
+    return _run_with_arena(doc, arena=TempFS(), pre_state=WorldState(fs=[str(seed.resolve())]))
+
+
+def test_ebt_pre_state_list_shorthand_hydrates_cleanly() -> None:
+    """Flags unnormalized list-based WorldState.fs AttributeError via expect=False."""
+    EBT(
+        target=_run_list_fs_pre_state,
+        arena=TempFS(),
+        pre=WorldState(),
+        post=WorldState(
+            raises=ExceptionExpectation(AttributeError, match=r"'list' object has no attribute 'items'"),
+            expect=False,
+        ),
+        custom_id="doc_arena_pre_state_list_shorthand_contract",
+    ).run()
+
+
+# ======================================================================================================================
+# SZENARIO 8: DOGFOODING VON EBT(multiprocessing=True) IM DOKU-SNIPPET (BEFUND 7 VIA expect=False)
+# ======================================================================================================================
+_MP_DOGFOOD_LOCAL_FN_DOC = (
+    "Lokale Funktion im Doku-Snippet muss mit multiprocessing=True via Loky-Fallback durchlaufen.\n\n"
+    "```python\n"
+    "from qb_cubie import EBT, WorldState\n"
+    "def double(x: int) -> int:\n"
+    "    return x * 2\n"
+    "trace = EBT(\n"
+    "    target=double,\n"
+    "    pre=WorldState(args=(21,)),\n"
+    "    post=WorldState(returns=42),\n"
+    "    multiprocessing=True,\n"
+    "    reporter=None,\n"
+    ").run()\n"
+    "print(trace.evaluation)\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n```text\nTrue\n```\n</details>"
+)
+
+_MP_DOGFOOD_LOKY_PASS_DOC = (
+    "Mit einem Lambda im Pre-State aktiviert sich LokyProcessor und führt das Snippet sauber aus.\n\n"
+    "```python\n"
+    "from qb_cubie import EBT, WorldState\n"
+    "def apply_fn(fn, x: int) -> int:\n"
+    "    return fn(x)\n"
+    "trace = EBT(\n"
+    "    target=apply_fn,\n"
+    "    pre=WorldState(args=(lambda v: v * 2, 21)),\n"
+    "    post=WorldState(returns=42),\n"
+    "    multiprocessing=True,\n"
+    "    reporter=None,\n"
+    ").run()\n"
+    "print(trace.evaluation)\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n```text\nTrue\n```\n</details>"
+)
+
+
+def test_ebt_multiprocessing_dogfooding_in_docs() -> None:
+    """Verifies Loky activation with lambda and flags PickleProcessor crash on local fn via expect=False."""
+    EBT(
+        target=_run_with_arena,
+        pre=WorldState(args=(_MP_DOGFOOD_LOKY_PASS_DOC, TempFS())),
+        post=WorldState(returns={"passed": True, "outputs": [["True"]], "diagnostics": []}),
+        custom_id="doc_arena_mp_dogfooding_loky_positive",
+    ).run()
+
+    EBT(
+        target=_run_with_arena,
+        pre=WorldState(args=(_MP_DOGFOOD_LOCAL_FN_DOC, TempFS())),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [[""]],
+                "diagnostics": [
+                    (
+                        "DOC-EXEC",
+                        int,
+                        re.compile(r"^Unhandled RuntimeError: STATE-GUARD: All Processors failed"),
+                    )
+                ],
+            },
+            expect=False,
+        ),
+        custom_id="doc_arena_mp_dogfooding_pickle_fallback_negative",
+    ).run()

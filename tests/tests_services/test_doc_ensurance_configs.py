@@ -141,7 +141,7 @@ def test_ebt_exclude_does_not_match_parent_directories_above_root() -> None:
 # 4. TIPPFEHLER BEI STRING-PFADEN & PFAD-HEURISTIK (_looks_like_path)
 # ======================================================================================================================
 def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
-    """Verifies that non-existent directory, file, or single-token/slash strings raise FileNotFoundError."""
+    """Verifies that non-existent directory or file strings raise FileNotFoundError."""
     EBT(
         target=_run_config_scenario,
         arena=TempFS(),
@@ -150,22 +150,32 @@ def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
             WorldState(args=("docs/missing_subfolder",)),
             WorldState(args=("docs/missing folder",)),
             WorldState(args=("docs/missing_guide.md",)),
-            WorldState(args=("Hello",)),
-            WorldState(args=("Read/write operations in Python.",)),
             WorldState(args=(Path("docs_typo"),)),
         ],
         post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:")),
         custom_id="doc_config_missing_target_guards",
     ).run()
 
+    # Invertierter Randfall (expect=False): Fließtext ohne Leerzeichen oder mit '/' wirft FileNotFoundError
+    EBT(
+        target=_run_config_scenario,
+        arena=TempFS(),
+        pre=[
+            WorldState(args=("Hello",)),
+            WorldState(args=("Read/write operations in Python.",)),
+        ],
+        post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:"), expect=False),
+        custom_id="doc_config_prose_misclassified_as_path",
+    ).run()
+
 
 def test_ebt_spaced_filename_without_slash_falls_back_to_in_memory() -> None:
-    """Verifies that a non-existent filename with spaces and no slash is parsed as IN_MEMORY."""
+    """Flags that a non-existent .md filename with spaces silently passes as IN_MEMORY via expect=False."""
     EBT(
         target=_run_config_scenario,
         arena=TempFS(),
         pre=WorldState(args=("my guide.md",)),
-        post=WorldState(returns={"passed": True, "session_count": 0, "diagnostics": []}),
+        post=WorldState(returns={"passed": True, "session_count": 0, "diagnostics": []}, expect=False),
         custom_id="doc_config_spaced_filename_in_memory_fallback",
     ).run()
 
@@ -226,4 +236,70 @@ def test_ebt_invalid_ttl_timeout_state_guards() -> None:
         ],
         post=WorldState(raises=ExceptionExpectation(TypeError, match=r"STATE-GUARD: timeout")),
         custom_id="doc_config_ttl_timeout_type_guards",
+    ).run()
+
+
+# ======================================================================================================================
+# 6. EXCLUDE-PRÄFIX-KOLLISION (`removeprefix`) & LEERE / ROOT-NAMEN-EXCLUDES (BEFUND 6)
+# ======================================================================================================================
+def _run_exclude_collision_scenario(excludes: Sequence[str]) -> dict[str, Any]:
+    """Creates a nested docs tree with duplicate basenames and runs DocEnsurance on target='docs'."""
+    docs = Path.cwd() / "docs"
+    for sub in (docs / "tutorials", docs / "docs"):
+        sub.mkdir(parents=True, exist_ok=True)
+    (docs / "guide.md").write_text(_BROKEN_DOC, encoding="utf-8")
+    (docs / "tutorials" / "guide.md").write_text(_BROKEN_DOC, encoding="utf-8")
+    (docs / "docs" / "nested.md").write_text(_BROKEN_DOC, encoding="utf-8")
+    (docs / "other.md").write_text(_VALID_DOC, encoding="utf-8")
+    report = DocEnsurance(target="docs", excludes=excludes, reporter=None).run()
+    return {
+        "passed": report.passed,
+        "session_count": len(report.sessions),
+        "diagnostics": [d.rule_id for d in report.diagnostics],
+    }
+
+
+def test_ebt_exclude_prefix_collision_and_root_name_excludes() -> None:
+    """Flags removeprefix basename collision via expect=False and checks '/', '', 'docs' excludes."""
+    EBT(
+        target=_run_exclude_collision_scenario,
+        arena=TempFS(),
+        pre=WorldState(args=(("docs/guide.md", "docs/docs/nested.md"),)),
+        post=WorldState(returns={"passed": True, "session_count": 1, "diagnostics": []}, expect=False),
+        custom_id="doc_config_exclude_subpath_no_basename_collision",
+    ).run()
+
+    EBT(
+        target=_run_exclude_collision_scenario,
+        arena=TempFS(),
+        pre=[
+            WorldState(args=(("docs",),)),
+            WorldState(args=(("/",),)),
+            WorldState(args=(("",),)),
+        ],
+        post=[
+            WorldState(
+                returns={"passed": False, "session_count": 3, "diagnostics": ["DOC-EXEC", "DOC-EXEC"]}
+            ),
+            WorldState(
+                returns={
+                    "passed": False,
+                    "session_count": 4,
+                    "diagnostics": ["DOC-EXEC", "DOC-EXEC", "DOC-EXEC"],
+                }
+            ),
+        ],
+        custom_id="doc_config_exclude_root_and_empty_excludes",
+    ).run()
+
+def test_ebt_exclude_subpath_does_not_swallow_nested_same_basename() -> None:
+    """Soll-Gesetz: excludes=('docs/guide.md',) darf 'docs/tutorials/guide.md' NICHT ausschließen."""
+    EBT(
+        target=_run_exclude_collision_scenario,
+        arena=TempFS(),
+        pre=WorldState(args=(("docs/guide.md", "docs/docs/nested.md"),)),
+        post=WorldState(
+            returns={"passed": False, "session_count": 2, "diagnostics": ["DOC-EXEC"]}
+        ),
+        custom_id="doc_config_exclude_subpath_no_basename_collision",
     ).run()

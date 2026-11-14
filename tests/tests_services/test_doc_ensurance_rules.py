@@ -1,4 +1,4 @@
-"""Verifies pluggable rules, linter adapters, and severity contracts in DocEnsurance."""
+"""Tries to verify pluggable rules, linter adapters, and severity contracts in DocEnsurance."""
 
 import re
 import warnings
@@ -66,6 +66,7 @@ class _ForbidEvalCstRule(CstRule):
     """Flags calls to eval() inside documentation code snippets."""
 
     def visit_Call(self, node: cst.Call) -> None:
+        """Records a CST-NO-EVAL diagnostic when encountering an eval() call."""
         if isinstance(node.func, cst.Name) and node.func.value == "eval":
             self.add_diagnostic(node, "CST-NO-EVAL", "Use of eval() is forbidden in docs.")
 
