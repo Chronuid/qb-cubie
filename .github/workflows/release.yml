@@ -1,24 +1,152 @@
-name: Publish to PyPI
+name: Release and Publish to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
+    inputs:
+      publish_pypi:
+        description: 'Publish distribution artifacts to PyPI'
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 jobs:
+  release:
+    name: Build, verify, and create GitHub release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install build frontend
+        run: python -m pip install uv==0.11.3
+
+      - name: Resolve version, previous tag, and changelog notes
+        id: meta
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import subprocess
+          import tomllib
+          from pathlib import Path
+
+          version = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          expected_tag = f"v{version}"
+          ref_type = os.environ["GITHUB_REF_TYPE"]
+          ref_name = os.environ["GITHUB_REF_NAME"]
+          if ref_type == "tag" and ref_name != expected_tag:
+              raise SystemExit(f"Tag {ref_name!r} does not match pyproject.toml version {version!r}")
+
+          tags_raw = subprocess.check_output(
+              ["git", "tag", "--list", "v*", "--sort=-v:refname"],
+              text=True,
+          )
+          prev_tag = next((t.strip() for t in tags_raw.splitlines() if t.strip() and t.strip() != expected_tag), "")
+
+          notes = ""
+          changelog = Path("CHANGELOG.md")
+          if changelog.is_file():
+              lines = changelog.read_text(encoding="utf-8").splitlines()
+              heading = re.compile(rf"^## \[{re.escape(version)}\](?:\s|$)")
+              collecting = False
+              collected: list[str] = []
+              for line in lines:
+                  if collecting:
+                      if line.startswith("## ["):
+                          break
+                      collected.append(line)
+                  elif heading.match(line):
+                      collecting = True
+              notes = "\n".join(collected).strip()
+
+          if notes and prev_tag:
+              repo = os.environ["GITHUB_REPOSITORY"]
+              notes += f"\n\n**Full Changelog**: https://github.com/{repo}/compare/{prev_tag}...{expected_tag}"
+
+          notes_path = Path(os.environ["RUNNER_TEMP"]) / "release_notes.md"
+          notes_path.write_text((notes + "\n") if notes else "", encoding="utf-8")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"tag={expected_tag}\n")
+              out.write(f"prev_tag={prev_tag}\n")
+              out.write(f"has_notes={'true' if notes else 'false'}\n")
+              out.write(f"notes_file={notes_path}\n")
+          PY
+
+      - name: Build sdist and wheel from sdist
+        run: uv build --python python
+
+      - name: Verify wheel in clean environment
+        run: python scripts/check_wheel.py dist
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          PREV_TAG: ${{ steps.meta.outputs.prev_tag }}
+          HAS_NOTES: ${{ steps.meta.outputs.has_notes }}
+          NOTES_FILE: ${{ steps.meta.outputs.notes_file }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            if [ "$HAS_NOTES" = "true" ]; then
+              gh release edit "$TAG" --title "$TAG" --latest --notes-file "$NOTES_FILE"
+            else
+              gh release edit "$TAG" --title "$TAG" --latest
+            fi
+            gh release upload "$TAG" dist/*.whl dist/*.tar.gz --clobber
+          else
+            args=(--title "$TAG" --latest)
+            if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+              args+=(--target "$GITHUB_SHA")
+            fi
+            if [ "$HAS_NOTES" = "true" ]; then
+              args+=(--notes-file "$NOTES_FILE")
+            else
+              args+=(--generate-notes)
+              if [ -n "$PREV_TAG" ]; then
+                args+=(--notes-start-tag "$PREV_TAG")
+              fi
+            fi
+            gh release create "$TAG" dist/*.whl dist/*.tar.gz "${args[@]}"
+          fi
+
+      - name: Upload verified distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          retention-days: 7
+
   pypi-publish:
     name: Upload release to PyPI
+    needs: release
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_pypi }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Build sdist and wheel
-        run: uv build
+      - name: Download verified distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: dist
+
       - name: Publish to PyPI via Trusted Publishing
         uses: pypa/gh-action-pypi-publish@release/v1
