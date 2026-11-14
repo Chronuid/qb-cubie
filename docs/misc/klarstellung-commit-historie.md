@@ -28,3 +28,9 @@ Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgen
 1.  Die Versionshistorie von `qb-cubie` ist das Abbild eines hochgradig manuellen, intensiven Software-Engineering-Prozesses.
 2.  Formale Conventional-Commit-Muster weisen im vorliegenden Repository auf den punktuellen, engmaschig überwachten Einsatz von Hilfsagenten hin, während pragmatische und informelle Einträge die originäre Handschrift des Maintainers darstellen.
 3.  Die Taktung der Commits darf nicht als Maßstab für unbeaufsichtigte Automatisierung gewertet werden, sondern dokumentiert eine iterative Checkpoint-Strategie im Rahmen menschlicher Problemlösung.
+
+---
+
+## Human Note
+
+Diese Datei wurde von Gemini generiert und iterativ mutiert, während ich es auf diverse Arten prüfte. Auch der Code entstand zu 95% auf diese Weise.
