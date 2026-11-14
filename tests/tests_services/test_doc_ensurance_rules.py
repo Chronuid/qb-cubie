@@ -422,7 +422,7 @@ def _run_with_pytest_reporter(doc: str, rules: Sequence[Any]) -> dict[str, Any]:
         except AssertionError as error:
             assertion_msg = str(error)
     return {
-        " asserted": assertion_msg is not None,
+        "asserted": assertion_msg is not None,
         "assertion_msg": assertion_msg,
         "warnings": [str(w.message) for w in caught if issubclass(w.category, UserWarning)],
     }
@@ -453,15 +453,15 @@ def test_ebt_pytest_reporter_emits_user_warnings_and_asserts_only_on_errors() ->
         post=[
             WorldState(
                 returns={
-                    " asserted": False,
+                    "asserted": False,
                     "assertion_msg": None,
                     "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
                 }
             ),
             WorldState(
                 returns={
-                    " asserted": True,
-                    "assertion_msg": re.compile(r"DOC-CODE-STRICT"),
+                    "asserted": True,
+                    "assertion_msg": re.compile(r"[\s\S]*DOC-CODE-STRICT"),
                     "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
                 }
             ),

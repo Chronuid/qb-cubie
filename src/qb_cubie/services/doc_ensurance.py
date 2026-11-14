@@ -114,7 +114,7 @@ class DocLinterRule:
         """Converts a LinterDiagnostic into a file-relative DocDiagnostic."""
         is_warn = diag.severity in ("warning", "note", "convention", "refactor")
         sev = self.severity or ("warning" if is_warn else "error")
-        line = example.line + max(0, diag.line - 1)
+        line = example.line + max(1, diag.line)
         return DocDiagnostic(
             example.file_path, diag.rule_id, line, diag.message, example.session_id, sev
         )
@@ -159,8 +159,8 @@ class MissingOutputRule:
     def check(
         self, example: ExtractedExample, actual_output: str | None = None
     ) -> list[DocDiagnostic]:
-        """Emits a diagnostic when a result block exists but contains no expected output."""
-        if example.expected_output is None or example.expected_output.strip():
+        """Emits a diagnostic when a completed step has an empty result block."""
+        if actual_output is None or example.expected_output is None or example.expected_output.strip():
             return []
         msg = "Missing expected output in result block."
         return [
@@ -834,10 +834,9 @@ class DocEnsurance:
     def _run_step_rules(
         self, step: ExtractedExample, actual_out: str | None, session_id: str
     ) -> list[DocDiagnostic]:
-        """Runs all registered rules for a step and attaches the active session_id."""
-        collected: list[DocDiagnostic] = []
-        for rule in self.rules:
-            for d in rule.check(step, actual_out):
-                diag = d if d.session_id else dataclasses.replace(d, session_id=session_id)
-                collected.append(diag)
-        return collected
+        """Runs all registered rules for a step and attaches the canonical session_id."""
+        return [
+            dataclasses.replace(d, session_id=session_id)
+            for rule in self.rules
+            for d in rule.check(step, actual_out)
+        ]

@@ -72,11 +72,12 @@ class PytestReporter:
 
     @staticmethod
     def _generate_service_report(result: ServiceReportProtocol) -> str:
-        """Formats diagnostics for a failed service run (e.g. DocEnsurance)."""
+        """Formats error diagnostics for a failed service run (e.g. DocEnsurance)."""
         lines = [f"\n--- Service Report ({result.target}) ---"]
         lines.extend(
             f"- [{d.rule_id}] {d.file_path}:{d.line}: {d.message}"
             for d in result.diagnostics
+            if getattr(d, "severity", "error") == "error"
         )
         return "\n".join(lines)
 

@@ -181,7 +181,9 @@ def test_ebt_four_backtick_tilde_and_indented_fences() -> None:
                     "passed": True,
                     "session_count": 1,
                     "outputs": [[""]],
-                    "diagnostics": [],
+                    "diagnostics": [
+                        ("DOC-OUT-MISSING", 11, "Missing expected output in result block."),
+                    ],
                 }
             ),
             WorldState(
