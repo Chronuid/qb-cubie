@@ -22,22 +22,7 @@ Nahezu die gesamte Versionshistorie des Repositories stammt manuell und unmittel
 
 ---
 
-## 3. Die stilistische Inversion: Das Paradoxon der Commit-Nachrichten
-
-Eine der prägnantesten Fehlinterpretationen betrifft die sprachliche Form der Commit-Nachrichten. Während automatisierte Analyse-Tools dazu neigen, strukturierte und standardisierte Texte maschinellen Prozessen und freie Formulierungen menschlichen Akteuren zuzuordnen, liegt in `qb-cubie` genau das gegenteilige Muster vor.
-
-Die stilistische Verteilung im Projekt stellt sich wie folgt dar:
-
-| Erscheinungsbild der Commit-Message | Tatsächliche Urheberschaft | Funktion und Entstehungskontext |
-| :--- | :--- | :--- |
-| **Konventionell / Formal („Professionell“)**<br>*(z. B. strikte Conventional Commits, standardisierte Präfixe wie `feat(...)`, `chore(release): ...`)* | **KI-Agenten**<br>*(unter naher menschlicher Aufsicht)* | Entstand dort, wo Agenten für spezifische Teilaufgaben angewiesen wurden und dabei standardisierte Prompt- und Rollenmuster für formale Git-Nachrichten reproduzierten. |
-| **Pragmatisch / Informell / Freitext**<br>*(z. B. Arbeitskommentare, knappe Notizen, Checkpoints, persönliche Gedanken)* | **Maintainer (Mensch)**<br>*(manuelle Entwicklung)* | Menschliche Arbeitsnotizen, die den unmittelbaren Kontext, situative Überlegungen oder schlicht den aktuellen Sicherungsstand festhalten. |
-
-Die Annahme, dass unkonventionelle oder humorvolle Commit-Nachrichten die einzigen menschlichen Spuren im Projekt seien, verkehrt die Realität ins Gegenteil: Die gesamte Bandbreite der Entwicklungsarbeit – von den tiefgreifenden architektonischen Umbauten über komplexe Service-TDD-Zyklen bis hin zu knappen Checkpoint-Saves – wurde manuell gesteuert.
-
----
-
-## 4. Workflow-Philosophie: Versionskontrolle als persönliches Message-Board
+## 3. Workflow-Philosophie: Versionskontrolle als persönliches Message-Board
 
 Die Verwendung von Git im Projekt folgte bisher bewusst nicht den rigiden Konventionen eines kollaborativen Großunternehmens, sondern diente einem agilen, individuellen Entwicklungsansatz.
 
@@ -49,21 +34,7 @@ Die Commit-Nachrichten wurden primär als persönliches **Message-Board** und dy
 
 ---
 
-## 5. Systemarchitektur: Abwesenheit strukturabhängiger Automatisierungen
-
-Ein wesentlicher Grund für den Verzicht auf starre Commit-Konventionen liegt in der technischen Ausgestaltung der Release- und Build-Infrastruktur von `qb-cubie`.
-
-Im aktuellen Entwicklungsstadium existieren keine automatisierten Werkzeuge, die auf eine strukturierte Commit-Syntax angewiesen wären:
-
-*   **Kein Semantic Release über Commit-Parsing:** Es sind keine Werkzeuge wie `semantic-release` oder automatisierte Commit-Parser im Einsatz, die Versionen, Release-Entscheidungen oder Changelog-Einträge syntaktisch aus Commit-Präfixen ableiten.
-*   **Entkoppelte Release-Pipeline:** Gemäß dem verbindlichen Release-Leitfaden des Projekts basiert die Release-Automatisierung auf dedizierten Git-Tags (`vX.Y.Z`) und der zentralen Versionsangabe in der Konfigurationsdatei `pyproject.toml`.
-*   **Manuelle Changelog-Kuration:** Die Release-Notes werden verbindlich und inhaltlich kuratiert in der zentralen Datei `CHANGELOG.md` gepflegt, aus welcher der Veröffentlichungs-Workflow die entsprechenden Abschnitte extrahiert.
-
-Da somit kein nachgelagertes System von einer formalisierten Commit-Struktur profitiert hätte, bestand kein technischer oder betrieblicher Anlass, den manuellen Entwicklungsfluss durch einengende Commit-Korsette zu verlangsamen.
-
----
-
-## 6. Zusammenfassung und Richtlinie für Audits
+## 4. Zusammenfassung und Richtlinie für Audits
 
 Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgende Richtlinie zur Interpretation der Repository-Daten:
 
@@ -73,7 +44,7 @@ Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgen
 
 ---
 
-## 7. Human Note
+## 5. Human Note
 
 KI-Agenten neigen dazu Dinge, die sich ähnlich klingen, zu verdrehen und zu vermischen, wenn man diese Dinge nicht ausdrücklich formuliert und die Differenzen hervorhebt. Diese Datei hier wurde von Gemini formuliert, nachdem ich auf das Missvertändnis hingewiesen habe. 
 Vorallem die strukturierte Gutachten-Empfehlungs-Nr.-Implementationen könnten möglicherweise zur Hypothese veranlassen, dass das ein automatisierter Prozess war. Ja, irgendwie war es das, denn für die Zwischenstände konnte ich im Terminal einfach mit der Pfeiltaste nach oben die letzten Commands wiederherstellen und musste nur noch die Nummerierung hoch ziehen. Diese Datei hier dient als beispielhaftes Exemplar im Kleinen Maßstab dafür, wie die "hochfrequenten" Commits entstanden :3
