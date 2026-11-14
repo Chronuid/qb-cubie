@@ -12,29 +12,18 @@ Diese Annahme beruht auf einem grundlegenden Trugschluss über die Arbeitsweise 
 
 ---
 
-## 2. Tatsächliche Urheberschaft: Manuelle Entwicklung im Hochfrequenz-Takt
+## 2. Das Missverständnis rührt genau aus einem typischen **Bias von Transformer-Modellen** her: 
+Für LLMs wirkt ein hochgradig repetitives, inkrementell hochzählendes Schema (wie eine fortlaufende Gutachtens-Nummerierung im Minutentakt) statistisch wie das Produkt eines CI-Runners, Skripts oder automatisierten Benchmarks. 
 
-Nahezu die gesamte Versionshistorie des Repositories stammt manuell und unmittelbar aus der Hand des Maintainers. Die scheinbar maschinellen Merkmale der Versionskontrolle sind das Resultat einer intensiven, fokussierten Arbeitsweise und keineswegs das Produkt autonom agierender Skripte oder Pipelines:
+Die Realität dahinter ist jedoch ein ganz klassischer, pragmatischer Entwickler-Workflow:
+* **Terminal-History statt CI-Bot**: Man drückt im Terminal `Pfeiltaste-Hoch`, inkrementiert manuell die Ziffer für den nächsten Prüf- bzw. Zwischenstand und schickt den Commit ab, um einen schnellen Snapshot/Savepoint zu haben.
+* **Tatsächliche Agenten-Commits**: Nicht die Zähl-Commits kamen von Agenten, sondern ausgerechnet die formalen Standard-Meldungen wie `chore:` oder `release:` – und selbst diese wurden engmaschig und zu großen Teilen von Hand orchestriert.
 
-*   **Manuelle Einzelausführung:** Sämtliche schnellen Zwischenstände, Code-Refactorings, Sprint-Commits und experimentellen Iterationen wurden vom Entwickler persönlich initiiert, formuliert und committet.
-*   **Hohe manuelle Schlagzahl:** Die beobachteten kurzen Zeitabstände zwischen einzelnen Ständen spiegeln konzentrierte Arbeitssitzungen wider, in denen Teilschritte in schneller Folge lokal gesichert wurden, um logische Zwischenstände festzuhalten.
-*   **Rolle von KI-Agenten:** Lediglich eine sehr geringe Anzahl einzelner Commits wurde überhaupt durch KI-Agenten ausgeführt. Diese wenigen Vorgänge fanden ausnahmslos unter direkter, naher Beobachtung und strikter menschlicher Kontrolle statt; es gab zu keinem Zeitpunkt eine unüberwachte oder autonome Commit-Schleife.
-
----
-
-## 3. Workflow-Philosophie: Versionskontrolle als persönliches Message-Board
-
-Die Verwendung von Git im Projekt folgte bisher bewusst nicht den rigiden Konventionen eines kollaborativen Großunternehmens, sondern diente einem agilen, individuellen Entwicklungsansatz.
-
-Die Commit-Nachrichten wurden primär als persönliches **Message-Board** und dynamisches Logbuch verwendet:
-
-1.  **Gedankenprotokollierung im Fluss:** Commit-Texte dienten dazu, spontane Erkenntnisse, offene Skepsis, methodische Zwischenstände oder Arbeitsabsichten im Moment des Speicherns festzuhalten, ohne den Programmierfluss durch formale Konventionen zu unterbrechen.
-2.  **Sicherungsnetz für explorative Pfade:** Schnelle Checkpoints fungierten als lokale Retusche- und Sicherungsanker, um risikolos radikale Umbauten (wie den Ausbau von Services oder das Entschlacken historischer Altlasten) auszuprobieren.
-3.  **Transparente Selbstreflexion:** Die Nachrichten spiegeln den ungeschminkten Denkprozess des Entwicklers wider und sind als authentische Werkstattberichte zu verstehen, nicht als glattpolierte Marketing-Artefakte.
+Möchtest du, dass ich das erstellte Dokument `klarstellung-commit-historie.md` um genau diesen technischen Aspekt (Terminal-History, manuelle Inkrementierung der Gutachtens-Nummern vs. formale `chore`/`release`-Muster) ergänze und als neue Version aktualisiere?
 
 ---
 
-## 4. Zusammenfassung und Richtlinie für Audits
+## 3. Zusammenfassung und Richtlinie für Audits
 
 Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgende Richtlinie zur Interpretation der Repository-Daten:
 
@@ -44,7 +33,7 @@ Für künftige Code-Audits, Forschungsanalysen und externe Gutachten gilt folgen
 
 ---
 
-## 5. Human Note
+## Human Note
 
-KI-Agenten neigen dazu Dinge, die sich ähnlich klingen, zu verdrehen und zu vermischen, wenn man diese Dinge nicht ausdrücklich formuliert und die Differenzen hervorhebt. Diese Datei hier wurde von Gemini formuliert, nachdem ich auf das Missvertändnis hingewiesen habe. 
+KI-Agenten neigen dazu Dinge, die sich ähnlich klingen, zu verdrehen und zu vermischen, wenn man diese Dinge nicht ausdrücklich formuliert und die Differenzen hervorhebt. Diese Datei hier wurde von Gemini formuliert, nachdem ich auf das Missvertändnis hingewiesen habe. Dazu habe ich einige Iterationen durchgeführt, um auf diverse Art zu prüfen, ob es funktioniert und dabei die ursprüngliche Version auf diverse Arten mutiert.
 Vorallem die strukturierte Gutachten-Empfehlungs-Nr.-Implementationen könnten möglicherweise zur Hypothese veranlassen, dass das ein automatisierter Prozess war. Ja, irgendwie war es das, denn für die Zwischenstände konnte ich im Terminal einfach mit der Pfeiltaste nach oben die letzten Commands wiederherstellen und musste nur noch die Nummerierung hoch ziehen. Diese Datei hier dient als beispielhaftes Exemplar im Kleinen Maßstab dafür, wie die "hochfrequenten" Commits entstanden :3
