@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 import dataclasses
 import json
 import math
@@ -41,12 +42,24 @@ class PytestReporter:
             assert trace.passed, self._generate_review_report(trace)
             return
         if not isinstance(trace, RunTrace):
+            self._emit_service_warnings(trace)
             assert trace.passed, self._generate_service_report(trace)
             return
         if trace.evaluation is False:
             ctx = ReportContext(verbosity=self.verbosity, max_diff_items=self.max_diff_items)
             report_msg = self._generate_report(trace, ctx)
             assert False, report_msg
+
+    @staticmethod
+    def _emit_service_warnings(result: ServiceReportProtocol) -> None:
+        """Emits standard UserWarnings for non-fatal service diagnostics."""
+        for d in result.diagnostics:
+            if getattr(d, "severity", "error") == "warning":
+                warnings.warn(
+                    f"[{d.rule_id}] {d.file_path}:{d.line}: {d.message}",
+                    category=UserWarning,
+                    stacklevel=2,
+                )
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
 

@@ -8,10 +8,10 @@ import io
 import re
 import textwrap
 from pathlib import Path
-from typing import Any, Final, Sequence
+from typing import Any, Callable, Final, Sequence
 
 from ..arenas.tempfs import TempFS
-from ..linter import DEFAULT_EXCLUDES
+from ..linter import DEFAULT_EXCLUDES, Linter, LinterDiagnostic
 from ..protocols import Arena, Reporter, WorldState
 from ..reporter import PytestReporter
 from .protocols import (
@@ -19,11 +19,13 @@ from .protocols import (
     DocDiagnostic,
     DocPatternProtocol,
     DocReport,
+    DocRuleProtocol,
     DocScopeProtocol,
     ExampleSession,
     ExtractedExample,
     MdBlock,
     SessionTrace,
+    validate_severity,
 )
 
 _SUMMARY_RE = re.compile(r"<summary>(.*?)</summary>", re.DOTALL)
@@ -32,12 +34,188 @@ _NON_PARA_RE = re.compile(r"^(?:[-*+]\s|\d+[.)]\s|>+|(?:\|.*\|))")
 _MD_PREFIXES = ("#", "`", "~", "<", ">", "-", "*", "+", "!", "[", "|")
 
 
-# ========== 1. ATOMIC BLOCK PROTOCOLS (LEVEL 1) =======================================================================
+# ========== 1. PLUGGABLE CHECK RULES (EXPLANATION, CODE, OUTPUT) ======================================================
+@dataclasses.dataclass(frozen=True)
+class ExplanationRule:
+    """Validates extracted explanation text against a custom predicate."""
+
+    rule_id: str
+    message: str
+    check_fn: Callable[[str], bool]
+    severity: str = "error"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Runs the explanation predicate when an explanation is present."""
+        if example.explanation is None or self.check_fn(example.explanation):
+            return []
+        return [
+            DocDiagnostic(
+                example.file_path, self.rule_id, example.line,
+                self.message, example.session_id, self.severity,
+            )
+        ]
+
+
+@dataclasses.dataclass(frozen=True)
+class CodeRule:
+    """Validates extracted example source code against a custom predicate."""
+
+    rule_id: str
+    message: str
+    check_fn: Callable[[str], bool]
+    severity: str = "error"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Evaluates the code snippet and emits a diagnostic if the predicate fails."""
+        if self.check_fn(example.code):
+            return []
+        return [
+            DocDiagnostic(
+                example.file_path, self.rule_id, example.line,
+                self.message, example.session_id, self.severity,
+            )
+        ]
+
+
+@dataclasses.dataclass(frozen=True)
+class DocLinterRule:
+    """Adapts any qb-cubie Linter to validate documentation code snippets."""
+
+    linter: Linter
+    severity: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.severity is not None:
+            validate_severity(self.severity)
+
+    @property
+    def rule_id(self) -> str:
+        """Returns the wrapped linter's display name as the rule identifier."""
+        return f"DOC-LINT:{self.linter.name}"
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Runs the underlying linter on the in-memory snippet and maps line offsets."""
+        raw_diags = self.linter.check(example.code)
+        return [self._map_diagnostic(example, d) for d in raw_diags]
+
+    def _map_diagnostic(self, example: ExtractedExample, diag: LinterDiagnostic) -> DocDiagnostic:
+        """Converts a LinterDiagnostic into a file-relative DocDiagnostic."""
+        is_warn = diag.severity in ("warning", "note", "convention", "refactor")
+        sev = self.severity or ("warning" if is_warn else "error")
+        line = example.line + max(0, diag.line - 1)
+        return DocDiagnostic(
+            example.file_path, diag.rule_id, line, diag.message, example.session_id, sev
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class OutputRule:
+    """Validates expected and actual runtime output using a custom predicate."""
+
+    rule_id: str
+    message: str
+    check_fn: Callable[[str | None, str | None], bool]
+    severity: str = "error"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Evaluates expected and actual outputs after snippet execution."""
+        if actual_output is None or self.check_fn(example.expected_output, actual_output):
+            return []
+        return [
+            DocDiagnostic(
+                example.file_path, self.rule_id, example.line,
+                self.message, example.session_id, self.severity,
+            )
+        ]
+
+
+@dataclasses.dataclass(frozen=True)
+class MissingOutputRule:
+    """Flags empty or missing expected outputs inside documentation result blocks."""
+
+    severity: str = "warning"
+    rule_id: str = "DOC-OUT-MISSING"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Emits a diagnostic when a result block exists but contains no expected output."""
+        if example.expected_output is None or example.expected_output.strip():
+            return []
+        msg = "Missing expected output in result block."
+        return [
+            DocDiagnostic(
+                example.file_path, self.rule_id, example.line,
+                msg, example.session_id, self.severity,
+            )
+        ]
+
+
+@dataclasses.dataclass(frozen=True)
+class OutputMatchRule:
+    """Compares non-empty expected outputs against actual runtime stdout."""
+
+    severity: str = "error"
+    rule_id: str = "DOC-OUT"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(
+        self, example: ExtractedExample, actual_output: str | None = None
+    ) -> list[DocDiagnostic]:
+        """Emits a diagnostic if the observed runtime output diverges from expectation."""
+        if actual_output is None or not example.expected_output or not example.expected_output.strip():
+            return []
+        if actual_output == example.expected_output:
+            return []
+        msg = f"Output mismatch: expected {example.expected_output!r}, got {actual_output!r}."
+        return [
+            DocDiagnostic(
+                example.file_path, self.rule_id, example.line,
+                msg, example.session_id, self.severity,
+            )
+        ]
+
+
+DEFAULT_DOC_RULES: Final[tuple[DocRuleProtocol, ...]] = (
+    MissingOutputRule(severity="warning"),
+    OutputMatchRule(severity="error"),
+)
+
+
+# ========== 2. ATOMIC BLOCK PROTOCOLS (LEVEL 1) =======================================================================
 @dataclasses.dataclass(frozen=True)
 class Explanation:
     """Matches a narrative Markdown paragraph with a required minimum character count."""
+
     min_chars: int = 20
     role: str = "explanation"
+    severity: str = "error"
+    rules: Sequence[DocRuleProtocol] = ()
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
 
     def matches(self, block: MdBlock) -> bool:
         """Checks whether the block is a paragraph meeting the minimum length."""
@@ -51,8 +229,14 @@ class Explanation:
 @dataclasses.dataclass(frozen=True)
 class CodeSnippet:
     """Matches a fenced code block for a target language and extracts fence metadata."""
+
     lang: str = "python"
     role: str = "target"
+    severity: str = "error"
+    rules: Sequence[DocRuleProtocol] = ()
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
 
     def matches(self, block: MdBlock) -> bool:
         """Checks whether the block is a code fence for the configured language."""
@@ -72,8 +256,14 @@ class CodeSnippet:
 @dataclasses.dataclass(frozen=True)
 class CollapsibleResult:
     """Matches a collapsible HTML <details> block and strips optional inner code fences."""
+
     summary: str | None = None
     role: str = "result"
+    severity: str = "error"
+    rules: Sequence[DocRuleProtocol] = ()
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
 
     def matches(self, block: MdBlock) -> bool:
         """Checks whether the block is a details container with an optional summary match."""
@@ -99,10 +289,11 @@ class CollapsibleResult:
         return last == fence and not any(line.strip() == fence for line in lines[1:-1])
 
 
-# ========== 2. PATTERN & SCOPE PROTOCOLS (LEVEL 2) ====================================================================
+# ========== 3. PATTERN & SCOPE PROTOCOLS (LEVEL 2) ====================================================================
 @dataclasses.dataclass(frozen=True)
 class ExamplePattern:
     """Validates pre- and post-blocks around every anchor block in a Markdown stream."""
+
     anchor: DocBlockProtocol = CodeSnippet(lang="python")
     pre: Sequence[DocBlockProtocol] = ()
     post: Sequence[DocBlockProtocol] = ()
@@ -133,8 +324,7 @@ class ExamplePattern:
         post_ok, expected_out = self._check_post(blocks, idx, file_path, anchor_block.line, diagnostics)
         has_session = "session" in CodeSnippet.parse_tags(anchor_block.meta)
         if (pre_ok and post_ok) or has_session:
-            valid_out = expected_out if post_ok else None
-            examples.append(self._build_example(anchor_block, file_path, explanation, valid_out))
+            examples.append(self._build_example(anchor_block, file_path, explanation, expected_out))
 
     def _check_pre(
         self, blocks: Sequence[MdBlock], idx: int, file_path: str, line: int, diags: list[DocDiagnostic]
@@ -144,8 +334,9 @@ class ExamplePattern:
         for offset, rule in enumerate(reversed(self.pre), start=1):
             target_idx = idx - offset
             if target_idx < 0 or not rule.matches(blocks[target_idx]):
-                diags.append(DocDiagnostic(file_path, "DOC-PRE", line, f"Missing or invalid pre-block '{rule.role}'."))
-                return False, None
+                msg = f"Missing or invalid pre-block '{rule.role}'."
+                diags.append(DocDiagnostic(file_path, "DOC-PRE", line, msg, severity=rule.severity))
+                return rule.severity != "error", None
             if rule.role == "explanation" or explanation is None:
                 explanation = rule.extract(blocks[target_idx])
         return True, explanation
@@ -158,8 +349,9 @@ class ExamplePattern:
         for offset, rule in enumerate(self.post, start=1):
             target_idx = idx + offset
             if target_idx >= len(blocks) or not rule.matches(blocks[target_idx]):
-                diags.append(DocDiagnostic(file_path, "DOC-POST", line, f"Missing or invalid post-block '{rule.role}'."))
-                return False, None
+                msg = f"Missing or invalid post-block '{rule.role}'."
+                diags.append(DocDiagnostic(file_path, "DOC-POST", line, msg, severity=rule.severity))
+                return rule.severity != "error", None
             expected_out = rule.extract(blocks[target_idx])
         return True, expected_out
 
@@ -211,7 +403,7 @@ class TaggedScope:
         return [ExampleSession(session_id=k, steps=tuple(v)) for k, v in buckets.items()]
 
 
-# ========== 3. ARENA SESSION WORKER (IPC-SAFE PRIMITIVES) =============================================================
+# ========== 4. ARENA SESSION WORKER (IPC-SAFE PRIMITIVES) =============================================================
 def _execute_session_payload(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Top-level worker executed inside the Arena; shares globals and CWD across steps."""
     shared_globals: dict[str, Any] = {"__name__": "__main__"}
@@ -249,7 +441,7 @@ def _finalize_normal_step(output: str, expected_raises: str | None) -> dict[str,
     return {"status": "OK", "output": output}
 
 
-# ========== 4. MARKDOWN BLOCK SCANNER =================================================================================
+# ========== 5. MARKDOWN BLOCK SCANNER =================================================================================
 class _MarkdownScanner:
     """Lightweight line-based state machine converting Markdown text into MdBlocks."""
 
@@ -363,9 +555,9 @@ class _MarkdownScanner:
         return MdBlock(kind="details", content=body, line=line_no, meta=meta)
 
 
-# ========== 5. DOC-ENSURANCE SERVICE (LEVEL 3) ========================================================================
+# ========== 6. DOC-ENSURANCE SERVICE (LEVEL 3) ========================================================================
 class DocEnsurance:
-    """Verifies structural conventions and runtime outputs of documentation code examples."""
+    """Verifies structural conventions, custom rules, and runtime outputs of documentation examples."""
 
     def __init__(
         self,
@@ -376,6 +568,7 @@ class DocEnsurance:
         reporter: Reporter[DocReport] | None = PytestReporter(),
         pre_state: WorldState | None = None,
         excludes: Sequence[str] | None = None,
+        rules: Sequence[DocRuleProtocol | Linter | type] | None = None,
         *,
         timeout: float | None = 10.0,
     ) -> None:
@@ -388,7 +581,17 @@ class DocEnsurance:
         self.reporter = reporter
         self.pre_state = pre_state or WorldState()
         self.excludes = set(DEFAULT_EXCLUDES) | set(excludes or ())
+        self.rules: list[DocRuleProtocol] = self._build_rules(self.pattern, rules)
         self._reset_state()
+
+    def register_rule(self, *rules: DocRuleProtocol | Linter | type) -> DocEnsurance:
+        """Registers or overrides one or more check rules by rule_id."""
+        registry = {r.rule_id: r for r in self.rules}
+        for raw in rules:
+            rule = self._coerce_rule(raw)
+            registry[rule.rule_id] = rule
+        self.rules = list(registry.values())
+        return self
 
     def _reset_state(self) -> None:
         """Resets internal pipeline buffers before a verification run."""
@@ -397,6 +600,39 @@ class DocEnsurance:
         self._diagnostics: list[DocDiagnostic] = []
         self._traces: list[SessionTrace] = []
         self.report_result: DocReport | None = None
+
+    @classmethod
+    def _build_rules(
+        cls, pattern: DocPatternProtocol, custom: Sequence[DocRuleProtocol | Linter | type] | None
+    ) -> list[DocRuleProtocol]:
+        """Merges default rules, pattern block rules, and user-provided rules by rule_id."""
+        registry: dict[str, DocRuleProtocol] = {r.rule_id: r for r in DEFAULT_DOC_RULES}
+        for raw in (*cls._extract_pattern_rules(pattern), *(custom or ())):
+            rule = cls._coerce_rule(raw)
+            registry[rule.rule_id] = rule
+        return list(registry.values())
+
+    @staticmethod
+    def _extract_pattern_rules(pattern: DocPatternProtocol) -> list[Any]:
+        """Extracts rules attached directly to pre, anchor, or post blocks of a pattern."""
+        blocks = [
+            *getattr(pattern, "pre", ()),
+            getattr(pattern, "anchor", None),
+            *getattr(pattern, "post", ()),
+        ]
+        return [r for b in blocks if b is not None for r in getattr(b, "rules", ())]
+
+    @staticmethod
+    def _coerce_rule(item: Any) -> DocRuleProtocol:
+        """Normalizes rule classes, Linter instances, and DocRuleProtocol objects."""
+        instance = item() if isinstance(item, type) else item
+        if isinstance(instance, DocRuleProtocol):
+            return instance
+        if hasattr(instance, "check") and hasattr(instance, "name"):
+            return DocLinterRule(linter=instance)
+        raise TypeError(
+            f"STATE-GUARD: Rule must implement DocRuleProtocol or Linter; received {type(instance).__name__}."
+        )
 
     @staticmethod
     def _validate_timeout(timeout: float | None) -> float | None:
@@ -459,10 +695,10 @@ class DocEnsurance:
     def _filter_examples(
         self, examples: list[ExtractedExample], diags: list[DocDiagnostic]
     ) -> list[ExtractedExample]:
-        """Drops structurally invalid examples when running in IsolatedScope."""
+        """Drops examples with hard error diagnostics when running in IsolatedScope."""
         if not isinstance(self.scope, IsolatedScope):
             return examples
-        broken_lines = {d.line for d in diags}
+        broken_lines = {d.line for d in diags if d.severity == "error"}
         return [ex for ex in examples if ex.line not in broken_lines]
 
     def _validate(self) -> None:
@@ -480,13 +716,18 @@ class DocEnsurance:
         label = "IN_MEMORY" if is_memory else str(self.target)
         report = DocReport(
             target=label,
-            passed=not bool(self._diagnostics),
+            passed=not self._has_errors(self._diagnostics),
             sessions=tuple(self._traces),
             diagnostics=tuple(self._diagnostics),
         )
         self.report_result = report
         if self.reporter is not None:
             self.reporter.report(report)
+
+    @staticmethod
+    def _has_errors(diags: Sequence[DocDiagnostic]) -> bool:
+        """Checks whether any recorded diagnostic has error severity."""
+        return any(d.severity == "error" for d in diags)
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
     @classmethod
@@ -549,7 +790,7 @@ class DocEnsurance:
         return [(str(path), path.read_text(encoding="utf-8")) for path in files]
 
     def _execute_session(self, session: ExampleSession) -> tuple[SessionTrace, list[DocDiagnostic]]:
-        """Runs a single session in the arena and evaluates all step outcomes."""
+        """Runs a single session in the arena and evaluates all step outcomes and rules."""
         payload = [
             {"code": s.code, "line": s.line, "expected_raises": s.expected_raises}
             for s in session.steps
@@ -565,30 +806,38 @@ class DocEnsurance:
         finally:
             self.arena.teardown()
 
-    @staticmethod
     def _evaluate_outcomes(
-        session: ExampleSession, outcomes: list[dict[str, Any]]
+        self, session: ExampleSession, outcomes: list[dict[str, Any]]
     ) -> tuple[SessionTrace, list[DocDiagnostic]]:
-        """Compares step outcomes against expected outputs and collects diagnostics."""
+        """Compares step outcomes against expected outputs and registered rules."""
         diags: list[DocDiagnostic] = []
         outputs: list[str] = []
         for step, outcome in zip(session.steps, outcomes):
             outputs.append(outcome["output"])
-            diag = DocEnsurance._check_step_outcome(step, outcome, session.session_id)
-            if diag is not None:
-                diags.append(diag)
-        return SessionTrace(session.session_id, tuple(outputs), not bool(diags)), diags
+            diags.extend(self._check_step_outcome(step, outcome, session.session_id))
+        passed = not self._has_errors(diags)
+        return SessionTrace(session.session_id, tuple(outputs), passed), diags
 
-    @staticmethod
     def _check_step_outcome(
-        step: ExtractedExample, outcome: dict[str, Any], session_id: str
-    ) -> DocDiagnostic | None:
-        """Evaluates one step outcome for runtime errors, missing exceptions, or output diffs."""
+        self, step: ExtractedExample, outcome: dict[str, Any], session_id: str
+    ) -> list[DocDiagnostic]:
+        """Evaluates runtime execution errors and dispatches all registered DocRuleProtocols."""
+        step_diags: list[DocDiagnostic] = []
         if outcome["status"] in ("DOC-EXEC", "DOC-RAISE"):
-            return DocDiagnostic(
-                step.file_path, outcome["status"], step.line, outcome["error"], session_id
+            step_diags.append(
+                DocDiagnostic(step.file_path, outcome["status"], step.line, outcome["error"], session_id)
             )
-        if step.expected_output is not None and outcome["output"] != step.expected_output:
-            msg = f"Output mismatch: expected {step.expected_output!r}, got {outcome['output']!r}."
-            return DocDiagnostic(step.file_path, "DOC-OUT", step.line, msg, session_id)
-        return None
+        actual_out = outcome["output"] if outcome["status"] == "OK" else None
+        step_diags.extend(self._run_step_rules(step, actual_out, session_id))
+        return step_diags
+
+    def _run_step_rules(
+        self, step: ExtractedExample, actual_out: str | None, session_id: str
+    ) -> list[DocDiagnostic]:
+        """Runs all registered rules for a step and attaches the active session_id."""
+        collected: list[DocDiagnostic] = []
+        for rule in self.rules:
+            for d in rule.check(step, actual_out):
+                diag = d if d.session_id else dataclasses.replace(d, session_id=session_id)
+                collected.append(diag)
+        return collected
