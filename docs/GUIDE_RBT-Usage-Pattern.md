@@ -15,7 +15,7 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 Das Standardbeispiel delegiert eine manuelle Prüfregel interaktiv an das Terminal:
 
 ```python
-from qb_cubie.rbt import RBT
+from qb_cubie.rbt import HeadlessReviewer, RBT
 
 
 def test_logging_review():
@@ -23,13 +23,22 @@ def test_logging_review():
         target="auth_module.py",
         check="Öffne die Datei und prüfe, ob Passwörter im Klartext geloggt werden.",
     ).run()
+
+
+demo = RBT(
+    target="auth_module.py",
+    check="Öffne die Datei und prüfe, ob Passwörter im Klartext geloggt werden.",
+    reviewer=HeadlessReviewer(answer=True),
+)
+demo.run()
+print(f"Target: {demo.target} | Reviewer: {type(demo.reviewer).__name__}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Target: auth_module.py | Reviewer: HeadlessReviewer
 ```
 </details>
 

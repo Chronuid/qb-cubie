@@ -1,0 +1,334 @@
+"""Verifies CUBIE_DOC_RULES and standard didactic rules (NoOutput, HighComplexity, LargeOutput, RawTraceback)."""
+
+import re
+import warnings
+from collections.abc import Sequence
+from typing import Any
+
+from qb_cubie import EBT, ExceptionExpectation, PytestReporter, TempFS, WorldState
+from qb_cubie.services import (
+    CUBIE_DOC_RULES,
+    CUBIE_DOC_STYLE,
+    DocEnsurance,
+    HighComplexity,
+    LargeOutput,
+    NoOutput,
+    RawTraceback,
+)
+
+
+def _build_doc(code: str, expected_out: str = "42") -> str:
+    """Builds a CUBIE_DOC_STYLE Markdown string from a code snippet and expected output."""
+    body = f"{expected_out}\n" if expected_out else ""
+    return (
+        "Ausreichend lange Erklärung für das nachfolgende Code-Beispiel.\n\n"
+        f"```python\n{code}\n```\n\n"
+        f"<details>\n<summary>Ergebnis</summary>\n\n```text\n{body}```\n</details>"
+    )
+
+
+def _run_std_rules(
+    doc: str,
+    rules: Sequence[Any] = CUBIE_DOC_RULES,
+    extra_registered: Sequence[Any] = (),
+) -> dict[str, Any]:
+    """Executes DocEnsurance with standard rules and returns a normalized EBT summary."""
+    service = DocEnsurance(
+        target=doc,
+        pattern=CUBIE_DOC_STYLE,
+        rules=rules,
+        arena=TempFS(),
+        reporter=None,
+    )
+    if extra_registered:
+        service.register_rule(*extra_registered)
+    report = service.run()
+    return {
+        "passed": report.passed,
+        "outputs": [list(s.actual_outputs) for s in report.sessions],
+        "diagnostics": [(d.rule_id, d.severity, d.message) for d in report.diagnostics],
+    }
+
+
+# ======================================================================================================================
+# 1. ÄQUIVALENZKLASSE: CUBIE_DOC_RULES PRESET (CLEAN PASS VS. DIDAKTISCHE USER-WARNINGS)
+# ======================================================================================================================
+def _run_preset_with_pytest_reporter(doc: str) -> dict[str, Any]:
+    """Runs DocEnsurance with CUBIE_DOC_RULES and PytestReporter while recording warnings."""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", UserWarning)
+        report = DocEnsurance(
+            target=doc,
+            pattern=CUBIE_DOC_STYLE,
+            rules=CUBIE_DOC_RULES,
+            arena=TempFS(),
+            reporter=PytestReporter(),
+        ).run()
+    return {
+        "passed": report.passed,
+        "warning_count": len([w for w in caught if issubclass(w.category, UserWarning)]),
+        "rule_ids": [d.rule_id for d in report.diagnostics],
+    }
+
+
+def test_ebt_cubie_doc_rules_preset_clean_and_multi_warning_execution() -> None:
+    """
+    Gesetz:
+    1. Ein kompaktes Code-Beispiel (<= 30 Zeilen) mit dokumentierter Ausgabe (<= 25 Zeilen)
+       besteht `CUBIE_DOC_RULES` komplett ohne Warnungen.
+    2. Triggern `NoOutput` und `HighComplexity` im Standard-Preset `CUBIE_DOC_RULES`,
+       emittiert `PytestReporter` entsprechende `UserWarning`s, ohne den Lauf abzubrechen (`passed=True`).
+    """
+    clean_doc = _build_doc("value = 21 * 2\nprint(value)", "42")
+    noisy_code = "\n".join(f"step_{i} = {i}" for i in range(31))
+    noisy_doc = _build_doc(noisy_code, "")
+
+    EBT(
+        target=_run_preset_with_pytest_reporter,
+        pre=[
+            WorldState(args=(clean_doc,)),
+            WorldState(args=(noisy_doc,)),
+        ],
+        post=[
+            WorldState(
+                returns={"passed": True, "warning_count": 0, "rule_ids": []}
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "warning_count": 2,
+                    "rule_ids": ["DOC-NO-OUTPUT", "DOC-HIGH-COMPLEXITY"],
+                }
+            ),
+        ],
+        custom_id="doc_std_rules_preset_execution",
+    ).run()
+
+
+# ======================================================================================================================
+# 2. ÄQUIVALENZKLASSE: NO-OUTPUT REGEL (STUMMER CODE VS. UNDOKUMENTIERTER STDOUT & ERROR-OVERRIDE)
+# ======================================================================================================================
+def test_ebt_no_output_rule_context_messages_and_severity_override() -> None:
+    """
+    Gesetz:
+    1. Erzeugt das Snippet keinen `stdout` und das Ergebnis ist leer, erklärt `NoOutput`,
+       warum der Output fehlt, und verweist auf `print(...)` sowie `session=<id>`.
+    2. Erzeugt das Snippet `stdout`, während der Ergebnis-Block leer gelassen wurde, nennt
+       `NoOutput` den beobachteten Output in der Diagnose und unterdrückt einen harten `DOC-OUT`-Fail.
+    3. Mit `NoOutput(severity='error')` wird ein leerer Ergebnis-Block zum harten Test-Fail (`passed=False`).
+    """
+    silent_code_doc = _build_doc("x = 21 * 2", "")
+    undocumented_stdout_doc = _build_doc("print('computed_42')", "")
+
+    # 2a. Differenzierte didaktische Erklärung für stummen Code vs. vergessenen Ergebnis-Eintrag
+    EBT(
+        target=_run_std_rules,
+        pre=[
+            WorldState(args=(silent_code_doc,)),
+            WorldState(args=(undocumented_stdout_doc,)),
+        ],
+        post=[
+            WorldState(
+                returns={
+                    "passed": True,
+                    "outputs": [[""]],
+                    "diagnostics": [
+                        (
+                            "DOC-NO-OUTPUT",
+                            "warning",
+                            re.compile(
+                                r"^Result block is empty[\s\S]*produced no stdout[\s\S]*print\(result\)[\s\S]*session=<id>"
+                            ),
+                        )
+                    ],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "outputs": [["computed_42"]],
+                    "diagnostics": [
+                        (
+                            "DOC-NO-OUTPUT",
+                            "warning",
+                            re.compile(
+                                r"^Result block is empty[\s\S]*produced stdout \('computed_42'\)[\s\S]*Document the expected output"
+                            ),
+                        )
+                    ],
+                }
+            ),
+        ],
+        custom_id="doc_std_rules_no_output_didactic_messages",
+    ).run()
+
+    # 2b. Überschreiben von NoOutput auf severity='error' erzwingt passed=False
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(
+            args=(silent_code_doc, CUBIE_DOC_RULES),
+            kwargs={"extra_registered": [NoOutput(severity="error")]},
+        ),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [[""]],
+                "diagnostics": [
+                    ("DOC-NO-OUTPUT", "error", re.compile(r"^Result block is empty[\s\S]*produced no stdout")),
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_no_output_error_override",
+    ).run()
+
+
+# ======================================================================================================================
+# 3. ÄQUIVALENZKLASSE: HIGH-COMPLEXITY REGEL (30/31-ZEILEN-GRENZE & KONFIGURIERBARES LIMIT)
+# ======================================================================================================================
+def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
+    """
+    Gesetz:
+    1. Ein Code-Block mit exakt 30 Zeilen besteht `HighComplexity(max_lines=30)` ohne Diagnose.
+    2. Ab 31 Zeilen feuert `DOC-HIGH-COMPLEXITY` mit Angabe der Zeilenzahl sowie den
+       Empfehlungen zu `session=<id>` und `pre_state=WorldState(fs=...)`.
+    3. Eigene Limits und Severities (z. B. `HighComplexity(max_lines=5, severity='error')`)
+       lassen sich frei konfigurieren.
+    """
+    code_30_lines = "\n".join([*(f"v_{i} = {i}" for i in range(29)), "print(v_28)"])
+    code_31_lines = "\n".join([*(f"v_{i} = {i}" for i in range(30)), "print(v_29)"])
+    code_6_lines = "\n".join([*(f"v_{i} = {i}" for i in range(5)), "print(v_4)"])
+
+    EBT(
+        target=_run_std_rules,
+        pre=[
+            WorldState(args=(_build_doc(code_30_lines, "28"),)),
+            WorldState(args=(_build_doc(code_31_lines, "29"),)),
+            WorldState(
+                args=(_build_doc(code_6_lines, "4"), [HighComplexity(max_lines=5, severity="error")])
+            ),
+        ],
+        post=[
+            WorldState(
+                returns={"passed": True, "outputs": [["28"]], "diagnostics": []}
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "outputs": [["29"]],
+                    "diagnostics": [
+                        (
+                            "DOC-HIGH-COMPLEXITY",
+                            "warning",
+                            re.compile(
+                                r"^Code example has 31 lines \(limit: 30\)[\s\S]*session=<id>[\s\S]*pre_state"
+                            ),
+                        )
+                    ],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": False,
+                    "outputs": [["4"]],
+                    "diagnostics": [
+                        (
+                            "DOC-HIGH-COMPLEXITY",
+                            "error",
+                            re.compile(r"^Code example has 6 lines \(limit: 5\)"),
+                        )
+                    ],
+                }
+            ),
+        ],
+        custom_id="doc_std_rules_high_complexity_boundaries",
+    ).run()
+
+
+# ======================================================================================================================
+# 4. ÄQUIVALENZKLASSE: LARGE-OUTPUT & RAW-TRACEBACK REGELN
+# ======================================================================================================================
+def test_ebt_large_output_and_raw_traceback_rules() -> None:
+    """
+    Gesetz:
+    1. `LargeOutput` akzeptiert bis zu 25 Ausgabezeilen und warnt ab 26 Zeilen (`DOC-LARGE-OUTPUT`).
+    2. `RawTraceback` erkennt rohe Python-Stacktraces im Ergebnis-Block (`DOC-RAW-TRACEBACK`)
+       und verweist auf `raises=<Exception>`.
+    """
+    out_25 = "\n".join(str(i) for i in range(25))
+    out_26 = "\n".join(str(i) for i in range(26))
+    doc_25_out = _build_doc("for i in range(25): print(i)", out_25)
+    doc_26_out = _build_doc("for i in range(26): print(i)", out_26)
+
+    raw_tb_text = "Traceback (most recent call last):\n  File 'x.py', line 1\nValueError: boom"
+    doc_raw_tb = _build_doc("print(" + repr(raw_tb_text) + ")", raw_tb_text)
+
+    EBT(
+        target=_run_std_rules,
+        pre=[
+            WorldState(args=(doc_25_out,)),
+            WorldState(args=(doc_26_out,)),
+            WorldState(args=(doc_raw_tb,)),
+        ],
+        post=[
+            WorldState(
+                returns={"passed": True, "outputs": [[out_25]], "diagnostics": []}
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "outputs": [[out_26]],
+                    "diagnostics": [
+                        ("DOC-LARGE-OUTPUT", "warning", re.compile(r"^Output spans 26 lines \(limit: 25\)")),
+                    ],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "outputs": [[raw_tb_text]],
+                    "diagnostics": [
+                        (
+                            "DOC-RAW-TRACEBACK",
+                            "warning",
+                            re.compile(r"^Result block contains a raw Python traceback[\s\S]*raises=<Exception>"),
+                        ),
+                    ],
+                }
+            ),
+        ],
+        custom_id="doc_std_rules_large_output_and_raw_traceback",
+    ).run()
+
+
+# ======================================================================================================================
+# 5. ÄQUIVALENZKLASSE: STATE-GUARDS FÜR FEHLKONFIGURIERTE STANDARD-REGELN
+# ======================================================================================================================
+def _instantiate_std_rule(rule_cls: Any, kwargs: dict[str, Any]) -> Any:
+    """Instantiates a standard rule class with the provided keyword arguments."""
+    return rule_cls(**kwargs)
+
+
+def test_ebt_standard_rules_state_guards() -> None:
+    """
+    Gesetz: Ungültige `max_lines`-Schwellenwerte (< 1, bool, nicht-int) oder ungültige
+    `severity`-Werte werden sofort beim Instanziieren durch `ValueError('STATE-GUARD: ...')` abgewiesen.
+    """
+    EBT(
+        target=_instantiate_std_rule,
+        pre=[
+            WorldState(args=(HighComplexity, {"max_lines": 0})),
+            WorldState(args=(HighComplexity, {"max_lines": -10})),
+            WorldState(args=(HighComplexity, {"max_lines": True})),
+            WorldState(args=(HighComplexity, {"max_lines": "30"})),
+            WorldState(args=(LargeOutput, {"max_lines": 0})),
+            WorldState(args=(LargeOutput, {"max_lines": False})),
+            WorldState(args=(NoOutput, {"severity": "info"})),
+            WorldState(args=(HighComplexity, {"severity": "fatal"})),
+            WorldState(args=(LargeOutput, {"severity": "invalid"})),
+            WorldState(args=(RawTraceback, {"severity": ""})),
+        ],
+        post=WorldState(
+            raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")
+        ),
+        custom_id="doc_std_rules_state_guards",
+    ).run()

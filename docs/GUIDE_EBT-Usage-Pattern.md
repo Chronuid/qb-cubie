@@ -192,40 +192,49 @@ def payload():
     return {"task_id": "REQ-1234", "duration": 0.5, "next_page": None, "metadata": {}}
 
 
-def test_payload():
-    EBT(
-        target=payload,
-        post=WorldState(returns={
-            "task_id": re.compile(r"^REQ-\d{4}$"),
-            "duration": float,
-            "next_page": str | None,
-            "metadata": Any,
-        }),
-    ).run()
-
-
-def test_none_return():
-    EBT(
-        target=lambda: None,
-        post=WorldState(returns=None),
-    ).run()
-
-
-if __name__ == "__main__":
-    test_payload()
-    test_none_return()
-    print("OK")
+EBT(
+    target=payload,
+    post=WorldState(returns={
+        "task_id": re.compile(r"^REQ-\d{4}$"),
+        "duration": float,
+        "next_page": str | None,
+        "metadata": Any,
+    }),
+).run()
+print("Payload-Vertrag OK")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-OK
+Payload-Vertrag OK
 ```
 </details>
 
-Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt. `returns=None` erwartet explizit `None`, wie im zweiten Beispiel. Ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` deaktiviert die Rückgabeprüfung. Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
+Dictionary-Schlüssel müssen exakt übereinstimmen. Reguläre Ausdrücke verwenden `match(str(actual))`, Typmuster `isinstance`. Listen und Tupel werden rekursiv nach Position verglichen und dabei als austauschbar behandelt.
+
+Für Funktionen ohne Rückgabewert unterscheidet EBT strikt zwischen einer erwarteten `None`-Rückgabe (`returns=None`) und einer vollständig deaktivierten Rückgabeprüfung (ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED`):
+
+```python
+from qb_cubie import EBT, WorldState
+
+EBT(
+    target=lambda: None,
+    post=WorldState(returns=None),
+).run()
+print("None-Vertrag OK")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+None-Vertrag OK
+```
+</details>
+
+Diese Post-Prädikate werden beim normalen Arena-Lauf im Elternprozess ausgewertet und erfordern für sich keinen Cloudpickle-Codec.
 
 ## Dateitransformation mit expliziter Arena
 

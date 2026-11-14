@@ -167,19 +167,23 @@ class RequireReturnTypeRule(CstRule):
                 message=f"Der Funktion '{node.name.value}' fehlt die Return-Type-Annotation.",
                 severity="warning"
             )
+
+
+rule = RequireReturnTypeRule()
+print(f"Regel bereit: {type(rule).__name__}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Regel bereit: RequireReturnTypeRule
 ```
 </details>
 
 ### 3.3 Ausführung im System
 
-Um die eigene Regel nun auf Code anzuwenden, wird sie instanziiert und dem `CstLinter` übergeben:
+Um die eigene Regel nun auf Code anzuwenden, wird die vorbereitete Instanz dem `CstLinter` übergeben:
 
 ```python session=cst_rule
 bad_code = """
@@ -187,7 +191,7 @@ def helfer_funktion(x):
     pass
 """
 
-linter = CstLinter(rules=[RequireReturnTypeRule()]) # Instanziierung des Linters mit der eigenen Regel
+linter = CstLinter(rules=[rule])  # Wiederverwendung der Regel-Instanz aus Schritt 3.2
 diagnostics = linter.check(bad_code) # Analyse ausführen
 
 for d in diagnostics:

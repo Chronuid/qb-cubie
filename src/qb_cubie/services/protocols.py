@@ -1,7 +1,8 @@
 """Protocols and immutable data records for the qb_cubie.services package."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Final, Protocol, Sequence, runtime_checkable
+from typing import Final, Protocol, runtime_checkable
 
 VALID_SEVERITIES: Final[tuple[str, ...]] = ("error", "warning")
 
@@ -101,7 +102,7 @@ class DocRuleProtocol(Protocol):
     @property
     def rule_id(self) -> str: ...
     @property
-    def severity(self) -> str: ...
+    def severity(self) -> str | None: ...
     def check(
         self, example: ExtractedExample, actual_output: str | None = None
     ) -> Sequence[DocDiagnostic]: ...

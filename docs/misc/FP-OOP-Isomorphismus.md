@@ -246,13 +246,16 @@ class IsomorpherKontext(Protocol[S]):
         Gibt immer eine konforme Struktur zurück (Isomorphie-Garantie).
         """
         ...
+
+
+print(f"Protokoll definiert: {IsomorpherKontext.__name__}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Protokoll definiert: IsomorpherKontext
 ```
 </details>
 
@@ -282,13 +285,18 @@ class FPBankKontext:
             # Reine FP-Transformation ohne In-Place-Mutation
             return FPBankKontext(BankState(self._state.saldo + float(argument)))
         return self
+
+
+fp_vorher = FPBankKontext(BankState(100.0))
+fp_nachher = fp_vorher.transform("einzahlen", 50.0)
+print(f"FP vorher={fp_vorher.state.saldo} | nachher={fp_nachher.state.saldo}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+FP vorher=100.0 | nachher=150.0
 ```
 </details>
 
@@ -311,13 +319,18 @@ class OOPBankKontext:
             # OOP-typische Mutation des internen Zustands
             self._saldo += float(argument)
         return self
+
+
+oop = OOPBankKontext(100.0)
+oop.transform("einzahlen", 50.0)
+print(f"OOP nach Mutation={oop.state.saldo}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+OOP nach Mutation=150.0
 ```
 </details>
 

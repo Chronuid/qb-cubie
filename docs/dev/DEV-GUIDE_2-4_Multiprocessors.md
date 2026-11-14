@@ -155,13 +155,17 @@ class ThreadMapper:
     def map(self, fn: Callable[..., Any], *iterables: Iterable[Any]) -> list[Any]:
         assert self._executor is not None
         return list(self._executor.map(fn, *iterables))
+
+
+with ThreadMapper(n_tasks=3) as mapper:
+    print(f"ThreadMapper-Probe: {mapper.map(abs, [-1, -2, -3])}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+ThreadMapper-Probe: [1, 2, 3]
 ```
 </details>
 
@@ -188,13 +192,19 @@ class ThreadProcessor:
     @staticmethod
     def create_handler(n_tasks: int, *, max_workers: int | None = None) -> ThreadMapper:
         return ThreadMapper(n_tasks, max_workers=max_workers)
+
+
+print(
+    f"ThreadProcessor(priority={ThreadProcessor.priority}, "
+    f"trigger={ThreadProcessor.check_condition([], [])})"
+)
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+ThreadProcessor(priority=99, trigger=True)
 ```
 </details>
 

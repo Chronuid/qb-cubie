@@ -608,6 +608,7 @@ import copy
 import json
 import sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 def prepare_developer_configs(study_dir: str | Path = "study") -> None:
@@ -623,13 +624,21 @@ def prepare_developer_configs(study_dir: str | Path = "study") -> None:
                       endpoint="http://host.docker.internal:11434")
         config["model"]["prompt_sha256"] = prompt_hash(mode)
         (root / f"adapter/developer-{mode}.json").write_text(json.dumps(config, indent=2))
+
+
+with TemporaryDirectory() as tmp:
+    adapter = Path(tmp) / "adapter"
+    adapter.mkdir()
+    (adapter / "developer.json").write_text(json.dumps({"model": {}}))
+    prepare_developer_configs(tmp)
+    print([json.loads((adapter / f"developer-{m}.json").read_text())["mode"] for m in ("cubie", "pytest")])
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+['cubie', 'pytest']
 ```
 </details>
 
@@ -734,13 +743,11 @@ erhalten.
 Das folgende Beispiel kapselt Planung und Import eines SWE-bench-Datensatzes mit expliziter Revision:
 
 ```python
+import inspect
 from cubie_benchmarks import import_swebench, plan_swebench_import
 
-
 def import_swebench_study(
-    dataset_commit: str,
-    selected_instance_ids: list[str],
-    harness_commit: str,
+    dataset_commit: str, selected_instance_ids: list[str], harness_commit: str
 ) -> tuple[dict, dict]:
     config = {
         "schema_version": 1,
@@ -761,13 +768,16 @@ def import_swebench_study(
     plan = plan_swebench_import(config)
     result = import_swebench(config, "/data/scenarios/swebench-lite-study")
     return plan, result
+
+params = ", ".join(inspect.signature(import_swebench_study).parameters)
+print(f"API bereit: {import_swebench_study.__name__}({params})")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+API bereit: import_swebench_study(dataset_commit, selected_instance_ids, harness_commit)
 ```
 </details>
 
@@ -860,6 +870,7 @@ gemeinsamen Messung erkannt. Referenzen beginnen mit `unvalidated` und leeren
 Nach dem Import prüft `validate_swebench_references` die Basis- und Gold-Referenzen gegen das Paket:
 
 ```python
+import inspect
 from cubie_benchmarks import validate_swebench_references
 
 
@@ -868,13 +879,17 @@ def check_swebench_references(package_path: str) -> dict:
     assert reference["valid"]
     print(reference["report"])  # separate dauerhafte Belegablage
     return reference
+
+
+params = ", ".join(inspect.signature(check_swebench_references).parameters)
+print(f"API bereit: {check_swebench_references.__name__}({params})")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+API bereit: check_swebench_references(package_path)
 ```
 </details>
 
@@ -969,13 +984,16 @@ from cubie_benchmarks import freeze_suite, run_frozen_suite
 def execute_frozen_study() -> dict:
     freeze_suite("suite.toml", "frozen-study")
     return run_frozen_suite("frozen-study", "results")
+
+
+print(f"Pipeline: {freeze_suite.__name__} -> {run_frozen_suite.__name__}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Pipeline: freeze_suite -> run_frozen_suite
 ```
 </details>
 

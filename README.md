@@ -239,7 +239,7 @@ Ein vollständiges Beispiel für eine Dateitransformation steht im [EBT-Nutzungs
 RBT übergibt eine Zielbezeichnung und eine Prüfregel an einen Reviewer. Es führt das Target nicht aus und liest eine als String übergebene Quelldatei nicht automatisch ein. Standardmäßig wartet `HeadlessReviewer` am Terminal auf eine Entscheidung; interaktive pytest-Läufe benötigen `-s`.
 
 ```python
-from qb_cubie.rbt import RBT
+from qb_cubie.rbt import HeadlessReviewer, RBT
 
 
 def test_logging_review():
@@ -247,13 +247,22 @@ def test_logging_review():
         target="auth_module.py",
         check="Prüfe die Datei: Werden Passwörter im Klartext geloggt?",
     ).run()
+
+
+demo = RBT(
+    target="auth_module.py",
+    check="Prüfe die Datei: Werden Passwörter im Klartext geloggt?",
+    reviewer=HeadlessReviewer(answer=True),
+)
+demo.run()
+print(f"Target: {demo.target} | Reviewer: {type(demo.reviewer).__name__}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Target: auth_module.py | Reviewer: HeadlessReviewer
 ```
 </details>
 

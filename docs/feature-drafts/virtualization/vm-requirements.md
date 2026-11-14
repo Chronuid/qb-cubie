@@ -32,41 +32,37 @@ Die VmArena muss nahtlos in die Cubie-Architektur integriert werden und das stri
 ```python
 from pathlib import Path
 from typing import Any, Optional, Protocol, runtime_checkable
-
 from qb_cubie import WorldState
-
 
 @runtime_checkable
 class Arena(Protocol):
-    """
-    Contract for isolated execution environments.
-    """
+    """Contract for isolated execution environments."""
     def workspace_path(self) -> Optional[Path]:
         """Returns the absolute path to the isolated working directory after setup."""
         ...
-    
     def setup(self, state: WorldState) -> None:
         """Creates the temporary workspace and hydrates it based on the provided WorldState."""
         ...
-    
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
         """Executes the target within the isolated workspace and returns the raw functional result."""
         ...
-    
     def get_state(self) -> WorldState:
         """Packages and returns the mutated environment reality as a complete WorldState."""
         ...
-    
     def teardown(self) -> None:
         """Destroys the workspace and cleans up all temporary environment states."""
         ...
+
+methods = ("workspace_path", "setup", "execute", "get_state", "teardown")
+found = [m for m in methods if hasattr(Arena, m)]
+print(f"Arena-Protokoll ({len(found)} Methoden): {', '.join(found)}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-
+Arena-Protokoll (5 Methoden): workspace_path, setup, execute, get_state, teardown
 ```
 </details>
 

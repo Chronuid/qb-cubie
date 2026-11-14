@@ -93,14 +93,15 @@ def test_body_counter_statements(body, expected):
 
 # ========== DOCUMENTATION =============================================================================================
 
-from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+from qb_cubie.services import CUBIE_DOC_STYLE, CUBIE_DOC_RULES, DocEnsurance
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
     DocEnsurance(
         pattern=CUBIE_DOC_STYLE,
+        rules=CUBIE_DOC_RULES,
         excludes=("experiments", "GUTACHTEN.md"),
     ).run()
 
