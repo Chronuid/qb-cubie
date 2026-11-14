@@ -17,7 +17,6 @@ from qb_cubie.services.doc_ensurance import (
     CodeSnippet,
     CollapsibleResult,
     TaggedScope,
-    IsolatedScope,
 )
 
 
@@ -213,22 +212,16 @@ def test_ebt_explicit_session_state_sharing_and_interleaving():
 
     EBT(
         target=run_ensurance,
-        pre=WorldState(args=(interleaved_sessions_doc,), kwargs={"scope": IsolatedScope()}),
+        pre=WorldState(args=(interleaved_sessions_doc,), kwargs={"scope": TaggedScope()}),
         post=WorldState(
             returns={
-                "passed": False,
-                "session_count": 3,
-                "outputs": [["10"], ["False"], [""]],
-                "diagnostics": [
-                    {
-                        "rule_id": "DOC-EXEC",
-                        "line": int,
-                        "message": re.compile(r".*NameError"),
-                    }
-                ],
+                "passed": True,
+                "session_count": 2,
+                "outputs": [["10", "15:state_a"], ["False"]],
+                "diagnostics": [],
             }
         ),
-        custom_id="doc_isolated_scope_ignores_session_tags",
+        custom_id="doc_tagged_scope_preserves_session_tags",
     ).run()
 
 

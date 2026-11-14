@@ -13,7 +13,6 @@ from qb_cubie.services import (
     DocEnsurance,
     ExamplePattern,
     Explanation,
-    IsolatedScope,
     MdBlock,
 )
 from qb_cubie.services.doc_ensurance import _MarkdownScanner
@@ -100,10 +99,10 @@ _TAG_BOUNDARY_AND_TWO_INNER_FENCES_DOC = (
     "```text\nfirst\n```\n\nText\n\n```text\nsecond\n```\n</details>"
 )
 
-_BROKEN_SESSION_IN_ISOLATED_SCOPE_DOC = (
+_BROKEN_UNTAGGED_SNIPPET_DOC = (
     "Kurz.\n\n"
-    "```python session=alpha\n"
-    "raise RuntimeError('must not execute in IsolatedScope when DOC-PRE fails')\n"
+    "```python\n"
+    "raise RuntimeError('must not execute untagged snippet when DOC-PRE fails')\n"
     "```\n\n"
     "<details>\n<summary>Ergebnis</summary>\n\n```text\n```\n</details>"
 )
@@ -254,7 +253,7 @@ def _scan_multi_pre_explanation(doc: str) -> str | None:
 
 
 def test_ebt_multiple_pre_rules_and_tag_word_boundaries() -> None:
-    """Verifies multi-pre explanation preservation, tag word boundaries, and IsolatedScope filtering."""
+    """Verifies multi-pre explanation preservation, tag word boundaries, and untagged error skipping."""
     EBT(
         target=_scan_multi_pre_explanation,
         pre=WorldState(args=(_MULTI_PRE_DOC,)),
@@ -277,7 +276,7 @@ def test_ebt_multiple_pre_rules_and_tag_word_boundaries() -> None:
     ).run()
     EBT(
         target=_run_edge_doc,
-        pre=WorldState(args=(_BROKEN_SESSION_IN_ISOLATED_SCOPE_DOC, None, IsolatedScope())),
+        pre=WorldState(args=(_BROKEN_UNTAGGED_SNIPPET_DOC,)),
         post=WorldState(
             returns={
                 "target": "IN_MEMORY",
@@ -287,7 +286,7 @@ def test_ebt_multiple_pre_rules_and_tag_word_boundaries() -> None:
                 "diagnostics": [("DOC-PRE", 3, re.compile(r".*explanation"))],
             }
         ),
-        custom_id="doc_edge_isolated_scope_drops_broken_session_step",
+        custom_id="doc_edge_untagged_error_skips_execution",
     ).run()
 
 
@@ -301,7 +300,7 @@ def test_ebt_single_line_in_memory_markdown() -> None:
         pre=[
             WorldState(args=("#NurEineUeberschriftOhneLeerzeichen",)),
             WorldState(args=("Siehe docs/guide fuer weitere Informationen.",)),
-            WorldState(args=("Siehe README.md",)),
+            WorldState(args=("Siehe README.md fuer Details.",)),
             WorldState(args=("+ListenpunktOhneLeerzeichen",)),
             WorldState(args=("![Bild](logo.png)",)),
             WorldState(args=("[Link](https://example.org)",)),

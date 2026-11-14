@@ -7,11 +7,37 @@ from collections import deque
 from collections.abc import Mapping
 from os import PathLike
 from pathlib import Path
+from typing import Any
 
 
-def hydrate_workspace(workspace: Path, mappings: Mapping) -> None:
+def normalize_fs(fs_raw: Any, field: str = "fs") -> dict:
+    """Normalize filesystem shorthand while rejecting ambiguous basenames."""
+    if not fs_raw:
+        return {}
+    if isinstance(fs_raw, dict):
+        return fs_raw
+    if isinstance(fs_raw, (set, list, tuple)):
+        return _filesystem_mapping(fs_raw, field)
+    raise ValueError(f"Invalid type for {field}: {type(fs_raw)}")
+
+
+def _filesystem_mapping(paths: Any, field: str) -> dict[str, str]:
+    """Map unique destination basenames from a collection of host paths."""
+    normalized: dict[str, str] = {}
+    for value in paths:
+        path = Path(str(value).rstrip("/"))
+        if path.name in normalized and Path(normalized[path.name]) != path:
+            raise ValueError(
+                f"STATE-GUARD: {field}: ambiguous destination {path.name!r} for sources "
+                f"{normalized[path.name]!r} and {str(value)!r}; use an explicit destination-to-source mapping."
+            )
+        normalized.setdefault(path.name, str(value))
+    return normalized
+
+
+def hydrate_workspace(workspace: Path, mappings: Any) -> None:
     """Hydrate destination-to-source mappings; raise ValueError for path escapes."""
-    _Hydrator(workspace.resolve()).run(mappings)
+    _Hydrator(workspace.resolve()).run(normalize_fs(mappings, "fs"))
 
 
 class _Hydrator:

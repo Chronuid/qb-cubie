@@ -18,7 +18,6 @@ from qb_cubie.services import (
     ExamplePattern,
     Explanation,
     ExplanationRule,
-    IsolatedScope,
     MissingOutputRule,
     OutputMatchRule,
     OutputRule,
@@ -350,13 +349,13 @@ def test_ebt_cst_linter_integration_and_line_mapping() -> None:
 
 
 # ======================================================================================================================
-# 5. ÄQUIVALENZKLASSE: INTERAKTION MIT ISOLATED-SCOPE BEI WARNING VS. ERROR
+# 5. ÄQUIVALENZKLASSE: INTERAKTION MIT UNGETAGGTEN SNIPPETS BEI WARNING VS. ERROR
 # ======================================================================================================================
-def test_ebt_isolated_scope_executes_warnings_but_drops_errors() -> None:
+def test_ebt_untagged_snippet_executes_warnings_but_skips_errors() -> None:
     """
-    Gesetz: Im `IsolatedScope` werden Snippets mit strukturellen Warnungen (`severity='warning'`)
+    Gesetz: Im `TaggedScope` werden ungetaggte Snippets mit strukturellen Warnungen (`severity='warning'`)
     weiterhin ausgeführt, während strukturelle Fehler (`severity='error'`) vor dem Arena-Lauf
-    herausgefiltert werden.
+    übersprungen werden.
     """
     warn_pre_pattern = ExamplePattern(
         pre=(Explanation(min_chars=20, severity="warning"),),
@@ -372,8 +371,8 @@ def test_ebt_isolated_scope_executes_warnings_but_drops_errors() -> None:
     EBT(
         target=_run_rules_scenario,
         pre=[
-            WorldState(args=(_MISSING_BLOCKS_DOC, None, warn_pre_pattern, IsolatedScope())),
-            WorldState(args=(_MISSING_BLOCKS_DOC, None, err_pre_pattern, IsolatedScope())),
+            WorldState(args=(_MISSING_BLOCKS_DOC, None, warn_pre_pattern, TaggedScope())),
+            WorldState(args=(_MISSING_BLOCKS_DOC, None, err_pre_pattern, TaggedScope())),
         ],
         post=[
             WorldState(
@@ -401,7 +400,7 @@ def test_ebt_isolated_scope_executes_warnings_but_drops_errors() -> None:
                 }
             ),
         ],
-        custom_id="doc_rules_isolated_scope_severity_filtering",
+        custom_id="doc_rules_untagged_severity_filtering",
     ).run()
 
 

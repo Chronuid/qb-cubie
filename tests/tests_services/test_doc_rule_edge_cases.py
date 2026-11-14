@@ -5,7 +5,7 @@ from typing import Any
 
 import libcst as cst
 
-from qb_cubie import CstLinter, CstRule, EBT, ExceptionExpectation, MyPy, TempFS, WorldState
+from qb_cubie import AstLinter, CstLinter, CstRule, EBT, ExceptionExpectation, MyPy, TempFS, WorldState
 from qb_cubie.services import (
     CUBIE_DOC_RULES,
     CUBIE_DOC_STYLE,
@@ -16,7 +16,6 @@ from qb_cubie.services import (
     ExamplePattern,
     Explanation,
     ExplanationRule,
-    IsolatedScope,
     NoOutput,
     OutputMatchRule,
     TaggedScope,
@@ -91,15 +90,15 @@ _HTML_COMMENT_DISPLACES_PRE_DOC = (
 
 _FENCE_IN_MULTILINE_STR_DOC = (
     "Explanation with twenty characters.\n\n"
-    "```python\n"
+    "````python\n"
     'md = """\n'
     "```\n"
     "hello\n"
     "```\n"
     '"""\n'
     "print(len(md.splitlines()))\n"
-    "```\n\n"
-    "<details><summary>R</summary>\n\n```text\n3\n```\n</details>"
+    "````\n\n"
+    "<details><summary>R</summary>\n\n```text\n4\n```\n</details>"
 )
 
 _TWO_FENCES_IN_DETAILS_DOC = (
@@ -214,7 +213,7 @@ _RAW_SYNTAX_ERROR_DOC = (
     "def broken(:\n"
     "```\n\n"
     "<details><summary>Ergebnis</summary>\n\n"
-    "```text\nSyntaxError: invalid syntax (<doc_line_3>, line 1)\n```\n</details>"
+    "```text\nSyntaxError: invalid syntax (<doc>, line 1)\n```\n</details>"
 )
 
 _WARN_PRE_WITH_EXP_RULE_PATTERN = ExamplePattern(
@@ -342,7 +341,7 @@ def test_ebt_rule_defaults_reduction_and_type_coercion() -> None:
             ),
             WorldState(
                 returns={
-                    "rule_ids": ["DOC-OUT", "DOC-LINT:CST-Linter"],
+                    "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT", "DOC-LINT:CST-Linter"],
                     "passed": False,
                     "diag_ids": [("DOC-OUT", "warning"), ("CST-NO-PRINT", "error")],
                 }
@@ -351,12 +350,18 @@ def test_ebt_rule_defaults_reduction_and_type_coercion() -> None:
         custom_id="doc_rule_edge_defaults_and_coercion",
     ).run()
 
-    # Invertierter Randfall (expect=False): Einzelne CodeRule lässt DOC-OUT-MISSING still verschwinden
+    # Positiv-Vertrag: Einzelne CodeRule lässt DOC-OUT-MISSING nicht mehr verschwinden
     EBT(
         target=_inspect_rule_registry,
         pre=WorldState(args=(_SILENT_EMPTY_OUT_DOC, [custom_noop])),
-        post=WorldState(returns={"rule_ids": ["DOC-OUT", "C1"], "passed": True, "diag_ids": []}, expect=False),
-        custom_id="doc_rule_edge_custom_rule_drops_missing_output",
+        post=WorldState(
+            returns={
+                "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT", "C1"],
+                "passed": True,
+                "diag_ids": [("DOC-OUT-MISSING", "warning")],
+            }
+        ),
+        custom_id="doc_rule_edge_custom_rule_preserves_missing_output",
     ).run()
 
     EBT(
@@ -407,57 +412,41 @@ def test_ebt_explanation_rule_skipped_on_pre_warning_and_override() -> None:
         custom_id="doc_rule_edge_block_rule_override",
     ).run()
 
-    # Invertierter Randfall (expect=False): DOC-PRE-Warning überspringt EXP-CAP trotz vorhandenem Absatz
+    # Positiv-Vertrag: DOC-PRE-Warning liefert trotzdem den Absatz an EXP-CAP weiter
     EBT(
         target=_run_edge_scenario,
         pre=WorldState(args=(_SHORT_LOWERCASE_PRE_DOC, _WARN_PRE_WITH_EXP_RULE_PATTERN)),
         post=WorldState(
             returns={
-                "passed": True,
-                "session_passed": [True],
+                "passed": False,
+                "session_passed": [False],
                 "outputs": [["1"]],
-                "diagnostics": [("DOC-PRE", "warning", 3)],
-            },
-            expect=False,
+                "diagnostics": [("DOC-PRE", "warning", 3), ("EXP-CAP", "error", 3)],
+            }
         ),
-        custom_id="doc_rule_edge_pre_warning_skips_exp_rule",
+        custom_id="doc_rule_edge_pre_warning_preserves_exp_rule",
     ).run()
 
 
 # ======================================================================================================================
-# 3. ÄQUIVALENZKLASSE: ASYMMETRIE BEI DOC-PRE IN SESSIONS: TAGGED VS. ISOLATED SCOPE (CLUSTER D3.1)
+# 3. ÄQUIVALENZKLASSE: DOC-PRE IN MULTI-STEP-SESSIONS IM TAGGED-SCOPE (CLUSTER D3.1)
 # ======================================================================================================================
 
 
-def test_ebt_session_doc_pre_asymmetry_tagged_vs_isolated_scope() -> None:
-    """Flags session.passed=True despite DOC-PRE in TaggedScope and cascading NameError in IsolatedScope."""
+def test_ebt_session_doc_pre_marks_session_failed_in_tagged_scope() -> None:
+    """Verifies session.passed=False when DOC-PRE fails in a multi-step TaggedScope session."""
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_SESSION_DOC_PRE_ASYMMETRY_DOC, CUBIE_DOC_STYLE, TaggedScope())),
-            WorldState(args=(_SESSION_DOC_PRE_ASYMMETRY_DOC, CUBIE_DOC_STYLE, IsolatedScope())),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [True],
-                    "outputs": [["42", "43"]],
-                    "diagnostics": [("DOC-PRE", "error", 3)],
-                },
-                expect=False,
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [[""]],
-                    "diagnostics": [("DOC-PRE", "error", 3), ("DOC-EXEC", "error", 17)],
-                },
-                expect=False,
-            ),
-        ],
-        custom_id="doc_rule_edge_session_pre_scope_asymmetry",
+        pre=WorldState(args=(_SESSION_DOC_PRE_ASYMMETRY_DOC, CUBIE_DOC_STYLE, TaggedScope())),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["42", "43"]],
+                "diagnostics": [("DOC-PRE", "error", 3)],
+            }
+        ),
+        custom_id="doc_rule_edge_session_pre_marks_session_failed",
     ).run()
 
 
@@ -519,8 +508,7 @@ def test_ebt_inner_backticks_double_fences_comma_tags_and_summaryless_details() 
         ],
         post=[
             WorldState(
-                returns={"passed": False, "session_passed": [], "outputs": [], "diagnostics": [("DOC-POST", "error", 3)]},
-                expect=False,
+                returns={"passed": True, "session_passed": [True], "outputs": [["4"]], "diagnostics": []}
             ),
             WorldState(
                 returns={
@@ -528,30 +516,28 @@ def test_ebt_inner_backticks_double_fences_comma_tags_and_summaryless_details() 
                     "session_passed": [False],
                     "outputs": [["ok"]],
                     "diagnostics": [("DOC-OUT", "error", 3)],
-                },
-                expect=False,
+                }
             ),
             WorldState(
-                returns={"passed": True, "session_passed": [], "outputs": [], "diagnostics": []},
-                expect=False,
+                returns={"passed": True, "session_passed": [True], "outputs": [["1"]], "diagnostics": []}
             ),
         ],
-        custom_id="doc_rule_edge_fences_and_comma_tags_negative",
+        custom_id="doc_rule_edge_fences_and_comma_tags",
     ).run()
 
 
 # ======================================================================================================================
-# 6. ÄQUIVALENZKLASSE: BASE-EXCEPTION ESCAPE, DOTTED RAISES, PRINT VOR EXCEPTION & STRIP (CLUSTER D2 & D4)
+# 6. ÄQUIVALENZKLASSE: BASE-EXCEPTION CATCH, DOTTED RAISES, PRINT VOR EXCEPTION & STRIP (CLUSTER D2 & D4)
 # ======================================================================================================================
 
 
-def test_ebt_base_exception_escape_dotted_raises_and_whitespace_stripping() -> None:
-    """Flags KeyboardInterrupt escape, dotted raises failure, and leading whitespace stripping via expect=False."""
+def test_ebt_base_exception_catch_dotted_raises_and_whitespace_stripping() -> None:
+    """Verifies KeyboardInterrupt capture, dotted raises support, and preserved leading whitespace."""
     EBT(
         target=_capture_base_exception,
         pre=WorldState(args=(_KEYBOARD_INTERRUPT_DOC,)),
-        post=WorldState(returns=("KeyboardInterrupt", "ctrl-c"), expect=False),
-        custom_id="doc_rule_edge_keyboard_interrupt_escapes",
+        post=WorldState(returns=("NO_ESCAPE", "")),
+        custom_id="doc_rule_edge_keyboard_interrupt_captured",
     ).run()
 
     EBT(
@@ -571,40 +557,47 @@ def test_ebt_base_exception_escape_dotted_raises_and_whitespace_stripping() -> N
     EBT(
         target=_run_edge_scenario,
         pre=[
+            WorldState(args=(_KEYBOARD_INTERRUPT_DOC,)),
             WorldState(args=(_DOTTED_RAISES_DOC,)),
             WorldState(args=(_LEADING_WHITESPACE_STRIP_DOC,)),
         ],
         post=[
             WorldState(
                 returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["ValueError: boom"]],
-                    "diagnostics": [("DOC-RAISE", "error", 3)],
-                },
-                expect=False,
+                    "passed": True,
+                    "session_passed": [True],
+                    "outputs": [["KeyboardInterrupt: ctrl-c"]],
+                    "diagnostics": [],
+                }
             ),
             WorldState(
                 returns={
                     "passed": True,
                     "session_passed": [True],
-                    "outputs": [["indented_first\n  indented_second"]],
+                    "outputs": [["ValueError: boom"]],
                     "diagnostics": [],
-                },
-                expect=False,
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": False,
+                    "session_passed": [False],
+                    "outputs": [["   indented_first\n  indented_second"]],
+                    "diagnostics": [("DOC-OUT", "error", 3)],
+                }
             ),
         ],
-        custom_id="doc_rule_edge_dotted_raises_and_strip_negative",
+        custom_id="doc_rule_edge_dotted_raises_and_strip_preserved",
     ).run()
 
 
 # ======================================================================================================================
-# 7. ÄQUIVALENZKLASSE: MULTI-STEP SESSION VS. MYPY/NO-OUTPUT & CST-LINTER ID-ÜBERSCHREIBUNG (BEFUNDE 1 & 2)
+# 7. ÄQUIVALENZKLASSE: MULTI-STEP SESSION MIT MYPY/NO-OUTPUT & CST-LINTER MERGE (BEFUNDE 1 & 2)
 # ======================================================================================================================
 
 
-def test_ebt_session_mypy_isolation_no_output_and_cst_linter_overwrite() -> None:
-    """Flags isolated MyPy/NoOutput false alarms on sessions and CstLinter rule_id overwrite via expect=False."""
+def test_ebt_session_mypy_integration_no_output_and_cst_linter_merge() -> None:
+    """Verifies cross-step MyPy session linting, NoOutput warning on empty setup step, and CstLinter merging."""
     dual_cst = [CstLinter(rules=[_NoEvalCstRule()]), CstLinter(rules=[_NoPrintCstRule()])]
     EBT(
         target=_run_edge_scenario,
@@ -615,24 +608,40 @@ def test_ebt_session_mypy_isolation_no_output_and_cst_linter_overwrite() -> None
         post=[
             WorldState(
                 returns={
-                    "passed": False,
-                    "session_passed": [False],
+                    "passed": True,
+                    "session_passed": [True],
                     "outputs": [["", "42"]],
-                    "diagnostics": [("DOC-NO-OUTPUT", "warning", 3), ("name-defined", "error", 16)],
-                },
-                expect=False,
+                    "diagnostics": [("DOC-NO-OUTPUT", "warning", 3)],
+                }
             ),
             WorldState(
                 returns={
                     "passed": False,
                     "session_passed": [False],
                     "outputs": [["42"]],
-                    "diagnostics": [("CST-NO-PRINT", "error", 4)],
-                },
-                expect=False,
+                    "diagnostics": [("CST-NO-EVAL", "error", 4), ("CST-NO-PRINT", "error", 4)],
+                }
             ),
         ],
-        custom_id="doc_rule_edge_session_mypy_and_cst_overwrite",
+        custom_id="doc_rule_edge_session_mypy_and_cst_merge",
+    ).run()
+
+    # AstLinter fulfills Linter protocol and runs orthogonally alongside CUBIE_DOC_RULES and custom rules
+    ast_combo = [*CUBIE_DOC_RULES, AstLinter(CstLinter(rules=[_NoEvalCstRule()])), ExplanationRule(
+        "EXP-NO-TODO", "Explanation contains TODO.", lambda s: "TODO" not in s
+    )]
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_EVAL_AND_PRINT_DOC,), kwargs={"rules": ast_combo}),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["42"]],
+                "diagnostics": [("CST-NO-EVAL", "error", 4)],
+            }
+        ),
+        custom_id="doc_rule_edge_ast_linter_orthogonal",
     ).run()
 
 
@@ -641,8 +650,8 @@ def test_ebt_session_mypy_isolation_no_output_and_cst_linter_overwrite() -> None
 # ======================================================================================================================
 
 
-def test_ebt_details_html_injection_and_raw_syntax_error_fragility() -> None:
-    """Flags HTML tag collisions in details blocks and <doc_line_N> / CstLinter E999 fragility via expect=False."""
+def test_ebt_details_html_injection_and_raw_syntax_error_behavior() -> None:
+    """Verifies fence-safe details extraction, line-invariant <doc> SyntaxError, and active CstLinter E999."""
     EBT(
         target=_run_edge_scenario,
         pre=WorldState(args=(_RAW_SYNTAX_ERROR_DOC,)),
@@ -650,7 +659,7 @@ def test_ebt_details_html_injection_and_raw_syntax_error_fragility() -> None:
             returns={
                 "passed": True,
                 "session_passed": [True],
-                "outputs": [["SyntaxError: invalid syntax (<doc_line_3>, line 1)"]],
+                "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
                 "diagnostics": [],
             }
         ),
@@ -672,45 +681,40 @@ def test_ebt_details_html_injection_and_raw_syntax_error_fragility() -> None:
                     "passed": True,
                     "session_passed": [True],
                     "outputs": [["<summary>Inner</summary>"]],
-                    "diagnostics": [("DOC-OUT-MISSING", "warning", 3)],
-                },
-                expect=False,
+                    "diagnostics": [],
+                }
             ),
             WorldState(
                 returns={
-                    "passed": False,
-                    "session_passed": [False],
+                    "passed": True,
+                    "session_passed": [True],
                     "outputs": [["</details>"]],
-                    "diagnostics": [("DOC-OUT", "error", 3)],
-                },
-                expect=False,
+                    "diagnostics": [],
+                }
             ),
             WorldState(
                 returns={
-                    "passed": False,
-                    "session_passed": [False],
+                    "passed": True,
+                    "session_passed": [True],
                     "outputs": [["ok"]],
-                    "diagnostics": [("DOC-OUT", "error", 3)],
-                },
-                expect=False,
+                    "diagnostics": [],
+                }
+            ),
+            WorldState(
+                returns={
+                    "passed": True,
+                    "session_passed": [True],
+                    "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
+                    "diagnostics": [],
+                }
             ),
             WorldState(
                 returns={
                     "passed": False,
                     "session_passed": [False],
-                    "outputs": [["SyntaxError: invalid syntax (<doc_line_4>, line 1)"]],
-                    "diagnostics": [("DOC-OUT", "error", 4)],
-                },
-                expect=False,
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["SyntaxError: invalid syntax (<doc_line_3>, line 1)"]],
+                    "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
                     "diagnostics": [("E999", "error", 4)],
-                },
-                expect=False,
+                }
             ),
         ],
         custom_id="doc_rule_edge_details_html_and_raw_syntax_error",

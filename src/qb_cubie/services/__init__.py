@@ -1,18 +1,17 @@
 """Reusable quality assurance and verification services built on the qb-cubie core."""
 
-from . import doc_ensurance, doc_rules, protocols
-from .doc_ensurance import (
+from . import doc_ensurance, doc_patterns, doc_rules, protocols
+from .doc_ensurance import DocEnsurance
+from .doc_patterns import (
     CUBIE_DOC_STYLE,
     DEFAULT_DOC_RULES,
     CodeRule,
     CodeSnippet,
     CollapsibleResult,
-    DocEnsurance,
     DocLinterRule,
     ExamplePattern,
     Explanation,
     ExplanationRule,
-    IsolatedScope,
     MissingOutputRule,
     OutputMatchRule,
     OutputRule,
@@ -68,7 +67,6 @@ __all__ = [
     "ExtractedExample",
     "HighComplexity",
     "HighComplexityRule",
-    "IsolatedScope",
     "LargeOutput",
     "LargeOutputRule",
     "MdBlock",
@@ -83,6 +81,7 @@ __all__ = [
     "SessionTrace",
     "TaggedScope",
     "doc_ensurance",
+    "doc_patterns",
     "doc_rules",
     "protocols",
     "validate_severity",

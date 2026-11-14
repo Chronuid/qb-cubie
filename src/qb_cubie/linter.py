@@ -96,6 +96,17 @@ class AstLinter:
             else:
                 self.linters.append(item)
 
+    @property
+    def name(self) -> str:
+        """Provides the display name of the orchestrated linter bundle."""
+        names = "+".join(linter.name for linter in self.linters)
+        return f"AST-Linter({names})" if names else "AST-Linter"
+
+    def register_excludes(self, excludes: List[str]) -> None:
+        """Propagates exclusion patterns to all orchestrated linters."""
+        for linter in self.linters:
+            linter.register_excludes(excludes)
+
     def check(self, target: Optional[Union[str, Path]] = None) -> List[LinterDiagnostic]:
         """Runs all registered linters against the resolved target and merges diagnostics."""
         resolved_target = self._resolve_target(target)

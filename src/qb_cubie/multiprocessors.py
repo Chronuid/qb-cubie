@@ -231,6 +231,7 @@ class MultiprocessManager:
         self._task_func = task_func
         self._processors = processors
         self._max_workers = max_workers
+        self._pickle_failed = False
         self._configure_states()
         self.ctx: _ManagerContext | None = None
 
@@ -296,6 +297,8 @@ class MultiprocessManager:
     def _fallback(self, failure: _BackendFailure) -> S:
         ctx = self._context()
         ctx["error"] = failure.error
+        if isinstance(ctx["processor"], PickleProcessor):
+            self._pickle_failed = True
         self._degrade_and_warn(ctx["processor"], failure.phase, failure.error)
         return S.INITIAL
 
@@ -307,7 +310,24 @@ class MultiprocessManager:
     # ----- Helper -----
 
     def _resolve_handler(self) -> Multiprocessor:
-        return MultiprocessResolver.resolve(self._pre_states, self._post_states, self._processors)
+        try:
+            chosen = MultiprocessResolver.resolve(self._pre_states, self._post_states, self._processors)
+        except _NoEligibleProcessor:
+            loky = self._active_loky() if self._pickle_failed else None
+            if loky is not None:
+                return loky
+            raise
+        if isinstance(chosen, PickleProcessor) and StateInspector.has_unpicklable_callables(self._task_func):
+            return self._active_loky() or chosen
+        return chosen
+
+    def _active_loky(self) -> Multiprocessor | None:
+        if not LOKY_AVAILABLE:
+            return None
+        for proc in self._processors:
+            if isinstance(proc, LokyProcessor) and getattr(proc, "priority", 0) > 0:
+                return proc
+        return None
 
     def _setup_runner(self, processor: Multiprocessor) -> "MultiprocessRunner":
         return MultiprocessRunner(

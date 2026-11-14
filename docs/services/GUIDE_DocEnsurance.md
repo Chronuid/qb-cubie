@@ -70,7 +70,7 @@ DocEnsurance(
 | :--- | :--- | :--- |
 | **`target`** | `None` (Projekt-Root) | Bestimmt die zu prüfende Quelle: `None` scannt ab Projekt-Root (`pyproject.toml` / `CWD`); akzeptiert zudem Ordnerpfade (`"docs"`), Einzeldateien (`"docs/GUIDE.md"`) oder mehrzeilige In-Memory-Markdown-Strings. |
 | **`pattern`** | `CUBIE_DOC_STYLE` | Legt das strukturelle Muster um jeden Code-Anker fest (`Explanation` $\to$ `CodeSnippet` $\to$ `CollapsibleResult`). |
-| **`scope`** | `TaggedScope()` | Steuert die Arena-Gruppierung: `TaggedScope()` gruppiert Snippets mit identischem `session=<id>` pro Datei; `IsolatedScope()` zwingt jedes Snippet in eine eigene Arena. |
+| **`scope`** | `TaggedScope()` | Steuert die Arena-Gruppierung: `TaggedScope()` gruppiert Snippets mit identischem `session=<id>` pro Datei und isoliert ungetaggte Snippets jeweils in einer eigenen Arena. |
 | **`arena`** | `TempFS(timeout=10.0)` | Ausführungs-Umgebung für jede Session (`TempFS` oder `PyVenv`). Nach jeder Session wird der Workspace vollständig abgeräumt (`teardown`). |
 | **`reporter`** | `PytestReporter()` | Konsumiert den erzeugten `DocReport`. `PytestReporter()` gibt für Diagnosen mit `severity="warning"` eine `UserWarning` aus und löst nur bei `severity="error"` einen `AssertionError` aus; `reporter=None` gibt still den `DocReport` zurück. |
 | **`pre_state`** | `WorldState()` | Hydratisiert vor jeder Session definierte Dateien oder Ordner in den Arena-Workspace (z. B. `WorldState(fs={"config.ini": "ReadMe.md"})`). |
@@ -448,7 +448,7 @@ Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb ba
 1. **`DocBlockProtocol` (Ebene 1 – Atomare Struktur-Bausteine):** Erkennt und extrahiert genau einen Markdown-Blocktyp (`MdBlock`) und definiert dessen `role`, `severity` und optionale Block-`rules`.
 2. **`DocRuleProtocol` (Ebene 2 – Inhaltliche Prüfregeln):** Prüft ein extrahiertes `ExtractedExample` samt `actual_output` und liefert eine Sequenz von `DocDiagnostic`-Einträgen zurück.
 3. **`DocPatternProtocol` (Ebene 3 – Sequenz-Muster):** Kombiniert beliebige `pre`-Bausteine, einen `anchor`-Baustein und `post`-Bausteine (Standard-Implementierung: `ExamplePattern`).
-4. **`DocScopeProtocol` (Ebene 4 – Session-Topologie):** Gruppiert die extrahierten Beispiele in Arena-Läufe (`TaggedScope` oder `IsolatedScope`).
+4. **`DocScopeProtocol` (Ebene 4 – Session-Topologie):** Gruppiert die extrahierten Beispiele in Arena-Läufe (Standard: `TaggedScope`).
 
 ### 8.1 Eigene Muster mit vorhandenen Bausteinen komponieren
 
@@ -549,6 +549,6 @@ passed=True | output=42
 
 Neben dem Pattern lassen sich über `scope` und `arena` auch die Ausführungsbedingungen frei anpassen:
 
-* **`IsolatedScope()`:** Ignoriert etwaige `session=`-Tags und erzwingt für jedes einzelne Code-Snippet im Dokument eine eigene, frische Arena. Snippets mit strukturellen Warnungen (`severity="warning"`) werden weiterhin ausgeführt, während strukturelle Fehler (`severity="error"`) vorab herausgefiltert werden.
+* **`TaggedScope()`:** Gruppiert Snippets mit identischem `session=<id>` pro Datei in eine gemeinsame Arena, während ungetaggte Snippets einzeln isoliert werden; strukturelle Warnungen (`severity="warning"`) laufen weiterhin, während ungetaggte Snippets mit strukturellen Fehlern (`severity="error"`) die Arena-Ausführung überspringen.
 * **`pre_state=WorldState(fs={...})`:** Hydratisiert vor jeder Session definierte Konfigurationsdateien oder Testdaten in das Arbeitsverzeichnis der Arena.
 * **`arena=PyVenv(...)`:** Führt alle Dokumentations-Beispiele in einer dedizierten virtuellen Umgebung (inklusive optionaler `decontams`-Import-Sperren oder POSIX-Timeouts) statt im `TempFS` des Host-Interpreters aus.

@@ -8,6 +8,7 @@ from copy import deepcopy
 from multiprocessing.managers import BaseProxy
 from pathlib import Path
 from typing import Any, Callable, List, Union, Set, get_origin, get_args, Optional
+from .arenas._hydration import normalize_fs
 from .multiprocessors import PickleProcessor, LokyProcessor, MultiprocessManager
 from .multiprocessors import _validate_max_workers
 from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation
@@ -547,26 +548,7 @@ class EBT:
     def _normalize_fs(fs_raw: Any, field: str = "fs") -> dict:
         """Normalize filesystem shorthand while rejecting ambiguous basenames."""
         __tracebackhide__ = True
-        if not fs_raw:
-            return {}
-        if isinstance(fs_raw, dict):
-            return fs_raw
-        if isinstance(fs_raw, (set, list, tuple)):
-            return EBT._filesystem_mapping(fs_raw, field)
-        raise ValueError(f"Invalid type for {field}: {type(fs_raw)}")
-
-    @staticmethod
-    def _filesystem_mapping(paths, field: str) -> dict[str, str]:
-        normalized: dict[str, str] = {}
-        for value in paths:
-            path = Path(str(value).rstrip("/"))
-            if path.name in normalized and Path(normalized[path.name]) != path:
-                raise ValueError(
-                    f"STATE-GUARD: {field}: ambiguous destination {path.name!r} for sources "
-                    f"{normalized[path.name]!r} and {str(value)!r}; use an explicit destination-to-source mapping."
-                )
-            normalized.setdefault(path.name, str(value))
-        return normalized
+        return normalize_fs(fs_raw, field)
 
     @staticmethod
     def _normalize_args(args_raw: Any) -> tuple:

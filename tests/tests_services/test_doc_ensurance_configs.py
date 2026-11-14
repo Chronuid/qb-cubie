@@ -169,14 +169,14 @@ def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
     ).run()
 
 
-def test_ebt_spaced_filename_without_slash_falls_back_to_in_memory() -> None:
-    """Flags that a non-existent .md filename with spaces silently passes as IN_MEMORY via expect=False."""
+def test_ebt_spaced_filename_with_md_extension_raises_file_not_found() -> None:
+    """Verifies that a non-existent .md filename with spaces triggers STATE-GUARD FileNotFoundError."""
     EBT(
         target=_run_config_scenario,
         arena=TempFS(),
         pre=WorldState(args=("my guide.md",)),
-        post=WorldState(returns={"passed": True, "session_count": 0, "diagnostics": []}, expect=False),
-        custom_id="doc_config_spaced_filename_in_memory_fallback",
+        post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:")),
+        custom_id="doc_config_spaced_md_filename_raises",
     ).run()
 
 
