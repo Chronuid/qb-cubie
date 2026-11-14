@@ -12,7 +12,7 @@ Cubie bündelt beispielbasierte Verhaltensverträge (`EBT`), isolierte Ausführu
 
 </center>
 
-## 1. Warum wir testen: Vertrauen, Klarheit und orthogonale Schichten
+## 1. Warum wir testen: Klarheit und orthogonale Schichten
 
 Qualitätssicherung ist kein bürokratisches Pflichtprogramm am Ende eines Sprints, sondern das Sicherheitsnetz, das mutiges Refactoring, saubere Architektur-Schnitte und schnelle Iterationen überhaupt erst möglich macht. Wer eine gute Test-Suite besitzt, muss keine Angst vor Änderungen am eigenen Code haben: Jede gebrochene Annahme meldet sich sofort mit Ort, Ursache und Kontext zu Wort.
 
@@ -58,73 +58,81 @@ Vertrag erfüllt: True | Geprüfte Paare: 4
 
 ## 2. Die gefährlichste Falle der Qualitätssicherung: Charakterisierung ( $Q_{\text{Ist}}$ ) vs. Spezifikation ( $Q_{\text{Soll}}$ )
 
-Eine der wichtigsten Erfahrungen aus der praktischen Arbeit mit Test-Suiten – egal ob man Tests von Hand schreibt oder explorative Analysen durchführt – betrifft den Unterschied zwischen **Beobachtung ( $Q_{\text{Ist}}$ )** und **Gesetz ( $Q_{\text{Soll}}$ )**.
+Eine der wichtigsten Erfahrungen aus der praktischen Arbeit mit Test-Suiten – gerade nach explorativen Analysen – betrifft den Unterschied zwischen **Beobachtung ( $Q_{\text{Ist}}$ )** und **Gesetz ( $Q_{\text{Soll}}$ )** sowie den Grundsatz: **Ein einmal richtig eingestellter Prüffall wird nicht mehr manipuliert.**
 
-Wenn wir bestehenden Code auf überraschende Randfälle abklopfen (etwa mit einem kurzen Kommandozeilen-Snippet), beobachten wir zunächst das tatsächliche Ist-Verhalten des Systems. Enthält das System in einem Randfall einen Bug und wir übernehmen dieses beobachtete Verhalten unreflektiert als erwarteten `post`-Zustand in unseren Test, passiert etwas Fatales:
+Wenn wir bestehenden Code explorativ auf Randfälle abklopfen, beobachten wir zunächst das tatsächliche Ist-Verhalten des Systems. Übernimmt man dieses beobachtete Verhalten in die Test-Suite, obwohl es sich um einen Bug handelt, entsteht ein **Fehler in der Test-Suite selbst**: Weil `WorldState` standardmäßig `expect=True` setzt, wird das beobachtete Fehlersymptom fälschlicherweise als erwünschter Zustand deklariert.
 
-* **Der Bug wird zum Gesetz erhoben:** Die Test-Suite leuchtet komplett grün (`PASSED`), obwohl der Fehler mitten im System steckt.
-* **Reparaturen brechen den Test:** Sobald jemand den Bug später behebt, schlägt der Test fehl, weil er das kaputte Verhalten verteidigt.
+Die Folgen eines solchen Fehlers in der Test-Suite sind gravierend:
 
-### Die Lösung: Vertrags-Inversion mit `expect=False`
+* **Falscher Erfolg (False Positive):** Die Test-Suite leuchtet komplett grün (`PASSED`), obwohl der Defekt mitten im System steckt.
+* **Blockierte Reparatur:** Sobald der Bug im Produktionscode behoben wird, schlägt der fehlerhaft eingestellte Test rot fehl, weil er den Bug verteidigt.
 
-In Cubie besitzt jeder `WorldState` das Flag `expect` (Standard: `expect=True`). Setzt man in einem `post`-Zustand **`expect=False`**, dreht sich die Bedeutung um: Dieser Zustand beschreibt ein **explizit verbotenes Fehlersymptom**.
+### Die Lösung: Fehlerhafte Tests ohne Szenario-Umbau über `expect=False` umdrehen
 
-Damit lässt sich ein beobachteter Bug eins zu eins in den Test übernehmen und mit `expect=False` invertieren:
+Bemerkt man einen solchen Fehler in der Test-Suite, muss **weder das Szenario (`pre`, `target`) noch das aufgezeichnete Beobachtungsmuster (`returns` / `raises` im `post`) umgeschrieben werden**. Es reicht vollkommen aus, an dem bestehenden `post`-`WorldState` das Flag **`expect=False`** zu setzen:
 
-1. **In der Red-Phase (Bug ist noch im Code):** Das Zielobjekt liefert genau das verbotene Symptom. Da `expect=False` verletzt wird, meldet `EBT` sofort `Validation: Matched` auf dem verbotenen Zustand und bricht den Testlauf rot ab (`evaluation=False` bzw. `AssertionError`).
-2. **In der Green-Phase (Bug ist behoben):** Sobald die Implementierung repariert ist, tritt das verbotene Symptom nicht mehr auf. Derselbe `expect=False`-Zustand bleibt als dauerhafte Regressions-Schranke im Test stehen und wird um den positiven Soll-Zustand (`expect=True`) ergänzt.
+1. **Korrektur der Test-Suite (nur `expect=False` setzen):** Das aufgezeichnete Szenario bleibt unverändert stehen, wird aber durch `expect=False` als verbotenes Fehlersymptom markiert. Sofort schlägt der Prüffall gegen den noch fehlerhaften Code zuverlässig rot an (`evaluation=False` / `Validation: Matched` auf dem verbotenen Zustand).
+2. **Unveränderter Prüffall bis zur Green-Phase:** Sobald der Prüffall auf diese Weise richtig eingestellt ist, wird er **nicht mehr angefasst**. Repariert man nun ausschließlich den Produktionscode, läuft exakt derselbe, unmanipulierte Prüffall grün durch (`evaluation=True`) und bleibt dauerhaft als Regressions-Schranke bestehen.
 
-Wir demonstrieren diesen Zyklus in einer zweistufigen Session. Im ersten Schritt entlarven wir eine fehlerhafte Funktion `normalize_tag`, die durch den unvorsichtigen Einsatz von `.strip("v_ ")` auch das `'v'` am Anfang des Wortes `'version'` abschneidet, mithilfe von `expect=False`:
+Wir demonstrieren dieses Prinzip in einer zweistufigen Session. Im ersten Schritt sehen wir ein Szenario für `normalize_tag`, bei dem `.strip("v_ ")` fälschlicherweise auch das `'v'` von `'version'` abschneidet. Wurde das beobachtete Ergebnis `"ersion"` versehentlich mit `expect=True` in die Test-Suite aufgenommen, meldet der Test fälschlich `True`. Ohne das Szenario oder den Rückgabewert `"ersion"` zu ändern, drehen wir lediglich das Flag auf `expect=False` um:
 
 ```python session=tgd_inversion
 from qb_cubie import EBT, WorldState
 
 
-def normalize_tag_buggy(raw: str) -> str:
+def normalize_tag(raw: str) -> str:
     return raw.strip("v_ ")
 
 
-red_trace = EBT(
-    target=normalize_tag_buggy,
-    pre=WorldState(args=("v_version",)),
-    post=WorldState(returns="ersion", expect=False),
+pre_case = WorldState(args=("v_version",))
+false_pass = EBT(
+    target=normalize_tag,
+    pre=pre_case,
+    post=WorldState(returns="ersion", expect=True),
     reporter=None,
 ).run()
-print(f"Red-Phase (Bug aktiv): evaluation={red_trace.evaluation}")
+post_case = WorldState(returns="ersion", expect=False)
+red_trace = EBT(
+    target=normalize_tag,
+    pre=pre_case,
+    post=post_case,
+    reporter=None,
+).run()
+print(
+    f"Fehl-Test (expect=True): {false_pass.evaluation} | "
+    f"Invertiert (expect=False): {red_trace.evaluation}"
+)
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Red-Phase (Bug aktiv): evaluation=False
+Fehl-Test (expect=True): True | Invertiert (expect=False): False
 ```
 </details>
 
-Im zweiten Schritt derselben Session ersetzen wir `.strip("v_ ")` durch `.strip().removeprefix("v_")` und sichern die Funktion gleichzeitig positiv (`expect=True`) wie negativ (`expect=False`) ab:
+Im zweiten Schritt derselben Session lassen wir den richtig eingestellten Prüffall (`pre_case` und `post_case`) **vollständig unangetastet** und korrigieren ausschließlich die Implementierung von `normalize_tag`:
 
 ```python session=tgd_inversion
-def normalize_tag_fixed(raw: str) -> str:
+def normalize_tag(raw: str) -> str:
     return raw.strip().removeprefix("v_")
 
 
 green_trace = EBT(
-    target=normalize_tag_fixed,
-    pre=WorldState(args=("v_version",)),
-    post=[
-        WorldState(returns="version", expect=True),
-        WorldState(returns="ersion", expect=False),
-    ],
+    target=normalize_tag,
+    pre=pre_case,
+    post=post_case,
     reporter=None,
 ).run()
-print(f"Green-Phase (Bug behoben): evaluation={green_trace.evaluation}")
+print(f"Unveränderter Prüffall nach Code-Fix: evaluation={green_trace.evaluation}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Green-Phase (Bug behoben): evaluation=True
+Unveränderter Prüffall nach Code-Fix: evaluation=True
 ```
 </details>
 
@@ -146,8 +154,8 @@ Zwanzig fast identische Happy-Path-Werte erhöhen die Laufzeit, aber nicht die A
 * **Exakte Schwellenwerte (Off-by-One):** Wenn eine Grenze bei $20$ Zeichen oder $30$ Zeilen liegt, prüfe gezielt $19$ vs. $20$ bzw. $30$ vs. $31$.
 * **Explizite `STATE-GUARD`s:** Ungültige Typen, leere Strings oder Werte außerhalb des Definitionsbereichs müssen frühzeitig mit einer klaren Fehlermeldung abgewiesen werden.
 
-### Schritt 4: Red-Phase vor dem Fix erzwingen
-Jeder gefundene Bug wird zuerst als fehlschlagender `EBT`-Vertrag (über das Soll-Gesetz $Q_{\text{Soll}}$ oder invertiert über `expect=False`) in der Test-Suite verankert. Erst wenn der Test sichtbar rot fehlschlägt, ist bewiesen, dass der Test den Fehler tatsächlich detektiert.
+### Schritt 4: Prüffälle einmalig fixieren & Red-Phase prüfen
+Jeder Prüffall wird vor der Code-Änderung einmalig sauber eingestellt – entweder als positives Soll-Gesetz (`expect=True`) oder, falls ein exploratives Szenario das Fehlersymptom selbst abbildet, durch Setzen von `expect=False`. Sobald dieser Prüffall steht und gegen den ungefixten Code rot anschlägt, wird der Test selbst nicht mehr verändert.
 
 ### Schritt 5: Orthogonale Reparatur & Stil-Verifikation
 Bei der anschließenden Reparatur im Quellcode gilt das Gesetz der Orthogonalität: Ein struktureller Fehler darf statische Regeln nicht blind abschalten, und eine benutzerdefinierte Regel darf wichtige Standard-Checks nicht unbemerkt verdrängen. Den Abschluss bildet der Lauf über alle Ebenen (`pytest`, `AstLinter`/`CstLinter` und `DocEnsurance`).
@@ -323,7 +331,7 @@ Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit
 
 Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit mit Cubie immer wieder auszahlen:
 
-1. **Vertraue keinem Test, den du nicht hast scheitern sehen:** Wenn du einen neuen Vertrag schreibst, provoziere kurz den Bruch (oder nutze `expect=False` auf dem Ist-Symptom), um sicherzugehen, dass der Test bei einem Fehler auch wirklich anschlägt.
+1. **Einmal richtig eingestellte Prüffälle sind unantastbar:** Ein korrekt spezifizierter Prüffall wird zwischen Red- und Green-Phase niemals umgebaut. Nur wenn in der Test-Suite selbst ein Fehler auffällt – etwa weil ein explorativer Test ein Fehlersymptom versehentlich als gültig (`expect=True`) aufgezeichnet hat –, dreht man die Erwartung an diesem `WorldState` über `expect=False` um, ohne das Szenario selbst anzufassen.
 2. **Halte Code-Beispiele in der Doku klein und fokussiert:** Wenn ein Beispiel im Guide mehr als 30 Zeilen benötigt (`DOC-HIGH-COMPLEXITY`), teile es über `session=<id>` in logische Zwischenschritte mit erklärendem Text auf und gib in jedem Schritt ein kurzes, sprechendes Zwischenergebnis mit `print(...)` aus.
 3. **Nutze Warnungen als konstruktiven Kompass – aber verwechsle sie nicht mit harten Gates:** Mit `severity="warning"` lassen sich didaktische Hinweise (wie `NoOutput`, `LargeOutput` oder `RawTraceback` in `CUBIE_DOC_RULES`) sanft einführen, ohne sofort den Build zu brechen. Bedenke dabei jedoch: Eine `UserWarning` lässt `pytest` weiterhin grün (`Exit-Code 0`) und fällt in Kurz- oder IDE-Ausgaben leicht durchs Raster. Regeln, die verlässlich blockieren müssen (wie `HighComplexity` ab $> 30$ Zeilen), gehören deshalb explizit auf `severity="error"` – und genau dieser Unterschied sollte durch einen eigenen Blackbox-`EBT`-Test in der Red-Phase abgesichert werden (`expect=False` auf dem stillen Durchlauf).
 4. **Schreibe Fehlermeldungen für dein zukünftiges Ich:** Ein `STATE-GUARD` mit einer klaren Aussage, *welcher* Parameter *warum* abgewiesen wurde und *was* stattdessen erwartet wird, spart beim Debugging Stunden an Suchzeit.
