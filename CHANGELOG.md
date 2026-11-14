@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [0.0.5] - 2026-11-14
+
+### Neu
+- **Konfigurierbares TTL-Timeout für `DocEnsurance`:** Neuer Keyword-Parameter `timeout: float | None = 10.0` inklusive `STATE-GUARD`-Validierung (`TypeError`/`ValueError` für `bool`, nicht-numerische Typen, `<= 0`, `inf` und `NaN`) und automatischer Übertragung auf unkonfigurierte Arenen unter Vorrang expliziter Arena-Timeouts.
+- **Erweiterte `DocEnsurance`-Vertrags- & Isomorphie-Tests:** Neue EBT-Testsuiten [test_doc_ensurance_edge_cases.py](./tests/tests_services/test_doc_ensurance_edge_cases.py) (10 Äquivalenzklassen von Fence-Varianten über `SystemExit` bis `PyVenv`/`CloudpickleCodec`) und [test_doc_ensurance_isomorphism.py](./tests/tests_services/test_doc_ensurance_isomorphism.py) (kommutativer Isomorphie-Abgleich zwischen Markdown-Fences und Python-Docstring-Modulen) sowie TTL-Timeout-Tests in [test_doc_ensurance_configs.py](./tests/tests_services/test_doc_ensurance_configs.py).
+
+### Geändert
+- **`DocEnsurance`-Scanner & -Ausführung gehärtet:** Unterstützung von 4+-Backtick-, Tilde- (`~~~`) und eingerückten Fences ohne Beschädigung mehrzeiliger Strings, saubere Abgrenzung von Listen/Tabellen/Blockquotes gegen `Explanation`-Absätze, isolierte Behandlung ungeschlossener `<details>`-Blöcke, Wortgrenzen-Tag-Parsing (`session=`/`raises=`), MRO-Exception-Prüfung inklusive `SystemExit` und leerer Fehlermeldungen, Erhalt geteilter `TaggedScope`-Sessions bei nicht-fatalen Diagnosen (`DOC-POST`, `DOC-OUT`, `DOC-RAISE`), Filterung defekter Schritte in `IsolatedScope`, präzisierte Pfad-vs.-In-Memory-Heuristik, normalisierte `excludes`-Pfade und vollständiger Zustandsreset bei Instanz-Wiederverwendung.
+- **Service-Dokumentation aktualisiert:** [GUIDE_DocEnsurance.md](./docs/services/GUIDE_DocEnsurance.md) um API-Quick-Lookup, Konfigurationsdetails (Pfad-Guards, Timeout-Vorrang, `PyVenv` mit `CloudpickleCodec`, `DocReport`) und das `timeout`-Beispiel erweitert.
+- **Styleguide-Modulprüfung reaktiviert:** `test_module_size` in [test_styleguide.py](./tests/test_styleguide.py) wieder aktiviert (`MODULE_LIMIT = 777`).
+- **Release-Workflow automatisiert:** `.github/workflows/release.yml` erstellt GitHub-Releases automatisiert aus den passenden `CHANGELOG.md`-Abschnitten und veröffentlicht die verifizierten Distributionen über Trusted Publishing auf PyPI.
+
 ## [0.0.4] - 2026-11-14
 
 ### Neu

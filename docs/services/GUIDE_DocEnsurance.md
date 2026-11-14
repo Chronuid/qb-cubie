@@ -9,15 +9,21 @@ Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte od
 > * **Kein Ersatz für systematische Tests:** Ein einzelnes Positiv-Beispiel im Guide beweist nur diesen einen konkreten Aufruf, ersetzt aber keine Äquivalenzklassen-, Randfall- und Negativ-Prüfungen über `EBT`-Verträge in der Test-Suite.
 > * **Keine semantische Prüfung des Fließtextes:** `DocEnsurance` prüft, *ob* eine Erklärung vor dem Code-Block existiert, kann aber nicht bewerten, ob die Aussagen im Text fachlich vollständig oder zutreffend sind.
 
-In einer bestehenden Test-Suite (wie `tests/test_styleguide.py`) genügt ein einziger Aufruf, um sämtliche Markdown-Dokumente des Projekts automatisch zu verifizieren:
+## 1. Schnelleinstieg (Minimal-Setup in der Test-Suite)
+
+In der Praxis reicht ein einziger Aufruf in der Test-Suite (wie in `tests/test_styleguide.py`), um das gesamte Projekt abzusichern. Da `DocEnsurance` standardmäßig das Projekt-Root ab `pyproject.toml` scannt und den `PytestReporter` nutzt, werden nur noch Verzeichnisse oder Arbeitsdokumente in `excludes` angegeben, die nicht dem Doku-Standard unterliegen:
 
 ```python
+import pytest
 from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+
+
+@pytest.mark.slow
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
     DocEnsurance(
         pattern=CUBIE_DOC_STYLE,
-        excludes=("experiments", "docs_tmp", "GUTACHTEN.md"),
+        excludes=("experiments", "GUTACHTEN.md"),
     ).run()
 ```
 
@@ -25,11 +31,78 @@ def test_docs_code_examples() -> None:
 <summary>Ergebnis</summary>
 
 ```text
-
 ```
 </details>
 
-## 1. Grundprinzip: Das Anker-Modell $\{P\}\ S\ \{Q\}$
+---
+
+## 2. API-Quick-Lookup (`DocEnsurance`)
+
+Die Signatur von `DocEnsurance` bündelt Ziel-Auflösung, strukturelles Pattern-Matching, Ausführungs-Arena und Prozess-Limits in einer flachen Konfiguration:
+
+```text
+DocEnsurance(
+    target: str | Path | None = None,
+    pattern: DocPatternProtocol | None = None,
+    scope: DocScopeProtocol | None = None,
+    arena: Arena | None = None,
+    reporter: Reporter[DocReport] | None = PytestReporter(),
+    pre_state: WorldState | None = None,
+    excludes: Sequence[str] | None = None,
+    *,
+    timeout: float | None = 10.0,
+)
+```
+
+| Parameter | Standardwert | Funktion & Verhalten |
+| :--- | :--- | :--- |
+| **`target`** | `None` (Projekt-Root) | Bestimmt die zu prüfende Quelle: `None` scannt ab Projekt-Root (`pyproject.toml` / `CWD`); akzeptiert zudem Ordnerpfade (`"docs"`), Einzeldateien (`"docs/GUIDE.md"`) oder mehrzeilige In-Memory-Markdown-Strings. |
+| **`pattern`** | `CUBIE_DOC_STYLE` | Legt das strukturelle Muster um jeden Code-Anker fest (`Explanation` $\to$ `CodeSnippet` $\to$ `CollapsibleResult`). |
+| **`scope`** | `TaggedScope()` | Steuert die Arena-Gruppierung: `TaggedScope()` gruppiert Snippets mit identischem `session=<id>` pro Datei; `IsolatedScope()` zwingt jedes Snippet in eine eigene Arena. |
+| **`arena`** | `TempFS(timeout=10.0)` | Ausführungs-Umgebung für jede Session (`TempFS` oder `PyVenv`). Nach jeder Session wird der Workspace vollständig abgeräumt (`teardown`). |
+| **`reporter`** | `PytestReporter()` | Konsumiert den erzeugten `DocReport`. `PytestReporter()` löst bei Befunden einen `AssertionError` aus; `reporter=None` unterdrückt Exceptions und gibt nur den `DocReport` zurück. |
+| **`pre_state`** | `WorldState()` | Hydratisiert vor jeder Session definierte Dateien oder Ordner in den Arena-Workspace (z. B. `WorldState(fs={"config.ini": " ReadMe.md"})`). |
+| **`excludes`** | `DEFAULT_EXCLUDES` | Ergänzt die Standard-Ausschlüsse (`.venv`, `__pycache__`, `.git`) um Ordnernamen (`"experiments"`), Dateinamen (`"GUTACHTEN.md"`) oder relative Teilpfade (`"docs/drafts"`). |
+| **`timeout`** | `10.0` (Keyword-only) | Maximale Laufzeit (TTL) in Sekunden pro Session auf POSIX-Systemen; verhindert Endlosschleifen oder blockierende `input()`-Aufrufe. `None` deaktiviert das Limit. |
+
+### Wichtige Konfigurations-Details für die Praxis
+
+* **Gezielte Einzel- und Ordnerprüfung (`target` & `excludes`):**
+  Nicht existierende Datei- oder Ordnerpfade (auch als String wie `target="docs_typo"`) werden sofort vor dem Arena-Start durch einen `FileNotFoundError`-`STATE-GUARD` abgefangen. Sind in einem Zielverzeichnis durch `excludes` sämtliche `.md`-Dateien ausgeschlossen, greift ein `ValueError`-`STATE-GUARD`.
+* **TTL-Timeout-Vorrang (`timeout` vs. `arena.timeout`):**
+  Übergibt man eine unkonfigurierte Arena (z. B. `arena=TempFS()`), übernimmt diese automatisch das `timeout` von `DocEnsurance` (Standard: `10.0s`). Besitzt die übergebene Arena bereits ein explizites Limit (z. B. `arena=TempFS(timeout=0.5)`), hat das spezifische Arena-Limit immer Vorrang vor dem Service-Parameter.
+* **Einsatz von `PyVenv` als Arena:**
+  Da `PyVenv` standardmäßig den `MSGspecCodec` nutzt (der im isolierten Venv das Modul `qb_cubie` importieren muss), empfiehlt sich für schlanke Test-Venvs ohne vorinstalliertes `qb-cubie` die Initialisierung mit dem `CloudpickleCodec` (`ArenaBuilder(path).build(codec=CloudpickleCodec())`).
+* **Programmatische Auswertung über `DocReport` (`reporter=None`):**
+  Für eigene Analysen oder gezielte EBT-Tests lässt sich der Reporter deaktivieren, um den zurückgegebenen `DocReport` (`target`, `passed`, `sessions`, `diagnostics`) direkt zu inspizieren.
+
+Das folgende Beispiel prüft einen mehrzeiligen In-Memory-Markdown-String mit einem verkürzten TTL-Timeout von `2.0` Sekunden und wertet den `DocReport` direkt ohne Reporter-Assertion aus:
+
+```python
+from qb_cubie.services import DocEnsurance
+
+sample_doc = (
+    "Eine erklärende Einleitung mit mindestens zwanzig Zeichen.\n\n"
+    "```python\n"
+    "print('TTL-Check erfolgreich')\n"
+    "```\n\n"
+    "<details>\n<summary>Ergebnis</summary>\n\n"
+    "```text\nTTL-Check erfolgreich\n```\n</details>"
+)
+
+report = DocEnsurance(target=sample_doc, reporter=None, timeout=2.0).run()
+print(f"Passed: {report.passed} | Outputs: {report.sessions[0].actual_outputs}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Passed: True | Outputs: ('TTL-Check erfolgreich',)
+```
+</details>
+
+## 3. Grundprinzip: Das Anker-Modell $\{P\}\ S\ \{Q\}$
 
 Analog zum Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus `EBT` betrachtet `DocEnsurance` jedes Code-Beispiel in einer Markdown-Datei als dreiteiligen Vertrag rund um einen **Anker-Block**:
 
@@ -59,7 +132,7 @@ Pattern: cubie-doc-style | Pre-Regeln: 1 | Post-Regeln: 1
 ```
 </details>
 
-## 2. Ziel-Auflösung (`target` & `excludes`) und Einzelprüfung
+## 4. Ziel-Auflösung (`target` & `excludes`) und Einzelprüfung
 
 `DocEnsurance` ist so vorkonfiguriert, dass es ohne Boilerplate-Pfade sofort das gesamte Projekt absichert, sich bei Bedarf aber auch gezielt auf einzelne Dateien oder Strings richten lässt:
 
@@ -100,9 +173,9 @@ passed=True, outputs=('42',)
 ```
 </details>
 
-## 3. Fortgeschrittene Markdown-Features
+## 5. Fortgeschrittene Markdown-Features
 
-### 3.1 Geteilter Zustand über `session=<id>`
+### 5.1 Geteilter Zustand über `session=<id>`
 
 Standardmäßig läuft jedes Code-Snippet komplett isoliert in einer eigenen Arena-Session. Oft möchte man in einem Tutorial jedoch ein Szenario Schritt für Schritt aufbauen, dazwischen reguläres Markdown zur Erklärung einfügen und im nächsten Code-Block auf denselben Variablen, Imports und Dateien weiterarbeiten.
 
@@ -149,7 +222,7 @@ Schritt 2: Status=active
 ```
 </details>
 
-### 3.2 Erwartete Exceptions dokumentieren mit `raises=<Exception>`
+### 5.2 Erwartete Exceptions dokumentieren mit `raises=<Exception>`
 
 Gute Dokumentation zeigt nicht nur den Happy Path, sondern auch, wie Schutzmechanismen (wie `STATE-GUARD`s) auf fehlerhafte Eingaben reagieren. Deklariert man `raises=<ExceptionType>` im Code-Fence-Header, erwartet `DocEnsurance` genau diesen Fehlertyp (oder eine Subklasse davon) und vergleicht die formatierte Meldung `"<Typ>: <Nachricht>"` mit dem `<details>`-Block.
 
@@ -169,7 +242,7 @@ ValueError: max_workers must be a positive integer or None
 ```
 </details>
 
-## 4. Diagnose-Codes (`DocDiagnostic`)
+## 6. Diagnose-Codes (`DocDiagnostic`)
 
 Schlägt eine Prüfung fehl, erzeugt `DocEnsurance` präzise `DocDiagnostic`-Einträge mit Dateipfad, Zeilennummer und einem von fünf Regel-Codes:
 
@@ -179,7 +252,7 @@ Schlägt eine Prüfung fehl, erzeugt `DocEnsurance` präzise `DocDiagnostic`-Ein
 * **`DOC-RAISE`:** Ein Snippet mit `raises=<Exception>` hat entweder gar keine oder eine falsche Exception geworfen.
 * **`DOC-OUT`:** Das Snippet lief durch, aber die tatsächliche Ausgabe weicht vom dokumentierten Ergebnis ab.
 
-## 5. Deep-Dive: Eigene Patterns und Protokolle entwickeln
+## 7. Deep-Dive: Eigene Patterns und Protokolle entwickeln
 
 Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb basiert `DocEnsurance` auf einer dreistufigen Protokoll-Architektur aus `qb_cubie.services.protocols`:
 
@@ -187,7 +260,7 @@ Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb ba
 2. **`DocPatternProtocol` (Ebene 2 – Sequenz-Muster):** Kombiniert beliebige `pre`-Bausteine, einen `anchor`-Baustein und `post`-Bausteine (Standard-Implementierung: `ExamplePattern`).
 3. **`DocScopeProtocol` (Ebene 3 – Session-Topologie):** Gruppiert die extrahierten Beispiele in Arena-Läufe (`TaggedScope` oder `IsolatedScope`).
 
-### 5.1 Eigene Muster mit vorhandenen Bausteinen komponieren
+### 7.1 Eigene Muster mit vorhandenen Bausteinen komponieren
 
 Möchte ein Entwicklerteam beispielsweise auf Pflicht-Erklärungen und `<details>`-Tags verzichten und stattdessen direkt unter jedem `python`-Block einen einfachen `text`-Codeblock für den erwarteten Output verlangen, genügt eine neue `ExamplePattern`-Konfiguration:
 
@@ -220,7 +293,7 @@ pattern=minimal-fence-pattern | passed=True | out=minimal-style-ok
 ```
 </details>
 
-### 5.2 Eigene Baustein-Protokolle (`DocBlockProtocol`) schreiben
+### 7.2 Eigene Baustein-Protokolle (`DocBlockProtocol`) schreiben
 
 Der interne Markdown-Scanner zerlegt jedes Dokument in flache `MdBlock(kind, content, line, meta)`-Objekte mit den Grundtypen `"heading"`, `"paragraph"`, `"list"`, `"code"` und `"details"`.
 
@@ -267,7 +340,7 @@ passed=True | output=42
 ```
 </details>
 
-### 5.3 Eigene Gruppierungs-Strategien (`DocScopeProtocol`) und Arenen
+### 7.3 Eigene Gruppierungs-Strategien (`DocScopeProtocol`) und Arenen
 
 Neben dem Pattern lassen sich über `scope` und `arena` auch die Ausführungsbedingungen frei anpassen:
 

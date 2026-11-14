@@ -7,7 +7,7 @@ import tokenize
 import pytest
 
 FUNCTION_LIMIT = 12
-MODULE_LIMIT = 500
+MODULE_LIMIT = 777
 FUNCTIONS = (ast.FunctionDef, ast.AsyncFunctionDef)
 IGNORED = {
     tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE, tokenize.INDENT,
@@ -15,7 +15,6 @@ IGNORED = {
 }
 
 
-@pytest.mark.skip(reason="Module size limit temporarily suspended at the user's request.")
 def test_module_size(src_files):
     violations = []
     for path in src_files:

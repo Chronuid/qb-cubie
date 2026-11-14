@@ -104,7 +104,7 @@ Die Analysewerkzeuge LibCST, MyPy und Pylint sind über das Extra `linters` erh�
 .venv/bin/python -m pip install -e '.[linters]' pytest
 ```
 
-Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.4-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
+Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.5-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
 
 Veröffentlichte Abhängigkeiten haben Mindestversionen und eine Obergrenze vor der nächsten Hauptversion; bei dem noch mit `0.x` versionierten `msgspec` liegt sie vor der nächsten Nebenversion. Diese Grenzen bilden den vorgesehenen Kompatibilitätsrahmen, keine Zusage, dass jede Kombination geprüft wurde. Die Entwicklungsgruppe `dev` enthält pytest, Hypothesis, pytest-xdist, Ruff und festgelegte Analysewerkzeuge. Sie wird nicht als Paket-Extra veröffentlicht. `uv.lock` hält die genauen direkten und transitiven Versionen für Entwicklung und Repository-CI fest; konsumierende Projekte lösen innerhalb der veröffentlichten Bereiche selbst auf.
 

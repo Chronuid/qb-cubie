@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
-ARG CUBIE_WHEEL=dist/qb_cubie-0.0.4-py3-none-any.whl
+ARG CUBIE_WHEEL=dist/qb_cubie-0.0.5-py3-none-any.whl
 COPY ${CUBIE_WHEEL} /wheels/
 RUN pip install --no-cache-dir /wheels/*.whl
 COPY repair-config.json /adapter/config.json

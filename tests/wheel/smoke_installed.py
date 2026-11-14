@@ -160,6 +160,6 @@ def test_doc_ensurance_installed_service(tmp_path):
         "<details>\n<summary>Ergebnis</summary>\n\n```text\n42\n```\n</details>\n",
         encoding="utf-8",
     )
-    report = DocEnsurance(target=doc, pattern=CUBIE_DOC_STYLE, reporter=None).run()
+    report = DocEnsurance(target=doc, pattern=CUBIE_DOC_STYLE, reporter=None, timeout=2.0).run()
     assert report.passed is True
     assert report.sessions[0].actual_outputs == ("42",)

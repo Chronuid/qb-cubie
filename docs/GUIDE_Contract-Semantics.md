@@ -4,7 +4,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.4, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
+Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.5, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
 
 ---
 
