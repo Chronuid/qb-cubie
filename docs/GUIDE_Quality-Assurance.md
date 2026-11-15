@@ -29,7 +29,43 @@ Damit dieses Sicherheitsnetz im Alltag trägt, verfolgt Cubie zwei Grundprinzipi
 | **4. Lebende Dokumentation** | `DocEnsurance` + `CUBIE_DOC_RULES` | Laufen alle Code-Beispiele in den Markdown-Guides tatsächlich durch und stimmen ihre dokumentierten Ausgaben? | Veraltete Signaturen in Tutorials, stille Doku-Abweichungen |
 | **5. Semantisches Urteil** | `RBT` (`HeadlessReviewer`, `HumanReviewer`) | Erfüllt das Artefakt qualitative, fachliche oder gestalterische Kriterien, die sich nicht rein syntaktisch prüfen lassen? | Unverständliche Fehlermeldungen, unklare API-Ergonomie |
 
-Das folgende Einstiegsbeispiel zeigt das Grundmuster eines deklarativen `EBT`-Vertrags anhand der Standardfunktion `divmod` für zwei Eingabepaare:
+### Best Practice: Eindeutige Zuordnung konkreter Wertepaare
+
+Wenn konkrete Ein- und Ausgabepaare geprüft werden, erhält jedes Wertepaar einen eigenen `EBT`-Vertrag (in einer Test-Suite typischerweise über `@pytest.mark.parametrize`), während mehrere `pre`-Zustände innerhalb derselben `EBT`-Instanz nur dann verwendet werden, wenn alle Eingänge dasselbe Zielmuster in `post` teilen.
+
+Das folgende Beispiel zeigt die saubere 1:1-Zuordnung anhand der Standardfunktion `divmod` für zwei getrennte Wertepaare, sodass exakt zwei `(pre, post)`-Paare ausgewertet werden:
+
+```python
+from qb_cubie import EBT, WorldState
+
+cases = [((17, 5), (3, 2)), ((20, 4), (5, 0))]
+traces = [
+    EBT(
+        target=divmod,
+        pre=WorldState(args=args),
+        post=WorldState(returns=expected),
+        reporter=None,
+    ).run()
+    for args, expected in cases
+]
+passed = all(t.evaluation for t in traces)
+checked = sum(len(t.traces) for t in traces)
+print(f"Vertrag erfüllt: {passed} | Geprüfte Paare: {checked}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Vertrag erfüllt: True | Geprüfte Paare: 2
+```
+</details>
+
+### Anti-Pattern: Unbedachte Quantoren-Kombination (Unterspezifikation)
+
+Ein häufiger Denkfehler beim Einstieg besteht darin, mehrere unterschiedliche Eingaben in `pre` und deren jeweilige Einzel-Erwartungen gemeinsam in `post` innerhalb einer einzigen `EBT`-Instanz zu übergeben, in der Annahme, `EBT` würde `pre[i]` paarweise nach Listenposition mit `post[i]` vergleichen.
+
+Das folgende Negativbeispiel zeigt dieses Anti-Pattern, bei dem aus zwei Eingaben und zwei Zielzuständen vier geprüfte `(pre, post)`-Paare entstehen:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -53,6 +89,14 @@ print(f"Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.trace
 Vertrag erfüllt: True | Geprüfte Paare: 4
 ```
 </details>
+
+Warum dieses Muster ein **Anti-Pattern** ist, ergibt sich direkt aus der Quantoren-Semantik von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
+
+* **Kartesisches Produkt statt Index-Paarung ( $\forall p \in P \; \exists q \in Q^+$ ):** `pre` wirkt als Allquantor ( $\forall p \in P$ ) und die positiven Zustände in `post` wirken als Existenzquantor ( $\exists q \in Q^+$ ). Jeder Eingang aus `pre` wird gegen die **gesamte** Zielmenge `post` geprüft. Bei $|P| = 2$ Eingängen und $|Q^+| = 2$ positiven Zielzuständen wertet `EBT` das kartesische Produkt $|P| \times |Q^+| = 2 \times 2 = 4$ aus (`len(trace.traces) == 4`).
+* **Aufgeweichter Vertrag (Unterspezifikation):** Da jeder Eingang lediglich *irgendein* positives Muster aus `post` erfüllen muss, verwässert die Oder-Verknüpfung in `post` die Spezifikation. Selbst eine fehlerhafte Funktion, die die Ergebnisse vertauscht (`(17, 5) -> (5, 0)` und `(20, 4) -> (3, 2)`), oder eine konstante Dummy-Implementierung `lambda a, b: (3, 2)`, die für beide Eingaben stur `(3, 2)` zurückgibt, würde diesen Vertrag mit `True` bestehen.
+* **Faustregel für `pre`- und `post`-Listen:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingänge dieselbe Zielbedingung in `post` gilt (Äquivalenzklasse). Mehrere positive `post`-Einträge sind nur dann sinnvoll, wenn für *denselben* Eingang echte fachliche Alternativen (Nichtdeterminismus oder legitime Ergebnisvarianten) zugelassen werden sollen.
+
+---
 
 ---
 
@@ -105,7 +149,7 @@ Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit
 
 ---
 
-## 5. Herzliche Empfehlungen für den QS-Alltag
+## 5. Herzliche Empfehlungen für den QA-Alltag
 
 Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit mit Cubie immer wieder auszahlen:
 
