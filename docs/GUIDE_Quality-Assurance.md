@@ -29,28 +29,36 @@ Damit dieses Sicherheitsnetz im Alltag trägt, verfolgt Cubie zwei Grundprinzipi
 | **4. Lebende Dokumentation** | `DocEnsurance` + `CUBIE_DOC_RULES` | Laufen alle Code-Beispiele in den Markdown-Guides tatsächlich durch und stimmen ihre dokumentierten Ausgaben? | Veraltete Signaturen in Tutorials, stille Doku-Abweichungen |
 | **5. Semantisches Urteil** | `RBT` (`HeadlessReviewer`, `HumanReviewer`) | Erfüllt das Artefakt qualitative, fachliche oder gestalterische Kriterien, die sich nicht rein syntaktisch prüfen lassen? | Unverständliche Fehlermeldungen, unklare API-Ergonomie |
 
-### Best Practice: Eindeutige Zuordnung konkreter Wertepaare
+### Best Practice: Ein Vertrag pro Wertepaar in klaren Test-Funktionen
 
-Wenn konkrete Ein- und Ausgabepaare geprüft werden, erhält jedes Wertepaar einen eigenen `EBT`-Vertrag (in einer Test-Suite typischerweise über `@pytest.mark.parametrize`), während mehrere `pre`-Zustände innerhalb derselben `EBT`-Instanz nur dann verwendet werden, wenn alle Eingänge dasselbe Zielmuster in `post` teilen.
-
-Das folgende Beispiel zeigt die saubere 1:1-Zuordnung anhand der Standardfunktion `divmod` für zwei getrennte Wertepaare, sodass exakt zwei `(pre, post)`-Paare ausgewertet werden:
+Am eindeutigsten liest sich ein Test, wenn jedes konkrete Ein-/Ausgabepaar (hier `3 -> 6` und `5 -> 10` für eine einfache Verdopplungsfunktion) einen eigenen `EBT`-Vertrag in einer eigenen Test-Funktion erhält – so wird pro Test exakt ein Paar (insgesamt 2 Paare) geprüft:
 
 ```python
 from qb_cubie import EBT, WorldState
 
-cases = [((17, 5), (3, 2)), ((20, 4), (5, 0))]
-traces = [
+
+def double(x: int) -> int:
+    return x * 2
+
+
+def test_double_three():
     EBT(
-        target=divmod,
-        pre=WorldState(args=args),
-        post=WorldState(returns=expected),
-        reporter=None,
+        target=double,
+        pre=WorldState(args=(3,)),
+        post=WorldState(returns=6),
     ).run()
-    for args, expected in cases
-]
-passed = all(t.evaluation for t in traces)
-checked = sum(len(t.traces) for t in traces)
-print(f"Vertrag erfüllt: {passed} | Geprüfte Paare: {checked}")
+
+
+def test_double_five():
+    EBT(
+        target=double,
+        pre=WorldState(args=(5,)),
+        post=WorldState(returns=10),
+    ).run()
+
+
+t1, t2 = test_double_three(), test_double_five()
+print(f"Vertrag erfüllt: {t1.evaluation and t2.evaluation} | Geprüfte Paare: {len(t1.traces) + len(t2.traces)}")
 ```
 
 <details>
@@ -61,24 +69,63 @@ Vertrag erfüllt: True | Geprüfte Paare: 2
 ```
 </details>
 
-### Anti-Pattern: Unbedachte Quantoren-Kombination (Unterspezifikation)
+Möchte man für mehrere zusammengehörige Wertepaare dichteren Code schreiben, ohne die Test-Funktion zu wiederholen, empfiehlt sich `@pytest.mark.parametrize`:
 
-Ein häufiger Denkfehler beim Einstieg besteht darin, mehrere unterschiedliche Eingaben in `pre` und deren jeweilige Einzel-Erwartungen gemeinsam in `post` innerhalb einer einzigen `EBT`-Instanz zu übergeben, in der Annahme, `EBT` würde `pre[i]` paarweise nach Listenposition mit `post[i]` vergleichen.
+```python
+import pytest
+from qb_cubie import EBT, WorldState
 
-Das folgende Negativbeispiel zeigt dieses Anti-Pattern, bei dem aus zwei Eingaben und zwei Zielzuständen vier geprüfte `(pre, post)`-Paare entstehen:
+
+def double(x: int) -> int:
+    return x * 2
+
+
+@pytest.mark.parametrize("value, expected", [(3, 6), (5, 10)])
+def test_double(value: int, expected: int):
+    return EBT(
+        target=double,
+        pre=WorldState(args=(value,)),
+        post=WorldState(returns=expected),
+    ).run()
+
+
+traces = [test_double(v, exp) for v, exp in [(3, 6), (5, 10)]]
+print(f"Vertrag erfüllt: {all(t.evaluation for t in traces)} | Geprüfte Paare: {sum(len(t.traces) for t in traces)}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Vertrag erfüllt: True | Geprüfte Paare: 2
+```
+</details>
+
+### Anti-Pattern: Gedankenlose Quantoren-Kombination (Unterspezifikation)
+
+Ein häufiger Fehler besteht darin, mehrere unterschiedliche Eingaben in `pre` und ihre jeweiligen Einzel-Ergebnisse gemeinsam in `post` innerhalb eines einzigen `EBT`-Aufrufs zu übergeben – in der Annahme, `EBT` würde `pre[0]` nur mit `post[0]` (`3 -> 6`) und `pre[1]` nur mit `post[1]` (`5 -> 10`) vergleichen:
 
 ```python
 from qb_cubie import EBT, WorldState
 
+
+def double(x: int) -> int:
+    return x * 2
+
+
 trace = EBT(
-    target=divmod,
-    pre=[WorldState(args=(17, 5)), WorldState(args=(20, 4))],
+    target=double,
+    pre=[
+        WorldState(args=(3,)), 
+        WorldState(args=(5,))
+    ],
     post=[
-        WorldState(returns=(3, 2)),
-        WorldState(returns=(5, 0)),
+        WorldState(returns=6),
+        WorldState(returns=10),
     ],
     reporter=None,
 ).run()
+
 print(f"Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
 ```
 
@@ -90,11 +137,11 @@ Vertrag erfüllt: True | Geprüfte Paare: 4
 ```
 </details>
 
-Warum dieses Muster ein **Anti-Pattern** ist, ergibt sich direkt aus der Quantoren-Semantik von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
+Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern** ist, folgt direkt aus den Quantoren von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
 
-* **Kartesisches Produkt statt Index-Paarung ( $\forall p \in P \; \exists q \in Q^+$ ):** `pre` wirkt als Allquantor ( $\forall p \in P$ ) und die positiven Zustände in `post` wirken als Existenzquantor ( $\exists q \in Q^+$ ). Jeder Eingang aus `pre` wird gegen die **gesamte** Zielmenge `post` geprüft. Bei $|P| = 2$ Eingängen und $|Q^+| = 2$ positiven Zielzuständen wertet `EBT` das kartesische Produkt $|P| \times |Q^+| = 2 \times 2 = 4$ aus (`len(trace.traces) == 4`).
-* **Aufgeweichter Vertrag (Unterspezifikation):** Da jeder Eingang lediglich *irgendein* positives Muster aus `post` erfüllen muss, verwässert die Oder-Verknüpfung in `post` die Spezifikation. Selbst eine fehlerhafte Funktion, die die Ergebnisse vertauscht (`(17, 5) -> (5, 0)` und `(20, 4) -> (3, 2)`), oder eine konstante Dummy-Implementierung `lambda a, b: (3, 2)`, die für beide Eingaben stur `(3, 2)` zurückgibt, würde diesen Vertrag mit `True` bestehen.
-* **Faustregel für `pre`- und `post`-Listen:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingänge dieselbe Zielbedingung in `post` gilt (Äquivalenzklasse). Mehrere positive `post`-Einträge sind nur dann sinnvoll, wenn für *denselben* Eingang echte fachliche Alternativen (Nichtdeterminismus oder legitime Ergebnisvarianten) zugelassen werden sollen.
+* **Jeder gegen Jeden statt Paar-Zuordnung ( $\forall p \in P \; \exists q \in Q^+$ ):** `pre` wirkt als Allquantor (*für jede Eingabe*) und die positiven Zustände in `post` wirken als Existenzquantor (*muss mindestens eines der Ergebnisse aus `post` passen*). `EBT` prüft also sowohl für `3` als auch für `5` jeweils gegen `6` **und** gegen `10` ( $2 \times 2 = 4$ geprüfte Paare in `trace.traces`).
+* **Gefährliche Unterspezifikation:** Da für jede Eingabe nur *irgendein* Wert aus `{6, 10}` herauskommen muss, geht die feste Zuordnung verloren. Selbst eine kaputte Funktion, die immer stur `6` zurückgibt (`return 6`) oder die Ergebnisse vertauscht (`3 -> 10` und `5 -> 6`), würde diesen Test grün bestehen.
+* **Faustregel für Listen in `pre` und `post`:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingaben **dasselbe** Zielmuster in `post` gilt (z. B. wenn `normalize(" TEXT ")` und `normalize("TeXt")` beide `"text"` liefern müssen).
 
 ---
 
