@@ -41,31 +41,34 @@ def double(x: int) -> int:
     return x * 2
 
 
-def test_double_three():
-    EBT(
+def test_double_three() -> None:
+    trace = EBT(
         target=double,
         pre=WorldState(args=(3,)),
         post=WorldState(returns=6),
     ).run()
+    print(f"3 -> 6:  Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
 
 
-def test_double_five():
-    EBT(
+def test_double_five() -> None:
+    trace = EBT(
         target=double,
         pre=WorldState(args=(5,)),
         post=WorldState(returns=10),
     ).run()
+    print(f"5 -> 10: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
 
 
-t1, t2 = test_double_three(), test_double_five()
-print(f"Vertrag erfüllt: {t1.evaluation and t2.evaluation} | Geprüfte Paare: {len(t1.traces) + len(t2.traces)}")
+test_double_three()
+test_double_five()
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Vertrag erfüllt: True | Geprüfte Paare: 2
+3 -> 6:  Vertrag erfüllt: True | Geprüfte Paare: 1
+5 -> 10: Vertrag erfüllt: True | Geprüfte Paare: 1
 ```
 </details>
 
@@ -80,24 +83,30 @@ def double(x: int) -> int:
     return x * 2
 
 
-@pytest.mark.parametrize("value, expected", [(3, 6), (5, 10)])
-def test_double(value: int, expected: int):
-    return EBT(
+@pytest.mark.parametrize(
+    "value, expected", [
+        (3, 6), 
+        (5, 10)
+    ])
+def test_double(value: int, expected: int) -> None:
+    trace = EBT(
         target=double,
         pre=WorldState(args=(value,)),
         post=WorldState(returns=expected),
     ).run()
+    print(f"{value} -> {expected}: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
 
 
-traces = [test_double(v, exp) for v, exp in [(3, 6), (5, 10)]]
-print(f"Vertrag erfüllt: {all(t.evaluation for t in traces)} | Geprüfte Paare: {sum(len(t.traces) for t in traces)}")
+for val, exp in [(3, 6), (5, 10)]:
+    test_double(val, exp)
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Vertrag erfüllt: True | Geprüfte Paare: 2
+3 -> 6: Vertrag erfüllt: True | Geprüfte Paare: 1
+5 -> 10: Vertrag erfüllt: True | Geprüfte Paare: 1
 ```
 </details>
 
@@ -108,10 +117,8 @@ Ein häufiger Fehler besteht darin, mehrere unterschiedliche Eingaben in `pre` u
 ```python
 from qb_cubie import EBT, WorldState
 
-
 def double(x: int) -> int:
     return x * 2
-
 
 trace = EBT(
     target=double,
