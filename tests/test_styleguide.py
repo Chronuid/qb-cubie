@@ -104,7 +104,7 @@ from qb_cubie.services import (
 )
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples and frames follow Cubie conventions."""
     DocEnsurance(
