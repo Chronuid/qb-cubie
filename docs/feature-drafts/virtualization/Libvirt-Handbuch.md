@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # **Libvirt, QEMU/KVM und Python**
 
@@ -8,7 +9,12 @@ Dieses Handbuch beschreibt die geplante Architektur und Implementierung einer Vm
 
 ---
 
-</center>
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 > **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
 > Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
@@ -303,17 +309,17 @@ class VmArena:
 
 ```
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
@@ -321,6 +327,9 @@ class VmArena:
 [↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

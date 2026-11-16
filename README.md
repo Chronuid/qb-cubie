@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-banner.png" -->
+<div align="center">
 
 # qb-cubie: Quality-Bench
 
@@ -6,17 +7,20 @@
 
 **qb-cubie bietet einfache Teststrukturen und Datei-Workflows auf Basis von pytest.**  
 Eingaben, Rückgabemuster und erwartete Dateien werden gemeinsam beschrieben.  
-Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.  
+Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 
 ---
 
 > **Dieses Projekt ist experimentell und in einer frühen Entwicklungs-Phase.**  
 > Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
-> Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.  
+> Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
 
 ---
 
-</center>
+[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## Installation
 
@@ -188,18 +192,17 @@ Leere Zustandslisten werden inzwischen abgelehnt; aufeinanderfolgende `.run()`-A
 
 Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macOS erhält die begrenzte Wheel-Prüfung, einschließlich fehlendem Tk und echten absoluten MyPy-Dateipfaden. Die Windows-Checks sind bis zur Bereitstellung nativer Windows-Launcher-Anpassungen vorübergehend eingefroren (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)). Die zuvor nicht regulär eingesammelten 14 Fälle gehören jetzt zur Standardsammlung. Umsetzung, Ausgangsbefunde und Abnahme von Abschnitt 9.2 sind in den zugehörigen Vertrags- und Plattformtests abgesichert.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](./docs/.assets/cubie-small.png)
 
-[Dokumentationsübersicht und Einordnung der Ablagen](docs/README.md)  
-[↦ | Services: DocEnsurance | ↤](./docs/services/GUIDE_DocEnsurance.md)
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./docs/GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](./docs/GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
@@ -207,10 +210,9 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
 
-[↦ | Testsuite-Leitfaden & Profile | ↤](./tests/README.md)  
-[↦ | Changelog | ↤](./CHANGELOG.md)  
-[↦ | Experimentelle Benchmarks außerhalb des Core | ↤](./docs/GUIDE_Benchmarks.md)  
-[↦ | Testguided-Vergleichsstudie | ↤](./experiments/testguided-study/README.md)  
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./docs/services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

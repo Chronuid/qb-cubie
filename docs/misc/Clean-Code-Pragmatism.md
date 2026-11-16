@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # Clean-Code Pragmatismus
 
@@ -8,7 +9,12 @@ Dieser Essay diskutiert kontextabhängige Entwurfsentscheidungen und pragmatisch
 
 ---
 
-</center>
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 > **WICHTIG:** Dieser Design-Guide ist keine Heuristik-Sammlung für finale Lösungen, sondern eine Pragmatismus-Sammlung, welche zum Denken anstupst. Es gibt nicht die eine "Eierlegende-Wollmilch-Sau"-Lösung, sondern es kommt immer stark auf den jeweiligen Kontext an. Das SRP alleine bringt nichts, wenn du es einfach nur als Zeilenbegrenzung siehst, anstatt als Grund um ein Design aufzusetzen, welches SRP, die Kohäsion, Logik und den natürlichen Schutz fördert. 
 
@@ -71,17 +77,17 @@ Regeln wie "Nutze keine Attribute für Zwischenzustände" sind Stützräder. Wen
 
 Wenn man Architektur nicht als Religion, sondern als Werkzeugkasten betrachtet, kommt man zu den entscheidenden Fragen, an denen sich dogmatisches "Whiteboard-Design" von exzellentem Software-Engineering unterscheidet.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
@@ -89,6 +95,9 @@ Wenn man Architektur nicht als Religion, sondern als Werkzeugkasten betrachtet, 
 [↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

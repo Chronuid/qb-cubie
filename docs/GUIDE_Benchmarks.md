@@ -1,6 +1,11 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
+
 # Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`)
 
+![Cubie](.assets/cubie-logo-written.png)
 
+---
 
 > ### ⚠️ WICHTIGER HINWEIS / DISCLAIMER: BESTANDTEIL DER `testguided-study`
 > 
@@ -13,9 +18,14 @@
 > 
 > 
 > 
-> 
+>
 
 ---
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## Kurzbeschreibung (`GUIDE_Benchmarks.md`)
 
@@ -45,3 +55,28 @@ Das Dokument spezifiziert den separaten, experimentellen Benchmark-Bereich (`cub
 
 
 * **Weiterführende Systemfunktionen:** Das Dokument verweist zudem auf Funktionen für Lauf- und Versionsvergleiche, Basis- und Pilotdatensätze, gespiegelte Developer-Aufgaben (Gegenüberstellung Cubie vs. Pytest), den Import öffentlicher Reparaturaufgaben (SWE-bench), eingefrorene CI-Messläufe (Gates), Nachbewertungen sowie die Python-API.
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./services/GUIDE_DocFrame.md)  
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</div>
+<!-- /qb:frame -->

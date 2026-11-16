@@ -1,6 +1,13 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
+
 # GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation
 
+![Cubie](../.assets/cubie-logo-written.png)
+
 Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention), **statisch** (pluggable Check-Regeln & Linter) als auch **funktional** (echte Ausführung in einer `Arena`) absichert.
+
+---
 
 > [!NOTE]
 > 
@@ -8,6 +15,13 @@ Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte od
 > Auch wenn `DocEnsurance` überprüft, ob jedes Code-Beispiel durchläuft und die dokumentierte Ausgabe tatsächlich erzeugt wird, ist dies **noch keine generelle Testabdeckung** und **keine Garantie für die inhaltliche Korrektheit der Informationen** in den Dokumentationen:
 > * **Kein Ersatz für systematische Tests:** Ein einzelnes Positiv-Beispiel im Guide beweist nur diesen einen konkreten Aufruf, ersetzt aber keine Äquivalenzklassen-, Randfall- und Negativ-Prüfungen über `EBT`-Verträge in der Test-Suite.
 > * **Keine semantische Prüfung des Fließtextes:** `DocEnsurance` prüft, *ob* eine Erklärung vor dem Code-Block existiert und ob definierte Text-Regeln (`ExplanationRule`) eingehalten werden, kann aber nicht bewerten, ob die Aussagen im Text fachlich vollständig oder zutreffend sind.
+
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](./GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## 1. Schnelleinstieg (Minimal-Setup in der Test-Suite)
 
@@ -552,3 +566,28 @@ Neben dem Pattern lassen sich über `scope` und `arena` auch die Ausführungsbed
 * **`TaggedScope()`:** Gruppiert Snippets mit identischem `session=<id>` pro Datei in eine gemeinsame Arena, während ungetaggte Snippets einzeln isoliert werden; strukturelle Warnungen (`severity="warning"`) laufen weiterhin, während ungetaggte Snippets mit strukturellen Fehlern (`severity="error"`) die Arena-Ausführung überspringen.
 * **`pre_state=WorldState(fs={...})`:** Hydratisiert vor jeder Session definierte Konfigurationsdateien oder Testdaten in das Arbeitsverzeichnis der Arena.
 * **`arena=PyVenv(...)`:** Führt alle Dokumentations-Beispiele in einer dedizierten virtuellen Umgebung (inklusive optionaler `decontams`-Import-Sperren oder POSIX-Timeouts) statt im `TempFS` des Host-Interpreters aus.
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./GUIDE_DocFrame.md)  
+[↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</div>
+<!-- /qb:frame -->

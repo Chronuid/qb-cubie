@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # Example-Based Testing
 
@@ -8,7 +9,12 @@ EBT führt konkrete Eingaben aus und vergleicht die beobachteten Ergebnisse mit 
 
 ---
 
-</center>
+---
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## Ausgangsdaten und Zielmuster
 
@@ -36,17 +42,17 @@ Kuratierte Referenzdaten müssen konsistent und überprüfbar sein. Ergänze sie
 
 Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und explizite Erwartungen. `returns=None` erwartet explizit `None`; ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` lässt den Rückgabewert offen. Die verbleibenden Fehler sind in der [Semantikreferenz](GUIDE_Contract-Semantics.md) und im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
@@ -54,6 +60,9 @@ Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und ex
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

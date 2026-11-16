@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # RBT-Klassen
 
@@ -8,7 +9,12 @@ Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf un
 
 ---
 
-</center>
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## RBT
 
@@ -36,17 +42,17 @@ Mit `answer=True` oder `False` liefert jeder Aufruf eine neue `ReviewData` mit d
 
 `_run_gui()`, `_build_widgets()`, `_build_buttons()` und `_finalize()` kapseln Darstellung und Übernahme der Eingaben. Der Reviewer ist von pytest entkoppelt; die Assertion und Berichtsformatierung übernimmt der gewählte Reporter.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
@@ -54,6 +60,9 @@ Mit `answer=True` oder `False` liefert jeder Aufruf eine neue `ReviewData` mit d
 [↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

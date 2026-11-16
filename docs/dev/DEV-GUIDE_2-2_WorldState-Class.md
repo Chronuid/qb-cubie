@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # WorldState
 
@@ -8,7 +9,12 @@
 
 ---
 
-</center>
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 Ein `WorldState`-Paar beschreibt Eingangsargumente (`pre`) und das erwartete Rückgabemuster (`post`):
 
@@ -40,17 +46,17 @@ print(pre.args, post.returns)
 
 Ein `WorldState` ist weder ein bewiesenes Zustandsprädikat noch eine vollständige Abbildung aller Seiteneffekte. Änderungen an enthaltenen Objekten bleiben möglich; auch ein eingefrorener `EBTContext`, der solche Objekte referenziert, verhindert das nicht.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
@@ -58,6 +64,9 @@ Ein `WorldState` ist weder ein bewiesenes Zustandsprädikat noch eine vollständ
 [↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

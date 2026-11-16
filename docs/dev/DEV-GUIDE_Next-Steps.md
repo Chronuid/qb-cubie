@@ -1,4 +1,18 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
+
 # DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes
+
+![Cubie](../.assets/cubie-logo-written.png)
+
+---
+
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## 1. Einordnung der vergangenen Entwicklung (Sprint zu v0.0.3)
 
@@ -57,3 +71,28 @@ Sobald die neuen Prüf-Services aus Phase 1 bereitstehen, werden sie eingesetzt,
 ## 4. Phase 3: Abarbeitung der Punkte aus dem Gutachten (`GUTACHTEN.md`)
 
 Im Anschluss an die strukturelle Bereinigung werden die drei im internen Audit (`./GUTACHTEN.md`) dokumentierten und ursprünglich für die Version `0.0.4` vorgemerkten Randfälle im bereinigten Kern analysiert und in späteren Releases addressiert.
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Error while trying to load the image](../.assets/cubie-small.png)
+
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../GUIDE_Linter.md)  
+
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | Entwicklerübersicht EBT | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</div>
+<!-- /qb:frame -->

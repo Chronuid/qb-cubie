@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # RBT-Nutzungsmuster
 
@@ -9,7 +10,11 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 ---
 
 ---
-</center>
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## Interaktives Review
 
@@ -107,15 +112,17 @@ Ein LLM-Reviewer wäre ebenfalls eine eigene Implementierung dieses Protokolls. 
 
 `RBT.run()` liefert derzeit `None`, nicht das `ReviewData`-Objekt. Ein eigener Reporter kann das Paket zur Weiterverarbeitung entgegennehmen. `tags` speichert Metadaten und erzeugt keine pytest-Marken. Das Report-Dictionary ist kein automatisch persistierter, revisionssicherer Bewertungsnachweis.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](.assets/cubie-small.png)
 
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
@@ -123,6 +130,9 @@ Ein LLM-Reviewer wäre ebenfalls eine eigene Implementierung dieses Protokolls. 
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

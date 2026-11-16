@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # Arena-Management
 
@@ -8,7 +9,12 @@ Arenen trennen die EBT-Orchestrierung von Aufbau und Ausführung einer Testumgeb
 
 ---
 
-</center>
+---
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ## TempFS: temporärer Datei-Workspace
 
@@ -180,17 +186,17 @@ Seiteneffekte wiederholen.
 
 `DockerArena` und `VmArena` sind nicht implementiert und nicht Teil der öffentlichen API. Die [Virtualisierungsentwürfe](feature-drafts/virtualization/README.md) beschreiben geplante Funktionen. Aussagen daraus gelten nicht für die vorhandenen Arenen.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
@@ -198,6 +204,9 @@ Seiteneffekte wiederholen.
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

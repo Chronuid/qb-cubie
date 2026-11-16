@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # FP-OOP-Isomorphismus
 
@@ -8,7 +9,12 @@ Dieser Essay untersucht Beziehungen zwischen funktionaler und objektorientierter
 
 ---
 
-</center>
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 Kurz gesagt: Ja, OOP lässt sich theoretisch nahtlos in FP übersetzen (und umgekehrt). Sie sind mathematisch gesehen isomorph zueinander.
 Wenn man den Zustand (die Attribute) komplett aus der Funktion herauslöst, in eine reine Datenstruktur überführt und die Logik über reine Kompositionsfunktionen steuert, hat man OOP effektiv in FP überführt.
@@ -367,17 +373,17 @@ Um dieses System im Team als Standard (Styleguide) zu etablieren, gelten drei go
    2. Read-Only States: Die Eigenschaft .state liefert ausschließlich unteilbare, gefrorene Objekte (NamedTuple, frozenset).
    3. Strict Return Types: Jede abgeleitete Methode muss sich selbst (oder eine neue Instanz, die das Protokoll erfüllt) zurückgeben (-> IsomorpherKontext).
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
@@ -385,6 +391,9 @@ Um dieses System im Team als Standard (Styleguide) zu etablieren, gelten drei go
 [↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

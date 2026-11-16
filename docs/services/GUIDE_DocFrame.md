@@ -1,7 +1,7 @@
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
 <div align="center">
 
-# DocFrame-Nutzungsmuster (Feature-Draft)
+# DocFrame (Feature-Draft)
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
@@ -238,7 +238,7 @@ Für Dokumente mit `CUBIE_DOC_FRAME_2` prüft `CUBIE_DOCFRAME_RULES` zusätzlich
 
 ---
 
-<center>
+<div align="center">
 
 ![Error while trying to load the image](../.assets/cubie-small.png)
 
@@ -254,5 +254,5 @@ Für Dokumente mit `CUBIE_DOC_FRAME_2` prüft `CUBIE_DOCFRAME_RULES` zusätzlich
 [↦ | DocFrame: Dokument-Rahmen & Router | ↤](./GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
 <!-- /qb:frame -->

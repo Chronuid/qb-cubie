@@ -1,4 +1,5 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # Wizards-Handbuch
 
@@ -8,7 +9,12 @@ Dieses Handbuch beschreibt die geplanten Wizards zur Einrichtung virtueller Test
 
 ---
 
-</center>
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 > **Feature-Entwurf – nicht implementiert, Entwicklung eingefroren.**
 > Die folgenden Beschreibungen sind Zielvorstellungen und keine zugesicherten Funktionen von Cubie.
@@ -116,17 +122,17 @@ Die Wizards bilden eine hierarchische State-Machine. Sie agieren als modulare Zu
 * **Aktion:** Der Checkpoint ist passiert. Der Guard übergibt die Kontrolle an den eigentlichen Test-Runner.
 * **Verantwortlichkeit:** Die `VmArena` übernimmt das deklarierte und vom `AssetWizard` validierte QCOW2-Image, generiert über Libvirt das flüchtige Copy-on-Write-Overlay und injiziert den EBT-Payload via VirtIO-Serial in den Gast.
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../../.assets/cubie-small.png)
 
-## Dokumentation
-
-[↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../../GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
 [↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
 [↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
@@ -134,6 +140,9 @@ Die Wizards bilden eine hierarchische State-Machine. Sie agieren als modulare Zu
 [↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
 [↦ | Linter | ↤](../../GUIDE_Linter.md)  
 
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../../services/GUIDE_DocFrame.md)  
 [↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->

@@ -1,4 +1,18 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
+
 # Dokumentation
+
+![Cubie](.assets/cubie-logo-written.png)
+
+---
+
+---
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 | Ablage | Inhalt und Geltung |
 | --- | --- |
@@ -32,3 +46,28 @@ Relative Markdown-Links beziehen sich auf das jeweilige Dokument. Unverlinkte
 Repositorypfade und Shellbefehle beziehen sich, sofern nicht anders angegeben,
 auf die Repositorywurzel. Dateinamen eines beschriebenen Beispielprojekts
 beziehen sich dagegen auf dieses Beispielprojekt.
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Error while trying to load the image](.assets/cubie-small.png)
+
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](./GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](./GUIDE_Linter.md)  
+
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./services/GUIDE_DocFrame.md)  
+[↦ | Entwicklerübersicht EBT | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+
+</div>
+<!-- /qb:frame -->

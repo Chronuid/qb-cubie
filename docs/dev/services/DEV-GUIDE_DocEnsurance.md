@@ -1,12 +1,20 @@
-<center>
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
 
 # `DocEnsurance`
 
-![Error while trying to load the image](../../.assets/cubie-logo-written.png)
+![Cubie](../../.assets/cubie-logo-written.png)
 
 Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`).
 
-</center>
+---
+
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
 
 ---
 
@@ -448,20 +456,27 @@ passed=True | sessions=1 | outputs=('21', '42')
 ```
 </details>
 
----
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
 
-<center>
+---
+
+<div align="center">
 
 ![Error while trying to load the image](../../.assets/cubie-small.png)
 
-## Weiterführende Dokumentation
+[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
+[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Linter | ↤](../../GUIDE_Linter.md)  
 
-[↦ | Anwender-Handbuch: DocEnsurance | ↤](../../services/GUIDE_DocEnsurance.md)  
-[↦ | Styleguide & Architektur-Konventionen | ↤](../Style-Guide.md)  
-[↦ | Entwicklerübersicht EBT | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
-[↦ | Linter-Architektur | ↤](../DEV-GUIDE_2-5_Linter.md)  
-[↦ | Arenen & Sandbox-Protokolle | ↤](../DEV-GUIDE_2-3_Arenas.md)  
+[↦ | DocEnsurance: Lebende Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../../services/GUIDE_DocFrame.md)  
+[↦ | Entwicklerübersicht EBT | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
 
-</center>
+</div>
+<!-- /qb:frame -->
