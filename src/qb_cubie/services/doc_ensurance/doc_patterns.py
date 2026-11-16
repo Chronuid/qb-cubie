@@ -7,7 +7,7 @@ import re
 from collections.abc import Callable, Sequence
 from typing import Final
 
-from ..linter import Linter, LinterDiagnostic
+from ...linter import Linter, LinterDiagnostic
 from .protocols import (
     DocBlockProtocol,
     DocDiagnostic,

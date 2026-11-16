@@ -443,7 +443,7 @@ Jeder Befund wird als unveränderliches `DocDiagnostic(file_path, rule_id, line,
 
 ## 8. Deep-Dive: Eigene Patterns und Protokolle entwickeln
 
-Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb basiert `DocEnsurance` auf einer vierstufigen Protokoll-Architektur aus `qb_cubie.services.protocols`:
+Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb basiert `DocEnsurance` auf einer vierstufigen Protokoll-Architektur aus `qb_cubie.services.doc_ensurance.protocols`:
 
 1. **`DocBlockProtocol` (Ebene 1 – Atomare Struktur-Bausteine):** Erkennt und extrahiert genau einen Markdown-Blocktyp (`MdBlock`) und definiert dessen `role`, `severity` und optionale Block-`rules`.
 2. **`DocRuleProtocol` (Ebene 2 – Inhaltliche Prüfregeln):** Prüft ein extrahiertes `ExtractedExample` samt `actual_output` und liefert eine Sequenz von `DocDiagnostic`-Einträgen zurück.

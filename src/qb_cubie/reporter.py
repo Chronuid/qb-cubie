@@ -15,7 +15,7 @@ from .protocols import EvaluationTrace, ReviewData, RunTrace, UNSPECIFIED
 from ._execution import exception_details, qualified_name
 
 if TYPE_CHECKING:
-    from .services.protocols import ServiceReportProtocol
+    from .services.doc_ensurance.protocols import ServiceReportProtocol
 
 # ========== PYTEST REPORTER ===========================================================================================
 

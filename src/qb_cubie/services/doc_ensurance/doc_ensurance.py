@@ -10,10 +10,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Final
 
-from ..arenas.tempfs import TempFS
-from ..linter import DEFAULT_EXCLUDES, CstLinter, Linter, LinterDiagnostic
-from ..protocols import Arena, Reporter, WorldState
-from ..reporter import PytestReporter
+from ...arenas.tempfs import TempFS
+from ...linter import DEFAULT_EXCLUDES, CstLinter, Linter, LinterDiagnostic
+from ...protocols import Arena, Reporter, WorldState
+from ...reporter import PytestReporter
 from ._markdown_scanner import _MarkdownScanner
 from .doc_patterns import (
     CUBIE_DOC_STYLE,

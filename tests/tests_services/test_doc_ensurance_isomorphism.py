@@ -6,7 +6,7 @@ from typing import Any, Sequence
 from qb_cubie import EBT, TempFS, WorldState
 from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance, MdBlock
 from qb_cubie.services.doc_ensurance import _MarkdownScanner
-from qb_cubie.services.protocols import DocDiagnostic, ExtractedExample
+from qb_cubie.services.doc_ensurance.protocols import DocDiagnostic, ExtractedExample
 
 
 # ========== 1. FUNKTOR: MARKDOWN (M) -> LITERATE PYTHON MODULE (P) ====================================================

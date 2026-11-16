@@ -1,46 +1,42 @@
 """Reusable quality assurance and verification services built on the qb-cubie core."""
 
-from . import doc_ensurance, doc_patterns, doc_rules, protocols
-from .doc_ensurance import DocEnsurance
-from .doc_patterns import (
+from . import doc_ensurance
+from .doc_ensurance import (
+    CUBIE_DOC_RULES,
     CUBIE_DOC_STYLE,
     DEFAULT_DOC_RULES,
+    VALID_SEVERITIES,
     CodeRule,
     CodeSnippet,
     CollapsibleResult,
-    DocLinterRule,
-    ExamplePattern,
-    Explanation,
-    ExplanationRule,
-    MissingOutputRule,
-    OutputMatchRule,
-    OutputRule,
-    TaggedScope,
-)
-from .doc_rules import (
-    CUBIE_DOC_RULES,
-    HighComplexity,
-    HighComplexityRule,
-    LargeOutput,
-    LargeOutputRule,
-    NoOutput,
-    NoOutputRule,
-    RawTraceback,
-    RawTracebackRule,
-)
-from .protocols import (
-    VALID_SEVERITIES,
     DocBlockProtocol,
     DocDiagnostic,
+    DocEnsurance,
+    DocLinterRule,
     DocPatternProtocol,
     DocReport,
     DocRuleProtocol,
     DocScopeProtocol,
+    ExamplePattern,
     ExampleSession,
+    Explanation,
+    ExplanationRule,
     ExtractedExample,
+    HighComplexity,
+    HighComplexityRule,
+    LargeOutput,
+    LargeOutputRule,
     MdBlock,
+    MissingOutputRule,
+    NoOutput,
+    NoOutputRule,
+    OutputMatchRule,
+    OutputRule,
+    RawTraceback,
+    RawTracebackRule,
     ServiceReportProtocol,
     SessionTrace,
+    TaggedScope,
     validate_severity,
 )
 
@@ -81,8 +77,5 @@ __all__ = [
     "SessionTrace",
     "TaggedScope",
     "doc_ensurance",
-    "doc_patterns",
-    "doc_rules",
-    "protocols",
     "validate_severity",
 ]

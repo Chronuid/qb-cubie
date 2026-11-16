@@ -1,4 +1,4 @@
-"""Protocols and immutable data records for the qb_cubie.services package."""
+"""Protocols and immutable data records for the qb_cubie.services.doc_ensurance package."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
