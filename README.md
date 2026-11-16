@@ -17,7 +17,7 @@ Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 
 ---
 
-[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md) • [DocFrame (Prototyp)](./docs/services/GUIDE_DocFrame.md)    
+[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md)   
 
 </div>
 <!-- /qb:frame -->
