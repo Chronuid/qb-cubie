@@ -5,7 +5,7 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Die Analyse des aktuellen Dokumentationsbestands (26 Markdown-Dateien) zeigt deutlich, warum statische Tupel bei wachsendem Projekt zum Flaschenhals werden und wie `DocFrame` dies über einen zweistufigen Zero-Config-Katalog (`DocumentCatalog`) und dynamische Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) löst.
+Das `doc_frame`-Paket bildet die zweistufige Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.services`. Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
 
 ---
 
@@ -18,101 +18,241 @@ Die Analyse des aktuellen Dokumentationsbestands (26 Markdown-Dateien) zeigt deu
 
 ---
 
-## 1. Befundanalyse: Aktueller Bestand vs. `DocFrame`-Skizze
+---
 
-### A. Versteckte und ungeroutete Dokumente im Footer (`zone="foot"`)
+## Paket-Topologie & Architektur-Überblick
 
-Ursprünglich besaßen alle befüllten Markdown-Dateien im Repository exakt denselben statischen Footer (`CUBIE_DOC_FRAME_1`) mit 10 fest verdrahteten Links. Sobald ein neues Dokument entsteht, bleibt es unsichtbar, solange es nicht manuell in alle Footer oder einen Zwischen-Router eingetragen wird:
+Um die Schranken des Cubie-Styleguides ($\le 777$ Zeilen pro Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/services/doc_frame/` in fünf spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/services/docframe.py`):
 
-* **Wurzel (`docs/`):** 7 Guides sind im Footer verlinkt, während `CI_PLATFORM_STATUS.md` und `GUIDE_Benchmarks.md` im Footer komplett fehlen.
-* **Entwickler-Dokumentation (`docs/dev/`):** Der Footer verlinkt ausschließlich auf `DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md`. Dieser verweist am Ende zwar manuell auf `2-1` bis `2-4`, aber `DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md`, `DEV-GUIDE_1-1_RBT-Classes.md`, `DEV-GUIDE_2-5_Linter.md`, `DEV-GUIDE_Release-Preparation.md`, `DEV-GUIDE_Next-Steps.md`, `Style-Guide.md` sowie `dev/services/DEV-GUIDE_DocEnsurance.md` tauchen weder im globalen Footer noch in einem gemeinsamen `dev/`-Index auf.
-* **Hintergrundtexte (`docs/misc/`):** `misc/README.md` erwähnt *Clean-Code-Pragmatism*, *Die Suchmaschine von Babel*, *Erweitertes PBT* und *FP-OOP-Isomorphismus* lediglich kursiv im Fließtext, besitzt aber **keinen einzigen anklickbaren Link** auf diese vier Dateien. Da sie auch im Footer fehlen, sind diese Dokumente echte „Waisen“ (Orphan Pages).
-* **Feature-Drafts (`docs/feature-drafts/virtualization/`):** `feature-drafts/virtualization/README.md` pflegt die Links auf `arena-requirements.md`, `vm-requirements.md`, `Libvirt-Handbuch.md`, `Wizards-Handbuch.md` und die `.py.txt`-Artefakte manuell als Aufzählungsliste im Rumpf.
-
-### B. Inkonsistenzen zwischen früherer `services/GUIDE_DocFrame.md`-Skizze und den echten Dateien
-
-* **HTML-Wrapper & Alt-Text:** Die ursprüngliche Skizze nutzte für den Footer `CenterWrap(tag="center")` und `AssetImage(..., alt="Cubie")`. Alle realen Dateien nutzen im Footer jedoch `<div align="center">` und trugen noch den fehlerhaften Alt-Text `![Error while trying to load the image](.assets/cubie-small.png)`.
-* **Abweichende Routen-Definition:** `CORE_ROUTES` enthielt nur 4 statt 7 Routen, `SERVICE_ROUTES` nur 2 statt 3 Routen, und der skizzierte `FolderRouter(dir="docs/qa_evolution", ...)` verwies auf ein Verzeichnis, das im aktuellen `docs/`-Baum gar nicht existiert.
+| Modul | Architektonische Rolle | Kern-Komponenten |
+| :--- | :--- | :--- |
+| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog`, `FrameRenderContext`, `DocFrameReport`, `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
+| **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner & Pass-1-Metadaten-Extraktor (Ebene 0) | `_FrameSpanScanner`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
+| **`frame_blocks.py`** | Zustandslose Struktur-Bausteine, dynamische Router & geschützte Content-Slots (Ebene 1) | `Divider`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
+| **`doc_frame_rules.py`** | Dokument-weite Diagnose-Regeln für `DocEnsurance` (Ebene 2) | `DocFrameMissing` (`DocFrameMissingRule`), `DocFrameOutdated` (`DocFrameOutdatedRule`), `DocFrameBrokenRoute` (`DocFrameBrokenRouteRule`), `DocFrameProvenanceIncomplete` (`DocFrameProvenanceRule`), `CUBIE_DOCFRAME_RULES` |
+| **`doc_frame.py`** | Rahmen-Muster, Standard-Presets & 2-Pass-Orchestrator (Ebene 3) | `FramePattern`, `DocFrame`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
 
 ---
 
-## 2. Kern-Idee: Zero-Config-Metadaten aus `zone="head"` + 2-Pass-Katalog
+## Konstruktor-API, Klassenmethoden & Konfiguration (Quick-Lookup)
 
-Wenn ein neues Dokument hinzukommt und sich über `DocFrame.update()` vollautomatisch in die Fuß-Router und die dedizierten Routing-Dokumente (`README.md`) einspielen soll, darf die Information über das Dokument **nicht** in einer zentralen Python-Liste (`CORE_ROUTES = (...)`) gepflegt werden müssen.
+Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrator (`DocFrame(...).run()`) als auch über zwei ergonomische Klassenmethoden (`DocFrame.update(...)` und `DocFrame.scan_catalog(...)`). Der Konstruktor sichert alle Eingaben sofort über explizite `STATE-GUARD`s ab:
 
-Stattdessen liefert jedes Dokument seine Routing-Metadaten **selbst** über seinen `zone="head"`-Rahmen (Single Source of Truth):
+* **`target`** (`str | Path | None`, Default: `None`): Bestimmt den zu synchronisierenden Ziel-Scope (`_resolve_target_path` & `_coerce_path_arg`). `None` löst über `_default_project_dir()` automatisch das Projekt-Root anhand der nächstgelegenen `pyproject.toml` (Fallback: `Path.cwd()`) auf. Akzeptiert existierende Datei- oder Verzeichnispfade; leere Strings (`ValueError`), falsche Typen (`TypeError`) oder nicht existierende Pfade (`FileNotFoundError`) werden sofort abgewiesen.
+* **`pattern`** (`FramePattern | Sequence[FramePattern] | None`, Default: `None`): Ein einzelnes `FramePattern` oder eine nicht-leere Sequenz von `FramePattern`-Objekten, die in `_normalize_patterns` zu einem ID-indizierten Dictionary `dict[str, FramePattern]` normalisiert werden. `None` registriert automatisch `DEFAULT_FRAME_PATTERNS` (`CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`).
+* **`excludes`** (`Sequence[str] | None`, Default: `None`): Optionale Sequenz zusätzlicher Datei-, Ordner- oder Teilpfad-Ausschlüsse, die in `_normalize_excludes` mit `DEFAULT_EXCLUDES` (`.venv`, `.git`, `__pycache__`, `.pytest_cache` etc.) vereinigt werden.
 
-1. **Automatische Extraktion aus dem bestehenden Header (Zero-Config):**
-   Fast jedes Dokument in `docs/` folgt im `HeaderContentSlot` bereits exakt demselben Muster: `# H1-Titel` $\to$ `![Cubie](Banner)` $\to$ `Kurzbeschreibung (1–2 Sätze)`.
-   * **Router-Label:** Wird automatisch aus dem `# H1-Titel` gelesen (oder optional über ein Marker-Attribut `label="Linter"` bzw. `order="70"` im `<!-- qb:frame ... -->`-Tag überschrieben).
-   * **Kurzbeschreibung (für Index-Tabellen):** Wird automatisch aus dem ersten Absatz (`MdBlock(kind="paragraph")`) unterhalb des Banners im `HeaderContentSlot` extrahiert.
+### Einstiegspunkte für Synchronisation und Analyse
 
-2. **Zweistufige Ausführung (`Pass 1: Scan` $\to$ `Pass 2: Render/Verify`):**
-   * **Pass 1 (`DocumentCatalog`):** `DocFrame` scannt einmalig alle nicht-exkludierten `.md`-Dateien ab Projekt-Root, liest deren `qb:frame`-Header aus und baut im Speicher einen unveränderlichen `DocumentCatalog` mit `DocMeta(path, frame_id, title, label, summary, order, routable, category, attrs)` auf.
-   * **Pass 2 (Relatives Pfad-Routing):** Jeder Router-Baustein (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) fragt diesen Katalog ab und berechnet für jede Zieldatei den exakten relativen Pfad (`./`, `../`, `../../`) über `os.path.relpath`.
+1. **`DocFrame.update(target=None, pattern=None, excludes=None) -> DocFrameReport`:**
+   Führt Pass 1 (`build_catalog`) und Pass 2 (`_render_file_frames`) aus, schreibt nur real geänderte Dateien (`new_content != content`) atomar zurück und gibt den `DocFrameReport` inklusive `updated_files` und `catalog` zurück.
+2. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
+   Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` ohne Dateisystem-Schreibzugriffe zurück.
 
----
+### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`_resolve_catalog_root`)
 
-## 3. Drei-Säulen-Architektur mit `CUBIE_DOC_FRAME_3`
-
-Damit sowohl die Fußzeilen aller Dokumente als auch die verteilten Routing-Hubs (`docs/README.md`, `docs/misc/README.md`, `docs/feature-drafts/virtualization/README.md` und ein künftiges `docs/dev/README.md`) vollautomatisch synchron bleiben, gliedert sich `DocFrame` in drei Presets:
-
-| Preset | Ziel-Dokumente | Zonen (`zone=...`) | Besonderheit beim Auto-Routing |
-| --- | --- | --- | --- |
-| **`CUBIE_DOC_FRAME_1`** | Reguläre Guides & Dev-Guides (`GUIDE_*.md`, `DEV-GUIDE_*.md`) | `head`, `foot` | Dynamischer Fuß aus globalen `FolderRouter`-Gruppen + kontextuellem **`SiblingRouter`** (zeigt automatisch alle Nachbardokumente des eigenen Unterordners). |
-| **`CUBIE_DOC_FRAME_2`** | Gutachten, Hypothesen, Audits & Feldberichte | `head`, `foot` | Schlanker Provenance-Kopf (`env`, `model`, `effort`) + Standard-Fuß. |
-| **`CUBIE_DOC_FRAME_3`** | Dedizierte Routing- & Index-Dokumente (`README.md`, Bereichs-Hubs) | `head`, **`router`**, `foot` | Führt die neue **`zone="router"`** im Dokumentkörper ein: Generiert Index-Tabellen (`\| Dokument \| Inhalt und Geltung \|`) oder Katalog-Listen vollautomatisch aus dem `DocumentCatalog`. |
+Wird `DocFrame` gezielt auf eine einzelne Datei oder einen Unterordner angesetzt (z. B. `DocFrame.update(target="docs/services/GUIDE_DocFrame.md")`), trennt der Orchestrator strikt zwischen **Schreib-Scope** und **Katalog-Scope**:
+* `_load_path_sources(self.target_path, self.excludes)` lädt für Pass 2 ausschließlich die im `target` angeforderten Markdown-Dateien.
+* `build_catalog()` ermittelt hingegen über `_resolve_catalog_root(self.target_path)` das übergeordnete Repository-Root, indem es vom Zielpfad bis maximal `Path.cwd()` nach oben wandert, bis es `pyproject.toml` oder `docs/.assets` findet. Dadurch steht den dynamischen Routern (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) selbst bei Einzeldatei-Updates immer der vollständige Projekt-Katalog zur Verfügung.
 
 ---
 
-## 4. Wie das automatische Routing im Detail funktioniert
+## 1. Kern-Datenstrukturen (DTOs), Sortier-Invariante & Protokoll-Verträge (`protocols.py`)
 
-### A. Der selbstaktualisierende Fuß (`STD_FOOTER_BLOCKS`)
+Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@dataclass(frozen=True)`-Records modelliert. Dadurch kann der in Pass 1 erzeugte `DocumentCatalog` gefahrlos über alle Datei-Kontexte in Pass 2 und alle Prüfregeln in `CUBIE_DOCFRAME_RULES` geteilt werden.
 
-Anstatt Routen als statische Strings in `RouteGroup` einzutragen, kombinieren wir im Footer drei dynamische Router-Bausteine:
+### 1.1 Die Daten-Pipeline (Vom Dokument-Header zum `DocFrameReport`)
 
-1. **`FolderRouter(dir="docs", glob="GUIDE_*.md")`:** Findet automatisch alle Haupt-Guides in `docs/`. Kommt morgen `docs/GUIDE_Property-Based-Testing.md` hinzu, landet es beim nächsten `DocFrame.update()` sofort in allen Footern.
-2. **`FolderRouter(dir="docs/services", glob="GUIDE_*.md")`:** Findet automatisch alle Service-Guides (`GUIDE_DocEnsurance.md`, `GUIDE_DocFrame.md` usw.).
-3. **`SiblingRouter(include_hubs=True)` (Der Kontext-Booster für Unterordner):**
-   * Damit der globale Footer nicht irgendwann 35 Links lang wird, zeigt die unterste Gruppe im Footer die **Bereichs-Hubs** (`docs/dev/`, `docs/misc/`, `docs/feature-drafts/`).
-   * Befindet sich der Leser jedoch *innerhalb* eines Unterordners (z. B. in `docs/dev/DEV-GUIDE_2-1_EBT-Class.md` oder `docs/misc/FP-OOP-Isomorphismus.md`), klappt `SiblingRouter` automatisch alle Geschwister-Dokumente dieses Ordners im Footer auf! So sind alle `DEV-GUIDE_*` und alle `misc/`-Essays untereinander sofort erreichbar, ohne den Footer der Haupt-Guides aufzublähen.
+1. **`DocMeta(path, frame_id, title, label, summary, order=None, routable=True, category=".", attrs={})`**
+   Speichert die in Pass 1 aus einer Markdown-Datei extrahierten Routing-Metadaten:
+   * `path`: Repository-relativer POSIX-Pfad ohne führenden Schrägstrich (z. B. `"docs/GUIDE_Linter.md"`).
+   * `frame_id`: Die ID des öffnenden `zone="head"`-Rahmens (z. B. `"CUBIE_DOC_FRAME_1"`) oder `None`, falls die Datei keinen `head`-Rahmen besitzt.
+   * `title` & `label`: Der extrahierte `# H1-Titel` (Fallback: Dateistamm) sowie das effektive Anzeige-Label für Router (`attrs.get("label") or title`).
+   * `summary`: Der erste erklärende Textabsatz unterhalb des Banners im `head`-Rahmen (für Index-Tabellen in `CatalogRouter`).
+   * `order` & `routable`: Optionale Sortier-Priorität (`int | None`) und Sichtbarkeits-Flag (`bool`) für dynamische Router.
+   * `category`: Der POSIX-Elternpfad relativ zum Katalog-Root (z. B. `"."`, `"docs"`, `"docs/dev/services"`).
 
-### B. `CUBIE_DOC_FRAME_3` und die neue `zone="router"` für Index-Dokumente
+2. **`FrameSpan(frame_id, zone, attrs, open_tag, inner_content, close_tag, start_line, end_line, start_idx, end_idx)`**
+   Repräsentiert einen einzelnen geparsten `<!-- qb:frame ... --> ... <!-- /qb:frame -->`-Block mit dualen Koordinaten:
+   * `start_line` & `end_line`: 1-basierte Zeilennummern für präzise `DocDiagnostic`-Positionsangaben.
+   * `start_idx` & `end_idx`: 0-basierte Zeichen-Offsets im Original-String für exaktes In-Place-Slicing während Pass 2.
+   * `open_tag`, `inner_content`, `close_tag`: Der exakte öffnende Kommentar-Tag, der unmodifizierte Innenbereich zwischen den Tags sowie der schließende Kommentar-Tag.
 
-In Routing-Dokumenten wie `docs/README.md`, `docs/misc/README.md` oder `docs/feature-drafts/virtualization/README.md` liegt das eigentliche Routing mitten im Dokument (als Tabelle oder Liste), während davor oder danach noch manueller Fließtext steht (wie der Hinweis zum experimentellen Benchmark-Bereich in `docs/README.md`).
+3. **`DocumentCatalog(root, entries=())`**
+   Der unveränderliche Pass-1-Katalog aller gefundenen Markdown-Dokumente unterhalb von `root: Path`:
+   * `get(rel_path) -> DocMeta | None`: Sucht einen Eintrag anhand seines normalisierten POSIX-Pfads.
+   * `by_path(rel_path) -> DocMeta`: Wie `get()`, wirft jedoch bei fehlendem Dokument einen expliziten `KeyError("STATE-GUARD: Document not found in catalog: ...")`.
+   * `select(directory=".", glob="*.md", exclude=(), *, recursive=False, include_unroutable=False) -> list[DocMeta]`: Filtert Einträge nach Zielordner (`_matches_dir`), Dateinamen-Glob (`fnmatch.fnmatch`), Dateinamen- oder Pfad-Excludes sowie `routable`-Status und gibt sie deterministisch sortiert über `sort_doc_metas` zurück.
 
-Mit `CUBIE_DOC_FRAME_3` bekommt das Dokument neben `head` und `foot` einen expliziten **`<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" ... -->`**-Block im Rumpf:
+4. **`FrameRenderContext(file_path, rel_path, catalog, span)` & `DocFrameReport(target, passed, updated_files=(), catalog=None, diagnostics=())`**
+   `FrameRenderContext` bündelt während Pass 2 den absoluten Dateipfad (`file_path`), den Katalog-relativen POSIX-Pfad (`rel_path`), den `DocumentCatalog` und den aktuell zu rendernden `FrameSpan`. `DocFrameReport` fasst die Pfade aller real aktualisierten Dateien (`updated_files`), den Katalog und etwaige Diagnosen zusammen.
 
-```markdown
-<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="." recursive="false" -->
-| Dokument | Inhalt und Geltung |
-| :--- | :--- |
-| [Clean-Code Pragmatismus](./Clean-Code-Pragmatism.md) | Dieser Essay diskutiert kontextabhängige Entwurfsentscheidungen und pragmatische Clean-Code-Prinzipien. |
-| [Die Suchmaschine von Babel: eine Metapher](./Die-Suchmaschine-von-Babel.md) | Status: konzeptioneller Essay. Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. |
-| [Erweitertes Property-Based Testing](./Erweitertes-PBT.md) | Status: konzeptioneller Vorschlag, keine implementierte Cubie-API. |
-| [FP-OOP-Isomorphismus](./FP-OOP-Isomorphismus.md) | Dieser Essay untersucht Beziehungen zwischen funktionaler und objektorientierter Programmierung. |
-<!-- /qb:frame -->
+### 1.2 Dreistufige Sortier-Invariante (`sort_doc_metas`) & Guard-Validatoren
+
+Damit automatisch generierte Fußzeilen und Index-Tabellen über alle Betriebssysteme und Dateisysteme hinweg eine reproduzierbare Reihenfolge aufweisen, bildet `_doc_meta_sort_key(entry)` ein vierstelliges Sortier-Tupel `(tier, order_val, name, path)`:
+* **Stufe 0 (`(0, 0, name, path)`):** Eine `README.md` ohne explizites `order`-Attribut (`entry.order is None`) steht im jeweiligen Ordner immer auf Platz 1.
+* **Stufe 1 (`(1, entry.order, name, path)`):** Dokumente mit explizitem `order="<int>"`-Attribut im `head`-Tag folgen aufsteigend nach ihrem Zahlenwert (bei Gleichstand alphabetisch nach Dateiname und Pfad).
+* **Stufe 2 (`(2, 0, name, path)`):** Alle übrigen Dokumente ohne `order`-Attribut folgen deterministisch alphabetisch nach Dateiname (`Path(entry.path).name`) und relativem Gesamtpfad.
+
+Flankiert wird `protocols.py` durch drei strikte `STATE-GUARD`-Validatoren:
+* `validate_zone(zone)`: Erlaubt ausschließlich `VALID_ZONES = ("head", "router", "foot")`.
+* `validate_wrap_tag(tag)`: Erlaubt für `CenterWrap` ausschließlich `VALID_WRAP_TAGS = ("div", "center")`.
+* `validate_catalog_mode(mode)`: Erlaubt für `CatalogRouter` ausschließlich `VALID_CATALOG_MODES = ("table", "links")`.
+
+---
+
+## 2. Pass 1: Fence-sicherer Span-Scanner & Zero-Config-Katalogisierung (`_catalog_scanner.py`)
+
+In Pass 1 analysiert `_catalog_scanner.py` alle Markdown-Dateien des Projekts ohne externe Parser-Abhängigkeiten.
+
+### 2.1 Zeilenbasierte Span-Erkennung & Fence-Isolation (`_FrameSpanScanner`)
+
+Ein Dokumentations-Handbuch (wie `GUIDE_DocFrame.md` oder dieser Dev-Guide) enthält in seinen Markdown-Codeblöcken häufig selbst Beispiel-Kommentare der Form `<!-- qb:frame id="..." -->`. Ein naiver Regex-lauf über den gesamten Datei-String würde diese Code-Beispiele fälschlicherweise als echte Rahmen-Zonen des Dokuments interpretieren.
+
+`_FrameSpanScanner` (`parse_frame_spans(content) -> tuple[list[FrameSpan], list[int]]`) löst dies über einen zeilenbasierten Zustandsautomaten mit exakter Offset-Buchführung (`splitlines(keepends=True)`):
+
+1. **Dynamisches Code-Fence-Tracking (`_update_fence`):**
+   Beginnt eine getrimmte Zeile außerhalb eines Fences mit mindestens drei Backticks (`` ``` ``) oder Tilden (`~~~`), speichert `self.fence` den exakten Fence-Präfix (z. B. ```` ```` ```` bei einem 4-Backtick-Block). Solange `self.fence` aktiv ist, gibt `_update_fence` `True` zurück und `_consume_line` ignoriert sämtliche `qb:frame`-Tags im Inneren. Erst eine Zeile, die aus mindestens genauso vielen identischen Fence-Zeichen ohne Folgezeichen besteht, schließt den Fence (`self.fence = None`).
+2. **Attribut-Extraktion & Sofort-Guards (`_open_span` & `parse_tag_attrs`):**
+   Trifft der Scanner außerhalb eines Fences auf `_OPEN_TAG_RE` (`^<!--\s*qb:frame\b([^>]*)-->$`), extrahiert `parse_tag_attrs` alle Schlüssel-Wert-Paare (`key="val"` oder `key='val'`) über `_ATTR_RE`. Fehlt ein nicht-leeres `id`-Attribut oder liegt `zone` (Default: `"head"`) außerhalb von `VALID_ZONES`, wirft `_open_span` sofort einen `ValueError("STATE-GUARD: ...")`.
+3. **Erkennung ungeschlossener Rahmen (`self.unclosed`):**
+   Wird ein neuer `qb:frame`-Block geöffnet, während `self.active_open` noch nicht durch `<!-- /qb:frame -->` (`_CLOSE_TAG_RE`) geschlossen wurde, oder endet die Datei bei offenem `self.active_open`, trägt der Scanner die 1-basierte Startzeile des ungeschlossenen Tags in `self.unclosed: list[int]` ein.
+
+### 2.2 Zero-Config-Metadaten-Extraktion (`extract_doc_meta`)
+
+Jedes Dokument im Repository fungiert über seinen `zone="head"`-Rahmen als eigene Single Source of Truth für alle Router. `extract_doc_meta(rel_path, content)` extrahiert daraus vollautomatisch das `DocMeta`-Objekt:
+
+* **H1-Titel (`_extract_h1_title`):** Sucht im `head.inner_content` (bzw. im gesamten Dokument, falls kein `head`-Span existiert) die erste Zeile, die getrimmt mit `"# "` beginnt. Besitzt das Dokument keine H1-Überschrift, fällt der Titel auf `Path(fallback_path).stem` zurück.
+* **Router-Label:** Nutzt `attrs.get("label", "").strip()` falls angegeben, andernfalls direkt den extrahierten `title`.
+* **Kurzbeschreibung vor dem ersten Divider (`_extract_header_summary`):**
+  `_slice_before_divider` schneidet alle Zeilen des `head.inner_content` vor der ersten horizontalen Linie (`---`) aus. Anschließend überspringt `_is_ignorable_header_line` führende Leerzeilen, HTML-Wrapper (`<div...>`, `</div>`, `<center>`, `</center>` via `_HTML_WRAP_RE`), Überschriften (`#`) und Banner-Bilder (`![...](...)`). Die Zeilen des ersten echten Textabsatzes werden mit `" ".join(para_lines)` verbunden; die nächste Leer- oder Wrapper-Zeile beendet die Extraktion sofort, sodass zweite Absätze oder Disclaimer niemals in die Kurzbeschreibung der Index-Tabellen bluten.
+* **Typ-sichere `order`- und `routable`-Parser (`_parse_optional_order` & `_parse_routable`):**
+  Konvertiert `order="..."` in ein `int` (oder wirft `ValueError("STATE-GUARD: order attribute must be an integer...")`) und prüft `routable="..."` gegen `("true", "1", "yes")` bzw. `("false", "0", "no")`. Zusätzlich erzwingt `bool(content.strip())`, dass leere 0-Byte-Dateien immer als `routable=False` eingestuft werden.
+
+Das folgende ausführbare Beispiel demonstriert, wie `parse_frame_spans` einen `qb:frame`-Tag innerhalb eines Code-Fences ignoriert und wie `extract_doc_meta` Titel, Label, Kurzbeschreibung und Sortier-Attribute extrahiert:
+
+```python
+from qb_cubie.services.doc_frame import extract_doc_meta, parse_frame_spans
+
+fence = "```"
+raw_md = (
+    '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" label="Kurz-Label" order="15" -->\n'
+    '<div align="center">\n\n# Vollständiger Handbuch-Titel\n\n'
+    "![Cubie](.assets/cubie-logo-written.png)\n\n"
+    "Erster Satz der Zusammenfassung\nüber zwei Zeilen.\n\n---\n\n</div>\n"
+    "<!-- /qb:frame -->\n\n"
+    f"{fence}markdown\n<!-- qb:frame id=\"IGNORED\" zone=\"head\" -->\n<!-- /qb:frame -->\n{fence}\n"
+)
+
+spans, unclosed = parse_frame_spans(raw_md)
+meta = extract_doc_meta("docs/services/GUIDE_Demo.md", raw_md)
+print(f"spans={len(spans)} | unclosed={unclosed} | label={meta.label!r} | order={meta.order}")
+print(f"summary={meta.summary!r} | category={meta.category!r}")
 ```
 
-**Was passiert hier beim Aufruf von `DocFrame.update()`?**
+<details>
+<summary>Ergebnis</summary>
 
-1. `CatalogRouter` scannt das im Attribut `dir="."` (oder `dir="docs/dev"`) angegebene Verzeichnis (exklusive der `README.md` selbst).
-2. Für jede gefundene Markdown-Datei holt er sich aus dem `DocumentCatalog` den `# Titel` (bzw. das `label`) und den ersten Satz/Absatz aus dem `HeaderContentSlot` des jeweiligen Dokuments.
-3. Er generiert die Markdown-Tabelle (`mode="table"`) oder `[↦ | ... | ↤]`-Liste (`mode="links"`) komplett neu. Manueller Text *außerhalb* von `<!-- qb:frame ... -->` (wie die Tabelle zu den `experiments/`-Links in `misc/README.md`) bleibt zu 100 % geschützt.
+```text
+spans=1 | unclosed=[] | label='Kurz-Label' | order=15
+summary='Erster Satz der Zusammenfassung über zwei Zeilen.' | category='docs/services'
+```
+</details>
 
 ---
 
-## 5. Umsetzung der Presets in `qb_cubie.services.docframe`
+## 3. Pass 2: Die „Lego-Blöcke“, Dynamische Router & Geschützte Content-Slots (`frame_blocks.py`)
 
-So fügt sich das Konzept mit `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2` und `CUBIE_DOC_FRAME_3` nahtlos in die Lego-Architektur und die `DocEnsurance`-Konventionen (`session=docframe_presets`, $\le 30$ Zeilen pro Code-Block) ein.
+Alle Bausteine innerhalb einer Rahmen-Zone implementieren das `@runtime_checkable` `FrameBlockProtocol`:
 
-### Schritt 1: Dynamische Router-Bausteine statt starrer Listen
+```text
+@runtime_checkable
+class FrameBlockProtocol(Protocol):
+    def render(self, ctx: FrameRenderContext) -> str: ...
+```
 
-Im ersten Schritt definieren wir die Schnellnavigation für den Dokumentkopf sowie die dynamischen `FolderRouter`- und `SiblingRouter`-Bausteine für den Fußbereich:
+### 3.1 Tiefen-Auflösung & Statische Struktur-Bausteine
+
+Damit ein einziges `FramePattern` für Dokumente auf beliebiger Verzeichnistiefe (`README.md`, `docs/GUIDE_Linter.md`, `docs/dev/services/DEV-GUIDE_DocFrame.md`) gültige Links erzeugt, berechnen zwei Hilfsfunktionen alle Pfade zur Render-Laufzeit relativ zu `ctx.file_path`:
+
+* **`compute_rel_link(from_file, target_rel, root) -> str`:**
+  Löst `target_rel` gegen `root.resolve()` auf, berechnet `os.path.relpath(target_abs, start=from_file.resolve().parent)` mit POSIX-Schrägstrichen und stellt sicher, dass der Pfad immer explizit mit `./` oder `../` beginnt.
+* **`resolve_banner_rel_path(banner, root) -> str`:**
+  Enthält `banner` bereits einen Pfadtrenner (`/`), bleibt der relative Pfad erhalten. Wird nur ein Dateiname wie `"cubie-logo-written.png"` übergeben, prüft die Funktion, ob `(root / ".assets" / clean)` existiert (ohne dass `docs/.assets/<clean>` vorliegt), und liefert standardmäßig `"docs/.assets/<clean>"`.
+
+Darauf bauen fünf statische Struktur- und Navigations-Bausteine auf:
+1. **`Divider()`:** Rendert `"---"`.
+2. **`AssetImage(path="docs/.assets/cubie-small.png", alt="Cubie")`:** Validiert im `__post_init__`, dass `path` und `alt` nicht-leere Strings sind (`STATE-GUARD`), und rendert `![{self.alt}]({compute_rel_link(...)})`.
+3. **`CenterWrap(tag="div", blocks=())`:** Prüft `tag` über `validate_wrap_tag` (`"div"` erzeugt `<div align="center">`, `"center"` erzeugt `<center>`). Rendert alle Kind-Blöcke, **filtert leere Rückgabestrings aus** (`[out for block in self.blocks if (out := block.render(ctx))]`) und verbindet die nicht-leeren Ausgaben durch Leerzeilen (`"\n\n"`).
+4. **`CompactNav(routes=(), separator=" • ")`:** Rendert eine einzeilige Schnellnavigation (`[Label](rel_link) • ...  `) inklusive zweier abschließender Leerzeichen für den Markdown-Zeilenumbruch.
+5. **`RouteGroup(routes=())`:** Formatiert statische `(label, repo_rel_path)`-Tupel über `_format_route_lines` als `[↦ | {label} | ↤]({rel_link})  `.
+
+### 3.2 Dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`)
+
+Anstatt Routen manuell in Python-Tupeln zu pflegen, fragen die drei Router-Bausteine während Pass 2 den `ctx.catalog` ab:
+
+1. **`FolderRouter(dir="docs", glob="*.md", exclude=())`:**
+   Ruft `ctx.catalog.select(self.dir, glob=self.glob, exclude=self.exclude)` auf und formatiert jedes gefundene `DocMeta` als `[↦ | {e.label} | ↤]({rel_link})  `.
+2. **`SiblingRouter(hubs=(), include_hubs=True, exclude=("README.md",))`:**
+   Verhindert, dass der globale Footer bei wachsender Zahl von Unterordner-Dokumenten überläuft, und bietet gleichzeitig volle Tiefen-Navigation innerhalb von Unterordnern:
+   * Ermittelt den Elternordner des aktuellen Dokuments (`parent_dir = Path(ctx.rel_path).parent.as_posix()`) und prüft `expand_sub = parent_dir not in (".", "docs", "docs/services")`.
+   * **In Haupt- und Service-Guides (`expand_sub is False`):** Rendert nur die konfigurierten Bereichs-Hubs (`self.hubs`). Dabei löst `_resolve_hub_target(catalog, target)` jeden Hub robust auf: Existiert die Zieldatei im Katalog oder auf der Festplatte, wird sie direkt verlinkt; andernfalls fällt der Hub automatisch auf das erste routbare Markdown-Dokument im selben Ordner zurück.
+   * **Innerhalb eines Unterordners (`expand_sub is True`, z. B. `docs/dev` oder `docs/dev/services`):** Übergibt `skip_dir=parent_dir` an `_append_hubs` (sodass der Sammel-Hub des eigenen Ordners ausgeblendet wird) und klappt stattdessen alle routbaren Geschwister-Dokumente aus `parent_dir` (exklusive `README.md`) direkt im Footer auf. Ein `seen: set[str]` verhindert doppelte Pfad-Einträge.
+3. **`CatalogRouter(default_mode="table", exclude=("README.md",), extract_summary=True, dir=".", recursive=False)` (Alias `CatalogTable`):**
+   Wird in `CUBIE_DOC_FRAME_3`-Index-Dokumenten innerhalb von `zone="router"` eingesetzt und wertet die Attribute des `<!-- qb:frame ... -->`-Tags dynamisch aus:
+   * `mode`: Überschreibt `self.default_mode` per Tag-Attribut (`mode="table"` oder `mode="links"`, abgesichert durch `validate_catalog_mode`).
+   * `dir`: `_resolve_dir(ctx)` löst `""` oder `"."` auf den Elternordner der aktuellen Datei auf; existiert `ctx.catalog.root / raw`, wird der Pfad ab Repository-Root interpretiert, andernfalls relativ zum Elternordner der aktuellen Datei.
+   * `recursive` & `glob`: `_resolve_recursive` parst `recursive="true|false"` (mit `STATE-GUARD` bei ungültigen Werten); `glob` steuert das Dateimuster (Default: `"*.md"`).
+   * **Selbst-Ausschluss:** Das aufrufende Index-Dokument selbst wird über `if e.path != ctx.rel_path` immer ausgefiltert. Im Modus `"table"` erzeugt `_render_table` eine zweispaltige Markdown-Tabelle (`| Dokument | Inhalt und Geltung |`), im Modus `"links"` eine `[↦ | ... | ↤]`-Routenliste.
+
+### 3.3 Geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`)
+
+Damit `DocFrame.update()` Banner-Pfade, Alt-Texte, Provenance-Felder und Navigationsleisten aktualisieren kann, ohne den vom Autor verfassten Titel, Einführungstext, Disclaimer oder Prompt anzutasten, zerlegen die Content-Slots den bestehenden `ctx.span.inner_content` über `_strip_outer_html_wrappers` und `_split_by_dividers` an den horizontalen Linien (`---`):
+
+* **`HeaderContentSlot(default_banner="cubie-logo-written.png", alt="Cubie")`:**
+  Analysiert das Segment vor dem ersten `---` (`first_seg = _split_by_dividers(inner_lines)[0]`) über `_scan_header_lines`:
+  * Isoliert die erste `# `-Überschrift (`title`), die erste Bildzeile `_IMG_BANNER_RE` (`existing_banner = Path(m.group(1)).name`) und alle übrigen Textzeilen (`body_lines`).
+  * Bestimmt den Banner-Dateinamen nach der Prioritätskette `ctx.span.attrs.get("banner") or existing_banner or self.default_banner` und berechnet über `resolve_banner_rel_path` und `compute_rel_link` den tiefenkorrekten Pfad mit normiertem Alt-Text `![Cubie](...)`.
+  * Setzt `# {title}`, `![{self.alt}]({banner_rel})` und den unveränderten Einführungstext (`intro`) wieder zusammen.
+* **`DisclaimerSlot(optional=True)`:**
+  Extrahiert in `CUBIE_DOC_FRAME_1` und `CUBIE_DOC_FRAME_3` das mittlere Segment zwischen dem ersten und zweiten `---` (`segments[1]`), sofern `len(segments) >= 3` gilt. Besitzt ein Dokument keinen Disclaimer (d. h. zwei aufeinanderfolgende `---` vor der Schnellnavigation), gibt `DisclaimerSlot.render` einen leeren String `""` zurück, der von `CenterWrap` nahtlos übersprungen wird.
+* **`TitleSlot(optional=True)`, `ProvenanceBlock(required_keys=...)` & `PromptSlot(optional=True)` (`CUBIE_DOC_FRAME_2`):**
+  * `TitleSlot` bewahrt eine vorhandene `# `-Überschrift vor dem ersten `---` oder generiert sie aus einem optionalen `title="..."`-Marker-Attribut.
+  * `ProvenanceBlock` parst alle bestehenden Aufzählungspunkte der Form `- **Key:** Value` (`_PROV_BULLET_RE`) vor dem ersten `---` und überlagert sie mit den Attribut-Overrides aus dem öffnenden Kommentar-Tag (`_ATTR_TO_PROV_KEY`: `env` $\to$ `"Plattform / Umgebung"`, `model` $\to$ `"Modell"`, `effort` $\to$ `"Reasoning-Effort"` sowie direkte Schlüsselnamen). Dabei werden zuerst alle `required_keys` in kanonischer Reihenfolge ausgegeben und danach sämtliche benutzerdefinierten Zusatzfelder (z. B. `- **Analysedatum:** ...` oder `- **Synthesebasis:** ...`) verlustfrei angehängt.
+  * `PromptSlot` konserviert den gesamten Text unterhalb des ersten `---` (`"\n---\n".join(...)` über `segments[1:]`), selbst wenn der Prompt-Text eigene horizontale Linien enthält.
+
+---
+
+## 4. Rahmen-Muster (`FramePattern`), Standard-Presets & Orchestrierung (`doc_frame.py`)
+
+### 4.1 `FramePattern` als Dual-Protokoll-Adapter & die drei Standard-Presets
+
+`FramePattern(id, head=(), foot=(), router=())` definiert die Block-Komposition für die drei Zonen `"head"`, `"router"` und `"foot"` und erfüllt dabei eine architektonische Doppelrolle:
+1. **Zonen-Renderer für `DocFrame`:** Im `__post_init__` prüft `_validate_block_sequence`, dass `id` nicht leer ist und jede Zone ausschließlich `FrameBlockProtocol`-Instanzen enthält (`STATE-GUARD`). `render_zone(zone, ctx)` validiert den Zonennamen über `validate_zone`, rendert alle Blöcke der Zone und verbindet nicht-leere Ergebnisse mit `"\n\n"`.
+2. **`DocPatternProtocol`-Adapter für `DocEnsurance`:** Durch die Property `name -> str` (`return self.id`) und die No-op-Methode `scan(blocks, file_path) -> ([], [])` erfüllt jedes `FramePattern` strukturell das `DocPatternProtocol` aus `doc_ensurance` und kann direkt in `DocEnsurance(pattern=[CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, ...])` übergeben werden.
+
+In `doc_frame.py` sind daraus drei Standard-Presets (`DEFAULT_FRAME_PATTERNS`) vordefiniert:
+
+| Preset | `head`-Komposition | `router`-Komposition | `foot`-Komposition |
+| :--- | :--- | :--- | :--- |
+| **`CUBIE_DOC_FRAME_1`** | `STD_HEAD_BLOCKS`: `CenterWrap(tag="div", blocks=(HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(), HEADER_QUICK_NAV))` | `()` | `STD_FOOTER_BLOCKS`: `Divider(), Divider(), CenterWrap(tag="div", blocks=(AssetImage(...), GUIDE_ROUTER, SERVICE_ROUTER, CONTEXT_ROUTER))` |
+| **`CUBIE_DOC_FRAME_2`** | `(TitleSlot(optional=True), ProvenanceBlock(required_keys=("Plattform / Umgebung", "Modell", "Reasoning-Effort")), Divider(), PromptSlot(optional=True))` | `()` | `STD_FOOTER_BLOCKS` |
+| **`CUBIE_DOC_FRAME_3`** | `STD_HEAD_BLOCKS` | `(AUTO_INDEX_ROUTER,)` (`CatalogRouter(default_mode="table", exclude=("README.md",), extract_summary=True)`) | `STD_FOOTER_BLOCKS` |
+
+### 4.2 Rückwärts-Slicing, Zeilenumbruch-Invariante & Idempotenz (`_render_file_frames`)
+
+Wenn `DocFrame.run()` in Pass 2 eine Datei aktualisiert, müssen `head`-, `router`- und `foot`-Spans ersetzt werden, ohne den dazwischenliegenden Dokumentkörper zu verändern:
+
+* **In-Place-Ersetzung in umgekehrter Reihenfolge (`for span in reversed(spans)`):**
+  Da eine neu gerenderte `head`- oder `router`-Zone länger oder kürzer sein kann als der bisherige `inner_content`, würden sich bei einer Ersetzung von oben nach unten die Zeichen-Offsets (`start_idx`, `end_idx`) aller nachfolgenden Spans verschieben. Indem `_render_file_frames` rückwärts vom Dateiende zum Dateianfang (`foot` $\to$ `router` $\to$ `head`) über `reversed(spans)` iteriert und `result[:span.start_idx] + replacement + result[span.end_idx:]` schneidet, bleiben sämtliche vorangehenden Zeichen-Indizes exakt gültig.
+* **Zeilenumbruch-Invariante & Idempotenz (`_render_single_span`):**
+  `_render_single_span` setzt vor den Zonen-Inhalt `lead_nl = "\n\n" if span.zone == "foot" else "\n"`, schließt mit `\n{span.close_tag}` ab und erhält einen etwaigen Zeilenumbruch hinter dem schließenden Tag (`trail_nl`). Da `parse_frame_spans` beim nächsten Lauf exakt diesen `inner_content` wieder ausliest und `inner_content.strip()` identisch gerendert wird, ist `DocFrame.update()` streng **idempotent**: Ein zweiter Lauf über ein bereits synchronisiertes Repository erzeugt `updated_files == ()` und führt keinen einzigen Schreibzugriff aus.
+
+Das folgende Beispiel zeigt in drei zusammengehörigen Schritten (`session=docframe_presets`), wie sich die Router-Bausteine, der gemeinsame Footer und die drei Presets in Python zusammensetzen und abfragen lassen:
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import (
-    CatalogRouter, CompactNav, FolderRouter, RouteGroup, SiblingRouter
+from qb_cubie.services.doc_frame import (
+    CatalogRouter, CompactNav, FolderRouter, SiblingRouter,
 )
 
 HEADER_QUICK_NAV = CompactNav(
@@ -122,7 +262,6 @@ HEADER_QUICK_NAV = CompactNav(
         ("DocEnsurance", "docs/services/GUIDE_DocEnsurance.md"),
     )
 )
-
 GUIDE_ROUTER = FolderRouter(dir="docs", glob="GUIDE_*.md")
 SERVICE_ROUTER = FolderRouter(dir="docs/services", glob="GUIDE_*.md")
 CONTEXT_ROUTER = SiblingRouter(
@@ -143,12 +282,10 @@ Quick-Nav: 3 | Hubs: 3
 ```
 </details>
 
-### Schritt 2: Gemeinsamer Fuß (`div align="center"`) & Index-Katalog
-
-Im zweiten Schritt setzen wir den gemeinsamen Fuß-Block (`STD_FOOTER_BLOCKS`) mit `<div align="center">` sowie den `CatalogRouter` (`AUTO_INDEX_ROUTER`) für Index-Dokumente zusammen:
+Im zweiten Schritt bündeln wir die Router im gemeinsamen `<div align="center">`-Fuß (`STD_FOOTER_BLOCKS`) und konfigurieren den `CatalogRouter` (`AUTO_INDEX_ROUTER`):
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import AssetImage, CenterWrap, Divider
+from qb_cubie.services.doc_frame import AssetImage, CenterWrap, Divider
 
 STD_FOOTER_BLOCKS = (
     Divider(),
@@ -163,7 +300,6 @@ STD_FOOTER_BLOCKS = (
         ),
     ),
 )
-
 AUTO_INDEX_ROUTER = CatalogRouter(
     default_mode="table",
     exclude=("README.md",),
@@ -180,13 +316,11 @@ Footer-Blöcke: 3 | Index-Mode: table
 ```
 </details>
 
-### Schritt 3: Die drei Presets (`FRAME_1`, `FRAME_2`, `FRAME_3`)
-
-Im dritten Schritt bündeln wir die Kopf-, Router- und Fuß-Bausteine zu den drei Rahmen-Presets `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2` und `CUBIE_DOC_FRAME_3`:
+Im dritten Schritt fügen wir Kopf-, Router- und Fuß-Blöcke zu den drei `FramePattern`-Presets zusammen:
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import (
-    DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot
+from qb_cubie.services.doc_frame import (
+    DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
 )
 
 STD_HEAD_BLOCKS = (
@@ -219,30 +353,162 @@ Presets: CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3
 
 ---
 
-## 6. Zusammenspiel mit `DocEnsurance` & Diagnose-Regeln
+## 5. Diagnose-Regeln (`CUBIE_DOCFRAME_RULES`) & `DocEnsurance`-Kopplung (`doc_frame_rules.py`)
 
-Damit `DocEnsurance` und `DocFrame` ohne Code-Duplizierung über dieselbe Engine laufen, nutzt `DocFrame` intern eine `Dry-Run`-Diff-Berechnung:
+Damit veraltete oder unvollständige Rahmen im CI-Lauf zuverlässig auffallen, ohne `DocEnsurance`-Code-Prüfungen (`DOC-PRE`, `DOC-POST`, `DOC-OUT`, `DOC-HIGH-COMPLEXITY`) stummzuschalten, stellt `doc_frame_rules.py` vier orthogonale Dokument-Prüfregeln bereit (`CUBIE_DOCFRAME_RULES`).
 
-1. **`DocFrame.update(target=None, pattern=(...), excludes=(...))`:**
-   * Führt **Pass 1** (`build_catalog`) über das Repository aus.
-   * Rendert in **Pass 2** für jede Datei die gefundenen `<!-- qb:frame id="..." zone="head|router|foot" ... -->`-Blöcke neu (unter Bewahrung der geschützten Slots wie `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot` und `PromptSlot`) und schreibt geänderte Dateien atomar zurück.
-2. **Prüfregeln in `CUBIE_DOCFRAME_RULES` (für `DocEnsurance`):**
-   * **`DOCFRAME-MISSING` (`error`):** Eine nicht-exkludierte `.md`-Datei besitzt keinen gültigen `head`- oder `foot`-Rahmen (oder eine `CUBIE_DOC_FRAME_3`-Datei hat keinen `zone="router"`-Block).
-   * **`DOCFRAME-OUTDATED` (`error`):** Der in der Datei gespeicherte Rahmen oder Router weicht vom frisch berechneten Katalog-Zustand ab (z. B. weil eine neue `.md`-Datei im Ordner angelegt wurde, `DocFrame.update()` aber noch nicht lief, oder weil ein Link im Footer noch den alten `![Error while trying to load the image]`-Tag trägt).
-   * **`DOCFRAME-BROKEN-ROUTE` (`error`):** Ein im Rahmen oder Router referenziertes Ziel oder Banner-Asset existiert physisch nicht im Workspace.
-   * **`DOCFRAME-PROVENANCE-INCOMPLETE` (`error`):** Ein Dokument mit `CUBIE_DOC_FRAME_2` lässt Pflichtfelder im `ProvenanceBlock` leer.
+### 5.1 Die vier Rahmen-Prüfregeln und ihre kaskadenfreie Abschirmung
 
-### Optionales feingranulares Steuern im Dokument-Header
+Jede Regel in `CUBIE_DOCFRAME_RULES` implementiert das `DocRuleProtocol` (wobei `check(example, actual_output)` als No-op `[]` liefert) sowie die Dokument-Methode `check_document(file_path, content, catalog, patterns) -> list[DocDiagnostic]`. Alle vier Regeln prüfen vorab über `_validate_known_patterns`, ob jede im Dokument referenzierte `frame_id` in `patterns` registriert ist (andernfalls `ValueError("STATE-GUARD: Unknown FramePattern id ...")`):
 
-Damit die Sortierung und Benennung im Fuß-Router (`[↦ | Label | ↤]`) trotz Vollautomatisierung genauso prägnant bleibt wie in handgeschriebenen Footern, kann jedes Dokument im öffnenden `head`-Kommentar optionale Routing-Hints mitgeben:
+1. **`DocFrameMissing` (`DOCFRAME-MISSING`, Default: `"error"`, Alias: `DocFrameMissingRule`):**
+   Prüft über `_has_missing_zones(spans, unclosed, patterns)` drei strukturelle Grundbedingungen:
+   * Enthält `unclosed` Einträge (ungeschlossener `<!-- qb:frame ... -->`-Tag), feuert `DOCFRAME-MISSING` exakt auf der Startzeile `unclosed[0]`.
+   * Fehlt in den geschlossenen Spans `"head"` oder `"foot"` (was auch auf komplett leere 0-Byte-Dateien zutrifft), feuert `DOCFRAME-MISSING` auf Zeile `1`.
+   * Referenziert ein Span ein `FramePattern` mit nicht-leerer `pat.router`-Sequenz (wie `CUBIE_DOC_FRAME_3`), ohne dass im Dokument ein Span mit `zone="router"` existiert, feuert `DOCFRAME-MISSING` auf `span.start_line`.
 
-```markdown
-<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-banner.png" label="Qualitätssicherung: Handbuch & Methodik" order="10" -->
+2. **`DocFrameProvenanceIncomplete` (`DOCFRAME-PROVENANCE-INCOMPLETE`, Default: `"error"`, Alias: `DocFrameProvenanceRule`):**
+   Überspringt Dateien mit ungeschlossenen Tags (`if unclosed: return []`). Prüft über `_find_incomplete_provenance(span, pattern)` jeden `zone="head"`-Span, dessen `FramePattern` einen `ProvenanceBlock` enthält: Bleibt nach dem Zusammenführen der bestehenden `- **Key:** Value`-Zeilen und der Marker-Attribute (`env`, `model`, `effort`) mindestens ein Schlüssel aus `prov.required_keys` leer, emittiert die Regel `DOCFRAME-PROVENANCE-INCOMPLETE` auf `span.start_line`.
+
+3. **`DocFrameBrokenRoute` (`DOCFRAME-BROKEN-ROUTE`, Default: `"error"`, Alias: `DocFrameBrokenRouteRule`):**
+   Überspringt Dateien mit ungeschlossenen Tags und prüft für jeden Span über `_find_broken_route_in_span(path_obj, span, catalog.root)` zwei Arten von Ziel-Referenzen auf physische Existenz im Dateisystem:
+   * Besitzt der Span ein `banner="..."`-Attribut, muss `catalog.root / resolve_banner_rel_path(banner, catalog.root)` existieren.
+   * Für jeden im `span.inner_content` gefundenen Markdown-Link oder Bild-Verweis (`_LINK_TARGET_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")`) werden Anker (`#...`) und Query-Parameter (`?...`) abgetrennt; externe URLs (`http://`, `https://`, `mailto:`) werden übersprungen. Existiert `(file_path.resolve().parent / clean).resolve()` nicht auf der Festplatte, meldet die Regel `DOCFRAME-BROKEN-ROUTE` auf `span.start_line`.
+
+4. **`DocFrameOutdated` (`DOCFRAME-OUTDATED`, Default: `"error"`, Alias: `DocFrameOutdatedRule`):**
+   Berechnet im Dry-Run über `pat.render_zone(span.zone, ctx)` den Soll-Zustand jeder Zone und vergleicht `span.inner_content.strip() != expected.strip()`.
+   * **Kaskadenfreie Abschirmung:** Damit ein einzelner Ursachenfehler niemals doppelt gemeldet wird, bricht `DocFrameOutdated` sofort ab (`return []`), wenn `_has_missing_zones` zutrifft, und überspringt in `_check_spans_sync` gezielt jeden Span, für den `_find_incomplete_provenance` oder `_find_broken_route_in_span` bereits einen Befund liefert.
+
+### 5.2 Orthogonale Integration in `DocEnsurance` (`_split_patterns` & `_run_document_rules`)
+
+In `DocEnsurance` greifen drei Mechanismen ineinander, um Code-Beispiel-Verifikation und Rahmen-Verifikation in einem einzigen Durchlauf zu vereinen:
+* **Pattern-Partitionierung (`DocEnsurance._split_patterns`):** Übergibt der Aufrufer `pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)`, trennt `_split_patterns` das primäre `ExamplePattern` (ohne `render_zone`-Attribut) sauber von den `FramePattern`-Instanzen (`hasattr(p, "render_zone")`, gespeichert in `self._frame_patterns`).
+* **Rekursives Regel-Flattening (`DocEnsurance._flatten_rules`):** Erlaubt die direkte Übergabe verschachtelter Regel-Tupel wie `rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES)`.
+* **Einmaliger Katalog-Aufbau in `_run_document_rules`:** Zu Beginn von `_scan_all_sources()` sammelt `DocEnsurance` alle registrierten Regeln mit `hasattr(r, "check_document")`. Sofern Dateisystem-Quellen vorliegen (`self._sources[0][0] != "IN_MEMORY"`), baut `DocFrame(target=self.target, pattern=self._frame_patterns, excludes=tuple(self.excludes)).build_catalog()` einmalig den `DocumentCatalog` auf und führt anschließend jede Dokument-Regel über alle geladenen `(file_path, content)`-Paare aus.
+
+---
+
+## 6. Entwickler-Rezepte: Eigene Erweiterungen bauen (DI-Guide)
+
+Dank der strikten Protokoll-Trennung (`FrameBlockProtocol`, `FramePattern`, `check_document`) lassen sich eigene Rahmen-Bausteine, Router-Konfigurationen und Dokument-Prüfregeln ohne Änderung am `doc_frame`-Kern implementieren und per Dependency Injection übergeben.
+
+### 6.1 Eigenen Rahmen-Baustein (`FrameBlockProtocol`) implementieren
+
+Um einen neuen dynamischen Baustein (z. B. eine Breadcrumb-Zeile, die den Katalog-Pfad und die Rahmen-ID des aktuellen Dokuments ausgibt) zu ergänzen, genügt eine `@dataclass(frozen=True)` mit einer `render(self, ctx: FrameRenderContext) -> str`-Methode:
+
+```python
+from dataclasses import dataclass
+from pathlib import Path
+from qb_cubie.services.doc_frame import (
+    DocumentCatalog, FramePattern, FrameRenderContext, FrameSpan, extract_doc_meta,
+)
+
+
+@dataclass(frozen=True)
+class BreadcrumbBar:
+    prefix: str = "Pfad:"
+
+    def render(self, ctx: FrameRenderContext) -> str:
+        meta = ctx.catalog.by_path(ctx.rel_path)
+        return f"{self.prefix} `{meta.category}` / **{meta.label}** (`{ctx.span.frame_id}`)"
+
+
+raw = '<!-- qb:frame id="CUSTOM_1" zone="head" -->\n# Mein Guide\n<!-- /qb:frame -->\n'
+cat = DocumentCatalog(root=Path("/repo"), entries=(extract_doc_meta("docs/dev/guide.md", raw),))
+span = FrameSpan("CUSTOM_1", "head", {}, "<!-- qb:frame -->", "# Mein Guide\n", "<!-- /qb:frame -->", 1, 3, 0, len(raw))
+ctx = FrameRenderContext(Path("/repo/docs/dev/guide.md"), "docs/dev/guide.md", cat, span)
+pattern = FramePattern(id="CUSTOM_1", head=(BreadcrumbBar(),))
+print(pattern.render_zone("head", ctx))
 ```
 
-* Fehlt `label="..."`, fällt `DocFrame` automatisch auf den `# H1-Titel` des Dokuments zurück.
-* Fehlt `order="..."`, sortiert `FolderRouter` deterministisch alphabetisch nach Dateiname (mit `README.md` immer auf Platz 1).
-* Will man ein spezielles Dokument (wie ein temporäres Scratchpad) zwar mit einem Rahmen versehen, aber *nicht* automatisch in fremde Footer einspielen lassen, setzt man `routable="false"` im Header.
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Pfad: `docs/dev` / **Mein Guide** (`CUSTOM_1`)
+```
+</details>
+
+### 6.2 `DocumentCatalog` und `CatalogRouter` programmatisch im Speicher auswerten
+
+Möchte man in Tests oder Analyse-Skripten prüfen, welche Index-Tabelle `CatalogRouter` für eine gegebene Dokumentmenge erzeugt, lässt sich `DocumentCatalog` direkt aus `(rel_path, content)`-Einträgen bestücken und ohne Dateisystem-Schreibzugriff rendern:
+
+```python
+from pathlib import Path
+from qb_cubie.services.doc_frame import (
+    CatalogRouter, DocumentCatalog, FrameRenderContext, extract_doc_meta, parse_frame_spans, sort_doc_metas,
+)
+
+readme_md = '<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="." -->\n<!-- /qb:frame -->'
+essay_b = '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" order="20" -->\n# Essay B\n\nZweiter Text.\n\n---\n<!-- /qb:frame -->'
+essay_a = '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" order="10" -->\n# Essay A\n\nErster Text.\n\n---\n<!-- /qb:frame -->'
+
+entries = sort_doc_metas([
+    extract_doc_meta("docs/misc/README.md", readme_md),
+    extract_doc_meta("docs/misc/B.md", essay_b),
+    extract_doc_meta("docs/misc/A.md", essay_a),
+])
+catalog = DocumentCatalog(root=Path("/repo"), entries=tuple(entries))
+router_span = parse_frame_spans(readme_md)[0][0]
+ctx = FrameRenderContext(Path("/repo/docs/misc/README.md"), "docs/misc/README.md", catalog, router_span)
+print(CatalogRouter().render(ctx))
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+| Dokument | Inhalt und Geltung |
+| :--- | :--- |
+| [Essay A](./A.md) | Erster Text. |
+| [Essay B](./B.md) | Zweiter Text. |
+```
+</details>
+
+### 6.3 Eigene Dokument-Prüfregel (`check_document`) mit State-Guard implementieren
+
+Soll `DocEnsurance` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-Konvention durchsetzen (z. B. dass jeder `CUBIE_DOC_FRAME_1`-Header zwingend ein explizites `banner="..."`-Attribut im Kommentar-Tag deklarieren muss), implementiert man `DocRuleProtocol` ergänzt um `check_document`:
+
+```python
+from dataclasses import dataclass
+from qb_cubie.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
+from qb_cubie.services.doc_frame import DocumentCatalog, FramePattern, parse_frame_spans
+
+
+@dataclass(frozen=True)
+class RequireExplicitBannerRule:
+    rule_id: str = "DOCFRAME-EXPLICIT-BANNER"
+    severity: str = "warning"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def check(self, example: ExtractedExample, actual_output: str | None = None) -> list[DocDiagnostic]:
+        _ = (example, actual_output)
+        return []
+
+    def check_document(
+        self, file_path: str, content: str, catalog: DocumentCatalog, patterns: dict[str, FramePattern]
+    ) -> list[DocDiagnostic]:
+        _ = (catalog, patterns)
+        spans, _ = parse_frame_spans(content)
+        return [
+            DocDiagnostic(file_path, self.rule_id, s.start_line, "Missing explicit banner attribute.", severity=self.severity)
+            for s in spans if s.zone == "head" and s.frame_id == "CUBIE_DOC_FRAME_1" and not s.attrs.get("banner")
+        ]
+
+
+service = DocEnsurance(rules=[RequireExplicitBannerRule], reporter=None)
+print([r.rule_id for r in service.rules])
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+['DOC-OUT-MISSING', 'DOC-OUT', 'DOCFRAME-EXPLICIT-BANNER']
+```
+</details>
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
