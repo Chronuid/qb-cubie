@@ -17,7 +17,7 @@ Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 
 ---
 
-[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md)  
+[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md) • [DocFrame (Prototyp)](./docs/services/GUIDE_DocFrame.md)    
 
 </div>
 <!-- /qb:frame -->
@@ -212,7 +212,7 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 [↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./docs/services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  

@@ -1,13 +1,18 @@
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
 <div align="center">
 
-# `DocFrame`
+# `DocFrame` (Prototyp)
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Das `doc_frame`-Paket bildet die zweistufige Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.services`. Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
+Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
 
 ---
+
+> [!WARNING]
+>
+> **Entwicklungsstatus: Prototyp – Evaluation und Härtung ausstehend:**  
+> `qb_cubie.services.doc_frame` ist als **Prototyp** markiert und muss vor einer Stabilitätsfreigabe noch systematisch evaluiert (z. B. gegen heterogene Markdown-Dialekte, Edge-Cases im Scanner und größere Dokumentationsbäume) sowie gehärtet werden. Änderungen an DTOs, Presets und Regel-Semantik bleiben ausdrücklich vorbehalten.
 
 ---
 
@@ -530,13 +535,13 @@ print([r.rule_id for r in service.rules])
 [↦ | RBT-Nutzungsmuster | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](../../services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | `DocEnsurance` | ↤](./DEV-GUIDE_DocEnsurance.md)  
-[↦ | `DocFrame` | ↤](./DEV-GUIDE_DocFrame.md)  
+[↦ | `DocFrame` (Prototyp) | ↤](./DEV-GUIDE_DocFrame.md)  
 
 </div>
 <!-- /qb:frame -->

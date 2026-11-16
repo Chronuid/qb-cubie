@@ -80,7 +80,7 @@ Für ein zukünftiges Release sind folgende Schritte für nativen Windows-Suppor
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  

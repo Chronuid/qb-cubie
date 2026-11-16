@@ -1,13 +1,20 @@
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
 <div align="center">
 
-# DocFrame
+# DocFrame (Prototyp)
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relative Navigationspfade über verschiedene Verzeichnistiefen, Provenance-Kopfblöcke und Bereichs-Indizes (`README.md`) innerhalb kürzester Zeit. **`DocFrame`** aus `qb_cubie.services` (bzw. dem Kurz-Alias `qb_cubie.services.docframe`) löst dieses Problem durch eine zweistufige Synchronisations- und Routing-Engine, während **`DocEnsurance`** über **`CUBIE_DOCFRAME_RULES`** absichert, dass jedes nicht-exkludierte Markdown-Dokument gültige, vollständige und aktuelle Rahmen besitzt.
+Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relative Navigationspfade über verschiedene Verzeichnistiefen, Provenance-Kopfblöcke und Bereichs-Indizes (`README.md`) innerhalb kürzester Zeit. **`DocFrame`** *(Prototyp – noch zu evaluieren und zu härten)* aus `qb_cubie.services` (bzw. dem Kurz-Alias `qb_cubie.services.docframe`) adressiert dieses Problem durch eine zweistufige Synchronisations- und Routing-Engine, während **`DocEnsurance`** über **`CUBIE_DOCFRAME_RULES`** prüft, ob nicht-exkludierte Markdown-Dokumente gültige, vollständige und aktuelle Rahmen besitzen.
 
 ---
+
+> [!WARNING]
+>
+> **Status: Prototyp – noch nicht evaluiert und gehärtet:**  
+> `DocFrame` (`qb_cubie.services.doc_frame` / `qb_cubie.services.docframe`, einschließlich `CUBIE_DOC_FRAME_1..3` und `CUBIE_DOCFRAME_RULES`) ist derzeit ein **experimenteller Prototyp**, der vor einer produktiven Stabilitätszusage noch systematisch evaluiert und gehärtet werden muss:
+> * **Unstabile Schnittstellen & Heuristiken:** Öffentliche Signaturen, Preset-Strukturen, Scanner-Heuristiken (`_catalog_scanner`) und Regelverhalten können sich in kommenden Releases noch ändern.
+> * **Vorläufige Absicherung:** Die bisherigen Unit- und Integrationstests belegen nur die geprüften Szenarien im eigenen Checkout; vor dem Einsatz auf fremden oder größeren Repositories sollten Backups angelegt und eigene Verifikationsläufe durchgeführt werden.
 
 > [!NOTE]
 >
@@ -685,7 +692,7 @@ print([r.rule_id for r in service.rules])
 [↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  

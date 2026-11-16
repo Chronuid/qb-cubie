@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [0.0.7] - 2026-11-16
+
+### Neu
+- **Service-Prototyp `DocFrame` (`qb_cubie.services.doc_frame` / `qb_cubie.services.docframe`) – Prototyp, noch zu evaluieren und zu härten:**
+  - Zweistufige Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen (`<!-- qb:frame ... --> ... <!-- /qb:frame -->`) in [protocols.py](./src/qb_cubie/services/doc_frame/protocols.py), [\_catalog_scanner.py](./src/qb_cubie/services/doc_frame/_catalog_scanner.py), [frame_blocks.py](./src/qb_cubie/services/doc_frame/frame_blocks.py), [doc_frame_rules.py](./src/qb_cubie/services/doc_frame/doc_frame_rules.py), [doc_frame.py](./src/qb_cubie/services/doc_frame/doc_frame.py) sowie Kurz-Alias [docframe.py](./src/qb_cubie/services/docframe.py).
+  - Standard-Presets (`CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`), Bausteine und dynamische Router (`HeaderContentSlot`, `DisclaimerSlot`, `ProvenanceBlock`, `FolderRouter`, `SiblingRouter`, `CatalogRouter`, `CompactNav` u. a.) sowie Dokument-Prüfregeln (`CUBIE_DOCFRAME_RULES`: `DOCFRAME-MISSING`, `DOCFRAME-OUTDATED`, `DOCFRAME-BROKEN-ROUTE`, `DOCFRAME-PROVENANCE-INCOMPLETE`).
+  - Zugehörige Leitfäden ([GUIDE_DocFrame.md](./docs/services/GUIDE_DocFrame.md), [DEV-GUIDE_DocFrame.md](./docs/dev/services/DEV-GUIDE_DocFrame.md)) und Testsuite (`tests/tests_services/tests_doc_frame/`); `DocFrame` ist ausdrücklich als **Prototyp** markiert, der vor einer Stabilitätszusage noch systematisch evaluiert und gehärtet werden muss.
+- **Dokumentations- & Entwicklerleitfäden ausgebaut:** Neuer Entwickler-Leitfaden [DEV-GUIDE_DocEnsurance.md](./docs/dev/services/DEV-GUIDE_DocEnsurance.md), Bereichs-Indizes [docs/README.md](./docs/README.md) und [docs/misc/README.md](./docs/misc/README.md), Statusdokument [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md) sowie [META_QUESTION.md](./META_QUESTION.md).
+
+### Geändert
+- **`DocEnsurance` in Subpaket strukturiert & um Dokument-Regeln (`check_document`) erweitert:** Service-Module nach `src/qb_cubie/services/doc_ensurance/` und zugehörige Tests nach `tests/tests_services/tests_doc_ensurance/` verschoben (Re-Exporte über `qb_cubie.services` bleiben erhalten); `DocEnsurance` unterstützt kombinierte `FramePattern`-/`CUBIE_DOCFRAME_RULES`-Prüfungen auf Dokumentebene.
+- **Repository-Dokumentation & Styleguide-Prüfung aktualisiert:** Alle aktiven Markdown-Guides (`README.md`, `docs/`) mit `qb:frame`-Kopf- und Fußrahmen versehen; [GUIDE_Quality-Assurance.md](./docs/GUIDE_Quality-Assurance.md) und [GUIDE_Benchmarks.md](./docs/GUIDE_Benchmarks.md) überarbeitet; `test_docs_code_examples` in [tests/test_styleguide.py](./tests/test_styleguide.py) prüft im Standardlauf Codebeispiele und Dokumentrahmen gemeinsam.
+
 ## [0.0.6] - 2026-11-14
 
 ### Neu

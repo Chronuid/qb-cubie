@@ -1,4 +1,4 @@
-"""Stateful and class-level orchestrator for synchronizing Markdown document frames."""
+"""Prototype orchestrator for synchronizing Markdown document frames (pending evaluation and hardening)."""
 
 from __future__ import annotations
 
@@ -159,7 +159,7 @@ DEFAULT_FRAME_PATTERNS: Final[tuple[FramePattern, ...]] = (
 
 # ========== DOC-FRAME SERVICE =========================================================================================
 class DocFrame:
-    """Synchronizes and inspects Markdown document frames across repository directory depths."""
+    """Prototype orchestrator for synchronizing Markdown frames (pending evaluation and hardening)."""
 
     def __init__(
         self,

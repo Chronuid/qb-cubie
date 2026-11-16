@@ -1,4 +1,4 @@
-"""Document frame synchronization service, dynamic routers, presets, and verification rules."""
+"""Prototype document frame synchronization service, routers, and rules (pending evaluation and hardening)."""
 
 from . import _catalog_scanner, doc_frame, doc_frame_rules, frame_blocks, protocols
 from ._catalog_scanner import build_catalog_from_sources, extract_doc_meta, parse_frame_spans

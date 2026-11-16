@@ -286,7 +286,7 @@ Fallback ist keine Exactly-once-Garantie: Die gesamte Aufgabenmenge kann erneut 
 [↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  

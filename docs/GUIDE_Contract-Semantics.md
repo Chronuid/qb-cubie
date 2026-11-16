@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.6, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
+Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.7, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
 
 ---
 
@@ -303,7 +303,7 @@ Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Han
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  

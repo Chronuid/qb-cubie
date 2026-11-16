@@ -587,7 +587,7 @@ Neben dem Pattern lassen sich über `scope` und `arena` auch die Ausführungsbed
 [↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  

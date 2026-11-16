@@ -1,4 +1,4 @@
-"""Pluggable DocEnsurance diagnostic rules for verifying Markdown document frames."""
+"""Prototype DocEnsurance diagnostic rules for Markdown frames (pending evaluation and hardening)."""
 
 from __future__ import annotations
 

@@ -62,7 +62,7 @@ Mit `answer=True` oder `False` liefert jeder Aufruf eine neue `ReviewData` mit d
 [↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  

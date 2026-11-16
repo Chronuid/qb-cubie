@@ -194,7 +194,7 @@ Sollen wir als Nächstes die paarweise Zuordnung (`pre`/`post`-Kopplung) im `EBT
 [↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](./docs/services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  

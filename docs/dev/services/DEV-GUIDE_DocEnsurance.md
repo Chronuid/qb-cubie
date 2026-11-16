@@ -476,13 +476,13 @@ passed=True | sessions=1 | outputs=('21', '42')
 [↦ | RBT-Nutzungsmuster | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame | ↤](../../services/GUIDE_DocFrame.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
 [↦ | Entwicklerübersicht & Internals | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | `DocEnsurance` | ↤](./DEV-GUIDE_DocEnsurance.md)  
-[↦ | `DocFrame` | ↤](./DEV-GUIDE_DocFrame.md)  
+[↦ | `DocFrame` (Prototyp) | ↤](./DEV-GUIDE_DocFrame.md)  
 
 </div>
 <!-- /qb:frame -->
