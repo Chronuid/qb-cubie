@@ -105,7 +105,6 @@ def test_docs_code_examples() -> None:
         excludes=(
             "experiments", #Reason: I need to clean-up the artifacts of the sprint in the core first.
             "GUTACHTEN.md", #Reason: No Cubie-Rules apply to Inspectors.
-            "docs/services/GUIDE_DocFrame.md" # Reason: Feature-Draft
         ),
     ).run()
 

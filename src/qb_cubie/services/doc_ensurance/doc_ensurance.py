@@ -109,20 +109,20 @@ class DocEnsurance:
     def __init__(
         self,
         target: str | Path | None = None,
-        pattern: DocPatternProtocol | None = None,
+        pattern: DocPatternProtocol | Sequence[Any] | None = None,
         scope: DocScopeProtocol | None = None,
         arena: Arena | None = None,
         reporter: Reporter[DocReport] | None = _DEFAULT_REPORTER,
         pre_state: WorldState | None = None,
         excludes: Sequence[str] | None = None,
-        rules: Sequence[DocRuleProtocol | Linter | type] | None = None,
+        rules: Sequence[Any] | None = None,
         *,
         timeout: float | None = 10.0,
     ) -> None:
         """Initializes the documentation verification service with default project conventions."""
         self.timeout = self._validate_timeout(timeout)
         self.target: str | Path = target if target is not None else self._default_project_dir()
-        self.pattern = pattern or CUBIE_DOC_STYLE
+        self.pattern, self._frame_patterns = self._split_patterns(pattern)
         self.scope = scope or TaggedScope()
         self.arena = self._configure_arena(arena, self.timeout)
         self.reporter = reporter
@@ -131,10 +131,10 @@ class DocEnsurance:
         self.rules: list[DocRuleProtocol] = self._build_rules(self.pattern, rules)
         self._reset_state()
 
-    def register_rule(self, *rules: DocRuleProtocol | Linter | type) -> DocEnsurance:
+    def register_rule(self, *rules: Any) -> DocEnsurance:
         """Registers or overrides one or more check rules without muting orthogonal linters."""
         registry = self._index_existing_rules(self.rules)
-        for raw in rules:
+        for raw in self._flatten_rules(rules):
             self._register_into(registry, self._coerce_rule(raw))
         if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.values()):
             registry.pop("DOC-OUT-MISSING", None)
@@ -143,17 +143,43 @@ class DocEnsurance:
 
     @classmethod
     def _build_rules(
-        cls, pattern: DocPatternProtocol, custom: Sequence[DocRuleProtocol | Linter | type] | None
+        cls, pattern: DocPatternProtocol, custom: Sequence[Any] | None
     ) -> list[DocRuleProtocol]:
         """Merges default rules, pattern block rules, and user-provided rules without silent muting."""
         explicit_empty = custom is not None and len(custom) == 0
         defaults = (OutputMatchRule(severity="error"),) if explicit_empty else DEFAULT_DOC_RULES
         registry: dict[str, DocRuleProtocol] = {r.rule_id: r for r in defaults}
-        for raw in (*cls._extract_pattern_rules(pattern), *(custom or ())):
+        for raw in (*cls._extract_pattern_rules(pattern), *cls._flatten_rules(custom or ())):
             cls._register_into(registry, cls._coerce_rule(raw))
         if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.values()):
             registry.pop("DOC-OUT-MISSING", None)
         return list(registry.values())
+
+    @classmethod
+    def _flatten_rules(cls, items: Sequence[Any]) -> list[Any]:
+        """Flattens nested rule tuples or lists while preserving scalar rule objects."""
+        flat: list[Any] = []
+        for item in items:
+            if isinstance(item, (list, tuple)):
+                flat.extend(cls._flatten_rules(item))
+            else:
+                flat.append(item)
+        return flat
+
+    @staticmethod
+    def _split_patterns(
+        raw: DocPatternProtocol | Sequence[Any] | None,
+    ) -> tuple[DocPatternProtocol, tuple[Any, ...] | None]:
+        """Separates example DocPatternProtocol objects from optional DocFrame FramePatterns."""
+        if raw is None:
+            return CUBIE_DOC_STYLE, None
+        items = list(raw) if isinstance(raw, (list, tuple)) else [raw]
+        doc_pats = [p for p in items if hasattr(p, "scan") and not hasattr(p, "render_zone")]
+        frame_pats = [p for p in items if hasattr(p, "render_zone")]
+        if len(doc_pats) + len(frame_pats) != len(items):
+            raise TypeError("STATE-GUARD: Invalid pattern item passed to DocEnsurance.")
+        primary = doc_pats[0] if doc_pats else (frame_pats[0] if frame_pats else CUBIE_DOC_STYLE)
+        return primary, (tuple(frame_pats) if frame_pats else None)
 
     @classmethod
     def _index_existing_rules(cls, rules: Sequence[DocRuleProtocol]) -> dict[str, DocRuleProtocol]:
@@ -276,13 +302,27 @@ class DocEnsurance:
         self._sessions = self.scope.group(all_examples)
 
     def _scan_all_sources(self) -> list[ExtractedExample]:
-        """Scans all loaded Markdown sources, checking rules on unexecuted broken steps too."""
+        """Scans all loaded Markdown sources, checking document frame rules and code examples."""
+        self._run_document_rules()
         all_examples: list[ExtractedExample] = []
         for file_path, content in self._sources:
             examples, diags = self.pattern.scan(_MarkdownScanner(content).parse(), file_path)
             self._diagnostics.extend(diags)
             all_examples.extend(self._partition_executable(examples, diags))
         return all_examples
+
+    def _run_document_rules(self) -> None:
+        """Executes registered document-level rules (such as CUBIE_DOCFRAME_RULES) across file sources."""
+        doc_rules = [r for r in self.rules if hasattr(r, "check_document")]
+        if not doc_rules or not self._sources or self._sources[0][0] == "IN_MEMORY":
+            return
+        from ..doc_frame.doc_frame import DocFrame
+
+        frame_svc = DocFrame(target=self.target, pattern=self._frame_patterns, excludes=tuple(self.excludes))
+        catalog = frame_svc.build_catalog()
+        for file_path, content in self._sources:
+            for rule in doc_rules:
+                self._diagnostics.extend(rule.check_document(file_path, content, catalog, frame_svc.patterns))
 
     def _partition_executable(
         self, examples: list[ExtractedExample], diags: list[DocDiagnostic]
