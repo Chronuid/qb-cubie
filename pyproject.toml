@@ -31,6 +31,7 @@ benchmarks = ["pytest>=9.2,<10"]
 swebench = ["pyarrow>=19,<24"]
 
 [project.scripts]
+qb-cubie = "qb_cubie.cli:main"
 cubie-bench = "cubie_benchmarks.cli:main"
 
 [project.urls]

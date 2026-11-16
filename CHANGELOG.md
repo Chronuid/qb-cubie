@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [Unreleased]
+
+### Neu
+- **Core-CLI `qb-cubie` mit `docframe update`:** Neuer CLI-Einstiegspunkt `qb-cubie` (`[project.scripts]` in [pyproject.toml](./pyproject.toml), implementiert in [cli.py](./src/qb_cubie/cli.py)) sowie Modul-Einstiegspunkte `python -m qb_cubie`, `python -m qb_cubie.services.docframe` und `python -m qb_cubie.services.doc_frame` zur direkten Ausführung von `DocFrame.update(...)` inklusive `--exclude` und `--format text|json`.
+
 ## [0.0.7] - 2026-11-16
 
 ### Neu

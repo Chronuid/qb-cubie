@@ -53,6 +53,8 @@ Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrato
    Führt Pass 1 (`build_catalog`) und Pass 2 (`_render_file_frames`) aus, schreibt nur real geänderte Dateien (`new_content != content`) atomar zurück und gibt den `DocFrameReport` inklusive `updated_files` und `catalog` zurück.
 2. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
    Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` ohne Dateisystem-Schreibzugriffe zurück.
+3. **CLI-Einstiegspunkt (`src/qb_cubie/cli.py`, `[project.scripts].qb-cubie`):**
+   `qb-cubie docframe update [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe update` und `python -m qb_cubie.services.docframe update`) delegiert direkt an `DocFrame.update(target=..., excludes=...)`, formatiert den `DocFrameReport` wahlweise als Text oder JSON und mappt `STATE-GUARD`- sowie I/O-Fehler (`ValueError`, `TypeError`, `OSError`) auf Exit-Code `2`.
 
 ### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`_resolve_catalog_root`)
 

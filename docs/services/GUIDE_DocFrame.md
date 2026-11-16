@@ -108,6 +108,16 @@ DocFrame.scan_catalog(
 | **`DocFrame.update(...)`** | Klassenmethode | Führt Pass 1 (`build_catalog`) und Pass 2 (Zonen-Rendering) aus, schreibt nur tatsächlich veränderte Dateien atomar zurück und liefert einen `DocFrameReport(target, passed, updated_files, catalog, diagnostics)`. |
 | **`DocFrame.scan_catalog(...)`** | Klassenmethode | Führt ausschließlich Pass 1 ohne Dateisystem-Schreibzugriffe aus und gibt den unveränderlichen `DocumentCatalog(root, entries)` zurück. |
 
+### Aufruf über die Core-CLI (`qb-cubie`)
+
+Für die direkte Synchronisation aus der Kommandozeile steht `DocFrame.update()` über die Core-CLI `qb-cubie` (sowie `python -m qb_cubie`, `python -m qb_cubie.services.docframe` und `python -m qb_cubie.services.doc_frame`) bereit:
+
+```bash
+qb-cubie docframe update
+qb-cubie docframe update docs/ --exclude experiments --exclude CHANGELOG.md --format json
+python -m qb_cubie.services.docframe update docs/services/GUIDE_DocFrame.md
+```
+
 ### Wichtige Konfigurations-Details für die Praxis
 
 * **Trennung von Schreib-Scope (`target`) und Katalog-Root:**

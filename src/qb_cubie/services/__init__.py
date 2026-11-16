@@ -1,6 +1,12 @@
 """Reusable quality assurance and verification services built on the qb-cubie core."""
 
-from . import doc_ensurance, doc_frame, docframe
+from importlib import import_module
+from typing import TYPE_CHECKING, Any
+
+from . import doc_ensurance, doc_frame
+
+if TYPE_CHECKING:
+    from . import docframe
 from .doc_ensurance import (
     CUBIE_DOC_RULES,
     CUBIE_DOC_STYLE,
@@ -179,3 +185,10 @@ __all__ = [
     "validate_wrap_tag",
     "validate_zone",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Lazily exposes alias submodules such as docframe without triggering runpy warnings."""
+    if name == "docframe":
+        return import_module(".docframe", __name__)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

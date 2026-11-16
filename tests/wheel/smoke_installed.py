@@ -167,3 +167,27 @@ def test_doc_ensurance_installed_service(tmp_path):
     report = DocEnsurance(target=doc, pattern=CUBIE_DOC_STYLE, reporter=None, timeout=2.0).run()
     assert report.passed is True
     assert report.sessions[0].actual_outputs == ("42",)
+
+
+def test_docframe_cli_installed_entrypoint(tmp_path):
+    project = tmp_path / "repo"
+    (project / "docs" / ".assets").mkdir(parents=True)
+    (project / "pyproject.toml").write_text("[project]\nname='demo'\n", encoding="utf-8")
+    (project / "docs" / ".assets" / "cubie-logo-written.png").write_bytes(b"png")
+    (project / "docs" / ".assets" / "cubie-small.png").write_bytes(b"png")
+    readme = project / "README.md"
+    readme.write_text(
+        '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" -->\n# Demo\n<!-- /qb:frame -->\n\n'
+        'Body\n\n<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->\n<!-- /qb:frame -->\n',
+        encoding="utf-8",
+    )
+    command = Path(sys.executable).parent / ("qb-cubie.exe" if os.name == "nt" else "qb-cubie")
+    assert command.is_file(), "Installed qb-cubie console script is missing"
+    result = subprocess.run(
+        [str(command), "docframe", "update", str(project), "--format", "json"],
+        capture_output=True, text=True, timeout=20, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["passed"] is True
+    assert payload["updated_files"] == ["README.md"]
