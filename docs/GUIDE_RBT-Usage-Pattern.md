@@ -8,6 +8,7 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 
 ---
 
+---
 </center>
 
 ## Interaktives Review
@@ -113,8 +114,6 @@ Ein LLM-Reviewer wäre ebenfalls eine eigene Implementierung dieses Protokolls. 
 <center>
 
 ![Error while trying to load the image](.assets/cubie-small.png)
-
-## Dokumentation
 
 [↦ | Qualitätssicherung: Begriffe und Aussagegrenzen | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  

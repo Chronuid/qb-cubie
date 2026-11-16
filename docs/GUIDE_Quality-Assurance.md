@@ -10,6 +10,8 @@ Cubie bündelt beispielbasierte Verhaltensverträge (`EBT`), isolierte Ausführu
 
 ---
 
+---
+
 </center>
 
 ## 1. Warum wir testen: Klarheit und orthogonale Schichten
@@ -146,7 +148,7 @@ Vertrag erfüllt: True | Geprüfte Paare: 4
 
 Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern** ist, folgt direkt aus den Quantoren von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
 
-* **Jeder gegen Jeden statt Paar-Zuordnung ( $\forall p \in P \; \exists q \in Q^+$ ):** `pre` wirkt als Allquantor (*für jede Eingabe*) und die positiven Zustände in `post` wirken als Existenzquantor (*muss mindestens eines der Ergebnisse aus `post` passen*). `EBT` prüft also sowohl für `3` als auch für `5` jeweils gegen `6` **und** gegen `10` ( $2 \times 2 = 4$ geprüfte Paare in `trace.traces`).
+* **Jeder gegen Jeden statt Paar-Zuordnung:** `pre` wirkt als Allquantor (*für jede Eingabe*) und die positiven Zustände in `post` wirken als Existenzquantor (*muss mindestens eines der Ergebnisse aus `post` passen*). `EBT` prüft also sowohl für `3` als auch für `5` jeweils gegen `6` **und** gegen `10` ( $2 \times 2 = 4$ geprüfte Paare in `trace.traces`).
 * **Gefährliche Unterspezifikation:** Da für jede Eingabe nur *irgendein* Wert aus `{6, 10}` herauskommen muss, geht die feste Zuordnung verloren. Selbst eine kaputte Funktion, die immer stur `6` zurückgibt (`return 6`) oder die Ergebnisse vertauscht (`3 -> 10` und `5 -> 6`), würde diesen Test grün bestehen.
 * **Faustregel für Listen in `pre` und `post`:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingaben **dasselbe** Zielmuster in `post` gilt (z. B. wenn `normalize(" TEXT ")` und `normalize("TeXt")` beide `"text"` liefern müssen).
 
@@ -196,7 +198,7 @@ Bei der anschließenden Reparatur im Quellcode gilt das Gesetz der Orthogonalit�
 Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit ihrer Werkzeuge kennt – aber ihre Aussagen niemals überdehnt. Auch eine zu 100 % grüne Test-Suite unterliegt klaren erkenntnistheoretischen Grenzen:
 
 * **Beobachtete Konformität statt Allgemeinbeweis:** Ein bestandener `EBT`- oder `DocEnsurance`-Lauf zeigt, dass die konkret ausgeführten Beispiele unter den jeweiligen Testbedingungen zu den deklarierten Sollmustern passen. Er ist eine starke empirische Evidenz gegen Regressionen, ersetzt aber keinen mathematischen Korrektheitsbeweis über alle denkbaren Eingaben aus $\Sigma^*$.
-* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ($\{P\}$), `target` ($S$) und `post` ($\{Q\}$) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten: Jeder ausgeführte Eingang aus `pre` muss mindestens einen positiven Zustand aus `post` (`expect=True`) erfüllen und darf keinen negativen Zustand (`expect=False`) verletzen. Details regelt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
+* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ( $\{P\}$ ), `target` ( $S$ ) und `post` ( $\{Q\}$ ) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten: Jeder ausgeführte Eingang aus `pre` muss mindestens einen positiven Zustand aus `post` (`expect=True`) erfüllen und darf keinen negativen Zustand (`expect=False`) verletzen. Details regelt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
 * **Vielfalt von Beispielen vs. formale Abdeckung:** Unterschiedliche Beispiele aus verschiedenen Äquivalenzklassen verbessern die praktische Abdeckung erheblich; ihre bloße Anzahl belegt jedoch noch keine mathematische Orthogonalität unabhängiger Merkmalsdimensionen und verhindert für sich genommen kein Overfitting.
 * **Einordnung von Reviews (`RBT`):** `RBT` übergibt eine sprachliche Prüfregel und eine Zielbezeichnung an einen menschlichen oder automatisierten Reviewer (`HeadlessReviewer`, `HumanReviewer` oder eigene `Reviewer`-Implementierungen). Ein positives Review dokumentiert ein qualifiziertes Urteil zum Prüfzeitpunkt, misst aber keine Laufzeit- oder Speicherbudgets automatisch.
 * **Isolations- statt Sicherheitsgrenze bei Arenen:** `TempFS` und `PyVenv` schützen hervorragend vor versehentlicher Verschmutzung des Arbeitsverzeichnisses und vor ungewollten Paket-Leaks aus der Host-Umgebung. Sie bilden jedoch keine Betriebssystem-Sandbox gegen aktiv schädlichen Code – führe in Arenen daher nur vertrauenswürdigen Projekt- und Testcode aus.
@@ -220,8 +222,6 @@ Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit 
 <center>
 
 ![Error while trying to load the image](.assets/cubie-small.png)
-
-## Dokumentation
 
 [↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Vertragssemantik: zentrale Referenz | ↤](./GUIDE_Contract-Semantics.md)  

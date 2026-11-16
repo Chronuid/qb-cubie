@@ -4,14 +4,15 @@
 
 ![qb-cubie](./docs/.assets/cubie-banner.png)
 
-**qb-cubie bietet deklarative Akzeptanztests für Python-Funktionen und Datei-Workflows auf Basis von pytest.**  
+**qb-cubie bietet einfache Teststrukturen und Datei-Workflows auf Basis von pytest.**  
 Eingaben, Rückgabemuster und erwartete Dateien werden gemeinsam beschrieben.  
 Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.  
 
 ---
 
-qb-cubie ist experimentell. Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
-Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
+> **Dieses Projekt ist experimentell und in einer frühen Entwicklungs-Phase.**  
+> Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
+> Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.  
 
 ---
 
@@ -27,53 +28,25 @@ uv pip install qb-cubie
 
 Voraussetzung ist Python ≥ 3.13. Der öffentliche Distributionsname lautet `qb-cubie`, der Python-Importname `qb_cubie`. In den internen Handbüchern wird weiterhin „cubie“ verwendet. Frühere Importe aus `cubie` müssen auf `qb_cubie` umgestellt werden.
 
-Im Projektverzeichnis:
-
-```bash
-python3.13 -m venv .venv
-.venv/bin/python -m pip install -e . pytest
-```
-
-Virtuelle Umgebungen, lokale IDE-Einstellungen, Caches und erzeugte Paketmetadaten werden durch die Root-`.gitignore` ausgeschlossen und lokal erzeugt. Für die Entwicklung mit den in `uv.lock` festgehaltenen Abhängigkeiten kann stattdessen `uv sync --locked --group dev` verwendet werden. `pyproject.toml` und `uv.lock` bleiben versioniert.
-
-Der gesamte Benchmark-Bereich ist **experimentell und gehört nicht zum
-qb-cubie Core**. Ein modellfreier Smoke-Lauf ist mit dem Extra `benchmarks`
-auch ohne Checkout verfügbar: `cubie-bench init-suite ./sets/smoke.toml --preset smoke --fake`,
-danach `cubie-bench plan --suite ./sets/smoke.toml` und
-`cubie-bench run --suite ./sets/smoke.toml`. Installation, Ergebnisdateien und
-Gegenproben erklärt der [Benchmark-Guide](docs/GUIDE_Benchmarks.md#schnellstart).
-
-Die Repository-Tests benötigen zusätzlich lokal provisionierte Arena-Basen und `uv` im `PATH`:
-
-```bash
-uv sync --locked --group dev
-.venv/bin/python scripts/provision_test_arenas.py
-.venv/bin/python -m pytest -q
-```
-
-Die Provisionierung ist ein eigener Installationsschritt und kann Netzwerkzugriff benötigen. `PyVenv.setup()` prüft die Codec-Abhängigkeiten und kopiert die Basis, ohne Pakete zu installieren. Die erzeugten Pfade, Paketversionen und Wiederholung des Schritts beschreibt das [Arena-Handbuch](./docs/GUIDE_Arena-Management.md#provisionierung-der-testbasen).
-
-Speichere dieses vollständige Beispiel als `test_tax.py`:
-
 ```python
 from qb_cubie import EBT, WorldState
 
 
-def calculate_tax(net, rate):
-    return net * (100 + rate) // 100
+def your_function(input_a, input_b):
+    result = input_a * (100 + input_b) // 100
+    return result
 
 
-def test_tax():
+def test_your_function():
     result = EBT(
-        target=calculate_tax,
+        target=your_function,
         pre=WorldState(args=(100, 19)),
         post=WorldState(returns=119),
     ).run()
-    print(result.evaluation)
-
+    return result.evaluation
 
 if __name__ == "__main__":
-    test_tax()
+    print(test_your_function())
 ```
 
 <details>
@@ -83,14 +56,6 @@ if __name__ == "__main__":
 True
 ```
 </details>
-
-Starte das Beispiel anschließend mit pytest:
-
-```bash
-.venv/bin/python -m pytest -q test_tax.py
-```
-
-Erst `.run()` führt den Test aus. Der Standardreporter lässt pytest bei einer negativen Auswertung fehlschlagen.
 
 ## Lizenz und Abhängigkeiten
 
@@ -103,12 +68,6 @@ Die Analysewerkzeuge LibCST, MyPy und Pylint sind über das Extra `linters` erh�
 ```bash
 .venv/bin/python -m pip install -e '.[linters]' pytest
 ```
-
-Für ein gebautes Wheel lautet der entsprechende Installationsaufruf `python -m pip install 'dist/qb_cubie-0.0.6-py3-none-any.whl[linters]'`. Ohne Extra bleiben die Kernfunktionen verfügbar; beim Aufruf fehlender Analysewerkzeuge erscheint ein Installationshinweis. Eigene Linterpfade können über `QB_CUBIE_MYPY_PATH` beziehungsweise `QB_CUBIE_PYLINT_PATH` gesetzt werden.
-
-Veröffentlichte Abhängigkeiten haben Mindestversionen und eine Obergrenze vor der nächsten Hauptversion; bei dem noch mit `0.x` versionierten `msgspec` liegt sie vor der nächsten Nebenversion. Diese Grenzen bilden den vorgesehenen Kompatibilitätsrahmen, keine Zusage, dass jede Kombination geprüft wurde. Die Entwicklungsgruppe `dev` enthält pytest, Hypothesis, pytest-xdist, Ruff und festgelegte Analysewerkzeuge. Sie wird nicht als Paket-Extra veröffentlicht. `uv.lock` hält die genauen direkten und transitiven Versionen für Entwicklung und Repository-CI fest; konsumierende Projekte lösen innerhalb der veröffentlichten Bereiche selbst auf.
-
-Nach Änderungen an Anforderungen wird `uv lock` ausgeführt und die Änderung an `uv.lock` gemeinsam geprüft. `uv sync --locked --group dev` installiert die festgehaltene Entwicklungsumgebung. Releases werden mit isoliertem Setuptools-Build (`setuptools>=77` für SPDX-Lizenzmetadaten) und den folgenden Installationsprüfungen validiert. Die Konfiguration folgt der [Setuptools-Dokumentation](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html) und der [uv-Trennung von Abhängigkeiten, Extras und Entwicklungsgruppen](https://docs.astral.sh/uv/concepts/projects/dependencies/). Für den grafischen Reviewer wird zusätzlich eine Python-Installation mit Tk benötigt.
 
 ## Experimentelle Benchmarks außerhalb des Core
 
@@ -130,51 +89,6 @@ Im Verzeichnis [`experiments/testguided-study`](./experiments/testguided-study/R
 - **Zero-Leakage-Evaluationsharness:** Beide Agentenarme starten mit identischen Repository-Snapshots und dürfen während der Bearbeitung sichtbare Testdateien im Workspace frei erstellen und modifizieren. Nach Abschluss extrahiert ein separater, Cubie-freier Evaluator-Container ausschließlich den veränderten Produktionscode (`production.patch`), verwirft alle Teständerungen des Agenten und bewertet die Reparatur gegen private, dem Modell verborgene `FAIL_TO_PASS`- und `PASS_TO_PASS`-Testsuiten.
 - **Aufgabenbasis:** 129 SWE-bench-kompatible Aufgaben aus 4 realen Python-Repositories (FastAPI, Requests, Rich, HTTPX). Ein Katalog von 39 manuell auditierten Aufgaben ([KANDIDATEN.md](./experiments/testguided-study/KANDIDATEN.md)) bildet die Basis; die iterativen Piloten verwenden standardmäßig 3 fest gefrorene Referenzaufgaben (FastAPI `#9425`, Requests `#6589`, Rich `#3278`, Seed 42).
 
-### Agentengenerationen und empirische Befunde
-
-Die Studie dokumentiert zwei Hauptentwicklungsphasen und neun Architekturiterationen:
-
-1. **Single-Agent-Generationen (v1–v5):**
-   - 42 evaluierte Läufe (7 abgeschlossene Piloten à 6 Läufe). Private Gesamtlösungsquote: 7,1 % (3 von 42 Läufen privat gelöst: 2× pytest in v2 und v4; 1× Cubie in v3 rev. mit 6 ausgeführten EBT-Verträgen).
-   - **Floor-Effekt und Prior-Dominanz:** In 90,5 % der Cubie-Läufe (19 von 21) wurden keine EBT-Verträge ausgeführt, da das 12B-Modell unter kognitiver Last stark zu gelernten prozeduralen `assert`-Mustern aus dem Pretraining tendierte.
-   - **Reasoning Token Starvation (Pilot v5):** Bei aktiviertem Denken (`think=true`) verbrauchten 11 von 67 Modellaufrufen das vollständige Ausgabelimit von 8.192 Tokens ausschließlich mit internem CoT-Thinking ohne ausführbare JSON-Aktion (87,3 % aller Output-Tokens, 79,6 % der Laufzeit).
-2. **Multi-Agent-Generationen (v6–v9):**
-   - Rollenteilung in *Analysis*, *QA* und *Dev* mit gemeinsamem Workspace, synchronen Lese-/Suchrechten und Markdown-Kontext.
-   - 17 durchgeführte Läufe über vier Generationen (1.441 Modellaufrufe, 8,55 Mio. Input-Tokens).
-   - **Infrastrukturreife vs. Controller-Lock-In:** Generation v9 behob alle infrastrukturellen Fehler (0 Cursor-Fehler, 0 Tool-Fehler, 0 Kontextüberläufe). Durch die Entfernung der erzwungenen Übergabe aus v8 und ein überladenes `finish`-Schema rief das Modell in v9 jedoch über 1.184 Schritte kein einziges Mal `finish` auf (82,6 % Aktionsduplikate), wodurch die Ausführung in der Orientierungsphase verharrte und die erst in QA injizierte Cubie-Anleitung nie erreicht wurde (0/17 gelöst).
-
-### Ausführung und Replikation
-
-Die Studie bringt einen eigenständigen CLI-Starter [`./study`](./study) mit integriertem Web- und Terminal-Monitor mit:
-
-```bash
-# Fachlichen Piloten (3 Aufgaben, 6 Läufe) starten
-./study --mode pilot
-
-# Bestimmtes Generationsprofil ausführen (z. B. v9 Multi-Agent)
-./study --mode pilot --config experiments/testguided-study/v9.toml
-
-# Synthetischen Techniklauf ausführen
-./study --mode smoke
-
-# Monitor für ein laufendes oder abgeschlossenes Archiv öffnen
-./study monitor /pfad/zum/studienarchiv --port 8765
-```
-
-### Download der Experimentdaten (Study-Runs)
-
-Die vollständigen Rohdaten, Telemetrie- und Schrittprotokolle aller Piloten (~1,1 GB entpackt, ~918 MB komprimiert) sind als GitHub-Release-Asset hinterlegt und können mit dem mitgelieferten Validierungs- und Downloadskript automatisch heruntergeladen, per SHA-256 kryptografisch verifiziert und entpackt werden:
-
-```bash
-python scripts/download_study_runs.py
-```
-
-Das Skript entpackt die Läufe nach `experiments/testguided-study/runs/`. Alternativ kann ein bereits heruntergeladenes Archiv geprüft und entpackt werden:
-
-```bash
-python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar.gz
-```
-
 ### Wichtige Dokumente und Artefakte
 
 | Dokument | Inhalt |
@@ -188,29 +102,7 @@ python scripts/download_study_runs.py --from-file dist/testguided-study-runs.tar
 | [AGENTENDESIGN-V9.md](./experiments/testguided-study/AGENTENDESIGN-V9.md) | Architektur und Spezifikation der Multi-Agenten-Generation v9 |
 | [HYPOTHESEN-URSACHENANALYSE.md](./experiments/testguided-study/HYPOTHESEN-URSACHENANALYSE-20261111.md) | Ursachenanalyse zu Inferenzengpässen und Floor-Effekten (Antigravity & Codex) |
 
-## Wheel-Prüfung und CI
-
-Die [CI](./.github/workflows/ci.yml) läuft bei Pushes und Pull Requests und kann manuell gestartet werden. Die Prüfmatrix ist bewusst begrenzt:
-
-| Prüfung | Python | Betriebssystem / GitHub-Runner |
-| --- | --- | --- |
-| Wheel bauen, installieren und prüfen | 3.13, 3.14 | Linux (`ubuntu-24.04`), macOS (`macos-15`) *(Windows vorübergehend eingefroren)* |
-| Vollständige Repository-Testsuite mit provisionierten Arena-Basen | 3.13, 3.14 | Linux (`ubuntu-24.04`) |
-
-Details zum Plattformstatus und den vorübergehend eingefrorenen Windows-Checks dokumentiert [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md).
-
-Die Wheel-Jobs bauen zunächst eine Quelldistribution und daraus das Wheel. Lokale Arena-Basen werden aus beiden Distributionen ausgeschlossen. [check_wheel.py](./scripts/check_wheel.py) erzeugt eine neue virtuelle Umgebung ohne Zugriff auf die Hostpakete und prüft zunächst Paketimport und EBT nur mit den deklarierten Pflichtabhängigkeiten, ohne pytest oder Analysewerkzeuge. Anschließend wird pytest ausdrücklich als Testtreiber installiert und die Kerninstallation geprüft. Danach wird dasselbe Wheel mit dem Extra `linters` installiert und erneut geprüft. `pip check` prüft die Abhängigkeiten. Die [Installationstests](./tests/wheel/smoke_installed.py) laufen außerhalb des Checkouts mit isoliertem Python, ohne die Repository-`conftest.py`, zusätzliche pytest-Plugins oder `PYTHONPATH=src`.
-
-Geprüft werden Paketname, Lizenzmetadaten und Lizenztext, die Herkunft des installierten Pakets, alle Paketimporte, positive und negative EBT-/RBT-Auswertungen, ein TempFS-Dateiworkflow, PyVenv mit PickleCodec sowie fehlende und installierte Analysewerkzeuge (LibCST, MyPy, Pylint). Diese Installationsprüfungen ersetzen keine vollständige Plattformabnahme; insbesondere laufen die übrigen Repository-Tests bislang nur unter Linux. Weitere Python-Versionen sind durch diese Matrix nicht abgesichert.
-
-Lokal mit Python 3.13 oder 3.14 und `uv` im `PATH`:
-
-```bash
-uv build --clear --python python3.13
-python3.13 scripts/check_wheel.py dist
-```
-
-Unter Windows kann für beide Befehle `python` verwendet werden, wenn der gewünschte Interpreter im `PATH` steht. Der Build verwendet eine isolierte Build-Umgebung; die Wheel-Prüfung benötigt weder eine editierbare Installation noch provisionierte Arena-Basen. Build und Installation können Netzwerkzugriff benötigen. Die vollständige Repository-Testsuite verwendet dagegen die Versionen aus `uv.lock` und das Extra `dev` wie oben beschrieben.
+---
 
 ---
 

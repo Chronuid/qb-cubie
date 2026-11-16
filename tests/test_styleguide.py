@@ -102,6 +102,10 @@ def test_docs_code_examples() -> None:
     DocEnsurance(
         pattern=CUBIE_DOC_STYLE,
         rules=CUBIE_DOC_RULES,
-        excludes=("experiments", "GUTACHTEN.md"),
+        excludes=(
+            "experiments", #Reason: I need to clean-up the artifacts of the sprint in the core first.
+            "GUTACHTEN.md", #Reason: No Cubie-Rules apply to Inspectors.
+            "docs/services/GUIDE_DocFrame.md" # Reason: Feature-Draft
+        ),
     ).run()
 
