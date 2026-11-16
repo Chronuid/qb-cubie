@@ -5,8 +5,8 @@ from concurrent.futures.process import BrokenProcessPool
 
 import pytest
 
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import WorldState
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import WorldState
 
 
 class LazyResultMapper:

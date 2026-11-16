@@ -3,7 +3,7 @@
 
 # qb-cubie: Quality-Bench
 
-![qb-cubie](./docs/.assets/cubie-banner.png)
+![Cubie](./docs/.assets/cubie-banner.png)
 
 **qb-cubie bietet einfache Teststrukturen und Datei-Workflows auf Basis von pytest.**  
 Eingaben, Rückgabemuster und erwartete Dateien werden gemeinsam beschrieben.  
@@ -200,19 +200,23 @@ Die vollständige Repository-Testsuite ist in der CI für Linux vorgesehen; macO
 
 <div align="center">
 
-![Error while trying to load the image](./docs/.assets/cubie-small.png)
+![Cubie](./docs/.assets/cubie-small.png)
 
-[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](./docs/GUIDE_Quality-Assurance.md)  
-[↦ | Vertragssemantik: zentrale Referenz | ↤](./docs/GUIDE_Contract-Semantics.md)  
-[↦ | EBT: Auswahl von Beispielen | ↤](./docs/GUIDE_Example-Based-Testing.md)  
-[↦ | EBT: ausführbare Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
-[↦ | RBT: Reviewer und Nutzung | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
+[↦ | Verbindliche Vertragssemantik | ↤](./docs/GUIDE_Contract-Semantics.md)  
+[↦ | EBT-Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
+[↦ | Example-Based Testing | ↤](./docs/GUIDE_Example-Based-Testing.md)  
 [↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 
-[↦ | DocEnsurance: Lebende Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame: Dokument-Rahmen & Router | ↤](./docs/services/GUIDE_DocFrame.md)  
-[↦ | Entwicklerübersicht EBT | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame | ↤](./docs/services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
 
 </div>
 <!-- /qb:frame -->

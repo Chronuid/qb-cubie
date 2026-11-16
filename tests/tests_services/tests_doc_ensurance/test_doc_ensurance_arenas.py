@@ -259,15 +259,12 @@ def _run_list_fs_pre_state() -> dict[str, Any]:
 
 
 def test_ebt_pre_state_list_shorthand_hydrates_cleanly() -> None:
-    """Flags unnormalized list-based WorldState.fs AttributeError via expect=False."""
+    """Verifies that list-based WorldState.fs shorthand hydrates cleanly into the arena."""
     EBT(
         target=_run_list_fs_pre_state,
         arena=TempFS(),
         pre=WorldState(),
-        post=WorldState(
-            raises=ExceptionExpectation(AttributeError, match=r"'list' object has no attribute 'items'"),
-            expect=False,
-        ),
+        post=WorldState(returns={"passed": True, "outputs": [["v1"]], "diagnostics": []}),
         custom_id="doc_arena_pre_state_list_shorthand_contract",
     ).run()
 
@@ -313,30 +310,13 @@ _MP_DOGFOOD_LOKY_PASS_DOC = (
 
 
 def test_ebt_multiprocessing_dogfooding_in_docs() -> None:
-    """Verifies Loky activation with lambda and flags PickleProcessor crash on local fn via expect=False."""
+    """Verifies that EBT(multiprocessing=True) succeeds inside doc snippets for both lambdas and local functions."""
     EBT(
         target=_run_with_arena,
-        pre=WorldState(args=(_MP_DOGFOOD_LOKY_PASS_DOC, TempFS())),
+        pre=[
+            WorldState(args=(_MP_DOGFOOD_LOKY_PASS_DOC, TempFS())),
+            WorldState(args=(_MP_DOGFOOD_LOCAL_FN_DOC, TempFS())),
+        ],
         post=WorldState(returns={"passed": True, "outputs": [["True"]], "diagnostics": []}),
-        custom_id="doc_arena_mp_dogfooding_loky_positive",
-    ).run()
-
-    EBT(
-        target=_run_with_arena,
-        pre=WorldState(args=(_MP_DOGFOOD_LOCAL_FN_DOC, TempFS())),
-        post=WorldState(
-            returns={
-                "passed": False,
-                "outputs": [[""]],
-                "diagnostics": [
-                    (
-                        "DOC-EXEC",
-                        int,
-                        re.compile(r"^Unhandled RuntimeError: STATE-GUARD: All Processors failed"),
-                    )
-                ],
-            },
-            expect=False,
-        ),
-        custom_id="doc_arena_mp_dogfooding_pickle_fallback_negative",
+        custom_id="doc_arena_mp_dogfooding_positive",
     ).run()

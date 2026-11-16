@@ -169,33 +169,33 @@ def test_ebt_four_backtick_tilde_and_indented_fences() -> None:
     """Verifies 4-backtick isolation, tilde fences, multiline-string dedenting, and empty inner fences."""
     EBT(
         target=_run_edge_doc,
-        pre=[
-            WorldState(args=(_FOUR_BACKTICK_AND_EMPTY_FENCE_DOC,)),
-            WorldState(args=(_TILDE_AND_MULTILINE_STRING_INDENT_DOC,)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": True,
-                    "session_count": 1,
-                    "outputs": [[""]],
-                    "diagnostics": [
-                        ("DOC-OUT-MISSING", 11, "Missing expected output in result block."),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": True,
-                    "session_count": 1,
-                    "outputs": [["2"]],
-                    "diagnostics": [],
-                }
-            ),
-        ],
-        custom_id="doc_edge_fences_and_indentation",
+        pre=WorldState(args=(_FOUR_BACKTICK_AND_EMPTY_FENCE_DOC,)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": True,
+                "session_count": 1,
+                "outputs": [[""]],
+                "diagnostics": [
+                    ("DOC-OUT-MISSING", 11, "Missing expected output in result block."),
+                ],
+            }
+        ),
+        custom_id="doc_edge_four_backtick_and_empty_fence",
+    ).run()
+    EBT(
+        target=_run_edge_doc,
+        pre=WorldState(args=(_TILDE_AND_MULTILINE_STRING_INDENT_DOC,)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": True,
+                "session_count": 1,
+                "outputs": [["2"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_edge_tilde_and_multiline_indentation",
     ).run()
 
 
@@ -346,28 +346,31 @@ def test_ebt_system_exit_interception_and_raises() -> None:
     ).run()
     EBT(
         target=_run_edge_doc,
-        pre=[WorldState(args=(doc,)) for doc in _SYS_EXIT_DECLARED_DOCS],
-        post=[
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": True,
-                    "session_count": 1,
-                    "outputs": [["SystemExit: 0"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": True,
-                    "session_count": 1,
-                    "outputs": [["SystemExit:"]],
-                    "diagnostics": [],
-                }
-            ),
-        ],
-        custom_id="doc_edge_sys_exit_with_and_without_arg",
+        pre=WorldState(args=(_SYS_EXIT_DECLARED_DOCS[0],)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": True,
+                "session_count": 1,
+                "outputs": [["SystemExit: 0"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_edge_sys_exit_with_arg",
+    ).run()
+    EBT(
+        target=_run_edge_doc,
+        pre=WorldState(args=(_SYS_EXIT_DECLARED_DOCS[1],)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": True,
+                "session_count": 1,
+                "outputs": [["SystemExit:"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_edge_sys_exit_without_arg",
     ).run()
 
 
@@ -465,31 +468,31 @@ def test_ebt_explanation_boundary_details_variants_and_stderr_isolation() -> Non
     """Verifies the 19/20 char boundary, <details open>/inline variants, stderr, and foreign lang tags."""
     EBT(
         target=_run_edge_doc,
-        pre=[
-            WorldState(args=(_EXPLANATION_19_CHARS_DOC,)),
-            WorldState(args=(_EXPLANATION_20_CHARS_AND_DETAILS_VARIANTS_DOC,)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": False,
-                    "session_count": 0,
-                    "outputs": [],
-                    "diagnostics": [("DOC-PRE", int, re.compile(r".*explanation"))],
-                }
-            ),
-            WorldState(
-                returns={
-                    "target": "IN_MEMORY",
-                    "passed": True,
-                    "session_count": 2,
-                    "outputs": [["ok_open"], ["ok_inline"]],
-                    "diagnostics": [],
-                }
-            ),
-        ],
-        custom_id="doc_edge_char_boundary_details_and_stderr",
+        pre=WorldState(args=(_EXPLANATION_19_CHARS_DOC,)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": False,
+                "session_count": 0,
+                "outputs": [],
+                "diagnostics": [("DOC-PRE", int, re.compile(r".*explanation"))],
+            }
+        ),
+        custom_id="doc_edge_19_char_boundary_fails",
+    ).run()
+    EBT(
+        target=_run_edge_doc,
+        pre=WorldState(args=(_EXPLANATION_20_CHARS_AND_DETAILS_VARIANTS_DOC,)),
+        post=WorldState(
+            returns={
+                "target": "IN_MEMORY",
+                "passed": True,
+                "session_count": 2,
+                "outputs": [["ok_open"], ["ok_inline"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_edge_20_char_boundary_details_and_stderr",
     ).run()
 
 
@@ -594,15 +597,15 @@ def test_ebt_pyvenv_cloudpickle_timeout_precedence_and_empty_excludes() -> None:
     ).run()
     EBT(
         target=_check_arena_timeout_precedence,
-        pre=[
-            WorldState(args=(0.2, 10.0)),
-            WorldState(args=(None, 4.5)),
-        ],
-        post=[
-            WorldState(returns=0.2),
-            WorldState(returns=4.5),
-        ],
-        custom_id="doc_edge_arena_timeout_precedence",
+        pre=WorldState(args=(0.2, 10.0)),
+        post=WorldState(returns=0.2),
+        custom_id="doc_edge_arena_timeout_explicit_precedence",
+    ).run()
+    EBT(
+        target=_check_arena_timeout_precedence,
+        pre=WorldState(args=(None, 4.5)),
+        post=WorldState(returns=4.5),
+        custom_id="doc_edge_arena_timeout_fallback_to_service",
     ).run()
     EBT(
         target=_run_all_excluded_dir,

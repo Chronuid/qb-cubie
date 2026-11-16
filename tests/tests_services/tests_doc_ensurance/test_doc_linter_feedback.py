@@ -173,58 +173,39 @@ def _run_pytest_reporter_ux(
 
 def test_ebt_guide_scenario_reproduction_and_actionable_output() -> None:
     """Reproduces the AstLinter vs AST-Linter DOC-OUT trap and enforces concrete message output."""
-    # 1a. Szenario von eben: Veraltetes 'AstLinter(CST-Linter)' ohne Message fällt mit DOC-OUT durch
     EBT(
         target=_run_linter_ux_scenario,
         pre=WorldState(args=(_STALE_GUIDE_LINTER_DOC, CUBIE_DOC_RULES)),
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["Linter: AST-Linter(CST-Linter) | Code: ARCH-NO-EVAL | Zeile: 2"]],
-                    "diagnostics": [
-                        (
-                            "DOC-OUT",
-                            "error",
-                            3,
-                            re.compile(
-                                r"^Output mismatch: expected 'Linter: AstLinter\(CST-Linter\).*got 'Linter: AST-Linter\(CST-Linter\)"
-                            ),
-                        )
-                    ],
-                }
-            ),
-            WorldState(
-                returns={"passed": True, "outputs": list, "diagnostics": []},
-                expect=False,
-            ),
-        ],
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [["Linter: AST-Linter(CST-Linter) | Code: ARCH-NO-EVAL | Zeile: 2"]],
+                "diagnostics": [
+                    (
+                        "DOC-OUT",
+                        "error",
+                        3,
+                        re.compile(
+                            r"^Output mismatch: expected 'Linter: AstLinter\(CST-Linter\).*got 'Linter: AST-Linter\(CST-Linter\)"
+                        ),
+                    )
+                ],
+            }
+        ),
         custom_id="doc_linter_ux_stale_guide_scenario_reproduction",
     ).run()
-
-    # 1b. Soll-Zustand: Korrekter Präfix + konkrete Linter-Erklärung im Output (verschweigt Message NICHT)
     EBT(
         target=_run_linter_ux_scenario,
         pre=WorldState(args=(_ACTIONABLE_GUIDE_LINTER_DOC, CUBIE_DOC_RULES)),
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [
-                        ["AST-Linter(CST-Linter) | ARCH-NO-EVAL (Zeile 2): eval() verletzt die Sicherheitsarchitektur."]
-                    ],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [["Linter: AST-Linter(CST-Linter) | Code: ARCH-NO-EVAL | Zeile: 2"]],
-                    "diagnostics": [],
-                },
-                expect=False,
-            ),
-        ],
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [
+                    ["AST-Linter(CST-Linter) | ARCH-NO-EVAL (Zeile 2): eval() verletzt die Sicherheitsarchitektur."]
+                ],
+                "diagnostics": [],
+            }
+        ),
         custom_id="doc_linter_ux_actionable_guide_output",
     ).run()
 
@@ -240,34 +221,15 @@ def test_ebt_ast_and_cst_linter_preserve_concrete_messages_and_lines() -> None:
     EBT(
         target=_run_linter_ux_scenario,
         pre=WorldState(args=(_EVAL_VIOLATION_DOC, [ast_linter])),
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["42"]],
-                    "diagnostics": [
-                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur.")
-                    ],
-                }
-            ),
-            # Negativ-Abgrenzung (expect=False): Leere, verschluckte oder nur den Code wiederholende Meldung
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["42"]],
-                    "diagnostics": [("ARCH-NO-EVAL", "error", 5, "")],
-                },
-                expect=False,
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["42"]],
-                    "diagnostics": [("ARCH-NO-EVAL", "error", 5, "ARCH-NO-EVAL")],
-                },
-                expect=False,
-            ),
-        ],
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [["42"]],
+                "diagnostics": [
+                    ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur.")
+                ],
+            }
+        ),
         custom_id="doc_linter_ux_concrete_message_preservation",
     ).run()
 
@@ -282,54 +244,33 @@ def test_ebt_structural_or_output_errors_never_swallow_linter_diagnostics() -> N
     ast_linter = AstLinter(CstLinter(rules=[_NoEvalArchRule()]))
     EBT(
         target=_run_linter_ux_scenario,
-        pre=[
-            WorldState(args=(_EVAL_AND_OUT_MISMATCH_DOC, [ast_linter])),
-            WorldState(args=(_UNEXPLAINED_EVAL_DOC, [ast_linter])),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["42"]],
-                    "diagnostics": [
-                        ("DOC-OUT", "error", 3, re.compile(r"^Output mismatch: expected '99', got '42'")),
-                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [],
-                    "diagnostics": [
-                        ("DOC-PRE", "error", 3, re.compile(r"Missing or invalid pre-block")),
-                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
-                    ],
-                }
-            ),
-            # Negativ-Abgrenzung (expect=False): DOC-OUT oder DOC-PRE verschluckt die Linter-Meldung
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["42"]],
-                    "diagnostics": [
-                        ("DOC-OUT", "error", 3, re.compile(r"^Output mismatch")),
-                    ],
-                },
-                expect=False,
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [],
-                    "diagnostics": [
-                        ("DOC-PRE", "error", 3, re.compile(r"Missing or invalid pre-block")),
-                    ],
-                },
-                expect=False,
-            ),
-        ],
-        custom_id="doc_linter_ux_no_muting_by_out_or_pre",
+        pre=WorldState(args=(_EVAL_AND_OUT_MISMATCH_DOC, [ast_linter])),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [["42"]],
+                "diagnostics": [
+                    ("DOC-OUT", "error", 3, re.compile(r"^Output mismatch: expected '99', got '42'")),
+                    ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                ],
+            }
+        ),
+        custom_id="doc_linter_ux_no_muting_by_doc_out",
+    ).run()
+    EBT(
+        target=_run_linter_ux_scenario,
+        pre=WorldState(args=(_UNEXPLAINED_EVAL_DOC, [ast_linter])),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [],
+                "diagnostics": [
+                    ("DOC-PRE", "error", 3, re.compile(r"Missing or invalid pre-block")),
+                    ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                ],
+            }
+        ),
+        custom_id="doc_linter_ux_no_muting_by_doc_pre",
     ).run()
 
 
@@ -344,29 +285,15 @@ def test_ebt_multistep_session_linter_preserves_context_and_concrete_message() -
     EBT(
         target=_run_linter_ux_scenario,
         pre=WorldState(args=(_SESSION_MULTISTEP_LINT_DOC, [*CUBIE_DOC_RULES, combined_linter])),
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["21", "42"]],
-                    "diagnostics": [
-                        ("ARCH-NO-EVAL", "error", 20, "eval() verletzt die Sicherheitsarchitektur.")
-                    ],
-                }
-            ),
-            # Negativ-Abgrenzung (expect=False): Falscher 'name-defined'-Alarm oder falsche Zeilennummer
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["21", "42"]],
-                    "diagnostics": [
-                        ("name-defined", "error", int, str),
-                        ("ARCH-NO-EVAL", "error", int, str),
-                    ],
-                },
-                expect=False,
-            ),
-        ],
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [["21", "42"]],
+                "diagnostics": [
+                    ("ARCH-NO-EVAL", "error", 20, "eval() verletzt die Sicherheitsarchitektur.")
+                ],
+            }
+        ),
         custom_id="doc_linter_ux_multistep_session_context_and_line",
     ).run()
 
@@ -382,41 +309,32 @@ def test_ebt_pytest_reporter_surfaces_concrete_linter_messages_end_to_end() -> N
     warn_linter = DocLinterRule(linter=err_linter, severity="warning")
     EBT(
         target=_run_pytest_reporter_ux,
-        pre=[
-            WorldState(args=(_EVAL_VIOLATION_DOC, [err_linter])),
-            WorldState(args=(_EVAL_VIOLATION_DOC, [warn_linter])),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "asserted": True,
-                    "error_text": re.compile(
-                        r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
-                        r"- \[ARCH-NO-EVAL\] IN_MEMORY:5: eval\(\) verletzt die Sicherheitsarchitektur\."
-                    ),
-                    "warnings": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "asserted": False,
-                    "error_text": "",
-                    "warnings": [
-                        "[ARCH-NO-EVAL] IN_MEMORY:5: eval() verletzt die Sicherheitsarchitektur."
-                    ],
-                }
-            ),
-            # Negativ-Abgrenzung (expect=False): AssertionError ohne die konkrete Linter-Meldung
-            WorldState(
-                returns={
-                    "asserted": True,
-                    "error_text": re.compile(r"^((?!eval\(\) verletzt die Sicherheitsarchitektur\.)[\s\S])*$"),
-                    "warnings": [],
-                },
-                expect=False,
-            ),
-        ],
-        custom_id="doc_linter_ux_pytest_reporter_end_to_end",
+        pre=WorldState(args=(_EVAL_VIOLATION_DOC, [err_linter])),
+        post=WorldState(
+            returns={
+                "asserted": True,
+                "error_text": re.compile(
+                    r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
+                    r"- \[ARCH-NO-EVAL\] IN_MEMORY:5: eval\(\) verletzt die Sicherheitsarchitektur\."
+                ),
+                "warnings": [],
+            }
+        ),
+        custom_id="doc_linter_ux_pytest_reporter_error_assertion",
+    ).run()
+    EBT(
+        target=_run_pytest_reporter_ux,
+        pre=WorldState(args=(_EVAL_VIOLATION_DOC, [warn_linter])),
+        post=WorldState(
+            returns={
+                "asserted": False,
+                "error_text": "",
+                "warnings": [
+                    "[ARCH-NO-EVAL] IN_MEMORY:5: eval() verletzt die Sicherheitsarchitektur."
+                ],
+            }
+        ),
+        custom_id="doc_linter_ux_pytest_reporter_warning_output",
     ).run()
 
 
@@ -468,40 +386,44 @@ def test_ebt_mypy_pylint_and_info_severity_reach_reporter() -> None:
     """Verifies that MyPy, Pylint, and info-level diagnostics reach DocEnsurance and PytestReporter."""
     EBT(
         target=_run_pytest_reporter_ux,
-        pre=[
-            WorldState(args=(_SESSION_MYPY_ERROR_DOC, [*CUBIE_DOC_RULES, AstLinter(MyPy())])),
-            WorldState(args=(_EVAL_VIOLATION_DOC, [Pylint()])),
-            WorldState(args=(_EVAL_VIOLATION_DOC, [_InfoSeverityLinter()])),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "asserted": True,
-                    "error_text": re.compile(
-                        r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
-                        r"- \[assignment\] IN_MEMORY:19: Incompatible types in assignment"
-                    ),
-                    "warnings": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "asserted": False,
-                    "error_text": "",
-                    "warnings": lambda ws: any(
-                        "[W0123] IN_MEMORY:5: Use of eval" in w for w in ws
-                    ),
-                }
-            ),
-            WorldState(
-                returns={
-                    "asserted": False,
-                    "error_text": "",
-                    "warnings": ["[I0001] IN_MEMORY:4: Informational linter hint."],
-                }
-            ),
-        ],
-        custom_id="doc_linter_ux_mypy_pylint_info_end_to_end",
+        pre=WorldState(args=(_SESSION_MYPY_ERROR_DOC, [*CUBIE_DOC_RULES, AstLinter(MyPy())])),
+        post=WorldState(
+            returns={
+                "asserted": True,
+                "error_text": re.compile(
+                    r"^\n--- Service Report \(IN_MEMORY\) ---[\s\S]*"
+                    r"- \[assignment\] IN_MEMORY:19: Incompatible types in assignment"
+                ),
+                "warnings": [],
+            }
+        ),
+        custom_id="doc_linter_ux_mypy_end_to_end",
+    ).run()
+    EBT(
+        target=_run_pytest_reporter_ux,
+        pre=WorldState(args=(_EVAL_VIOLATION_DOC, [Pylint()])),
+        post=WorldState(
+            returns={
+                "asserted": False,
+                "error_text": "",
+                "warnings": lambda ws: any(
+                    "[W0123] IN_MEMORY:5: Use of eval" in w for w in ws
+                ),
+            }
+        ),
+        custom_id="doc_linter_ux_pylint_end_to_end",
+    ).run()
+    EBT(
+        target=_run_pytest_reporter_ux,
+        pre=WorldState(args=(_EVAL_VIOLATION_DOC, [_InfoSeverityLinter()])),
+        post=WorldState(
+            returns={
+                "asserted": False,
+                "error_text": "",
+                "warnings": ["[I0001] IN_MEMORY:4: Informational linter hint."],
+            }
+        ),
+        custom_id="doc_linter_ux_info_stub_end_to_end",
     ).run()
 
 
@@ -571,40 +493,44 @@ def test_ebt_all_registration_and_file_reporting_interfaces() -> None:
     """Verifies register_rule slot preservation, block-attached linters, and real file path reporting."""
     EBT(
         target=_run_registration_and_file_flows,
-        pre=[
-            WorldState(args=("register_rule_collision_safe",)),
-            WorldState(args=("pattern_block_rule",)),
-            WorldState(args=("file_target",)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "diagnostics": [
-                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
-                        ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
-                        ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "diagnostics": [
-                        ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "error_text": re.compile(
-                        r"^\n--- Service Report \(.+guide\.md\) ---[\s\S]*"
-                        r"- \[ARCH-NO-EVAL\] .+guide\.md:5: eval\(\) verletzt die Sicherheitsarchitektur\."
-                    ),
-                    "file_str": str,
-                }
-            ),
-        ],
-        custom_id="doc_linter_ux_registration_and_file_reporting",
+        pre=WorldState(args=("register_rule_collision_safe",)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "diagnostics": [
+                    ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                    ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
+                    ("ARCH-NO-PRINT", "warning", 5, "print() ist in Bibliotheksbeispielen unerwünscht."),
+                ],
+            }
+        ),
+        custom_id="doc_linter_ux_register_rule_collision_safe",
+    ).run()
+    EBT(
+        target=_run_registration_and_file_flows,
+        pre=WorldState(args=("pattern_block_rule",)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "diagnostics": [
+                    ("ARCH-NO-EVAL", "error", 5, "eval() verletzt die Sicherheitsarchitektur."),
+                ],
+            }
+        ),
+        custom_id="doc_linter_ux_pattern_block_rule",
+    ).run()
+    EBT(
+        target=_run_registration_and_file_flows,
+        pre=WorldState(args=("file_target",)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "error_text": re.compile(
+                    r"^\n--- Service Report \(.+guide\.md\) ---[\s\S]*"
+                    r"- \[ARCH-NO-EVAL\] .+guide\.md:5: eval\(\) verletzt die Sicherheitsarchitektur\."
+                ),
+                "file_str": str,
+            }
+        ),
+        custom_id="doc_linter_ux_file_target_reporting",
     ).run()

@@ -20,18 +20,9 @@ from qb_cubie.services.doc_ensurance import (
 )
 
 
-# ---------- Standard-Pattern für die Test-Suite -----------------------------------------------------------------------
-CUBIE_PATTERN = ExamplePattern(
-    name="cubie-standard",
-    pre=[Explanation(min_chars=15)],
-    anchor=CodeSnippet(lang="python"),
-    post=[CollapsibleResult(summary="Ergebnis")],
-)
-
-
 def run_ensurance(
     markdown_or_path: str | Path,
-    pattern: ExamplePattern = CUBIE_PATTERN,
+    pattern: ExamplePattern = CUBIE_DOC_STYLE,
     scope: Any = None,
     reporter: Any = None,
 ) -> dict[str, Any]:

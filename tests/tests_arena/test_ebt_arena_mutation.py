@@ -1,8 +1,8 @@
 import subprocess, sys
 from pathlib import Path
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import WorldState
-from src.qb_cubie.arenas.pyvenv import PyVenv
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import WorldState
+from qb_cubie.arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # GLOBAL PROVISIONING (Golden Masters)

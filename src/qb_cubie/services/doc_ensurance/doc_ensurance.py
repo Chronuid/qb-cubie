@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from ...arenas.tempfs import TempFS
-from ...linter import DEFAULT_EXCLUDES, CstLinter, Linter, LinterDiagnostic
+from ...linter import DEFAULT_EXCLUDES, CstLinter, LinterDiagnostic
 from ...protocols import Arena, Reporter, WorldState
 from ...reporter import PytestReporter
 from ._markdown_scanner import _MarkdownScanner
@@ -168,14 +168,14 @@ class DocEnsurance:
 
     @staticmethod
     def _split_patterns(
-        raw: DocPatternProtocol | Sequence[Any] | None,
+        raw: Any,
     ) -> tuple[DocPatternProtocol, tuple[Any, ...] | None]:
         """Separates example DocPatternProtocol objects from optional DocFrame FramePatterns."""
         if raw is None:
             return CUBIE_DOC_STYLE, None
         items = list(raw) if isinstance(raw, (list, tuple)) else [raw]
-        doc_pats = [p for p in items if hasattr(p, "scan") and not hasattr(p, "render_zone")]
-        frame_pats = [p for p in items if hasattr(p, "render_zone")]
+        doc_pats = [p for p in items if isinstance(p, DocPatternProtocol) and not hasattr(p, "render_zone")]
+        frame_pats = [p for p in items if isinstance(p, DocPatternProtocol) and hasattr(p, "render_zone")]
         if len(doc_pats) + len(frame_pats) != len(items):
             raise TypeError("STATE-GUARD: Invalid pattern item passed to DocEnsurance.")
         primary = doc_pats[0] if doc_pats else (frame_pats[0] if frame_pats else CUBIE_DOC_STYLE)

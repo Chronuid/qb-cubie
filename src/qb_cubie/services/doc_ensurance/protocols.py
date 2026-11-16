@@ -121,6 +121,7 @@ class DocBlockProtocol(Protocol):
     def extract(self, block: MdBlock) -> str: ...
 
 
+@runtime_checkable
 class DocPatternProtocol(Protocol):
     """Contract for structural documentation patterns composed of block protocols."""
 

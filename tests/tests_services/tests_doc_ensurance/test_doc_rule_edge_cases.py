@@ -313,41 +313,49 @@ def _capture_base_exception(doc: str) -> tuple[str, str]:
 
 
 def test_ebt_rule_defaults_reduction_and_type_coercion() -> None:
-    """Verifies 0-arg class coercion and flags silent loss of DOC-OUT-MISSING via expect=False."""
+    """Verifies 0-arg class coercion, explicit empty rules=(), NoOutput replacement, and custom rule preservation."""
     custom_noop = CodeRule("C1", "noop", lambda _: True)
     EBT(
         target=_inspect_rule_registry,
-        pre=[
-            WorldState(args=(_SILENT_EMPTY_OUT_DOC, None)),
-            WorldState(args=(_SILENT_EMPTY_OUT_DOC, ())),
-            WorldState(args=(_SILENT_EMPTY_OUT_DOC, [NoOutput])),
-            WorldState(args=(_MISMATCH_OUT_DOC, [_ZeroArgPrintLinter, OutputMatchRule(severity="warning")])),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT"],
-                    "passed": True,
-                    "diag_ids": [("DOC-OUT-MISSING", "warning")],
-                }
-            ),
-            WorldState(returns={"rule_ids": ["DOC-OUT"], "passed": True, "diag_ids": []}),
-            WorldState(
-                returns={
-                    "rule_ids": ["DOC-OUT", "DOC-NO-OUTPUT"],
-                    "passed": True,
-                    "diag_ids": [("DOC-NO-OUTPUT", "warning")],
-                }
-            ),
-            WorldState(
-                returns={
-                    "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT", "DOC-LINT:CST-Linter"],
-                    "passed": False,
-                    "diag_ids": [("DOC-OUT", "warning"), ("CST-NO-PRINT", "error")],
-                }
-            ),
-        ],
-        custom_id="doc_rule_edge_defaults_and_coercion",
+        pre=WorldState(args=(_SILENT_EMPTY_OUT_DOC, None)),
+        post=WorldState(
+            returns={
+                "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT"],
+                "passed": True,
+                "diag_ids": [("DOC-OUT-MISSING", "warning")],
+            }
+        ),
+        custom_id="doc_rule_edge_default_rules_none",
+    ).run()
+    EBT(
+        target=_inspect_rule_registry,
+        pre=WorldState(args=(_SILENT_EMPTY_OUT_DOC, ())),
+        post=WorldState(returns={"rule_ids": ["DOC-OUT"], "passed": True, "diag_ids": []}),
+        custom_id="doc_rule_edge_explicit_empty_rules",
+    ).run()
+    EBT(
+        target=_inspect_rule_registry,
+        pre=WorldState(args=(_SILENT_EMPTY_OUT_DOC, [NoOutput])),
+        post=WorldState(
+            returns={
+                "rule_ids": ["DOC-OUT", "DOC-NO-OUTPUT"],
+                "passed": True,
+                "diag_ids": [("DOC-NO-OUTPUT", "warning")],
+            }
+        ),
+        custom_id="doc_rule_edge_no_output_replaces_missing",
+    ).run()
+    EBT(
+        target=_inspect_rule_registry,
+        pre=WorldState(args=(_MISMATCH_OUT_DOC, [_ZeroArgPrintLinter, OutputMatchRule(severity="warning")])),
+        post=WorldState(
+            returns={
+                "rule_ids": ["DOC-OUT-MISSING", "DOC-OUT", "DOC-LINT:CST-Linter"],
+                "passed": False,
+                "diag_ids": [("DOC-OUT", "warning"), ("CST-NO-PRINT", "error")],
+            }
+        ),
+        custom_id="doc_rule_edge_zero_arg_linter_coercion",
     ).run()
 
     # Positiv-Vertrag: Einzelne CodeRule lässt DOC-OUT-MISSING nicht mehr verschwinden
@@ -380,35 +388,35 @@ def test_ebt_rule_defaults_reduction_and_type_coercion() -> None:
 
 
 def test_ebt_explanation_rule_skipped_on_pre_warning_and_override() -> None:
-    """Verifies block rule override and flags skipped ExplanationRule on DOC-PRE warning via expect=False."""
+    """Verifies block rule override and ExplanationRule execution when DOC-PRE is a warning."""
     warn_override = ExplanationRule("EXP-CAP", "Must start uppercase.", lambda s: s[0].isupper(), severity="warning")
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_LONG_LOWERCASE_PRE_DOC, _WARN_PRE_WITH_EXP_RULE_PATTERN)),
-            WorldState(
-                args=(_LONG_LOWERCASE_PRE_DOC, _WARN_PRE_WITH_EXP_RULE_PATTERN),
-                kwargs={"extra_registered": [warn_override]},
-            ),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["1"]],
-                    "diagnostics": [("EXP-CAP", "error", 3)],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["1"]],
-                    "diagnostics": [("EXP-CAP", "warning", 3)],
-                }
-            ),
-        ],
+        pre=WorldState(args=(_LONG_LOWERCASE_PRE_DOC, _WARN_PRE_WITH_EXP_RULE_PATTERN)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["1"]],
+                "diagnostics": [("EXP-CAP", "error", 3)],
+            }
+        ),
+        custom_id="doc_rule_edge_block_rule_default_error",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(
+            args=(_LONG_LOWERCASE_PRE_DOC, _WARN_PRE_WITH_EXP_RULE_PATTERN),
+            kwargs={"extra_registered": [warn_override]},
+        ),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "session_passed": [True],
+                "outputs": [["1"]],
+                "diagnostics": [("EXP-CAP", "warning", 3)],
+            }
+        ),
         custom_id="doc_rule_edge_block_rule_override",
     ).run()
 
@@ -456,25 +464,25 @@ def test_ebt_session_doc_pre_marks_session_failed_in_tagged_scope() -> None:
 
 
 def test_ebt_lazy_list_continuation_alert_and_html_comment_traps() -> None:
-    """Flags DOC-PRE false alarms caused by sticky in_list, GitHub alerts, and HTML comments."""
+    """Verifies that explanations after list items, GitHub alerts, and HTML comments pass cleanly."""
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_LAZY_LIST_CONTINUATION_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["123"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_scanner_lazy_list_continuation",
+    ).run()
     EBT(
         target=_run_edge_scenario,
         pre=[
-            WorldState(args=(_LAZY_LIST_CONTINUATION_DOC,)),
             WorldState(args=(_GITHUB_ALERT_PRE_DOC,)),
             WorldState(args=(_HTML_COMMENT_DISPLACES_PRE_DOC,)),
         ],
-        post=[
-            WorldState(
-                returns={"passed": False, "session_passed": [], "outputs": [], "diagnostics": [("DOC-PRE", "error", 4)]},
-                expect=False,
-            ),
-            WorldState(
-                returns={"passed": False, "session_passed": [], "outputs": [], "diagnostics": [("DOC-PRE", "error", 5)]},
-                expect=False,
-            ),
-        ],
-        custom_id="doc_rule_edge_scanner_pre_traps",
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["1"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_scanner_alert_and_html_comment",
     ).run()
 
 
@@ -501,28 +509,32 @@ def test_ebt_inner_backticks_double_fences_comma_tags_and_summaryless_details() 
 
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_FENCE_IN_MULTILINE_STR_DOC,)),
-            WorldState(args=(_TWO_FENCES_IN_DETAILS_DOC,)),
-            WorldState(args=(_COMMA_TAG_IGNORED_DOC,)),
-        ],
-        post=[
-            WorldState(
-                returns={"passed": True, "session_passed": [True], "outputs": [["4"]], "diagnostics": []}
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["ok"]],
-                    "diagnostics": [("DOC-OUT", "error", 3)],
-                }
-            ),
-            WorldState(
-                returns={"passed": True, "session_passed": [True], "outputs": [["1"]], "diagnostics": []}
-            ),
-        ],
-        custom_id="doc_rule_edge_fences_and_comma_tags",
+        pre=WorldState(args=(_FENCE_IN_MULTILINE_STR_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["4"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_fence_in_multiline_str",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_TWO_FENCES_IN_DETAILS_DOC,)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["ok"]],
+                "diagnostics": [("DOC-OUT", "error", 3)],
+            }
+        ),
+        custom_id="doc_rule_edge_two_fences_in_details",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_COMMA_TAG_IGNORED_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["1"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_comma_tag_parsed",
     ).run()
 
 
@@ -539,10 +551,25 @@ def test_ebt_base_exception_catch_dotted_raises_and_whitespace_stripping() -> No
         post=WorldState(returns=("NO_ESCAPE", "")),
         custom_id="doc_rule_edge_keyboard_interrupt_captured",
     ).run()
-
     EBT(
         target=_run_edge_scenario,
-        pre=WorldState(args=(_PRINT_BEFORE_RAISES_DOC,)),
+        pre=WorldState(args=(_KEYBOARD_INTERRUPT_DOC,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "session_passed": [True],
+                "outputs": [["KeyboardInterrupt: ctrl-c"]],
+                "diagnostics": [],
+            }
+        ),
+        custom_id="doc_rule_edge_keyboard_interrupt_matched",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=[
+            WorldState(args=(_PRINT_BEFORE_RAISES_DOC,)),
+            WorldState(args=(_DOTTED_RAISES_DOC,)),
+        ],
         post=WorldState(
             returns={
                 "passed": True,
@@ -551,43 +578,20 @@ def test_ebt_base_exception_catch_dotted_raises_and_whitespace_stripping() -> No
                 "diagnostics": [],
             }
         ),
-        custom_id="doc_rule_edge_print_before_raises_positive",
+        custom_id="doc_rule_edge_print_before_and_dotted_raises",
     ).run()
-
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_KEYBOARD_INTERRUPT_DOC,)),
-            WorldState(args=(_DOTTED_RAISES_DOC,)),
-            WorldState(args=(_LEADING_WHITESPACE_STRIP_DOC,)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["KeyboardInterrupt: ctrl-c"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["ValueError: boom"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["   indented_first\n  indented_second"]],
-                    "diagnostics": [("DOC-OUT", "error", 3)],
-                }
-            ),
-        ],
-        custom_id="doc_rule_edge_dotted_raises_and_strip_preserved",
+        pre=WorldState(args=(_LEADING_WHITESPACE_STRIP_DOC,)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["   indented_first\n  indented_second"]],
+                "diagnostics": [("DOC-OUT", "error", 3)],
+            }
+        ),
+        custom_id="doc_rule_edge_leading_whitespace_preserved",
     ).run()
 
 
@@ -601,29 +605,29 @@ def test_ebt_session_mypy_integration_no_output_and_cst_linter_merge() -> None:
     dual_cst = [CstLinter(rules=[_NoEvalCstRule()]), CstLinter(rules=[_NoPrintCstRule()])]
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_SESSION_MYPY_AND_NO_OUTPUT_DOC,), kwargs={"rules": [*CUBIE_DOC_RULES, MyPy()]}),
-            WorldState(args=(_EVAL_AND_PRINT_DOC,), kwargs={"rules": dual_cst}),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["", "42"]],
-                    "diagnostics": [("DOC-NO-OUTPUT", "warning", 3)],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["42"]],
-                    "diagnostics": [("CST-NO-EVAL", "error", 4), ("CST-NO-PRINT", "error", 4)],
-                }
-            ),
-        ],
-        custom_id="doc_rule_edge_session_mypy_and_cst_merge",
+        pre=WorldState(args=(_SESSION_MYPY_AND_NO_OUTPUT_DOC,), kwargs={"rules": [*CUBIE_DOC_RULES, MyPy()]}),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "session_passed": [True],
+                "outputs": [["", "42"]],
+                "diagnostics": [("DOC-NO-OUTPUT", "warning", 3)],
+            }
+        ),
+        custom_id="doc_rule_edge_session_mypy_and_no_output",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_EVAL_AND_PRINT_DOC,), kwargs={"rules": dual_cst}),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["42"]],
+                "diagnostics": [("CST-NO-EVAL", "error", 4), ("CST-NO-PRINT", "error", 4)],
+            }
+        ),
+        custom_id="doc_rule_edge_dual_cst_linter_merge",
     ).run()
 
     # AstLinter fulfills Linter protocol and runs orthogonally alongside CUBIE_DOC_RULES and custom rules
@@ -654,7 +658,10 @@ def test_ebt_details_html_injection_and_raw_syntax_error_behavior() -> None:
     """Verifies fence-safe details extraction, line-invariant <doc> SyntaxError, and active CstLinter E999."""
     EBT(
         target=_run_edge_scenario,
-        pre=WorldState(args=(_RAW_SYNTAX_ERROR_DOC,)),
+        pre=[
+            WorldState(args=(_RAW_SYNTAX_ERROR_DOC,)),
+            WorldState(args=("\n" + _RAW_SYNTAX_ERROR_DOC,)),
+        ],
         post=WorldState(
             returns={
                 "passed": True,
@@ -663,59 +670,42 @@ def test_ebt_details_html_injection_and_raw_syntax_error_behavior() -> None:
                 "diagnostics": [],
             }
         ),
-        custom_id="doc_rule_edge_raw_syntax_error_baseline",
+        custom_id="doc_rule_edge_raw_syntax_error_line_invariant",
     ).run()
-
     EBT(
         target=_run_edge_scenario,
-        pre=[
-            WorldState(args=(_HTML_SUMMARY_IN_OUTPUT_DOC,)),
-            WorldState(args=(_HTML_CLOSING_DETAILS_IN_OUTPUT_DOC,)),
-            WorldState(args=(_HTML_SUMMARY_WITH_ATTR_DOC,)),
-            WorldState(args=("\n" + _RAW_SYNTAX_ERROR_DOC,)),
-            WorldState(args=(_RAW_SYNTAX_ERROR_DOC,), kwargs={"rules": [CstLinter(rules=[])]}),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["<summary>Inner</summary>"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["</details>"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["ok"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_passed": [True],
-                    "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
-                    "diagnostics": [],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_passed": [False],
-                    "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
-                    "diagnostics": [("E999", "error", 4)],
-                }
-            ),
-        ],
-        custom_id="doc_rule_edge_details_html_and_raw_syntax_error",
+        pre=WorldState(args=(_RAW_SYNTAX_ERROR_DOC,), kwargs={"rules": [CstLinter(rules=[])]}),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_passed": [False],
+                "outputs": [["SyntaxError: invalid syntax (<doc>, line 1)"]],
+                "diagnostics": [("E999", "error", 4)],
+            }
+        ),
+        custom_id="doc_rule_edge_raw_syntax_error_cst_e999",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_HTML_SUMMARY_IN_OUTPUT_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["<summary>Inner</summary>"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_details_inner_summary_tag",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_HTML_CLOSING_DETAILS_IN_OUTPUT_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["</details>"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_details_inner_closing_tag",
+    ).run()
+    EBT(
+        target=_run_edge_scenario,
+        pre=WorldState(args=(_HTML_SUMMARY_WITH_ATTR_DOC,)),
+        post=WorldState(
+            returns={"passed": True, "session_passed": [True], "outputs": [["ok"]], "diagnostics": []}
+        ),
+        custom_id="doc_rule_edge_details_summary_with_attr",
     ).run()

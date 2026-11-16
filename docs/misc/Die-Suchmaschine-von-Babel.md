@@ -40,19 +40,26 @@ Die Metapher motiviert sorgfältige Spezifikation. Sie verspricht keine vollstä
 
 <div align="center">
 
-![Error while trying to load the image](../.assets/cubie-small.png)
+![Cubie](../.assets/cubie-small.png)
 
-[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../GUIDE_Quality-Assurance.md)  
-[↦ | Vertragssemantik: zentrale Referenz | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT: Auswahl von Beispielen | ↤](../GUIDE_Example-Based-Testing.md)  
-[↦ | EBT: ausführbare Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | RBT: Reviewer und Nutzung | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
+[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
+[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Linter | ↤](../GUIDE_Linter.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
-[↦ | DocEnsurance: Lebende Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../services/GUIDE_DocFrame.md)  
-[↦ | Entwicklerübersicht EBT | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame | ↤](../services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+[↦ | Clean-Code Pragmatismus | ↤](./Clean-Code-Pragmatism.md)  
+[↦ | Die Suchmaschine von Babel: eine Metapher | ↤](./Die-Suchmaschine-von-Babel.md)  
+[↦ | Erweitertes Property-Based Testing: konzeptionelle Einordnung | ↤](./Erweitertes-PBT.md)  
+[↦ | FP-OOP-Isomorphismus | ↤](./FP-OOP-Isomorphismus.md)  
 
 </div>
 <!-- /qb:frame -->

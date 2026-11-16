@@ -49,4 +49,30 @@ Die Auswertung des ersten Implementierungsschritts von `DocFrame` (`03d7a0dd`) i
 | **H4 (Namespace- & Collection-Hygiene)** | Wenn `src.qb_cubie`-Imports in den RBT-Tests auf `qb_cubie` normiert, `@pytest.mark.slow` an `test_docs_code_examples` reaktiviert und verwaiste `__pycache__`-Verzeichnisse bereinigt werden, verschwinden doppelte Modul-Identitäten in `sys.modules` und `make test-fast` hält wieder den in `README.md` zugesicherten Schnellstart-Vertrag ein. | `pytest -m "meta or reviewer"` $\to$ `passed` ohne `src.qb_cubie` in `sys.modules` |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Cubie](../../../docs/.assets/cubie-small.png)
+
+[↦ | Arena-Management | ↤](../../../docs/GUIDE_Arena-Management.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../../docs/GUIDE_Benchmarks.md)  
+[↦ | Verbindliche Vertragssemantik | ↤](../../../docs/GUIDE_Contract-Semantics.md)  
+[↦ | EBT-Nutzungsmuster | ↤](../../../docs/GUIDE_EBT-Usage-Pattern.md)  
+[↦ | Example-Based Testing | ↤](../../../docs/GUIDE_Example-Based-Testing.md)  
+[↦ | Linter | ↤](../../../docs/GUIDE_Linter.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../../docs/GUIDE_Quality-Assurance.md)  
+[↦ | RBT-Nutzungsmuster | ↤](../../../docs/GUIDE_RBT-Usage-Pattern.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../docs/services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame | ↤](../../../docs/services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../../../docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](../../../docs/misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../../docs/feature-drafts/virtualization/README.md)  
+
+</div>
 <!-- /qb:frame -->

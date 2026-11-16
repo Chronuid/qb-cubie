@@ -1,4 +1,4 @@
-from src.qb_cubie.ebt import *
+from qb_cubie.ebt import *
 import pytest
 import errno
 from concurrent.futures.process import BrokenProcessPool

@@ -10,9 +10,9 @@ of silently deciding a review. RBT uses this reviewer by default.
 
 import pytest
 
-from src.qb_cubie import rbt
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import ReviewData, WorldState
+from qb_cubie import rbt
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import ReviewData, WorldState
 
 
 @pytest.fixture(autouse=True)

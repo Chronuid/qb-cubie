@@ -84,23 +84,23 @@ def test_ebt_cubie_doc_rules_preset_clean_and_multi_warning_execution() -> None:
 
     EBT(
         target=_run_preset_with_pytest_reporter,
-        pre=[
-            WorldState(args=(clean_doc,)),
-            WorldState(args=(noisy_doc,)),
-        ],
-        post=[
-            WorldState(
-                returns={"passed": True, "warning_count": 0, "rule_ids": []}
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "warning_count": 2,
-                    "rule_ids": ["DOC-NO-OUTPUT", "DOC-LARGE-OUTPUT"],
-                }
-            ),
-        ],
-        custom_id="doc_std_rules_preset_execution",
+        pre=WorldState(args=(clean_doc,)),
+        post=WorldState(
+            returns={"passed": True, "warning_count": 0, "rule_ids": []}
+        ),
+        custom_id="doc_std_rules_preset_clean_execution",
+    ).run()
+    EBT(
+        target=_run_preset_with_pytest_reporter,
+        pre=WorldState(args=(noisy_doc,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "warning_count": 2,
+                "rule_ids": ["DOC-NO-OUTPUT", "DOC-LARGE-OUTPUT"],
+            }
+        ),
+        custom_id="doc_std_rules_preset_noisy_execution",
     ).run()
 
 
@@ -119,46 +119,45 @@ def test_ebt_no_output_rule_context_messages_and_severity_override() -> None:
     silent_code_doc = _build_doc("x = 21 * 2", "")
     undocumented_stdout_doc = _build_doc("print('computed_42')", "")
 
-    # 2a. Differenzierte didaktische Erklärung für stummen Code vs. vergessenen Ergebnis-Eintrag
     EBT(
         target=_run_std_rules,
-        pre=[
-            WorldState(args=(silent_code_doc,)),
-            WorldState(args=(undocumented_stdout_doc,)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [[""]],
-                    "diagnostics": [
-                        (
-                            "DOC-NO-OUTPUT",
-                            "warning",
-                            re.compile(
-                                r"^Result block is empty[\s\S]*produced no stdout[\s\S]*print\(result\)[\s\S]*session=<id>"
-                            ),
-                        )
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [["computed_42"]],
-                    "diagnostics": [
-                        (
-                            "DOC-NO-OUTPUT",
-                            "warning",
-                            re.compile(
-                                r"^Result block is empty[\s\S]*produced stdout \('computed_42'\)[\s\S]*Document the expected output"
-                            ),
-                        )
-                    ],
-                }
-            ),
-        ],
-        custom_id="doc_std_rules_no_output_didactic_messages",
+        pre=WorldState(args=(silent_code_doc,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [[""]],
+                "diagnostics": [
+                    (
+                        "DOC-NO-OUTPUT",
+                        "warning",
+                        re.compile(
+                            r"^Result block is empty[\s\S]*produced no stdout[\s\S]*print\(result\)[\s\S]*session=<id>"
+                        ),
+                    )
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_no_output_silent_code",
+    ).run()
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(args=(undocumented_stdout_doc,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [["computed_42"]],
+                "diagnostics": [
+                    (
+                        "DOC-NO-OUTPUT",
+                        "warning",
+                        re.compile(
+                            r"^Result block is empty[\s\S]*produced stdout \('computed_42'\)[\s\S]*Document the expected output"
+                        ),
+                    )
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_no_output_undocumented_stdout",
     ).run()
 
     # 2b. Überschreiben von NoOutput auf severity='error' erzwingt passed=False
@@ -199,47 +198,51 @@ def test_ebt_high_complexity_boundary_and_custom_limits() -> None:
 
     EBT(
         target=_run_std_rules,
-        pre=[
-            WorldState(args=(_build_doc(code_30_lines, "28"),)),
-            WorldState(args=(_build_doc(code_31_lines, "29"),)),
-            WorldState(
-                args=(_build_doc(code_6_lines, "4"), [HighComplexity(max_lines=5, severity="warning")])
-            ),
-        ],
-        post=[
-            WorldState(
-                returns={"passed": True, "outputs": [["28"]], "diagnostics": []}
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "outputs": [["29"]],
-                    "diagnostics": [
-                        (
-                            "DOC-HIGH-COMPLEXITY",
-                            "error",
-                            re.compile(
-                                r"^Code example has 31 lines \(limit: 30\)[\s\S]*session=<id>[\s\S]*pre_state"
-                            ),
-                        )
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [["4"]],
-                    "diagnostics": [
-                        (
-                            "DOC-HIGH-COMPLEXITY",
-                            "warning",
-                            re.compile(r"^Code example has 6 lines \(limit: 5\)"),
-                        )
-                    ],
-                }
-            ),
-        ],
-        custom_id="doc_std_rules_high_complexity_boundaries",
+        pre=WorldState(args=(_build_doc(code_30_lines, "28"),)),
+        post=WorldState(
+            returns={"passed": True, "outputs": [["28"]], "diagnostics": []}
+        ),
+        custom_id="doc_std_rules_high_complexity_30_lines_pass",
+    ).run()
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(args=(_build_doc(code_31_lines, "29"),)),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "outputs": [["29"]],
+                "diagnostics": [
+                    (
+                        "DOC-HIGH-COMPLEXITY",
+                        "error",
+                        re.compile(
+                            r"^Code example has 31 lines \(limit: 30\)[\s\S]*session=<id>[\s\S]*pre_state"
+                        ),
+                    )
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_high_complexity_31_lines_error",
+    ).run()
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(
+            args=(_build_doc(code_6_lines, "4"), [HighComplexity(max_lines=5, severity="warning")])
+        ),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [["4"]],
+                "diagnostics": [
+                    (
+                        "DOC-HIGH-COMPLEXITY",
+                        "warning",
+                        re.compile(r"^Code example has 6 lines \(limit: 5\)"),
+                    )
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_high_complexity_custom_limit_warning",
     ).run()
 
 
@@ -296,12 +299,9 @@ def test_ebt_high_complexity_fails_on_oversized_qa_guide_example() -> None:
     EBT(
         target=_run_cubie_doc_service,
         pre=WorldState(args=(_QA_GUIDE_SECTION_1_EXAMPLE_DOC,)),
-        post=[
-            WorldState(
-                raises=ExceptionExpectation(AssertionError, match=r"DOC-HIGH-COMPLEXITY")
-            ),
-            WorldState(returns=None, expect=False),
-        ],
+        post=WorldState(
+            raises=ExceptionExpectation(AssertionError, match=r"DOC-HIGH-COMPLEXITY")
+        ),
         custom_id="doc_std_rules_qa_guide_section_1_complexity_failure",
     ).run()
 
@@ -326,39 +326,43 @@ def test_ebt_large_output_and_raw_traceback_rules() -> None:
 
     EBT(
         target=_run_std_rules,
-        pre=[
-            WorldState(args=(doc_25_out,)),
-            WorldState(args=(doc_26_out,)),
-            WorldState(args=(doc_raw_tb,)),
-        ],
-        post=[
-            WorldState(
-                returns={"passed": True, "outputs": [[out_25]], "diagnostics": []}
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [[out_26]],
-                    "diagnostics": [
-                        ("DOC-LARGE-OUTPUT", "warning", re.compile(r"^Output spans 26 lines \(limit: 25\)")),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": True,
-                    "outputs": [[raw_tb_text]],
-                    "diagnostics": [
-                        (
-                            "DOC-RAW-TRACEBACK",
-                            "warning",
-                            re.compile(r"^Result block contains a raw Python traceback[\s\S]*raises=<Exception>"),
-                        ),
-                    ],
-                }
-            ),
-        ],
-        custom_id="doc_std_rules_large_output_and_raw_traceback",
+        pre=WorldState(args=(doc_25_out,)),
+        post=WorldState(
+            returns={"passed": True, "outputs": [[out_25]], "diagnostics": []}
+        ),
+        custom_id="doc_std_rules_large_output_25_lines_pass",
+    ).run()
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(args=(doc_26_out,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [[out_26]],
+                "diagnostics": [
+                    ("DOC-LARGE-OUTPUT", "warning", re.compile(r"^Output spans 26 lines \(limit: 25\)")),
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_large_output_26_lines_warning",
+    ).run()
+    EBT(
+        target=_run_std_rules,
+        pre=WorldState(args=(doc_raw_tb,)),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "outputs": [[raw_tb_text]],
+                "diagnostics": [
+                    (
+                        "DOC-RAW-TRACEBACK",
+                        "warning",
+                        re.compile(r"^Result block contains a raw Python traceback[\s\S]*raises=<Exception>"),
+                    ),
+                ],
+            }
+        ),
+        custom_id="doc_std_rules_raw_traceback_warning",
     ).run()
 
 

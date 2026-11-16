@@ -1,8 +1,8 @@
 from pathlib import Path
-from src.qb_cubie.arenas.pyvenv import PyVenv
-from src.qb_cubie.arenas.codecs import PickleCodec, MSGspecCodec
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import WorldState
+from qb_cubie.arenas.pyvenv import PyVenv
+from qb_cubie.arenas.codecs import PickleCodec, MSGspecCodec
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import WorldState
 
 
 # ==================================================================================================

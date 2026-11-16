@@ -3,6 +3,8 @@
 import ast
 from typing import Any, Sequence
 
+import pytest
+
 from qb_cubie import EBT, TempFS, WorldState
 from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance, MdBlock
 from qb_cubie.services.doc_ensurance import _MarkdownScanner
@@ -181,54 +183,39 @@ _RUNTIME_CRASH_CASCADE_SPEC = (
 )
 
 
-def test_ebt_markdown_and_python_docstring_isomorphism() -> None:
-    """Verifies that Markdown fences and Python docstring modules commute across all states."""
+@pytest.mark.parametrize(
+    "spec_id, md_doc, expected_summary",
+    [
+        (
+            "valid_session",
+            _VALID_SESSION_SPEC,
+            {"passed": True, "outputs": [["21", "42"]], "rules": []},
+        ),
+        (
+            "expected_raises",
+            _EXPECTED_RAISES_SPEC,
+            {"passed": True, "outputs": [["1", "KeyError: 'missing'", "2"]], "rules": []},
+        ),
+        (
+            "doc_pre_no_cascade",
+            _DOC_PRE_IN_SESSION_NO_CASCADE_SPEC,
+            {"passed": False, "outputs": [["10", "15", "30"]], "rules": ["DOC-PRE"]},
+        ),
+        (
+            "runtime_crash_cascade",
+            _RUNTIME_CRASH_CASCADE_SPEC,
+            {"passed": False, "outputs": [["10", "", ""]], "rules": ["DOC-EXEC", "DOC-EXEC"]},
+        ),
+    ],
+)
+def test_ebt_markdown_and_python_docstring_isomorphism(
+    spec_id: str, md_doc: str, expected_summary: dict[str, Any]
+) -> None:
+    """Verifies that Markdown fences and Python docstring modules commute for each specification."""
     EBT(
         target=_evaluate_isomorphism,
         arena=TempFS(),
-        pre=[
-            WorldState(args=(_VALID_SESSION_SPEC,)),
-            WorldState(args=(_EXPECTED_RAISES_SPEC,)),
-            WorldState(args=(_DOC_PRE_IN_SESSION_NO_CASCADE_SPEC,)),
-            WorldState(args=(_RUNTIME_CRASH_CASCADE_SPEC,)),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "isomorphic": True,
-                    "summary": {"passed": True, "outputs": [["21", "42"]], "rules": []},
-                }
-            ),
-            WorldState(
-                returns={
-                    "isomorphic": True,
-                    "summary": {
-                        "passed": True,
-                        "outputs": [["1", "KeyError: 'missing'", "2"]],
-                        "rules": [],
-                    },
-                }
-            ),
-            WorldState(
-                returns={
-                    "isomorphic": True,
-                    "summary": {
-                        "passed": False,
-                        "outputs": [["10", "15", "30"]],
-                        "rules": ["DOC-PRE"],
-                    },
-                }
-            ),
-            WorldState(
-                returns={
-                    "isomorphic": True,
-                    "summary": {
-                        "passed": False,
-                        "outputs": [["10", "", ""]],
-                        "rules": ["DOC-EXEC", "DOC-EXEC"],
-                    },
-                }
-            ),
-        ],
-        custom_id="doc_ensurance_md_py_isomorphism",
+        pre=WorldState(args=(md_doc,)),
+        post=WorldState(returns={"isomorphic": True, "summary": expected_summary}),
+        custom_id=f"doc_ensurance_md_py_isomorphism_{spec_id}",
     ).run()

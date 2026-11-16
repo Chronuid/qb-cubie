@@ -93,18 +93,29 @@ def test_body_counter_statements(body, expected):
 
 # ========== DOCUMENTATION =============================================================================================
 
-from qb_cubie.services import CUBIE_DOC_STYLE, CUBIE_DOC_RULES, DocEnsurance
+from qb_cubie.services import (
+    CUBIE_DOC_FRAME_1,
+    CUBIE_DOC_FRAME_2,
+    CUBIE_DOC_FRAME_3,
+    CUBIE_DOC_RULES,
+    CUBIE_DOC_STYLE,
+    CUBIE_DOCFRAME_RULES,
+    DocEnsurance,
+)
 
 
-#@pytest.mark.slow
+@pytest.mark.slow
 def test_docs_code_examples() -> None:
-    """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
+    """Verifies that all documentation code examples and frames follow Cubie conventions."""
     DocEnsurance(
-        pattern=CUBIE_DOC_STYLE,
-        rules=CUBIE_DOC_RULES,
+        pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3),
+        rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES),
         excludes=(
-            "experiments", #Reason: I need to clean-up the artifacts of the sprint in the core first.
-            "GUTACHTEN.md", #Reason: No Cubie-Rules apply to Inspectors.
+            ".pytest_cache",
+            "tests",
+            "experiments",  # Reason: I need to clean up the artifacts of the sprint in the core first.
+            "GUTACHTEN.md",  # Reason: No Cubie-Rules apply to Inspectors.
+            "CHANGELOG.md",
         ),
     ).run()
 

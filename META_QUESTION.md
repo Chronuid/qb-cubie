@@ -1,3 +1,4 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="Gemini-App" model="Gemini-4-Argon" effort="High" routable="false" -->
 **Dokument-Informationen & Herkunft:**
 - **Plattform / Umgebung:** Gemini-App
 - **Modell:** Gemini-4-Argon
@@ -5,11 +6,8 @@
 
 ---
 
-Gibt es eigentliche bewährte Verfahren/Methoden aus der Qualitäts-Sicherung, um eine Test-Suite wie die von Cubie selbst zu prüfen und die Fälle gegen Widersprüche und Ähnliches zu untersuchen? 
-
----
-
----
+Gibt es eigentliche bewährte Verfahren/Methoden aus der Qualitäts-Sicherung, um eine Test-Suite wie die von Cubie selbst zu prüfen und die Fälle gegen Widersprüche und Ähnliches zu untersuchen?
+<!-- /qb:frame -->
 
 Um eine Test-Suite wie die von `qb-cubie` nicht nur als Prüfinstrument zu nutzen, sondern **selbst als formales Artefakt zu verifizieren** („Meta-Testing“ bzw. *Verification of Specifications*), kombiniert die Qualitätssicherung Methoden aus der formalen Logik mit empirischen Fehlerinjektionen.
 
@@ -175,3 +173,32 @@ Da du in `qb-cubie` bereits `CstLinter`/`AstLinter` und `test_meta` (`make test-
 
 
 Sollen wir als Nächstes die paarweise Zuordnung (`pre`/`post`-Kopplung) im `EBT`-Runner näher betrachten oder zuerst die gefundenen Widersprüche in `tests_services/` und `test_styleguide.py` glattziehen?
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Cubie](./docs/.assets/cubie-small.png)
+
+[↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
+[↦ | Verbindliche Vertragssemantik | ↤](./docs/GUIDE_Contract-Semantics.md)  
+[↦ | EBT-Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
+[↦ | Example-Based Testing | ↤](./docs/GUIDE_Example-Based-Testing.md)  
+[↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame | ↤](./docs/services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
+
+</div>
+<!-- /qb:frame -->

@@ -1,8 +1,8 @@
 import pytest
 from hypothesis import given, settings, strategies as st
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import WorldState
-from src.qb_cubie.multiprocessors import StateInspector
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import WorldState
+from qb_cubie.multiprocessors import StateInspector
 
 
 ########################################################################################################################

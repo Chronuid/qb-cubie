@@ -54,19 +54,26 @@ Diese Arena dient der Bereitstellung vollwertiger oder leichtgewichtiger Betrieb
 
 <div align="center">
 
-![Error while trying to load the image](../../.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Qualitätssicherung: Handbuch & Methodik | ↤](../../GUIDE_Quality-Assurance.md)  
-[↦ | Vertragssemantik: zentrale Referenz | ↤](../../GUIDE_Contract-Semantics.md)  
-[↦ | EBT: Auswahl von Beispielen | ↤](../../GUIDE_Example-Based-Testing.md)  
-[↦ | EBT: ausführbare Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | RBT: Reviewer und Nutzung | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
 [↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
+[↦ | Verbindliche Vertragssemantik | ↤](../../GUIDE_Contract-Semantics.md)  
+[↦ | EBT-Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
+[↦ | Example-Based Testing | ↤](../../GUIDE_Example-Based-Testing.md)  
 [↦ | Linter | ↤](../../GUIDE_Linter.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | RBT-Nutzungsmuster | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
 
-[↦ | DocEnsurance: Lebende Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame: Dokument-Rahmen & Router | ↤](../../services/GUIDE_DocFrame.md)  
-[↦ | Entwicklerübersicht EBT | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame | ↤](../../services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+[↦ | **Libvirt, QEMU/KVM und Python** | ↤](./Libvirt-Handbuch.md)  
+[↦ | Wizards-Handbuch | ↤](./Wizards-Handbuch.md)  
+[↦ | [Feature] Implementierung von `DockerArena` und `VmArena` für erweiterte OS- und FS-Isolation (Entwicklung bis auf Weiteres Eingefroren) | ↤](./arena-requirements.md)  
+[↦ | VmArena: Anforderungen an Betriebssystem-Szenarien und Routing | ↤](./vm-requirements.md)  
 
 </div>
 <!-- /qb:frame -->

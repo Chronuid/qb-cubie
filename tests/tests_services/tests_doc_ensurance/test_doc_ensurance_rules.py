@@ -370,37 +370,37 @@ def test_ebt_untagged_snippet_executes_warnings_but_skips_errors() -> None:
 
     EBT(
         target=_run_rules_scenario,
-        pre=[
-            WorldState(args=(_MISSING_BLOCKS_DOC, None, warn_pre_pattern, TaggedScope())),
-            WorldState(args=(_MISSING_BLOCKS_DOC, None, err_pre_pattern, TaggedScope())),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "passed": True,
-                    "session_count": 1,
-                    "session_passed": [True],
-                    "outputs": [["42"]],
-                    "diagnostics": [
-                        ("DOC-PRE", "warning", 3, None, str),
-                        ("DOC-POST", "warning", 3, None, str),
-                    ],
-                }
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_count": 0,
-                    "session_passed": [],
-                    "outputs": [],
-                    "diagnostics": [
-                        ("DOC-PRE", "error", 3, None, str),
-                        ("DOC-POST", "warning", 3, None, str),
-                    ],
-                }
-            ),
-        ],
-        custom_id="doc_rules_untagged_severity_filtering",
+        pre=WorldState(args=(_MISSING_BLOCKS_DOC, None, warn_pre_pattern, TaggedScope())),
+        post=WorldState(
+            returns={
+                "passed": True,
+                "session_count": 1,
+                "session_passed": [True],
+                "outputs": [["42"]],
+                "diagnostics": [
+                    ("DOC-PRE", "warning", 3, None, str),
+                    ("DOC-POST", "warning", 3, None, str),
+                ],
+            }
+        ),
+        custom_id="doc_rules_untagged_warning_executes",
+    ).run()
+    EBT(
+        target=_run_rules_scenario,
+        pre=WorldState(args=(_MISSING_BLOCKS_DOC, None, err_pre_pattern, TaggedScope())),
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_count": 0,
+                "session_passed": [],
+                "outputs": [],
+                "diagnostics": [
+                    ("DOC-PRE", "error", 3, None, str),
+                    ("DOC-POST", "warning", 3, None, str),
+                ],
+            }
+        ),
+        custom_id="doc_rules_untagged_error_skips_execution",
     ).run()
 
 
@@ -446,27 +446,27 @@ def test_ebt_pytest_reporter_emits_user_warnings_and_asserts_only_on_errors() ->
 
     EBT(
         target=_run_with_pytest_reporter,
-        pre=[
-            WorldState(args=(_EMPTY_RESULT_BLOCK_DOC, [warn_rule])),
-            WorldState(args=(_EMPTY_RESULT_BLOCK_DOC, [warn_rule, err_rule])),
-        ],
-        post=[
-            WorldState(
-                returns={
-                    "asserted": False,
-                    "assertion_msg": None,
-                    "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
-                }
-            ),
-            WorldState(
-                returns={
-                    "asserted": True,
-                    "assertion_msg": re.compile(r"[\s\S]*DOC-CODE-STRICT"),
-                    "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
-                }
-            ),
-        ],
-        custom_id="doc_rules_pytest_reporter_warnings_and_assertions",
+        pre=WorldState(args=(_EMPTY_RESULT_BLOCK_DOC, [warn_rule])),
+        post=WorldState(
+            returns={
+                "asserted": False,
+                "assertion_msg": None,
+                "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
+            }
+        ),
+        custom_id="doc_rules_pytest_reporter_warnings_only",
+    ).run()
+    EBT(
+        target=_run_with_pytest_reporter,
+        pre=WorldState(args=(_EMPTY_RESULT_BLOCK_DOC, [warn_rule, err_rule])),
+        post=WorldState(
+            returns={
+                "asserted": True,
+                "assertion_msg": re.compile(r"[\s\S]*DOC-CODE-STRICT"),
+                "warnings": [re.compile(r"^\[DOC-OUT-MISSING\] IN_MEMORY:3: Missing expected output")],
+            }
+        ),
+        custom_id="doc_rules_pytest_reporter_warnings_and_error_assertion",
     ).run()
 
 

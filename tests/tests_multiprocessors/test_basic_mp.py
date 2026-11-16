@@ -1,10 +1,10 @@
 import pytest, os
-from src.qb_cubie.ebt import *
-from src.qb_cubie.arenas.tempfs import *
+from qb_cubie.ebt import *
+from qb_cubie.arenas.tempfs import *
 from typing import Iterable
-from src.qb_cubie.protocols import Mapper
-from src.qb_cubie.arenas.tempfs import TempFS
-from src.qb_cubie.arenas.pyvenv import PyVenv
+from qb_cubie.protocols import Mapper
+from qb_cubie.arenas.tempfs import TempFS
+from qb_cubie.arenas.pyvenv import PyVenv
 
 ########################################################################################################################
 # ==========  ARENAS:  PyVenv("tests/.arenas/empty_venv")  |  TempFS()  ================================================

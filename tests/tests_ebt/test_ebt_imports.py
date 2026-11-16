@@ -1,9 +1,9 @@
 import pytest
 from typing import Any
-from src.qb_cubie.ebt import EBT
-from src.qb_cubie.protocols import WorldState
-from src.qb_cubie.arenas.tempfs import TempFS
-from src.qb_cubie.arenas.pyvenv import PyVenv
+from qb_cubie.ebt import EBT
+from qb_cubie.protocols import WorldState
+from qb_cubie.arenas.tempfs import TempFS
+from qb_cubie.arenas.pyvenv import PyVenv
 
 
 # ======================================================================================================================

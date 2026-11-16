@@ -156,7 +156,6 @@ def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
         custom_id="doc_config_missing_target_guards",
     ).run()
 
-    # Invertierter Randfall (expect=False): Fließtext ohne Leerzeichen oder mit '/' wirft FileNotFoundError
     EBT(
         target=_run_config_scenario,
         arena=TempFS(),
@@ -164,8 +163,8 @@ def test_ebt_missing_string_or_path_targets_raise_file_not_found() -> None:
             WorldState(args=("Hello",)),
             WorldState(args=("Read/write operations in Python.",)),
         ],
-        post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:"), expect=False),
-        custom_id="doc_config_prose_misclassified_as_path",
+        post=WorldState(returns={"passed": True, "session_count": 0, "diagnostics": []}),
+        custom_id="doc_config_prose_treated_as_in_memory",
     ).run()
 
 
@@ -260,36 +259,31 @@ def _run_exclude_collision_scenario(excludes: Sequence[str]) -> dict[str, Any]:
 
 
 def test_ebt_exclude_prefix_collision_and_root_name_excludes() -> None:
-    """Flags removeprefix basename collision via expect=False and checks '/', '', 'docs' excludes."""
+    """Verifies that root-name excludes only match the inner 'docs' subfolder while '/' and '' are ignored."""
     EBT(
         target=_run_exclude_collision_scenario,
         arena=TempFS(),
-        pre=WorldState(args=(("docs/guide.md", "docs/docs/nested.md"),)),
-        post=WorldState(returns={"passed": True, "session_count": 1, "diagnostics": []}, expect=False),
-        custom_id="doc_config_exclude_subpath_no_basename_collision",
+        pre=WorldState(args=(("docs",),)),
+        post=WorldState(
+            returns={"passed": False, "session_count": 3, "diagnostics": ["DOC-EXEC", "DOC-EXEC"]}
+        ),
+        custom_id="doc_config_exclude_root_name_subfolder",
     ).run()
-
     EBT(
         target=_run_exclude_collision_scenario,
         arena=TempFS(),
         pre=[
-            WorldState(args=(("docs",),)),
             WorldState(args=(("/",),)),
             WorldState(args=(("",),)),
         ],
-        post=[
-            WorldState(
-                returns={"passed": False, "session_count": 3, "diagnostics": ["DOC-EXEC", "DOC-EXEC"]}
-            ),
-            WorldState(
-                returns={
-                    "passed": False,
-                    "session_count": 4,
-                    "diagnostics": ["DOC-EXEC", "DOC-EXEC", "DOC-EXEC"],
-                }
-            ),
-        ],
-        custom_id="doc_config_exclude_root_and_empty_excludes",
+        post=WorldState(
+            returns={
+                "passed": False,
+                "session_count": 4,
+                "diagnostics": ["DOC-EXEC", "DOC-EXEC", "DOC-EXEC"],
+            }
+        ),
+        custom_id="doc_config_exclude_empty_and_slash",
     ).run()
 
 def test_ebt_exclude_subpath_does_not_swallow_nested_same_basename() -> None:

@@ -261,7 +261,7 @@ class DocFrame:
 
     @staticmethod
     def _normalize_patterns(
-        pattern: FramePattern | Sequence[FramePattern] | None,
+        pattern: Any,
     ) -> dict[str, FramePattern]:
         """Normalizes a single FramePattern or sequence of FramePatterns into an ID-keyed dict."""
         if pattern is None:
@@ -276,7 +276,7 @@ class DocFrame:
         return {item.id: item for item in items}
 
     @staticmethod
-    def _normalize_excludes(excludes: Sequence[str] | None) -> set[str]:
+    def _normalize_excludes(excludes: Any) -> set[str]:
         """Validates user excludes and merges them with DEFAULT_EXCLUDES."""
         if excludes is None:
             return set(DEFAULT_EXCLUDES)
