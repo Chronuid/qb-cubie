@@ -123,6 +123,21 @@ class Arena(Protocol):
 # ========== TRACING-DATACLASSES | EXAMPLE-BASED-TESTING ===============================================================
 
 Quantor = Literal["all", "exists"]
+StateInput = WorldState | List[WorldState] | Dict[str, Any] | None
+
+
+def evaluate_step_logic(traces: List["EvaluationTrace"], post_quantor: Quantor = "exists") -> bool:
+    """Evaluate one step's success from positive and negative post-state traces."""
+    positives = [t for t in traces if t.post.expect]
+    negatives = [t for t in traces if not t.post.expect]
+    violates_neg = any(t.evaluation for t in negatives)
+    if not positives:
+        satisfies_pos = True
+    elif post_quantor == "all":
+        satisfies_pos = all(t.evaluation for t in positives)
+    else:
+        satisfies_pos = any(t.evaluation for t in positives)
+    return satisfies_pos and not violates_neg
 
 
 @dataclass

@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Union, Set, get_origin, get_args, Option
 from .arenas._hydration import normalize_fs
 from .multiprocessors import PickleProcessor, LokyProcessor, MultiprocessManager
 from .multiprocessors import _validate_max_workers
-from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation
+from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation, Quantor, StateInput, evaluate_step_logic
 from .reporter import PytestReporter
 from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
 from ._files import same_contents
@@ -85,8 +85,8 @@ class EBT:
 
     def __init__(
         self, target: Any, arena: Optional[Arena] = None,
-        pre: Union[WorldState, List[WorldState], None] = None,
-        post: Union[WorldState, List[WorldState], None] = None,
+        pre: StateInput = None,
+        post: StateInput = None,
         expect: bool = True, custom_id: Optional[str] = None,
         reporter: Reporter[RunTrace] | None = PytestReporter(),
         multiprocessing: bool = False,
@@ -124,13 +124,12 @@ class EBT:
 
     def _configure_states(
         self, target: Any, arena: Arena | None,
-        pre: WorldState | list[WorldState] | None,
-        post: WorldState | list[WorldState] | None, expect: bool,
+        pre: StateInput, post: StateInput, expect: bool,
     ) -> None:
         self.target = target
         self.arena = arena
-        self.pre: List[WorldState] = self._ensure_list(pre, "pre")
-        self.post: List[WorldState] = self._ensure_list(post, "post")
+        self.pre, self.pre_quantor = self._parse_state_config(pre, "pre", "all")
+        self.post, self.post_quantor = self._parse_state_config(post, "post", "exists")
         self.expect = expect
         self.FS_IGNORES: Set[str] = {""}
         self.ARENA_IGNORES: Set[str] = {
@@ -168,8 +167,8 @@ class EBT:
         """Validate all declared states before normalizing their filesystems."""
         __tracebackhide__ = True
         _validate_max_workers(self.max_workers)
-        self.pre = self._ensure_list(self.pre, "pre")
-        self.post = self._ensure_list(self.post, "post")
+        self.pre, self.pre_quantor = self._parse_state_config(self.pre, "pre", self.pre_quantor)
+        self.post, self.post_quantor = self._parse_state_config(self.post, "post", self.post_quantor)
         for state in (*self.pre, *self.post):
             state.validate_exception_contract()
         normalized = self._normalized_states()
@@ -298,14 +297,14 @@ class EBT:
         """Evaluate the quantifiers and record the completed run."""
         __tracebackhide__ = True
         steps = self._group_traces_by_step()
-        successes = [self._evaluate_step_logic(traces) for traces in steps.values()]
-        success = all(successes)
+        successes = [self._evaluate_step_logic(traces, self.post_quantor) for traces in steps.values()]
+        success = all(successes) if self.pre_quantor == "all" else any(successes)
         self._run_evaluation = success if self.expect else not success
         self.run_trace = RunTrace(
             run_id=self._run_id, arena=_snapshot(self.arena),
-            target=getattr(self.target, "__name__", str(self.target)),
-            expect=self.expect, traces=_snapshot(self._traces),
-            evaluation=self._run_evaluation, duration=self._run_duration,
+            target=getattr(self.target, "__name__", str(self.target)), expect=self.expect,
+            traces=_snapshot(self._traces), evaluation=self._run_evaluation,
+            duration=self._run_duration, pre_quantor=self.pre_quantor, post_quantor=self.post_quantor,
         )
 
     @staticmethod
@@ -521,23 +520,72 @@ class EBT:
     # ↓ ========== _arrange() ========== ↓
 
     @staticmethod
-    def _ensure_list(raw_value: WorldState | list[WorldState] | None, field: str = "state") -> list[WorldState]:
-        """Normalize and validate a nonempty list of WorldStates."""
+    def _parse_state_config(
+        raw_value: Any, field: str, default_quantor: Quantor,
+    ) -> tuple[list[WorldState], Quantor]:
+        """Normalize and validate a WorldState, list, None, or quantor wrapper dict."""
         __tracebackhide__ = True
         if raw_value is None:
-            return [WorldState()]
+            return [WorldState()], default_quantor
         if isinstance(raw_value, WorldState):
-            return [raw_value]
+            return [raw_value], default_quantor
+        if isinstance(raw_value, dict):
+            return EBT._parse_quantor_wrapper(raw_value, field)
         EBT._validate_states(raw_value, field)
-        return raw_value
+        return raw_value, default_quantor
 
     @staticmethod
-    def _validate_states(states: Any, field: str) -> None:
-        if not isinstance(states, list):
+    def _parse_quantor_wrapper(wrapper: dict[str, Any], field: str) -> tuple[list[WorldState], Quantor]:
+        """Validate a quantor wrapper dict and normalize its declared states."""
+        __tracebackhide__ = True
+        EBT._validate_wrapper_keys(wrapper, field)
+        quantor = EBT._validate_quantor(wrapper["quantor"], field)
+        states = wrapper["states"]
+        if isinstance(states, WorldState):
+            return [states], quantor
+        EBT._validate_states(states, f"{field}['states']", allow_none=False)
+        return states, quantor
+
+    @staticmethod
+    def _validate_wrapper_keys(wrapper: dict[str, Any], field: str) -> None:
+        """Validate required and allowed keys on a quantor wrapper dictionary."""
+        __tracebackhide__ = True
+        if not wrapper:
             raise TypeError(
-                f"STATE-GUARD: {field} must be a WorldState, a list of WorldStates or None; "
-                f"received {type(states).__name__}."
+                f"STATE-GUARD: {field} dict must define 'quantor' and 'states', "
+                "or pass a WorldState, a list of WorldStates or None."
             )
+        extra = set(wrapper) - {"quantor", "states"}
+        if extra:
+            raise ValueError(f"STATE-GUARD: {field} wrapper has unexpected keys: {', '.join(sorted(map(str, extra)))}.")
+        missing = [key for key in ("quantor", "states") if key not in wrapper]
+        if missing:
+            raise ValueError(f"STATE-GUARD: {field} wrapper is missing required key(s): {', '.join(missing)}.")
+
+    @staticmethod
+    def _validate_quantor(quantor: Any, field: str) -> Quantor:
+        """Validate an explicit quantor string ('all' or 'exists')."""
+        __tracebackhide__ = True
+        if not isinstance(quantor, str):
+            raise TypeError(
+                f"STATE-GUARD: {field}['quantor'] must be a str ('all' or 'exists'); received {type(quantor).__name__}."
+            )
+        if quantor == "all":
+            return "all"
+        if quantor == "exists":
+            return "exists"
+        raise ValueError(f"STATE-GUARD: {field}['quantor'] must be 'all' or 'exists'; received {quantor!r}.")
+
+    @staticmethod
+    def _validate_states(states: Any, field: str, *, allow_none: bool = True) -> None:
+        """Validate that a normalized state container is a nonempty list of WorldStates."""
+        __tracebackhide__ = True
+        if not isinstance(states, list):
+            expected = (
+                "a WorldState, a list of WorldStates or None" if allow_none
+                else "a WorldState or a list of WorldStates"
+            )
+            raise TypeError(f"STATE-GUARD: {field} must be {expected}; received {type(states).__name__}.")
         if not states:
             raise ValueError(f"STATE-GUARD: {field} must not be an empty list.")
         for index, state in enumerate(states):
@@ -639,14 +687,10 @@ class EBT:
     # ↓ ========== _report() ========== ↓
 
     @staticmethod
-    def _evaluate_step_logic(traces: List[EvaluationTrace]) -> bool:
+    def _evaluate_step_logic(traces: List[EvaluationTrace], post_quantor: Quantor = "exists") -> bool:
         """Evaluates the boolean success of a single step based on positive and negative states."""
         __tracebackhide__ = True
-        positives = [t for t in traces if t.post.expect]
-        negatives = [t for t in traces if not t.post.expect]
-        violates_neg = any(t.evaluation for t in negatives)
-        satisfies_pos = any(t.evaluation for t in positives) if positives else True
-        return satisfies_pos and not violates_neg
+        return evaluate_step_logic(traces, post_quantor)
 
     def _group_traces_by_step(self) -> dict[str, List[EvaluationTrace]]:
         """Groups all recorded traces by their execution step ID."""

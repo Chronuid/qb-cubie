@@ -11,7 +11,7 @@ import tempfile
 import types
 from typing import TYPE_CHECKING, Dict, List
 
-from .protocols import EvaluationTrace, ReviewData, RunTrace, UNSPECIFIED
+from .protocols import EvaluationTrace, Quantor, ReviewData, RunTrace, UNSPECIFIED, evaluate_step_logic
 from ._execution import exception_details, qualified_name
 
 if TYPE_CHECKING:
@@ -87,11 +87,20 @@ class PytestReporter:
         if not run_trace.traces:
             return f"EBT-Assert failed: Run '{run_trace.run_id}' completed without traces."
         steps = self._group_traces_by_step(run_trace.traces)
-        if run_trace.expect:
-            target_id = next((sid for sid, tr in steps.items() if not self._evaluate_step_logic(tr)), next(iter(steps)))
-        else:
-            target_id = next(iter(steps))
+        target_id = self._select_report_step(steps, run_trace)
         return self._build_report_message(target_id, steps[target_id], run_trace.expect, ctx)
+
+    @staticmethod
+    def _select_report_step(steps: Dict[str, List[EvaluationTrace]], run_trace: RunTrace) -> str:
+        """Select the representative step ID that caused the overall run to fail."""
+        __tracebackhide__ = True
+        if not run_trace.expect and run_trace.pre_quantor != "exists":
+            return next(iter(steps))
+        wanted = not run_trace.expect
+        return next(
+            (sid for sid, tr in steps.items() if evaluate_step_logic(tr, run_trace.post_quantor) is wanted),
+            next(iter(steps)),
+        )
 
     @staticmethod
     def _group_traces_by_step(traces: List[EvaluationTrace]) -> Dict[str, List[EvaluationTrace]]:
@@ -103,14 +112,10 @@ class PytestReporter:
         return steps
 
     @staticmethod
-    def _evaluate_step_logic(traces: List[EvaluationTrace]) -> bool:
+    def _evaluate_step_logic(traces: List[EvaluationTrace], post_quantor: Quantor = "exists") -> bool:
         """Evaluates the boolean success of a single step based on positive and negative states."""
         __tracebackhide__ = True
-        positives = [t for t in traces if t.post.expect]
-        negatives = [t for t in traces if not t.post.expect]
-        violates_neg = any(t.evaluation for t in negatives)
-        satisfies_pos = any(t.evaluation for t in positives) if positives else True
-        return satisfies_pos and not violates_neg
+        return evaluate_step_logic(traces, post_quantor)
 
     def _build_report_message(
         self, step_id: str, traces: List[EvaluationTrace], expect: bool, ctx: ReportContext

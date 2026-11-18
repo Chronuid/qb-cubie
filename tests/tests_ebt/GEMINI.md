@@ -1,1 +1,1 @@
-Hi Gemini! Bitte verbessere mal @test_ebt_quantor_declaration.py auf Basis von @HYPOTHESIS.md.
+Hi Gemini! Mach mal bitte das Testmodul @test_ebt_quantor_declaration.py und die Testsuite grün.
