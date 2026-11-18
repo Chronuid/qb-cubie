@@ -33,7 +33,7 @@ def double(value):
 def test_double(value, expected):
     EBT(
         target=double,
-        pre=WorldState(args=(value,)),
+        pre=WorldState(args=value),
         post=WorldState(returns=expected),
     ).run()
 
@@ -108,7 +108,7 @@ def normalize_parallel(text):
 def test_normalize_parallel():
     EBT(
         target=normalize_parallel,
-        pre=[WorldState(args=(text,)) for text in [" TEXT ", "text", "TeXt"]],
+        pre=[WorldState(args=text) for text in [" TEXT ", "text", "TeXt"]],
         post=WorldState(returns=lambda value: value == "text"),
         multiprocessing=True,
         max_workers=2,
@@ -183,6 +183,75 @@ Bei mehreren `pre`- und `post`-Einträgen gilt dieselbe gesamte Zielmenge für j
 Das gleiche Prinzip kann einen beobachteten Würfelwert auf den Bereich `1` bis `6` beschränken. Eine konstante Rückgabe innerhalb dieses Bereichs besteht ebenfalls. Alle möglichen Ergebnisse, Zufälligkeit und Verteilung sind damit nicht geprüft.
 
 `EBT(expect=False)` negiert dagegen das Gesamtergebnis. Es prüft keine erwartete Exception; Target-Ausnahmen propagieren weiterhin.
+
+## Explizite Quantor-Deklaration (`all` und `exists`)
+
+Standardmäßig verwendet `pre` den Allquantor (`"all"`, alle Eingänge müssen bestehen) und `post` für positive Zustände den Existenzquantor (`"exists"`, mindestens ein positives Muster muss zutreffen). Über ein Wrapper-Dictionary `{"quantor": "all" | "exists", "states": ...}` lässt sich diese Quantor-Semantik explizit festlegen – sowohl für eine Liste von `WorldState`-Objekten als auch für einen einzelnen `WorldState`.
+
+Mit `post={"quantor": "all", ...}` müssen **alle** positiven Ziel-Prädikate gleichzeitig erfüllt sein (UND-Verknüpfung); eingestreute Einträge mit `expect=False` bleiben weiterhin strikte Verbote:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def normalize(text):
+    return text.strip().lower()
+
+
+trace = EBT(
+    target=normalize,
+    pre={"quantor": "all", "states": [WorldState(args="  Cubie  "), WorldState(args="CUBIE")]},
+    post={
+        "quantor": "all",
+        "states": [
+            WorldState(returns=str),
+            WorldState(returns=lambda value: value.startswith("cu")),
+            WorldState(returns=lambda value: len(value) == 5),
+        ],
+    },
+    tags={"meta:cross-product-reason": "Prüft zwei Eingänge gegen konjunktive Post-Prädikate."},
+).run()
+print(f"OK | pre={trace.pre_quantor} | post={trace.post_quantor}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK | pre=all | post=all
+```
+</details>
+
+Umgekehrt besteht ein Vertrag mit `pre={"quantor": "exists", ...}`, sobald **mindestens ein** Eingang die Nachbedingung erfüllt:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def check_route(route):
+    return "ok" if route == "/health" else "down"
+
+
+trace = EBT(
+    target=check_route,
+    pre={
+        "quantor": "exists",
+        "states": [WorldState(args="/primary"), WorldState(args="/health")],
+    },
+    post={"quantor": "exists", "states": WorldState(returns="ok")},
+).run()
+print(f"OK | pre={trace.pre_quantor} | post={trace.post_quantor}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+OK | pre=exists | post=exists
+```
+</details>
+
+Das Wrapper-Dictionary akzeptiert ausschließlich die Schlüssel `"quantor"` (`"all"` oder `"exists"`) und `"states"` (ein einzelner `WorldState` oder eine nichtleere Liste von `WorldState`-Objekten). Ungültige Schlüssel, unbekannte Quantoren oder leere `"states"`-Listen lehnt der `STATE-GUARD` vor jeder Target-Ausführung ab; die wirksamen Quantoren werden als `pre_quantor` und `post_quantor` im `RunTrace` sowie im JSON-Bericht des `JsonReporter` gespeichert.
 
 ## Rückgabemuster
 

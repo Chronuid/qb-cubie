@@ -50,7 +50,7 @@ def double(x: int) -> int:
 def test_double_three() -> None:
     trace = EBT(
         target=double,
-        pre=WorldState(args=(3,)),
+        pre=WorldState(args=3),
         post=WorldState(returns=6),
     ).run()
     print(f"3 -> 6:  Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
@@ -59,7 +59,7 @@ def test_double_three() -> None:
 def test_double_five() -> None:
     trace = EBT(
         target=double,
-        pre=WorldState(args=(5,)),
+        pre=WorldState(args=5),
         post=WorldState(returns=10),
     ).run()
     print(f"5 -> 10: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
@@ -97,7 +97,7 @@ def double(x: int) -> int:
 def test_double(value: int, expected: int) -> None:
     trace = EBT(
         target=double,
-        pre=WorldState(args=(value,)),
+        pre=WorldState(args=value),
         post=WorldState(returns=expected),
     ).run()
     print(f"{value} -> {expected}: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
@@ -129,8 +129,8 @@ def double(x: int) -> int:
 trace = EBT(
     target=double,
     pre=[
-        WorldState(args=(3,)), 
-        WorldState(args=(5,))
+        WorldState(args=3),
+        WorldState(args=5)
     ],
     post=[
         WorldState(returns=6),
@@ -213,7 +213,7 @@ def buggy_discount(price: int) -> int:
 
 trace = EBT(
     target=buggy_discount,
-    pre=WorldState(args=(100,)),
+    pre=WorldState(args=100),
     post=WorldState(returns=lambda value: value >= 0),
     expect=False,
 ).run()
@@ -246,14 +246,14 @@ def broken_total(price: int) -> int | None:
 
 lonely = EBT(
     target=broken_total,
-    pre=WorldState(args=(100,)),
+    pre=WorldState(args=100),
     post=WorldState(returns=-1, expect=False),
     reporter=None,
 ).run()
 
 guarded = EBT(
     target=broken_total,
-    pre=WorldState(args=(100,)),
+    pre=WorldState(args=100),
     post=[WorldState(returns=int), WorldState(returns=-1, expect=False)],
     reporter=None,
 ).run()
@@ -270,6 +270,82 @@ Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
 </details>
 
 * **Merksatz für `expect=False`:** Verbiete mit `WorldState(..., expect=False)` nur zusätzlich zu mindestens einem positiven Ziel (`expect=True`) – oder setze `expect=False` bewusst nur dort allein ein, wo fachlich tatsächlich **nur** ein Verbot gelten soll (z. B. *„darf niemals Wert X zurückgeben“*), und mache dir bewusst, dass alle anderen Werte dann akzeptiert werden.
+
+### Quantoren gezielt wählen: „alle“ (`all`) oder „mindestens eines“ (`exists`)
+
+Normalerweise wendet Cubie zwei feste Standardregeln an:
+* Für **`pre`** gilt **„alle“ (`"all"`)**: Jede angegebene Eingabe muss den Test bestehen.
+* Für **`post`** gilt **„mindestens eines“ (`"exists"`)**: Die Rückgabe muss zu mindestens einem der erlaubten Zielmuster passen.
+
+Manchmal braucht man es genau andersherum. Dafür packt man die Zustände einfach in ein kleines Dictionary mit `"quantor"` und `"states"` (als Liste oder als einzelnen `WorldState`):
+
+#### Alle Bedingungen gleichzeitig prüfen (`post` mit `"all"`)
+
+Das ist nützlich, wenn ein Ergebnis mehrere Regeln auf einmal einhalten muss – zum Beispiel *„eine ganze Zahl **und** positiv **und** gerade“*. Verbotene Werte (`expect=False`) bleiben natürlich weiterhin verboten:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def double(x: int) -> int:
+    return x * 2
+
+
+trace = EBT(
+    target=double,
+    pre={"quantor": "all", "states": WorldState(args=4)},
+    post={
+        "quantor": "all",
+        "states": [
+            WorldState(returns=int),
+            WorldState(returns=lambda value: value > 0),
+            WorldState(returns=lambda value: value % 2 == 0),
+        ],
+    },
+).run()
+
+print(f"Alle Regeln erfüllt: {trace.evaluation} | pre={trace.pre_quantor} | post={trace.post_quantor}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Alle Regeln erfüllt: True | pre=all | post=all
+```
+</details>
+
+#### Mindestens ein Treffer reicht (`pre` mit `"exists"`)
+
+Das ist nützlich, wenn von mehreren Kandidaten oder Routen **mindestens eine** zum Erfolg führen muss:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def check_endpoint(path: str) -> str:
+    return "ok" if path == "/backup" else "offline"
+
+
+trace = EBT(
+    target=check_endpoint,
+    pre={"quantor": "exists", "states": [WorldState(args="/main"), WorldState(args="/backup")]},
+    post={"quantor": "exists", "states": WorldState(returns="ok")},
+).run()
+
+print(f"Mindestens eine Route erreichbar: {trace.evaluation} | pre={trace.pre_quantor} | post={trace.post_quantor}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Mindestens eine Route erreichbar: True | pre=exists | post=exists
+```
+</details>
+
+> [!TIP]
+> **Kurz gemerkt:** Als `"quantor"` sind nur `"all"` und `"exists"` erlaubt, und `"states"` darf niemals leer sein. Wenn etwas davon nicht stimmt, stoppt Cubie den Testlauf sofort mit einer klaren Fehlermeldung, bevor überhaupt Code ausgeführt wird.
 
 ---
 

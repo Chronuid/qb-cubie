@@ -233,7 +233,7 @@ my_proc.priority = 150  # Mutability zur Laufzeit
 
 result = qb.EBT(
     target=square,
-    pre=[qb.WorldState(args=(3,)), qb.WorldState(args=(4,))],
+    pre=[qb.WorldState(args=3), qb.WorldState(args=4)],
     post=[qb.WorldState(returns=9), qb.WorldState(returns=16)],
     multiprocessing=True,
     multiprocessors=[my_proc],  # DI-Hook

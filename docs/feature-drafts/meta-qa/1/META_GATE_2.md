@@ -35,7 +35,7 @@ Schreibst du diesen Test in `EBT` versehentlich in **einem** gemeinsamen Aufruf:
 ```text
 EBT(
     target=automat,
-    pre=[WorldState(args=("kaffee",)), WorldState(args=("tee",))],
+    pre=[WorldState(args="kaffee"), WorldState(args="tee")],
     post=[WorldState(returns="Kaffee"), WorldState(returns="Tee")],
 )
 ```
@@ -88,7 +88,7 @@ from qb_cubie import EBT, WorldState
 
 trace = EBT(
     target=lambda x: x * 2,
-    pre=[WorldState(args=(1,)), WorldState(args=(2,))],
+    pre=[WorldState(args=1), WorldState(args=2)],
     post=[WorldState(returns=2), WorldState(returns=4)],
     tags={"meta:cross-product-reason": "Prüft bewusst die N:M-Matrix von EBT."},
 ).run()
