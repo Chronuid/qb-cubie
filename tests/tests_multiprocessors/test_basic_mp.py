@@ -135,19 +135,20 @@ def test_ebt_multiprocessing_with_local_closure():
 
 # =========== SÄULE 3: EDGE CASES & ARENA ISOLATION ====================================================================
 
-def test_ebt_multiprocessing_with_tempfs():
+@pytest.mark.parametrize(
+    ("filename", "content"),
+    [
+        ("file_1.txt", "content_a"),
+        ("file_2.txt", "content_b"),
+    ],
+)
+def test_ebt_multiprocessing_with_tempfs(filename: str, content: str):
     engine = EBT(
         target=target_mutate_fs,
         arena=TempFS(),
-        pre=[
-            WorldState(args=("file_1.txt", "content_a")),
-            WorldState(args=("file_2.txt", "content_b"))
-        ],
-        post=[
-            WorldState(fs={"file_1.txt": lambda p: p.exists()}),
-            WorldState(fs={"file_2.txt": lambda p: p.exists()})
-        ],
-        multiprocessing=True
+        pre=WorldState(args=(filename, content)),
+        post=WorldState(fs={filename: lambda p: p.exists() and p.read_text(encoding="utf-8") == content}),
+        multiprocessing=True,
     )
     run_trace = engine.run()
     assert run_trace.evaluation is True
