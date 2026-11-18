@@ -5,7 +5,7 @@
 - **Plattform / Umgebung:** Antigravity-CLI
 - **Modell:** Gemini-4-Hydrogen
 - **Reasoning-Effort:** High
-- **Analysedatum:** 18. November 2026, ~19:07 (CET)
+- **Analysedatum:** 18. November 2026, ~19:35 (CET)
 - **Synthesebasis:** `docs/feature-drafts/meta-qa/1/GEMINI.md`, `docs/feature-drafts/meta-qa/1/META_GATES.md`, `docs/feature-drafts/meta-qa/1/META_GATE_1.md`, `docs/GUIDE_Contract-Semantics.md`, `src/qb_cubie/ebt.py`, `src/qb_cubie/protocols.py`, `src/qb_cubie/linter.py`, `tests/tests_meta/test_gate_1.py`, `tests/tests_meta/test_gate_2.py`, `tests/tests_ebt/test_ebt_quantors.py`, `tests/tests_ebt/test_ebt_run_isolation.py`, `tests/tests_multiprocessors/test_basic_mp.py`, `tests/test_offline_core.py`, `tests/tests_ebt/test_ebt_persistent_reports.py`
 - **Stand:** qb-cubie (v0.0.7)
 - **Git-Log:** `6c959ab4cae6ede0b019f3d2774bc305e09e39a6` ("Crafted the prototype 'tests/tests_meta/test_gate_1.py'", Chronuid, 2026-11-18)
@@ -46,7 +46,7 @@ dann passiert etwas Überraschendes: `EBT` ordnet **nicht** `pre[0]` zu `post[0]
 
 Das bedeutet: Wenn der Automat kaputt ist und bei **beiden** Tasten nur noch `"Kaffee"` ausspuckt, bleibt der `2x2`-Test trotzdem **grün** – weil `"Kaffee"` ja in der Liste `post` enthalten ist.
 
-**Meta-Gate 2 (`META-EBT-CROSS-PRODUCT`)** in [`tests/tests_meta/test_gate_2.py`](../../../../tests/tests_meta/test_gate_2.py) erkennt genau solche `N x M`-Verträge frühzeitig im Syntaxbaum – erlaubt sie aber weiterhin, wenn es einen echten fachlichen Grund dafür gibt und dieser **explizit begründet** wird. Gemäß Auftrag wurde **kein Code in `src/` verändert**. Nach dem ersten Scan-Lauf wurde zudem die dabei entdeckte echte Kreuzprodukt-Falle in [`tests/tests_multiprocessors/test_basic_mp.py`](../../../../tests/tests_multiprocessors/test_basic_mp.py) per `@pytest.mark.parametrize` aufgelöst.
+**Meta-Gate 2 (`META-EBT-CROSS-PRODUCT`)** in [`tests/tests_meta/test_gate_2.py`](../../../../tests/tests_meta/test_gate_2.py) erkennt genau solche `N x M`-Verträge frühzeitig im Syntaxbaum – erlaubt sie aber weiterhin, wenn es einen echten fachlichen Grund dafür gibt und dieser **explizit begründet** wird. Gemäß Auftrag wurde **kein Code in `src/` verändert**. Im Anschluss an den ersten Scan wurden alle `4` entdeckten Fundstellen bereinigt: die echte Kreuzprodukt-Falle in [`tests/tests_multiprocessors/test_basic_mp.py`](../../../../tests/tests_multiprocessors/test_basic_mp.py) per `@pytest.mark.parametrize` und die `3` bewussten Matrix-Tests mit expliziten `tags={"meta:cross-product-reason": "..."}`.
 
 ---
 
@@ -165,10 +165,10 @@ Wenn man diese 4 Stellen genauer ansieht, zeigt sich eine **bemerkenswerte Aufte
 
 | Fundstelle | Dimension | Bewertung | Warum? |
 | :--- | :--- | :--- | :--- |
-| [`test_ebt_quantors.py:78`](../../../../tests/tests_ebt/test_ebt_quantors.py#L78-L91) (`test_forall_exists_green`) | `3x4` | **Absichtliches Kreuzprodukt** | Testet gezielt die `∀pre ∃post`-Regel von `EBT` (`1*2, 2*2, 3*2` gegen `{2, 4, 6, 8}`). |
-| [`test_ebt_quantors.py:95`](../../../../tests/tests_ebt/test_ebt_quantors.py#L95-L106) (`test_forall_exists_red`) | `2x2` | **Absichtliches Kreuzprodukt** | Testet gezielt das Scheitern bei `expect=False`, sobald ein `pre` kein passendes `post` aus `{2, 4}` findet. |
-| [`test_ebt_run_isolation.py:60`](../../../../tests/tests_ebt/test_ebt_run_isolation.py#L60-L68) (`test_repeated_run_has_exactly_current_matrix_and_outcomes`) | `2x2` | **Absichtliches Kreuzprodukt** | Testet wiederholte Läufe einer `2x2`-Matrix (`len(result.traces) == 4`) und prüft explizit `[state.returns for state in case._outcome] == [1, 2]`. |
-| [`test_basic_mp.py:139`](../../../../tests/tests_multiprocessors/test_basic_mp.py#L138-L155) (`test_ebt_multiprocessing_with_tempfs`) | `2x2` → **`2 × (1x1)`** | **Echte Kreuzprodukt-Falle (behoben!)** | Per `@pytest.mark.parametrize` in zwei scharfe `1x1`-Verträge zerlegt. |
+| [`test_ebt_quantors.py:78`](../../../../tests/tests_ebt/test_ebt_quantors.py#L78-L92) (`test_forall_exists_green`) | `3x4` | **Absichtliches Kreuzprodukt (begründet)** | Testet gezielt die `∀pre ∃post`-Regel von `EBT` (`1*2, 2*2, 3*2` gegen `{2, 4, 6, 8}`); nun mit `tags={"meta:cross-product-reason": ...}`. |
+| [`test_ebt_quantors.py:96`](../../../../tests/tests_ebt/test_ebt_quantors.py#L96-L108) (`test_forall_exists_red`) | `2x2` | **Absichtliches Kreuzprodukt (begründet)** | Testet gezielt das Scheitern bei `expect=False`, sobald ein `pre` kein passendes `post` aus `{2, 4}` findet; nun mit `tags={"meta:cross-product-reason": ...}`. |
+| [`test_ebt_run_isolation.py:60`](../../../../tests/tests_ebt/test_ebt_run_isolation.py#L60-L69) (`test_repeated_run_has_exactly_current_matrix_and_outcomes`) | `2x2` | **Absichtliches Kreuzprodukt (begründet)** | Testet wiederholte Läufe einer `2x2`-Matrix (`len(result.traces) == 4`) und prüft `[state.returns for state in case._outcome] == [1, 2]`; nun mit `tags={"meta:cross-product-reason": ...}`. |
+| [`test_basic_mp.py:138`](../../../../tests/tests_multiprocessors/test_basic_mp.py#L138-L155) (`test_ebt_multiprocessing_with_tempfs`) | `2x2` → **`2 × (1x1)`** | **Echte Kreuzprodukt-Falle (behoben!)** | Per `@pytest.mark.parametrize` in zwei scharfe `1x1`-Verträge zerlegt. |
 
 > [!WARNING]
 >
@@ -188,22 +188,24 @@ Genauso lehrreich sind die beiden bestehenden Tests mit `pre=[...]` und `post=[.
 
 Beide Tests bestanden die Prüfung auf Anhieb, genau wie in der Spezifikation gewünscht.
 
-### 4. Stand nach Behebung & Gesamtlauf `meta and fast`
+### 4. Endstand nach Behebung aller 4 Funde & Gesamtlauf `meta and fast`
 
-* **Erneuter Lauf von Meta-Gate 2 (`.venv/bin/python -m pytest -v tests/tests_meta/test_gate_2.py`):**
-  `test_basic_mp.py` erscheint **nicht mehr** in den Befunden (`1 failed, 23 passed in 4.24s`). Übrig bleiben ausschließlich die **3 bewussten Matrix-/Quantor-Tests** in [`test_ebt_quantors.py`](../../../../tests/tests_ebt/test_ebt_quantors.py#L78-L106) und [`test_ebt_run_isolation.py`](../../../../tests/tests_ebt/test_ebt_run_isolation.py#L60-L68).
-* `tests/tests_meta/test_gate_1.py` und `tests/test_default_collection_contract.py` bleiben zusammen weiterhin vollständig grün (**20 passed in 7.17s**).
-* Im Gesamtlauf `.venv/bin/python -m pytest -m "meta and fast" -q` laufen alle **96** ausgewählten Tests durch (die bestehenden `72` plus `24` aus `test_gate_2.py`) mit dem erwarteten Ergebnis **95 passed, 1 failed** (einziger Fehler: `test_repository_has_no_unjustified_ebt_cross_products` für die 3 verbliebenen bewussten Matrix-Tests ohne `tags={"meta:cross-product-reason": "..."}`).
+* **Begründung der 3 bewussten Matrix-Tests:** In [`test_ebt_quantors.py`](../../../../tests/tests_ebt/test_ebt_quantors.py#L78-L108) und [`test_ebt_run_isolation.py`](../../../../tests/tests_ebt/test_ebt_run_isolation.py#L60-L69) wurden explizite `tags={"meta:cross-product-reason": "..."}`-Einträge ergänzt. Der direkte Lauf `.venv/bin/python -m pytest -q tests/tests_ebt/test_ebt_quantors.py tests/tests_ebt/test_ebt_run_isolation.py` lief mit **`44 passed in 0.28s`** durch.
+* **Meta-Gate 2 komplett grün (`.venv/bin/python -m pytest -v tests/tests_meta/test_gate_2.py`):**
+  Alle **24 Tests** inklusive `test_repository_has_no_unjustified_ebt_cross_products` über alle `101` Dateien in `tests/` bestehen mit **`24 passed in 4.14s`**.
+* **`tests/tests_meta/test_gate_1.py` & `tests/test_default_collection_contract.py`:** Bleiben zusammen grün (**20 passed in 7.17s**).
+* **Gesamtlauf `meta and fast` (`.venv/bin/python -m pytest -m "meta and fast" -q`):**
+  Alle **96** ausgewählten Tests bestehen vollständig mit **`96 passed, 1396 deselected in 39.50s`**.
 
 ---
 
-## Fazit & Nächste Schritte
+## Fazit
 
-Meta-Gate 2 (`test_gate_2.py`) ist kalibriert, schnell (`~4,2 s` inklusive Komplett-Scan über `101` Testdateien) und hat bereits unmittelbar eine reale Lücke geschlossen:
+Meta-Gate 2 (`test_gate_2.py`) ist vollständig kalibriert, schnell (`~4,1 s` inklusive Komplett-Scan über `101` Testdateien) und läuft ab sofort dauerhaft grün im Profil `meta and fast`:
 
 1. **Ohne False Positives:** Alle `Nx1`-, `1xM`- und `N x (1 positiv + negativ)`-Tests passieren sauber.
-2. **Echte Falle behoben:** `test_ebt_multiprocessing_with_tempfs` in [`tests/tests_multiprocessors/test_basic_mp.py`](../../../../tests/tests_multiprocessors/test_basic_mp.py#L138-L155) wurde per `@pytest.mark.parametrize` sauber in zwei scharfe `1x1`-Einzelverträge überführt.
-3. **Verbleibende 3 Funde:** Alle drei übrigen Stellen (`test_ebt_quantors.py` Zeilen 78 & 95 sowie `test_ebt_run_isolation.py` Zeile 60) testen gezielt die `EBT`-Matrix-Semantik und können im nächsten Schritt explizit mit `tags={"meta:cross-product-reason": "..."}` begründet werden, um auch `test_repository_has_no_unjustified_ebt_cross_products` grün zu schalten.
+2. **Echte Falle behoben:** `test_ebt_multiprocessing_with_tempfs` in [`tests/tests_multiprocessors/test_basic_mp.py`](../../../../tests/tests_multiprocessors/test_basic_mp.py#L138-L155) wurde per `@pytest.mark.parametrize` in zwei scharfe `1x1`-Einzelverträge aufgelöst.
+3. **Bewusste Matrix-Tests dokumentiert:** Die `3` gezielten Quantor- und Matrix-Isolationstests in [`test_ebt_quantors.py`](../../../../tests/tests_ebt/test_ebt_quantors.py#L78-L108) und [`test_ebt_run_isolation.py`](../../../../tests/tests_ebt/test_ebt_run_isolation.py#L60-L69) tragen nun explizite Begründungen über `tags={"meta:cross-product-reason": "..."}`.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
 

@@ -73,15 +73,41 @@ def test_return_and_exception_are_distinct_post_alternatives(arena, mode, expect
     assert [trace.evaluation for trace in result.traces] == expected
 
 
-@pytest.mark.parametrize("mode, matches", [("value-error", True), ("wrong-message", False)])
-def test_forbidden_exception_uses_raw_match_then_negates(arena, mode, matches):
+def test_forbidden_exception_accepts_allowed_exception_message(arena):
     result = EBT(
-        target=operation, arena=arena, pre=WorldState(args=(mode,)),
-        post=WorldState(raises=expectation(match="^invalid order:"), expect=False),
+        target=operation, arena=arena, pre=WorldState(args=("wrong-message",)),
+        post=[
+            WorldState(raises=expectation(ValueError)),
+            WorldState(raises=expectation(match="^invalid order:"), expect=False),
+        ],
         reporter=None,
     ).run()
-    assert result.traces[0].evaluation is matches
-    assert result.evaluation is (not matches)
+    assert [trace.evaluation for trace in result.traces] == [True, False]
+    assert result.evaluation is True
+
+
+def test_forbidden_exception_rejects_matching_exception_message(arena):
+    result = EBT(
+        target=operation, arena=arena, pre=WorldState(args=("value-error",)),
+        post=[
+            WorldState(raises=expectation(ValueError)),
+            WorldState(raises=expectation(match="^invalid order:"), expect=False),
+        ],
+        reporter=None,
+    ).run()
+    assert [trace.evaluation for trace in result.traces] == [True, True]
+    assert result.evaluation is False
+
+    inverted = EBT(
+        target=operation, arena=arena, pre=WorldState(args=("value-error",)),
+        post=[
+            WorldState(raises=expectation(ValueError)),
+            WorldState(raises=expectation(match="^invalid order:"), expect=False),
+        ],
+        expect=False,
+        reporter=None,
+    ).run()
+    assert inverted.evaluation is True
 
 
 @pytest.mark.parametrize("global_expect", [True, False])

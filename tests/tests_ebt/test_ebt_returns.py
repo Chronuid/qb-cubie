@@ -84,19 +84,42 @@ def test_omitted_return_expectation_accepts_any_actual_value(actual):
     assert result.evaluation is True
 
 
-@pytest.mark.parametrize("actual", [None, 42, 0, False])
-def test_negative_none_contract_forbids_only_none(actual):
+@pytest.mark.parametrize("actual", [42, 0, False])
+def test_negative_none_contract_accepts_non_none_values(actual):
     result = EBT(
         target=echo,
         pre=WorldState(args=(actual,)),
-        post=WorldState(returns=None, expect=False),
+        post=[WorldState(returns=int), WorldState(returns=None, expect=False)],
         reporter=None,
     ).run()
 
-    assert len(result.traces) == 1
+    assert len(result.traces) == 2
+    assert [trace.evaluation for trace in result.traces] == [True, False]
+    assert result.evaluation is True
+
+
+def test_negative_none_contract_rejects_none():
+    post = [WorldState(returns=int), WorldState(returns=None, expect=False)]
+    result = EBT(
+        target=echo,
+        pre=WorldState(args=(None,)),
+        post=post,
+        reporter=None,
+    ).run()
+
+    assert len(result.traces) == 2
     # A matching negative post-state makes the overall contract fail.
-    assert result.traces[0].evaluation is (actual is None)
-    assert result.evaluation is (actual is not None)
+    assert [trace.evaluation for trace in result.traces] == [False, True]
+    assert result.evaluation is False
+
+    inverted = EBT(
+        target=echo,
+        pre=WorldState(args=(None,)),
+        post=[WorldState(returns=int), WorldState(returns=None, expect=False)],
+        expect=False,
+        reporter=None,
+    ).run()
+    assert inverted.evaluation is True
 
 
 @pytest.mark.parametrize("actual, matches", [(None, True), (42, True), (99, False)])

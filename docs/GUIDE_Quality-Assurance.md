@@ -156,6 +156,121 @@ Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern
 * **Gefährliche Unterspezifikation:** Da für jede Eingabe nur *irgendein* Wert aus `{6, 10}` herauskommen muss, geht die feste Zuordnung verloren. Selbst eine kaputte Funktion, die immer stur `6` zurückgibt (`return 6`) oder die Ergebnisse vertauscht (`3 -> 10` und `5 -> 6`), würde diesen Test grün bestehen.
 * **Faustregel für Listen in `pre` und `post`:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingaben **dasselbe** Zielmuster in `post` gilt (z. B. wenn `normalize(" TEXT ")` und `normalize("TeXt")` beide `"text"` liefern müssen).
 
+### Best Practice: Richtig arbeiten mit dem `expect`-Flag ( ... Work-in-Progress ... )
+
+In Cubie existiert das explizite Flag `expect` (Standardwert jeweils `True`) auf **zwei unterschiedlichen Ebenen**, die sich sauber ergänzen – ganz ohne zusätzliche Sonder-Tags:
+
+| Ebene | Bedeutung von `expect=True` (Standard) | Bedeutung von `expect=False` | Typischer Einsatz |
+| :--- | :--- | :--- | :--- |
+| **`WorldState(..., expect=...)`** (in `post`) | **Erlaubtes Zielmuster ($Q^+$):** Mindestens ein positives Muster muss zutreffen. | **Verbotenes Muster ($Q^-$):** Dieses Muster darf **nicht** zutreffen. | Ein positives Soll-Ergebnis fordern und gleichzeitig gefährliche Rückgaben explizit ausschließen (oder bewusst eine reine Negativ-Invariante markieren). |
+| **`EBT(..., expect=...)`** (auf dem Vertrag) | Der gesamte `EBT`-Lauf muss bestehen (`evaluation == lauf_ok`). | Kehrt das Gesamtergebnis um (`evaluation == not lauf_ok`). | Red-Phase-Nachweise und Gegenproben: beweisen, dass ein Vertrag bei einem bekannten Fehler tatsächlich rot anschlägt. |
+
+Die Auswertungsregel für jeden Schritt aus `pre` lautet dabei: **Mindestens ein** positives Muster ($Q^+$) muss passen *(falls welche angegeben sind)* **und kein** negatives Muster ($Q^-$) darf verletzt werden (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)).
+
+#### Positiv-Beispiel 1: Soll-Ziel und expliziter Negativ-Filter im selben `post` ( ... Work-in-Progress ... )
+
+Am saubersten kombiniert man im normalen Fachtest ein positives Soll-Muster (`expect=True`) mit einem gezielten Verbot (`expect=False`). So ist sowohl festgelegt, **was** herauskommen muss, als auch, **was** unter keinen Umständen passieren darf:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def apply_discount(price: int, coupon: str) -> int:
+    return price - 15 if coupon == "SAVE15" else price
+
+
+trace = EBT(
+    target=apply_discount,
+    pre=WorldState(args=(100, "SAVE15")),
+    post=[
+        WorldState(returns=85),
+        WorldState(returns=lambda value: value < 0, expect=False),
+    ],
+).run()
+
+print(f"Rabatt-Vertrag erfüllt: {trace.evaluation} | Beobachtet: {trace.traces[0].outcome.returns}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Rabatt-Vertrag erfüllt: True | Beobachtet: 85
+```
+</details>
+
+#### Positiv-Beispiel 2: Gegenprobe und Red-Phase mit `EBT(..., expect=False)` ( ... Work-in-Progress ... )
+
+Wenn du umgekehrt beweisen möchtest, dass ein bestehender Vertrag einen Fehler tatsächlich abfängt – etwa in der Red-Phase von TGD oder bei einer ungültigen Eingabe –, bleibt dein `post`-Zustand das gewünschte Soll-Gesetz (`expect=True`), und du negierst über `expect=False` am `EBT`-Aufruf selbst:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def buggy_discount(price: int) -> int:
+    return -10  # Bug: negativer Preis statt Rabatt
+
+
+trace = EBT(
+    target=buggy_discount,
+    pre=WorldState(args=(100,)),
+    post=WorldState(returns=lambda value: value >= 0),
+    expect=False,
+).run()
+
+print(f"Fehler zuverlässig erkannt (EBT expect=False): {trace.evaluation}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Fehler zuverlässig erkannt (EBT expect=False): True
+```
+</details>
+
+> [!TIP]
+> **Kein Extra-Tag für Negativ-Invarianten nötig:** Das Flag `expect=False` drückt bereits explizit aus, dass ein Zustand verboten (`WorldState(..., expect=False)`) oder ein Vertrag als erwartetes Scheitern (`EBT(..., expect=False)`) gemeint ist. Vermeide lediglich die unabsichtliche **Doppel-Negation** (`WorldState(..., expect=False)` kombiniert mit `EBT(..., expect=False)`) außerhalb von Engine-Tests, da „nicht (nicht verboten)“ für Leser schwer zu durchschauen ist.
+
+#### Negativ-Beispiel (Anti-Pattern): Die „einsame Negation“ (*Vacuous Pass*) ( ... Work-in-Progress ... )
+
+Gefährlich wird `WorldState(..., expect=False)` immer dann, wenn in `post` **ausschließlich** Verbote stehen und das positive Soll-Ziel (`expect=True`) vergessen wurde. Weil bei leerem $Q^+$ der positive Teil automatisch als erfüllt gilt, besteht ein kaputtes Target diesen Test trotzdem grün – sobald man ein positives Soll-Ziel ergänzt, fliegt der Bug sofort auf:
+
+```python
+from qb_cubie import EBT, WorldState
+
+
+def broken_total(price: int) -> int | None:
+    return None  # Bug: liefert None statt eines gültigen Preises
+
+
+lonely = EBT(
+    target=broken_total,
+    pre=WorldState(args=(100,)),
+    post=WorldState(returns=-1, expect=False),
+    reporter=None,
+).run()
+
+guarded = EBT(
+    target=broken_total,
+    pre=WorldState(args=(100,)),
+    post=[WorldState(returns=int), WorldState(returns=-1, expect=False)],
+    reporter=None,
+).run()
+
+print(f"Nur Verbot (Vacuous Pass): {lonely.evaluation} | Mit Positiv-Ziel: {guarded.evaluation}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
+```
+</details>
+
+* **Merksatz für `expect=False`:** Verbiete mit `WorldState(..., expect=False)` nur zusätzlich zu mindestens einem positiven Ziel (`expect=True`) – oder setze `expect=False` bewusst nur dort allein ein, wo fachlich tatsächlich **nur** ein Verbot gelten soll (z. B. *„darf niemals Wert X zurückgeben“*), und mache dir bewusst, dass alle anderen Werte dann akzeptiert werden.
+
 ---
 
 ---

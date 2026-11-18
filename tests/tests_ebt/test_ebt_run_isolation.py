@@ -40,11 +40,20 @@ def test_each_run_evaluates_only_its_own_positive_matches(execution_mode, values
 
 def test_previous_negative_match_does_not_poison_next_run(execution_mode):
     case = EBT(target=echo, pre=WorldState(args=(0,)),
-               post=WorldState(returns=0, expect=False), reporter=None,
-               multiprocessing=execution_mode)
+               post=[WorldState(returns=int), WorldState(returns=0, expect=False)],
+               reporter=None, multiprocessing=execution_mode)
     assert case.run().evaluation is False
     case.pre = [WorldState(args=(1,))]
     assert case.run().evaluation is True
+
+
+def test_previous_positive_match_does_not_mask_next_negative_match(execution_mode):
+    case = EBT(target=echo, pre=WorldState(args=(1,)),
+               post=[WorldState(returns=int), WorldState(returns=0, expect=False)],
+               reporter=None, multiprocessing=execution_mode)
+    assert case.run().evaluation is True
+    case.pre = [WorldState(args=(0,))]
+    assert case.run().evaluation is False
 
 
 def test_global_expect_false_uses_only_current_run(execution_mode):
@@ -60,7 +69,8 @@ def test_repeated_run_has_exactly_current_matrix_and_outcomes(execution_mode):
     case = EBT(target=echo,
                pre=[WorldState(args=(1,)), WorldState(args=(2,))],
                post=[WorldState(returns=1), WorldState(returns=2)],
-               reporter=None, multiprocessing=execution_mode)
+               reporter=None, multiprocessing=execution_mode,
+               tags={"meta:cross-product-reason": "Intentionally exercises a 2x2 trace matrix across repeated runs to verify trace and outcome isolation."})
     case.run()
     result = case.run()
     assert len(result.traces) == 4

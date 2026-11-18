@@ -87,7 +87,8 @@ def test_forall_exists_green():
             WorldState(returns=4),
             WorldState(returns=6),
             WorldState(returns=8)
-        ]
+        ],
+        tags={"meta:cross-product-reason": "Intentionally tests EBT's forall-exists (N:M) quantifier matrix."},
     ).run()
 
 def test_forall_exists_red():
@@ -102,7 +103,8 @@ def test_forall_exists_red():
             WorldState(returns=2),
             WorldState(returns=4)
         ],
-        expect=False
+        expect=False,
+        tags={"meta:cross-product-reason": "Intentionally tests failure of an N:M quantifier matrix when one pre-state misses all post-states."},
     ).run()
 
 
@@ -157,47 +159,76 @@ def test_mixed_expect_exists_red_upper_bound():
 
 # ========== LOCAL EXPECT (1:1 Mapping) ================================================================================
 
-def test_single_local_expect_false_green():
-    """Verifies: Local expect=False works seamlessly without lists."""
+def test_single_local_expect_true_green():
+    """Verifies: Local expect=True works seamlessly without lists."""
     EBT(
         target=target_echo,
         pre=WorldState(args=(1,)),
-        post=WorldState(returns=99, expect=False)
+        post=WorldState(returns=1, expect=True),
     ).run()
 
-def test_single_local_expect_false_red():
-    """Verifies: If the forbidden state occurs during the 1:1 mapping, the test fails locally."""
+
+def test_single_local_expect_true_red():
+    """Verifies: If a single positive expectation mismatches, the test fails as expected."""
     EBT(
         target=target_echo,
         pre=WorldState(args=(99,)),
-        post=WorldState(returns=99, expect=False),
-        expect=False # Expects failure at the EBT level
+        post=WorldState(returns=1, expect=True),
+        expect=False,
     ).run()
 
 
-# ========== EXCLUSIVE NEGATIV-FILTER ==================================================================================
+def test_local_expect_false_green():
+    """Verifies: Local expect=False allows a matching positive state when the forbidden value is absent."""
+    EBT(
+        target=target_echo,
+        pre=WorldState(args=(1,)),
+        post=[
+            WorldState(returns=int),
+            WorldState(returns=99, expect=False),
+        ],
+    ).run()
 
-def test_exclusive_negative_filters_green():
-    """Verifies: If only negative filters are defined, everything else is implicitly allowed (positive = empty)."""
+
+def test_local_expect_false_red():
+    """Verifies: If the forbidden state occurs despite a positive type match, the test fails."""
+    EBT(
+        target=target_echo,
+        pre=WorldState(args=(99,)),
+        post=[
+            WorldState(returns=int),
+            WorldState(returns=99, expect=False),
+        ],
+        expect=False,
+    ).run()
+
+
+# ========== NEGATIVE FILTERS ==========================================================================================
+
+def test_negative_filters_green():
+    """Verifies: Negative filters pass when a positive contract matches and no forbidden state occurs."""
     EBT(
         target=target_echo,
         pre=WorldState(args=(200,)),
         post=[
+            WorldState(returns=lambda status: 200 <= status < 300),
             WorldState(returns=404, expect=False),
-            WorldState(returns=500, expect=False)
-        ]
+            WorldState(returns=500, expect=False),
+        ],
     ).run()
 
-def test_exclusive_negative_filters_red():
-    """Verifies: If the target matches one of the purely negative filters in a list, the test fails outright."""
+
+def test_negative_filters_red():
+    """Verifies: Even when a positive range matches, hitting any negative filter fails the test."""
     EBT(
         target=target_echo,
         pre=WorldState(args=(404,)),
         post=[
+            WorldState(returns=lambda status: 200 <= status < 600),
             WorldState(returns=404, expect=False),
-            WorldState(returns=500, expect=False)
+            WorldState(returns=500, expect=False),
         ],
-        expect=False
+        expect=False,
     ).run()
 
 

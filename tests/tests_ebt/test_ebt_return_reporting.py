@@ -74,25 +74,50 @@ def test_all_alternative_falsy_return_expectations_are_reported():
 
 
 @pytest.mark.parametrize("value", [None, 0, False, "", [], {}, (), set()])
+def test_allowed_falsy_return_passes_with_negative_filter(value):
+    result = EBT(
+        target=echo,
+        pre=WorldState(args=(value,)),
+        post=[WorldState(returns=value), WorldState(returns="forbidden", expect=False)],
+        reporter=None,
+    ).run()
+
+    assert result.evaluation is True
+    assert [trace.evaluation for trace in result.traces] == [True, False]
+
+
+@pytest.mark.parametrize("value", [None, 0, False, "", [], {}, (), set()])
 def test_forbidden_falsy_return_reports_the_matching_value(value):
     case = EBT(
         target=echo,
         pre=WorldState(args=(value,)),
-        post=WorldState(returns=value, expect=False),
+        post=[WorldState(returns="allowed"), WorldState(returns=value, expect=False)],
     )
     with pytest.raises(AssertionError) as error:
         case.run()
 
     assert case.run_trace.evaluation is False
-    assert case.run_trace.traces[0].evaluation is True
+    assert [trace.evaluation for trace in case.run_trace.traces] == [False, True]
     lines = str(error.value).splitlines()
-    assert "  [Q-State 0] Validation: Matched" in lines
-    assert f"    - Returns: Expected {value} | Actual {value} (Match)" in lines
+    state_line = lines.index("  [Q-State 1] Validation: Matched")
+    assert lines[state_line + 1] == f"    - Returns: Expected {value} | Actual {value} (Match)"
+
+
+def test_omitted_return_expectation_accepts_non_matching_negative_filter():
+    """An unrestricted positive state passes when the negative return filter does not match."""
+    result = EBT(
+        target=lambda: "ok",
+        post=[WorldState(), WorldState(returns="forbidden", expect=False)],
+        reporter=None,
+    ).run()
+
+    assert result.evaluation is True
+    assert [trace.evaluation for trace in result.traces] == [True, False]
 
 
 def test_omitted_return_expectation_does_not_invent_a_return_comparison():
     """A forbidden unrestricted state fails without specifying returns."""
-    case = EBT(target=lambda: None, post=WorldState(expect=False))
+    case = EBT(target=lambda: None, post=[WorldState(), WorldState(expect=False)])
     with pytest.raises(AssertionError) as error:
         case.run()
 

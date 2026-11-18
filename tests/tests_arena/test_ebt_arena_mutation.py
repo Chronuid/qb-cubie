@@ -104,7 +104,10 @@ def test_volatile_metadata_with_strict_expectation_red():
     EBT(
         target=target_generate_volatile_metadata,
         pre=WorldState(arena=PyVenv(BASE_ARENA)),
-        post=WorldState(arena=PyVenv(BASE_ARENA), expect=False),
+        post=[
+            WorldState(returns=True),
+            WorldState(arena=PyVenv(BASE_ARENA), expect=False),
+        ],
         expect=False # We expect it to fail, but it functionally matches, so the test turns red (expected failure works)
     ).run()
 
