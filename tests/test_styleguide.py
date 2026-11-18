@@ -104,7 +104,6 @@ from qb_cubie.services import (
 )
 
 
-#@pytest.mark.slow
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples and frames follow Cubie conventions."""
     DocEnsurance(
@@ -114,6 +113,7 @@ def test_docs_code_examples() -> None:
             ".pytest_cache",
             "tests",
             "experiments",  # Reason: I need to clean up the artifacts of the sprint in the core first.
+            "docs/feature-drafts", # Reason: Feature Drafts
             "GUTACHTEN.md",  # Reason: No Cubie-Rules apply to Inspectors.
             "CHANGELOG.md",
         ),

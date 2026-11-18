@@ -19,6 +19,7 @@ DIR_MARKERS: dict[str, tuple[str, ...]] = {
     "tests_linter": ("linter",),
     "tests_services": ("services",),
     "tests_user_workflows": ("workflows",),
+    "tests_meta": ("meta",),
 }
 
 FILE_MARKERS: dict[str, tuple[str, ...]] = {
