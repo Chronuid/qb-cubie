@@ -1,3 +1,4 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="Gemini-App" model="Gemini-4-Argon" effort="High" -->
 # EBT-Quantor Declarations
 
 **Dokument-Informationen & Herkunft:**
@@ -22,6 +23,7 @@ Date:   Wed Nov 18 19:08:49 2026 +0100
 ---
 
 ---
+<!-- /qb:frame -->
 
 # Implementierungsauftrag: Test-Suite für explizite Quantoren-Deklaration (`tests/tests_ebt/test_ebt_quantor_declaration.py`)
 

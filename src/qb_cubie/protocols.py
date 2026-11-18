@@ -1,6 +1,6 @@
 import re
 import typing
-from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable
+from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable, Literal
 from dataclasses import dataclass, field
 from pathlib import Path
 from enum import Enum
@@ -122,6 +122,8 @@ class Arena(Protocol):
 
 # ========== TRACING-DATACLASSES | EXAMPLE-BASED-TESTING ===============================================================
 
+Quantor = Literal["all", "exists"]
+
 
 @dataclass
 class EvaluationTrace:
@@ -148,6 +150,8 @@ class RunTrace:
     traces: Optional[List[EvaluationTrace]] = None
     evaluation: Optional[bool] = None
     duration: Optional[float] = None
+    pre_quantor: Quantor = "all"
+    post_quantor: Quantor = "exists"
 
 
 # ========== IPC-CODEC-PROTOCOL | PYVENV-ARENA =========================================================================

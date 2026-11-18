@@ -259,6 +259,7 @@ class JsonReporter:
         return {
             "schema_version": 1, "run_id": trace.run_id, "target": trace.target,
             "expect": trace.expect, "evaluation": trace.evaluation, "duration": trace.duration,
+            "pre_quantor": trace.pre_quantor, "post_quantor": trace.post_quantor,
             "arena": self._value(trace.arena),
             "traces": [self._trace(item) for item in trace.traces or []],
         }
