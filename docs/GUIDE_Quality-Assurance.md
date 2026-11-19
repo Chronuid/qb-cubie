@@ -35,253 +35,9 @@ Damit dieses Sicherheitsnetz im Alltag trägt, verfolgt Cubie zwei Grundprinzipi
 | **4. Lebende Dokumentation** | `DocEnsurance` + `CUBIE_DOC_RULES` | Laufen alle Code-Beispiele in den Markdown-Guides tatsächlich durch und stimmen ihre dokumentierten Ausgaben? | Veraltete Signaturen in Tutorials, stille Doku-Abweichungen |
 | **5. Semantisches Urteil** | `RBT` (`HeadlessReviewer`, `HumanReviewer`) | Erfüllt das Artefakt qualitative, fachliche oder gestalterische Kriterien, die sich nicht rein syntaktisch prüfen lassen? | Unverständliche Fehlermeldungen, unklare API-Ergonomie |
 
-### Best Practice: Ein Vertrag pro Wertepaar in klaren Test-Funktionen
+### Grundkurs: So funktioniert ein EBT-Vertrag
 
-Am eindeutigsten liest sich ein Test, wenn jedes konkrete Ein-/Ausgabepaar (hier `3 -> 6` und `5 -> 10` für eine einfache Verdopplungsfunktion) einen eigenen `EBT`-Vertrag in einer eigenen Test-Funktion erhält – so wird pro Test exakt ein Paar (insgesamt 2 Paare) geprüft:
-
-```python
-from qb_cubie import EBT, WorldState
-
-
-def double(x: int) -> int:
-    return x * 2
-
-
-def test_double_three() -> None:
-    trace = EBT(
-        target=double,
-        pre=WorldState(args=3),
-        post=WorldState(returns=6),
-    ).run()
-    print(f"3 -> 6:  Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
-
-
-def test_double_five() -> None:
-    trace = EBT(
-        target=double,
-        pre=WorldState(args=5),
-        post=WorldState(returns=10),
-    ).run()
-    print(f"5 -> 10: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
-
-
-test_double_three()
-test_double_five()
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-3 -> 6:  Vertrag erfüllt: True | Geprüfte Paare: 1
-5 -> 10: Vertrag erfüllt: True | Geprüfte Paare: 1
-```
-</details>
-
-Möchte man für mehrere zusammengehörige Wertepaare dichteren Code schreiben, ohne die Test-Funktion zu wiederholen, empfiehlt sich `@pytest.mark.parametrize`:
-
-```python
-import pytest
-from qb_cubie import EBT, WorldState
-
-
-def double(x: int) -> int:
-    return x * 2
-
-
-@pytest.mark.parametrize(
-    "value, expected", [
-        (3, 6), 
-        (5, 10)
-    ])
-def test_double(value: int, expected: int) -> None:
-    trace = EBT(
-        target=double,
-        pre=WorldState(args=value),
-        post=WorldState(returns=expected),
-    ).run()
-    print(f"{value} -> {expected}: Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
-
-
-for val, exp in [(3, 6), (5, 10)]:
-    test_double(val, exp)
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-3 -> 6: Vertrag erfüllt: True | Geprüfte Paare: 1
-5 -> 10: Vertrag erfüllt: True | Geprüfte Paare: 1
-```
-</details>
-
-### Anti-Pattern: Gedankenlose Quantoren-Kombination (Unterspezifikation)
-
-Ein häufiger Fehler besteht darin, mehrere unterschiedliche Eingaben in `pre` und ihre jeweiligen Einzel-Ergebnisse gemeinsam in `post` innerhalb eines einzigen `EBT`-Aufrufs zu übergeben – in der Annahme, `EBT` würde `pre[0]` nur mit `post[0]` (`3 -> 6`) und `pre[1]` nur mit `post[1]` (`5 -> 10`) vergleichen:
-
-```python
-from qb_cubie import EBT, WorldState
-
-def double(x: int) -> int:
-    return x * 2
-
-trace = EBT(
-    target=double,
-    pre=[
-        WorldState(args=3),
-        WorldState(args=5)
-    ],
-    post=[
-        WorldState(returns=6),
-        WorldState(returns=10),
-    ],
-    reporter=None,
-).run()
-
-print(f"Vertrag erfüllt: {trace.evaluation} | Geprüfte Paare: {len(trace.traces)}")
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-Vertrag erfüllt: True | Geprüfte Paare: 4
-```
-</details>
-
-Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern** ist, folgt direkt aus den Quantoren von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
-
-* **Jeder gegen Jeden statt Paar-Zuordnung:** `pre` wirkt als Allquantor (*für jede Eingabe*) und die positiven Zustände in `post` wirken als Existenzquantor (*muss mindestens eines der Ergebnisse aus `post` passen*). `EBT` prüft also sowohl für `3` als auch für `5` jeweils gegen `6` **und** gegen `10` ( $2 \times 2 = 4$ geprüfte Paare in `trace.traces`).
-* **Gefährliche Unterspezifikation:** Da für jede Eingabe nur *irgendein* Wert aus `{6, 10}` herauskommen muss, geht die feste Zuordnung verloren. Selbst eine kaputte Funktion, die immer stur `6` zurückgibt (`return 6`) oder die Ergebnisse vertauscht (`3 -> 10` und `5 -> 6`), würde diesen Test grün bestehen.
-* **Faustregel für Listen in `pre` und `post`:** Mehrere `pre`-Einträge gehören nur dann in denselben `EBT`-Aufruf, wenn für alle Eingaben **dasselbe** Zielmuster in `post` gilt (z. B. wenn `normalize(" TEXT ")` und `normalize("TeXt")` beide `"text"` liefern müssen).
-
-### Best Practice: Richtig arbeiten mit dem `expect`-Flag ( ... Work-in-Progress ... )
-
-In Cubie existiert das explizite Flag `expect` (Standardwert jeweils `True`) auf **zwei unterschiedlichen Ebenen**, die sich sauber ergänzen – ganz ohne zusätzliche Sonder-Tags:
-
-| Ebene | Bedeutung von `expect=True` (Standard) | Bedeutung von `expect=False` | Typischer Einsatz |
-| :--- | :--- | :--- | :--- |
-| **`WorldState(..., expect=...)`** (in `post`) | **Erlaubtes Zielmuster ($Q^+$):** Mindestens ein positives Muster muss zutreffen. | **Verbotenes Muster ($Q^-$):** Dieses Muster darf **nicht** zutreffen. | Ein positives Soll-Ergebnis fordern und gleichzeitig gefährliche Rückgaben explizit ausschließen (oder bewusst eine reine Negativ-Invariante markieren). |
-| **`EBT(..., expect=...)`** (auf dem Vertrag) | Der gesamte `EBT`-Lauf muss bestehen (`evaluation == lauf_ok`). | Kehrt das Gesamtergebnis um (`evaluation == not lauf_ok`). | Red-Phase-Nachweise und Gegenproben: beweisen, dass ein Vertrag bei einem bekannten Fehler tatsächlich rot anschlägt. |
-
-Die Auswertungsregel für jeden Schritt aus `pre` lautet dabei: **Mindestens ein** positives Muster ($Q^+$) muss passen *(falls welche angegeben sind)* **und kein** negatives Muster ($Q^-$) darf verletzt werden (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)).
-
-#### Positiv-Beispiel 1: Soll-Ziel und expliziter Negativ-Filter im selben `post` ( ... Work-in-Progress ... )
-
-Am saubersten kombiniert man im normalen Fachtest ein positives Soll-Muster (`expect=True`) mit einem gezielten Verbot (`expect=False`). So ist sowohl festgelegt, **was** herauskommen muss, als auch, **was** unter keinen Umständen passieren darf:
-
-```python
-from qb_cubie import EBT, WorldState
-
-
-def apply_discount(price: int, coupon: str) -> int:
-    return price - 15 if coupon == "SAVE15" else price
-
-
-trace = EBT(
-    target=apply_discount,
-    pre=WorldState(args=(100, "SAVE15")),
-    post=[
-        WorldState(returns=85),
-        WorldState(returns=lambda value: value < 0, expect=False),
-    ],
-).run()
-
-print(f"Rabatt-Vertrag erfüllt: {trace.evaluation} | Beobachtet: {trace.traces[0].outcome.returns}")
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-Rabatt-Vertrag erfüllt: True | Beobachtet: 85
-```
-</details>
-
-#### Positiv-Beispiel 2: Gegenprobe und Red-Phase mit `EBT(..., expect=False)` ( ... Work-in-Progress ... )
-
-Wenn du umgekehrt beweisen möchtest, dass ein bestehender Vertrag einen Fehler tatsächlich abfängt – etwa in der Red-Phase von TGD oder bei einer ungültigen Eingabe –, bleibt dein `post`-Zustand das gewünschte Soll-Gesetz (`expect=True`), und du negierst über `expect=False` am `EBT`-Aufruf selbst:
-
-```python
-from qb_cubie import EBT, WorldState
-
-
-def buggy_discount(price: int) -> int:
-    return -10  # Bug: negativer Preis statt Rabatt
-
-
-trace = EBT(
-    target=buggy_discount,
-    pre=WorldState(args=100),
-    post=WorldState(returns=lambda value: value >= 0),
-    expect=False,
-).run()
-
-print(f"Fehler zuverlässig erkannt (EBT expect=False): {trace.evaluation}")
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-Fehler zuverlässig erkannt (EBT expect=False): True
-```
-</details>
-
-> [!TIP]
-> **Kein Extra-Tag für Negativ-Invarianten nötig:** Das Flag `expect=False` drückt bereits explizit aus, dass ein Zustand verboten (`WorldState(..., expect=False)`) oder ein Vertrag als erwartetes Scheitern (`EBT(..., expect=False)`) gemeint ist. Vermeide lediglich die unabsichtliche **Doppel-Negation** (`WorldState(..., expect=False)` kombiniert mit `EBT(..., expect=False)`) außerhalb von Engine-Tests, da „nicht (nicht verboten)“ für Leser schwer zu durchschauen ist.
-
-#### Negativ-Beispiel (Anti-Pattern): Die „einsame Negation“ (*Vacuous Pass*) ( ... Work-in-Progress ... )
-
-Gefährlich wird `WorldState(..., expect=False)` immer dann, wenn in `post` **ausschließlich** Verbote stehen und das positive Soll-Ziel (`expect=True`) vergessen wurde. Weil bei leerem $Q^+$ der positive Teil automatisch als erfüllt gilt, besteht ein kaputtes Target diesen Test trotzdem grün – sobald man ein positives Soll-Ziel ergänzt, fliegt der Bug sofort auf:
-
-```python
-from qb_cubie import EBT, WorldState
-
-
-def broken_total(price: int) -> int | None:
-    return None  # Bug: liefert None statt eines gültigen Preises
-
-
-lonely = EBT(
-    target=broken_total,
-    pre=WorldState(args=100),
-    post=WorldState(returns=-1, expect=False),
-    reporter=None,
-).run()
-
-guarded = EBT(
-    target=broken_total,
-    pre=WorldState(args=100),
-    post=[WorldState(returns=int), WorldState(returns=-1, expect=False)],
-    reporter=None,
-).run()
-
-print(f"Nur Verbot (Vacuous Pass): {lonely.evaluation} | Mit Positiv-Ziel: {guarded.evaluation}")
-```
-
-<details>
-<summary>Ergebnis</summary>
-
-```text
-Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
-```
-</details>
-
-* **Merksatz für `expect=False`:** Verbiete mit `WorldState(..., expect=False)` nur zusätzlich zu mindestens einem positiven Ziel (`expect=True`) – oder setze `expect=False` bewusst nur dort allein ein, wo fachlich tatsächlich **nur** ein Verbot gelten soll (z. B. *„darf niemals Wert X zurückgeben“*), und mache dir bewusst, dass alle anderen Werte dann akzeptiert werden.
-
-### Quantoren gezielt wählen: „alle“ (`all`) oder „mindestens eines“ (`exists`)
-
-Normalerweise wendet Cubie zwei feste Standardregeln an:
-* Für **`pre`** gilt **„alle“ (`"all"`)**: Jede angegebene Eingabe muss den Test bestehen.
-* Für **`post`** gilt **„mindestens eines“ (`"exists"`)**: Die Rückgabe muss zu mindestens einem der erlaubten Zielmuster passen.
-
-Manchmal braucht man es genau andersherum. Dafür packt man die Zustände einfach in ein kleines Dictionary mit `"quantor"` und `"states"` (als Liste oder als einzelnen `WorldState`):
-
-#### Alle Bedingungen gleichzeitig prüfen (`post` mit `"all"`)
-
-Das ist nützlich, wenn ein Ergebnis mehrere Regeln auf einmal einhalten muss – zum Beispiel *„eine ganze Zahl **und** positiv **und** gerade“*. Verbotene Werte (`expect=False`) bleiben natürlich weiterhin verboten:
+Ein `EBT`-Vertrag funktioniert wie eine kleine Vereinbarung in drei Teilen: **Vorher (`pre`)** stehen die Eingaben, in der **Mitte (`target`)** steht die Funktion, die du prüfen willst, und **Nachher (`post`)** steht das Ergebnis, das herauskommen muss. Im einfachsten Fall prüfst du genau einen Aufruf:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -293,59 +49,66 @@ def double(x: int) -> int:
 
 trace = EBT(
     target=double,
-    pre={"quantor": "all", "states": WorldState(args=4)},
-    post={
-        "quantor": "all",
-        "states": [
-            WorldState(returns=int),
-            WorldState(returns=lambda value: value > 0),
-            WorldState(returns=lambda value: value % 2 == 0),
-        ],
-    },
+    pre=WorldState(args=3),
+    post=WorldState(returns=6),
 ).run()
 
-print(f"Alle Regeln erfüllt: {trace.evaluation} | pre={trace.pre_quantor} | post={trace.post_quantor}")
+print(f"Vertrag erfüllt: {trace.evaluation}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Alle Regeln erfüllt: True | pre=all | post=all
+Vertrag erfüllt: True
 ```
 </details>
 
-#### Mindestens ein Treffer reicht (`pre` mit `"exists"`)
+Damit Verträge auch bei mehreren Testfällen, Verboten und komplexeren Regeln verlässlich bleiben, baut Cubie auf drei einfachen Grundbausteinen auf:
 
-Das ist nützlich, wenn von mehreren Kandidaten oder Routen **mindestens eine** zum Erfolg führen muss:
+### Baustein A: Klare Paare statt Mischmasch (Eindeutigkeit & Kopplung)
 
-```python
-from qb_cubie import EBT, WorldState
+Wenn du mehrere Wertepaare prüfen willst (zum Beispiel `3 -> 6` und `5 -> 10`), gib **jedem Paar seinen eigenen Vertrag** – entweder als eigene Test-Funktion oder kompakt mit `@pytest.mark.parametrize`.
 
+* **Die häufigste Einsteiger-Falle:** Schreibst du `[3, 5]` gemeinsam in `pre` und `[6, 10]` gemeinsam in `post`, ordnet Cubie die Listen **nicht** paarweise zu (`3 -> 6`, `5 -> 10`). Stattdessen wird *jeder* Eingang gegen *jedes* Ergebnis geprüft ($2 \times 2 = 4$ Prüfungen). Dann bestünde sogar eine kaputte Funktion, die immer `6` zurückgibt oder die Antworten vertauscht.
+* **Einfache Faustregel:** Mehrere Eingänge gehören nur dann zusammen in ein `pre`, wenn für **alle** dasselbe Ziel in `post` gilt (etwa wenn `" TEXT "` und `"TeXt"` beide `"text"` ergeben müssen).
 
-def check_endpoint(path: str) -> str:
-    return "ok" if path == "/backup" else "offline"
+👉 **Ausführliche Beispiele und Anti-Patterns:** [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md)
 
+### Baustein B: Erlaubtes und Verbotenes steuern (`expect`-Flags)
 
-trace = EBT(
-    target=check_endpoint,
-    pre={"quantor": "exists", "states": [WorldState(args="/main"), WorldState(args="/backup")]},
-    post={"quantor": "exists", "states": WorldState(returns="ok")},
-).run()
+Standardmäßig bedeutet `expect=True`: *„Genau das soll passieren.“* Mit `expect=False` kannst du gezielt sagen, was **nicht** passieren darf – und zwar auf zwei Ebenen:
 
-print(f"Mindestens eine Route erreichbar: {trace.evaluation} | pre={trace.pre_quantor} | post={trace.post_quantor}")
-```
+1. **Auf einem `WorldState` in `post` (Verbot):** Du legst fest, was herauskommen muss (`expect=True`), und verbietest gleichzeitig gefährliche Werte (`expect=False`, z. B. negative Preise). Hat ein alter Test versehentlich einen Bug als gültig abgespeichert, drehst du ihn mit `expect=False` um und ergänzt das echte Soll-Ziel: Sofort wird der Test ehrlich rot, bis der Bug behoben ist.
+2. **Auf `EBT(..., expect=False)` (Gegenprobe):** Du kehrst das Ergebnis des gesamten Vertrags um. So beweist du in der Red-Phase, dass dein Vertrag bei einem bekannten Fehler tatsächlich anschlägt.
 
-<details>
-<summary>Ergebnis</summary>
+> [!CAUTION]
+> **Vorsicht vor der „einsamen Negation“ (*Vacuous Pass*):** Schreibst du in `post` *nur* ein Verbot (`expect=False`) ohne mindestens ein positives Soll-Ziel (`expect=True`), schlüpfen völlig falsche Werte (wie `None`) unbemerkt durch – weil sie technisch gesehen nicht der verbotene Wert sind.
 
-```text
-Mindestens eine Route erreichbar: True | pre=exists | post=exists
-```
-</details>
+👉 **Alle Muster, Reparatur-Beispiele und Warnhinweise:** [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md)
 
-> [!TIP]
-> **Kurz gemerkt:** Als `"quantor"` sind nur `"all"` und `"exists"` erlaubt, und `"states"` darf niemals leer sein. Wenn etwas davon nicht stimmt, stoppt Cubie den Testlauf sofort mit einer klaren Fehlermeldung, bevor überhaupt Code ausgeführt wird.
+### Baustein C: „Alle“ oder „mindestens eines“ gezielt wählen (`all` vs. `exists`)
+
+Ohne besondere Angabe arbeitet Cubie nach zwei Alltagsregeln:
+
+* In **`pre`** müssen **alle** angegebenen Eingänge bestehen (`"all"`).
+* In **`post`** reicht es, wenn **mindestens ein** erlaubtes Zielmuster passt (`"exists"`).
+
+Manchmal brauchst du es genau umgekehrt. Dann verpackst du die Zustände einfach in `{"quantor": ..., "states": ...}`:
+
+* **`post` mit `"all"`:** Das Ergebnis muss **alle** Regeln gleichzeitig erfüllen (z. B. *eine ganze Zahl **und** positiv **und** gerade*).
+* **`pre` mit `"exists"`:** Es genügt, wenn **mindestens eine** von mehreren Eingabe-Routen zum Erfolg führt (z. B. `/main` oder `/backup` antwortet mit `"ok"`).
+
+👉 **Alle Code-Beispiele und `STATE-GUARD`-Regeln:** [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md)
+
+### Spickzettel für den Einstieg
+
+| Was möchtest du prüfen? | Empfohlenes Mittel | Weiterführendes Handbuch |
+| :--- | :--- | :--- |
+| Mehrere konkrete Ein-/Ausgabepaare (`3 -> 6`, `5 -> 10`) | Getrennte Verträge oder `@pytest.mark.parametrize` | [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md) |
+| Soll-Wert fordern und gefährliche Werte verbieten | `WorldState(..., expect=True)` + `WorldState(..., expect=False)` | [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) |
+| Prüfen, ob ein Vertrag bei einem Bug wirklich rot wird | `EBT(..., expect=False)` auf dem Soll-Vertrag | [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) |
+| Mehrere Bedingungen gleichzeitig oder alternative Routen | `{"quantor": "all" \| "exists", "states": ...}` | [Fortgeschrittene Quantoren](GUIDE_Quantifiers.md) |
 
 ---
 
@@ -422,11 +185,14 @@ Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit 
 
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
 [↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
