@@ -6,7 +6,7 @@
 - **Modell:** Gemini-4-Neon
 - **Reasoning-Effort:** High
 - **Analysedatum:** 19. November 2026, ~ 20:20 (CET)
-- **Synthesebasis:** `tests/GEMINI.md`, `src/qb_cubie/ebt.py`, `src/qb_cubie/protocols.py`, `src/qb_cubie/reporter.py`, `src/qb_cubie/arenas/tempfs.py`, `src/qb_cubie/arenas/pyvenv.py`, `tests/tests_ebt/test_ebt_quantors.py`, `tests/tests_ebt/test_ebt_quantor_declaration.py`, `tests/tests_ebt/test_ebt_args_normalization.py`, `tests/tests_ebt/test_ebt_returns.py`, `tests/tests_ebt/test_ebt_return_reporting.py`, `tests/tests_ebt/test_ebt_exception_contracts.py`, `tests/tests_ebt/test_ebt_run_isolation.py`, `tests/tests_ebt/test_ebt_contract_mutation.py`, `tests/tests_ebt/test_ebt_persistent_reports.py`, `tests/tests_ebt/test_ebt_state_validation.py`, `tests/test_offline_core.py`, `tests/tests_arena/test_ebt_arena_mutation.py`, `tests/tests_meta/test_gate_1.py`, `tests/tests_meta/test_gate_2.py`, `tests/tests_meta/test_gate_3.py`, `tests/test_styleguide.py`, `docs/GUIDE_Quality-Assurance.md`, `docs/GUIDE_Contract-Design.md`, `docs/GUIDE_Expect-Flags.md`, `docs/GUIDE_Quantifiers.md`, `docs/GUIDE_Contract-Semantics.md`, `docs/GUIDE_EBT-Usage-Pattern.md`, `docs/GUIDE_Example-Based-Testing.md`, `docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md`, `docs/dev/DEV-GUIDE_2-1_EBT-Class.md`, `docs/dev/DEV-GUIDE_2-2_WorldState-Class.md`, `docs/feature-drafts/meta-qa/1/META_GATE_3.md`, `META_QUESTION.md`, `README.md`, Git-Historie (`4a129d55` bis `312e84d5`)
+- **Synthesebasis:** `GEMINI-1.md`, `src/qb_cubie/ebt.py`, `src/qb_cubie/protocols.py`, `src/qb_cubie/reporter.py`, `src/qb_cubie/arenas/tempfs.py`, `src/qb_cubie/arenas/pyvenv.py`, `tests/tests_ebt/test_ebt_quantors.py`, `tests/tests_ebt/test_ebt_quantor_declaration.py`, `tests/tests_ebt/test_ebt_args_normalization.py`, `tests/tests_ebt/test_ebt_returns.py`, `tests/tests_ebt/test_ebt_return_reporting.py`, `tests/tests_ebt/test_ebt_exception_contracts.py`, `tests/tests_ebt/test_ebt_run_isolation.py`, `tests/tests_ebt/test_ebt_contract_mutation.py`, `tests/tests_ebt/test_ebt_persistent_reports.py`, `tests/tests_ebt/test_ebt_state_validation.py`, `tests/test_offline_core.py`, `tests/tests_arena/test_ebt_arena_mutation.py`, `tests/tests_meta/test_gate_1.py`, `tests/tests_meta/test_gate_2.py`, `tests/tests_meta/test_gate_3.py`, `tests/test_styleguide.py`, `docs/GUIDE_Quality-Assurance.md`, `docs/GUIDE_Contract-Design.md`, `docs/GUIDE_Expect-Flags.md`, `docs/GUIDE_Quantifiers.md`, `docs/GUIDE_Contract-Semantics.md`, `docs/GUIDE_EBT-Usage-Pattern.md`, `docs/GUIDE_Example-Based-Testing.md`, `docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md`, `docs/dev/DEV-GUIDE_2-1_EBT-Class.md`, `docs/dev/DEV-GUIDE_2-2_WorldState-Class.md`, `docs/feature-drafts/meta-qa/1/META_GATE_3.md`, `META_QUESTION.md`, `README.md`, Git-Historie (`4a129d55` bis `312e84d5`)
 - **Stand**: qb-cubie (v0.0.8)
 - **Git-Log**:
 
@@ -121,7 +121,7 @@ Alle Befunde wurden direkt gegen das installierte Paket im Workspace (`.venv/bin
 
 ### 1.2 Historische Einordnung: Woher der Bug wirklich kommt
 
-Deine Vermutung in `tests/GEMINI.md` war:
+Deine Vermutung in `GEMINI-1.md` war:
 > *„Das war vermutlich mein Fehler, weil ich den Auftrag dazu gab, ohne mir die Details genau anzusehen. […] Aufgrund der Entstehungs-Historie von diesem Bug wird er vermutlich auch innerhalb des Testsuite selbst eingebettet sein.“*
 
 Die Git-Historie zeigt ein differenzierteres Bild in **drei Phasen**:
@@ -258,7 +258,7 @@ Alle Tests, die ausschließlich **`EBT(..., expect=False)`** auf Vertragsebene m
 
 ## Teil 3: Dokumentations-Audit — Welche Docs an welchen Stellen überarbeitet werden müssen
 
-### 3.1 Die vier in `tests/GEMINI.md` genannten Kern-Handbücher
+### 3.1 Die vier in `GEMINI-1.md` genannten Kern-Handbücher
 
 #### 1. [`docs/GUIDE_Expect-Flags.md`](../docs/GUIDE_Expect-Flags.md) *(höchster Überarbeitungsbedarf)*
 
@@ -303,7 +303,7 @@ Alle Tests, die ausschließlich **`EBT(..., expect=False)`** auf Vertragsebene m
 
 ---
 
-### 3.2 Weitere betroffene Dokumente im Repository (nicht in `tests/GEMINI.md` gelistet, aber zwingend mitzuziehen!)
+### 3.2 Weitere betroffene Dokumente im Repository (nicht in `GEMINI-1.md` gelistet, aber zwingend mitzuziehen!)
 
 Diese **5 Dokumente** gehören direkt zur offiziellen Produkt- und Entwickler-Dokumentation und enthalten die alte $Q^+/Q^-$-Semantik (und teils zusätzlich veraltete Stände ohne Dict-Wrapper):
 
