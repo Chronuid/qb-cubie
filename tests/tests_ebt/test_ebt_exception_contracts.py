@@ -76,10 +76,13 @@ def test_return_and_exception_are_distinct_post_alternatives(arena, mode, expect
 def test_forbidden_exception_accepts_allowed_exception_message(arena):
     result = EBT(
         target=operation, arena=arena, pre=WorldState(args=("wrong-message",)),
-        post=[
-            WorldState(raises=expectation(ValueError)),
-            WorldState(raises=expectation(match="^invalid order:"), expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(raises=expectation(ValueError)),
+                WorldState(raises=expectation(match="^invalid order:"), expect=False),
+            ],
+        },
         reporter=None,
     ).run()
     assert [trace.evaluation for trace in result.traces] == [True, False]
@@ -89,10 +92,13 @@ def test_forbidden_exception_accepts_allowed_exception_message(arena):
 def test_forbidden_exception_rejects_matching_exception_message(arena):
     result = EBT(
         target=operation, arena=arena, pre=WorldState(args=("value-error",)),
-        post=[
-            WorldState(raises=expectation(ValueError)),
-            WorldState(raises=expectation(match="^invalid order:"), expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(raises=expectation(ValueError)),
+                WorldState(raises=expectation(match="^invalid order:"), expect=False),
+            ],
+        },
         reporter=None,
     ).run()
     assert [trace.evaluation for trace in result.traces] == [True, True]
@@ -100,10 +106,13 @@ def test_forbidden_exception_rejects_matching_exception_message(arena):
 
     inverted = EBT(
         target=operation, arena=arena, pre=WorldState(args=("value-error",)),
-        post=[
-            WorldState(raises=expectation(ValueError)),
-            WorldState(raises=expectation(match="^invalid order:"), expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(raises=expectation(ValueError)),
+                WorldState(raises=expectation(match="^invalid order:"), expect=False),
+            ],
+        },
         expect=False,
         reporter=None,
     ).run()

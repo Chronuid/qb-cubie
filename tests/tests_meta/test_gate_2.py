@@ -88,15 +88,39 @@ def _is_positive_worldstate(expr: cst.BaseExpression) -> bool:
     return not (isinstance(expect_expr, cst.Name) and expect_expr.value in {"False", "None"})
 
 
-def _count_pre_states(pre_expr: cst.BaseExpression | None) -> int:
-    """Count statically declared pre-states in an EBT call."""
+def _extract_wrapper_field(
+    module: cst.Module,
+    expr: cst.BaseExpression,
+    field_name: str,
+) -> cst.BaseExpression | None:
+    """Extract a static string-keyed value from a quantifier wrapper dict."""
+    if not isinstance(expr, cst.Dict):
+        return None
+    for elem in expr.elements:
+        if not isinstance(elem, cst.DictElement):
+            continue
+        if _literal_string(module, elem.key) == field_name:
+            return elem.value
+    return None
+
+
+def _count_pre_states(module: cst.Module, pre_expr: cst.BaseExpression | None) -> int:
+    """Count statically declared pre-states in an EBT call (including dict wrappers)."""
+    if isinstance(pre_expr, cst.Dict):
+        pre_expr = _extract_wrapper_field(module, pre_expr, "states")
     if isinstance(pre_expr, (cst.List, cst.Tuple)):
         return len(pre_expr.elements)
     return 1
 
 
-def _count_positive_post_states(post_expr: cst.BaseExpression | None) -> int:
-    """Count statically declared positive post-states (expect != False/None)."""
+def _count_positive_post_states(module: cst.Module, post_expr: cst.BaseExpression | None) -> int:
+    """Count statically declared disjunctive positive post-states (expect != False/None)."""
+    if isinstance(post_expr, cst.Dict):
+        quantor_expr = _extract_wrapper_field(module, post_expr, "quantor")
+        quantor = _literal_string(module, quantor_expr) if quantor_expr is not None else None
+        if quantor == "all":
+            return 1
+        post_expr = _extract_wrapper_field(module, post_expr, "states")
     if isinstance(post_expr, (cst.List, cst.Tuple)):
         return sum(1 for el in post_expr.elements if _is_positive_worldstate(el.value))
     if post_expr is not None and not _is_positive_worldstate(post_expr):
@@ -127,8 +151,8 @@ class EbtCrossProductRule(CstRule):
         if not self._module or not _is_ebt_call(node):
             return
         params = _extract_call_params(self._module, node)
-        pre_n = _count_pre_states(params.get("pre"))
-        positive_post_n = _count_positive_post_states(params.get("post"))
+        pre_n = _count_pre_states(self._module, params.get("pre"))
+        positive_post_n = _count_positive_post_states(self._module, params.get("post"))
         if pre_n <= 1 or positive_post_n <= 1:
             return
         if _extract_cross_product_reason(self._module, params.get("tags")) is not None:
@@ -164,8 +188,18 @@ def _format_diagnostics(diagnostics: list[LinterDiagnostic]) -> str:
         "EBT(target=f, pre=[p1, p2], post=WorldState(returns='ok'))\n",
         "EBT(target=f, pre=[p1, p2], post=[WorldState(returns='ok')])\n",
         "EBT(target=f, pre=WorldState(args=(1,)), post=[WorldState(returns=1), WorldState(returns=2)])\n",
-        "EBT(target=f, pre=[p1, p2], post=[WorldState(returns=3), WorldState(returns=99, expect=False)])\n",
-        "EBT(target=f, pre=[p1, p2], post=[WorldState(returns=1, expect=False), WorldState(returns=2, expect=False)])\n",
+        (
+            "EBT(target=f, pre=[p1, p2], "
+            "post={'quantor': 'all', 'states': [WorldState(returns=3), WorldState(returns=99, expect=False)]})\n"
+        ),
+        (
+            "EBT(target=f, pre=[p1, p2], "
+            "post={'quantor': 'all', 'states': [WorldState(returns=1, expect=False), WorldState(returns=2, expect=False)]})\n"
+        ),
+        (
+            "EBT(target=f, pre=[p1, p2], "
+            "post={'quantor': 'all', 'states': [WorldState(returns=int), WorldState(returns=3)]})\n"
+        ),
         (
             "EBT(target=f, pre=[p1, p2], post=[WorldState(returns=1), WorldState(returns=2)], "
             "tags={'meta:cross-product-reason': 'Tests N:M quantifier matrix'})\n"
@@ -188,6 +222,7 @@ def _format_diagnostics(diagnostics: list[LinterDiagnostic]) -> str:
         "single-pre-many-post",
         "many-pre-one-positive-one-negative",
         "many-pre-only-negative-posts",
+        "many-pre-conjunctive-post-all",
         "justified-cross-product",
         "justified-concatenated-reason",
         "justified-attribute-ebt",
@@ -244,6 +279,24 @@ def test_cross_product_rule_accepts_clean_probes(clean_source: str) -> None:
             "2x2",
         ),
         ("# Kommentar\nEBT(target=f, pre=[p1, p2, p3], post=[q1, q2, q3, q4])\n", 2, "3x4"),
+        (
+            "EBT(target=f, pre={'quantor': 'all', 'states': [p1, p2]}, "
+            + "post=[WorldState(returns=1), WorldState(returns=2)])\n",
+            1,
+            "2x2",
+        ),
+        (
+            "EBT(target=f, pre=[p1, p2], "
+            + "post={'quantor': 'exists', 'states': [WorldState(returns=1), WorldState(returns=2)]})\n",
+            1,
+            "2x2",
+        ),
+        (
+            "EBT(target=f, pre={'quantor': 'exists', 'states': [p1, p2]}, "
+            + "post={'quantor': 'exists', 'states': [WorldState(returns=1), WorldState(returns=2)]})\n",
+            1,
+            "2x2",
+        ),
     ],
     ids=[
         "list-2x2",
@@ -257,6 +310,9 @@ def test_cross_product_rule_accepts_clean_probes(clean_source: str) -> None:
         "non-string-reason",
         "unrelated-tag-key",
         "line-number-offset-3x4",
+        "dict-pre-list-post-2x2",
+        "list-pre-dict-post-exists-2x2",
+        "dict-pre-dict-post-exists-2x2",
     ],
 )
 def test_cross_product_rule_detects_fault_probes(

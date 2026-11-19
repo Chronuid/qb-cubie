@@ -135,10 +135,15 @@ def test_json_records_expected_exception_and_observed_exception_separately(tmp_p
 
 def test_json_retains_every_input_and_post_match_including_negative_states(tmp_path):
     path = tmp_path / "report.json"
-    result = EBT(target=echo,
-                 pre=[WorldState(args=(1,)), WorldState(args=(2,))],
-                 post=[WorldState(returns=int), WorldState(returns=2, expect=False)],
-                 reporter=json_reporter(path)).run()
+    result = EBT(
+        target=echo,
+        pre=[WorldState(args=(1,)), WorldState(args=(2,))],
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=2, expect=False)],
+        },
+        reporter=json_reporter(path),
+    ).run()
     document = json.loads(path.read_text(encoding="utf-8"))
     assert document["expect"] is True
     assert document["evaluation"] is False

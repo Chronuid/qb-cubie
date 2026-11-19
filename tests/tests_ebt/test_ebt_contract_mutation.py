@@ -22,7 +22,11 @@ def test_replacing_return_contract_cannot_rewrite_the_verdict(tmp_path, reportin
         post.returns = 42
         return 42
 
-    case = EBT(target=mutate, post=post, reporter=reporters[reporting])
+    case = EBT(
+        target=mutate,
+        post={"quantor": "all", "states": post},
+        reporter=reporters[reporting],
+    )
     if reporting == "pytest" and not forbidden:
         with pytest.raises(AssertionError, match="EBT-Assert failed"):
             case.run()

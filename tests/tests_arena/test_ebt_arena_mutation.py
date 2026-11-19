@@ -1,8 +1,10 @@
-import subprocess, sys
+import subprocess
+import sys
 from pathlib import Path
+
+from qb_cubie.arenas.pyvenv import PyVenv
 from qb_cubie.ebt import EBT
 from qb_cubie.protocols import WorldState
-from qb_cubie.arenas.pyvenv import PyVenv
 
 # ======================================================================================================================
 # GLOBAL PROVISIONING (Golden Masters)
@@ -104,11 +106,14 @@ def test_volatile_metadata_with_strict_expectation_red():
     EBT(
         target=target_generate_volatile_metadata,
         pre=WorldState(arena=PyVenv(BASE_ARENA)),
-        post=[
-            WorldState(returns=True),
-            WorldState(arena=PyVenv(BASE_ARENA), expect=False),
-        ],
-        expect=False # We expect it to fail, but it functionally matches, so the test turns red (expected failure works)
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=True),
+                WorldState(arena=PyVenv(BASE_ARENA), expect=False),
+            ],
+        },
+        expect=False,  # We expect it to fail, but it functionally matches, so the test turns red (expected failure works)
     ).run()
 
 

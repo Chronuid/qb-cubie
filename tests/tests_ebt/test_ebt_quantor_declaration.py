@@ -13,7 +13,11 @@ from typing import Any
 import pytest
 
 from qb_cubie import EBT, WorldState
-from qb_cubie.protocols import ExceptionExpectation
+from qb_cubie.protocols import (
+    EvaluationTrace,
+    ExceptionExpectation,
+    evaluate_step_logic,
+)
 from qb_cubie.reporter import JsonReporter
 
 # ========== DUMMY TARGETS =========================================================================
@@ -709,3 +713,270 @@ def test_changed_quantor_wrapper_is_revalidated(
     assert not marker.exists()
     assert case.run_trace is None
     assert previous.evaluation is True
+
+
+@pytest.mark.parametrize("ebt_expect", [True, False], ids=["ebt-expect-true", "ebt-expect-false"])
+@pytest.mark.parametrize(
+    "invalid_post",
+    [
+        WorldState(returns=99, expect=False),
+        [WorldState(returns=int), WorldState(returns=99, expect=False)],
+        {"quantor": "exists", "states": WorldState(returns=99, expect=False)},
+        {
+            "quantor": "exists",
+            "states": [WorldState(returns=int), WorldState(returns=99, expect=False)],
+        },
+    ],
+    ids=[
+        "implicit-exists-single-negative",
+        "implicit-exists-mixed-list",
+        "explicit-exists-single-negative",
+        "explicit-exists-mixed-list",
+    ],
+)
+def test_guard_rejects_negative_worldstate_under_post_exists(
+    tmp_path: Path,
+    execution_mode: bool,
+    ebt_expect: bool,
+    invalid_post: Any,
+) -> None:
+    """STATE-GUARD verbietet WorldState(expect=False) unter post='exists' (implizit, explizit & nach Mutation)."""
+    marker = tmp_path / "called"
+    with pytest.raises(ValueError, match="STATE-GUARD"):
+        EBT(
+            target=partial(record_call, marker),
+            pre=WorldState(args=(42,)),
+            post=invalid_post,
+            expect=ebt_expect,
+            reporter=None,
+            multiprocessing=execution_mode,
+        ).run()
+    assert not marker.exists()
+
+    # In-Place-Mutation von post[0].expect = False vor einem Zweitlauf muss ebenfalls abgewiesen werden.
+    mutable_state = WorldState(returns=42, expect=True)
+    case = EBT(
+        target=partial(record_call, marker),
+        pre=WorldState(args=(42,)),
+        post=[mutable_state],
+        expect=ebt_expect,
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
+    first_trace = case.run()
+    assert first_trace is not None
+    marker.unlink()
+    mutable_state.expect = False
+    with pytest.raises(ValueError, match="STATE-GUARD"):
+        case.run()
+    assert not marker.exists()
+
+
+@pytest.mark.parametrize(
+    "invalid_pre",
+    [
+        WorldState(args=(42,), expect=False),
+        [WorldState(args=(42,)), WorldState(args=(7,), expect=False)],
+        {"quantor": "all", "states": [WorldState(args=(42,), expect=False)]},
+        {"quantor": "exists", "states": [WorldState(args=(42,), expect=False)]},
+    ],
+    ids=[
+        "single-pre-expect-false",
+        "list-pre-expect-false",
+        "wrapper-all-pre-expect-false",
+        "wrapper-exists-pre-expect-false",
+    ],
+)
+def test_guard_rejects_negative_worldstate_in_pre(
+    tmp_path: Path,
+    execution_mode: bool,
+    invalid_pre: Any,
+) -> None:
+    """STATE-GUARD weist WorldState(expect=False) in pre in allen Strukturformen und nach Mutation ab."""
+    marker = tmp_path / "called"
+    with pytest.raises(ValueError, match="STATE-GUARD"):
+        EBT(
+            target=partial(record_call, marker),
+            pre=invalid_pre,
+            post=WorldState(returns=42),
+            reporter=None,
+            multiprocessing=execution_mode,
+        ).run()
+    assert not marker.exists()
+
+    mutable_pre = WorldState(args=(42,), expect=True)
+    case = EBT(
+        target=partial(record_call, marker),
+        pre=[mutable_pre],
+        post=WorldState(returns=42),
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
+    first_trace = case.run()
+    assert first_trace is not None and first_trace.evaluation is True
+    marker.unlink()
+    mutable_pre.expect = False
+    with pytest.raises(ValueError, match="STATE-GUARD"):
+        case.run()
+    assert not marker.exists()
+
+
+@pytest.mark.parametrize(
+    "bad_expect",
+    [None, 1, 0, "true", []],
+    ids=["none", "int-one", "int-zero", "str-true", "empty-list"],
+)
+def test_guard_rejects_non_bool_expect_on_worldstate_and_ebt(
+    tmp_path: Path,
+    bad_expect: Any,
+) -> None:
+    """STATE-GUARD erzwingt striktes bool für WorldState.expect und EBT.expect (auch gegen int 1/0 und Mutation)."""
+    marker = tmp_path / "called"
+
+    with pytest.raises(TypeError, match="STATE-GUARD"):
+        bad_ws = WorldState(returns=42, expect=bad_expect)
+        EBT(
+            target=partial(record_call, marker),
+            pre=WorldState(args=(42,)),
+            post={"quantor": "all", "states": [bad_ws]},
+            reporter=None,
+        ).run()
+    assert not marker.exists()
+
+    with pytest.raises(TypeError, match="STATE-GUARD"):
+        EBT(
+            target=partial(record_call, marker),
+            pre=WorldState(args=(42,)),
+            post=WorldState(returns=42),
+            expect=bad_expect,
+            reporter=None,
+        ).run()
+    assert not marker.exists()
+
+    ws = WorldState(returns=42, expect=True)
+    case = EBT(
+        target=partial(record_call, marker),
+        pre=WorldState(args=(42,)),
+        post={"quantor": "all", "states": [ws]},
+        reporter=None,
+    )
+    first_trace = case.run()
+    assert first_trace is not None and first_trace.evaluation is True
+    marker.unlink()
+
+    ws.expect = bad_expect
+    with pytest.raises(TypeError, match="STATE-GUARD"):
+        case.run()
+    assert not marker.exists()
+
+    ws.expect = True
+    case.expect = bad_expect
+    with pytest.raises(TypeError, match="STATE-GUARD"):
+        case.run()
+    assert not marker.exists()
+
+
+def test_evaluate_step_logic_enforces_pure_quantor_invariants() -> None:
+    """evaluate_step_logic wertet Quantoren rein ohne Q+/Q--Split oder Vacuous-True unter 'exists' aus."""
+    assert evaluate_step_logic([], "exists") is False
+    assert evaluate_step_logic([], "all") is True
+
+    pos_hit = EvaluationTrace(
+        step_id="run_0",
+        target="target_identity",
+        pre=WorldState(args=(99,)),
+        post=WorldState(returns=int, expect=True),
+        outcome=WorldState(returns=99),
+        evaluation=True,
+    )
+    neg_hit = EvaluationTrace(
+        step_id="run_0",
+        target="target_identity",
+        pre=WorldState(args=(99,)),
+        post=WorldState(returns=99, expect=False),
+        outcome=WorldState(returns=99),
+        evaluation=True,
+    )
+    neg_miss = EvaluationTrace(
+        step_id="run_0",
+        target="target_identity",
+        pre=WorldState(args=(42,)),
+        post=WorldState(returns=99, expect=False),
+        outcome=WorldState(returns=42),
+        evaluation=False,
+    )
+
+    assert evaluate_step_logic([pos_hit, neg_hit], "all") is False
+    assert evaluate_step_logic([pos_hit, neg_miss], "all") is True
+
+    with pytest.raises(ValueError, match="STATE-GUARD"):
+        evaluate_step_logic([pos_hit, neg_hit], "exists")
+
+
+def test_sticky_quantor_resets_on_reassignment_and_persists_on_rerun(
+    execution_mode: bool,
+) -> None:
+    """Explizite Quantoren überleben Zweitläufe ohne Neuzuweisung, springen bei Neuzuweisung aber auf den Standard zurück."""
+    # --- Teil 1: post-Lebenszyklus ('all' -> Rerun bleibt 'all' -> In-Place bleibt 'all' -> Reassign wird 'exists') ---
+    post_case: Any = EBT(
+        target=target_identity,
+        pre=WorldState(args=(1,)),
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=1)],
+        },
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
+    run1 = post_case.run()
+    assert run1.evaluation is True and run1.post_quantor == "all"
+
+    # Zweitlauf OHNE Neuzuweisung von post: post_quantor muss 'all' bleiben!
+    post_case.pre = WorldState(args=(2,))
+    run2 = post_case.run()
+    assert run2.evaluation is False and run2.post_quantor == "all"
+
+    # In-Place-Listenmutation auf post: post_quantor muss 'all' bleiben!
+    post_case.post.append(WorldState(returns=lambda v: v > 0))
+    run3 = post_case.run()
+    assert run3.evaluation is False and run3.post_quantor == "all"
+
+    # Attribut-Neuzuweisung einer einfachen Liste ohne Dict-Wrapper: post_quantor MUSS auf 'exists' zurückspringen!
+    post_case.post = [WorldState(returns=1), WorldState(returns=2)]
+    run4 = post_case.run()
+    assert run4.post_quantor == "exists"
+    assert run4.evaluation is True
+
+    # Attribut-Neuzuweisung eines einzelnen WorldState bzw. None setzt post_quantor ebenfalls auf 'exists'
+    post_case.post = {"quantor": "all", "states": [WorldState(returns=2)]}
+    assert post_case.run().post_quantor == "all"
+    post_case.post = WorldState(returns=2)
+    assert post_case.run().post_quantor == "exists"
+    post_case.post = {"quantor": "all", "states": [WorldState(returns=2)]}
+    assert post_case.run().post_quantor == "all"
+    post_case.post = None
+    assert post_case.run().post_quantor == "exists"
+
+    # --- Teil 2: pre-Lebenszyklus ('exists' -> Rerun bleibt 'exists' -> Reassign wird 'all') ---
+    pre_case: Any = EBT(
+        target=target_identity,
+        pre={
+            "quantor": "exists",
+            "states": [WorldState(args=(1,)), WorldState(args=(2,))],
+        },
+        post=WorldState(returns=1),
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
+    pre_run1 = pre_case.run()
+    assert pre_run1.evaluation is True and pre_run1.pre_quantor == "exists"
+
+    # Zweitlauf OHNE Neuzuweisung von pre: pre_quantor muss 'exists' bleiben!
+    pre_run2 = pre_case.run()
+    assert pre_run2.evaluation is True and pre_run2.pre_quantor == "exists"
+
+    # Attribut-Neuzuweisung einer einfachen Liste ohne Dict-Wrapper: pre_quantor MUSS auf 'all' zurückspringen!
+    pre_case.pre = [WorldState(args=(1,)), WorldState(args=(2,))]
+    pre_run3 = pre_case.run()
+    assert pre_run3.pre_quantor == "all"
+    assert pre_run3.evaluation is False

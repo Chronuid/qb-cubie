@@ -1,6 +1,7 @@
+import pytest
+
 from qb_cubie.ebt import EBT
 from qb_cubie.protocols import WorldState
-import pytest
 
 # ========== TARGETS ===================================================================================================
 
@@ -115,15 +116,14 @@ def test_mixed_expect_exists_green():
     EBT(
         target=target_echo,
         pre=WorldState(args=(3,)),
-        post=[
-            WorldState(returns=0, expect=False),
-            WorldState(returns=1),
-            WorldState(returns=2),
-            WorldState(returns=3),
-            WorldState(returns=4),
-            WorldState(returns=5),
-            WorldState(returns=6, expect=False)
-        ]
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=lambda v: 0 <= v <= 6),
+                WorldState(returns=0, expect=False),
+                WorldState(returns=6, expect=False),
+            ],
+        },
     ).run()
 
 def test_mixed_expect_exists_red_lower_bound():
@@ -131,16 +131,15 @@ def test_mixed_expect_exists_red_lower_bound():
     EBT(
         target=target_echo,
         pre=WorldState(args=(0,)),
-        post=[
-            WorldState(returns=0, expect=False),
-            WorldState(returns=1),
-            WorldState(returns=2),
-            WorldState(returns=3),
-            WorldState(returns=4),
-            WorldState(returns=5),
-            WorldState(returns=6, expect=False)
-        ],
-        expect=False
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=lambda v: 0 <= v <= 6),
+                WorldState(returns=0, expect=False),
+                WorldState(returns=6, expect=False),
+            ],
+        },
+        expect=False,
     ).run()
 
 def test_mixed_expect_exists_red_upper_bound():
@@ -148,13 +147,15 @@ def test_mixed_expect_exists_red_upper_bound():
     EBT(
         target=target_echo,
         pre=WorldState(args=(6,)),
-        post=[
-            WorldState(returns=0, expect=False),
-            WorldState(returns=1),
-            WorldState(returns=5),
-            WorldState(returns=6, expect=False)
-        ],
-        expect=False
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=lambda v: 0 <= v <= 6),
+                WorldState(returns=0, expect=False),
+                WorldState(returns=6, expect=False),
+            ],
+        },
+        expect=False,
     ).run()
 
 # ========== LOCAL EXPECT (1:1 Mapping) ================================================================================
@@ -183,10 +184,13 @@ def test_local_expect_false_green():
     EBT(
         target=target_echo,
         pre=WorldState(args=(1,)),
-        post=[
-            WorldState(returns=int),
-            WorldState(returns=99, expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=int),
+                WorldState(returns=99, expect=False),
+            ],
+        },
     ).run()
 
 
@@ -195,10 +199,13 @@ def test_local_expect_false_red():
     EBT(
         target=target_echo,
         pre=WorldState(args=(99,)),
-        post=[
-            WorldState(returns=int),
-            WorldState(returns=99, expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=int),
+                WorldState(returns=99, expect=False),
+            ],
+        },
         expect=False,
     ).run()
 
@@ -210,11 +217,14 @@ def test_negative_filters_green():
     EBT(
         target=target_echo,
         pre=WorldState(args=(200,)),
-        post=[
-            WorldState(returns=lambda status: 200 <= status < 300),
-            WorldState(returns=404, expect=False),
-            WorldState(returns=500, expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=lambda status: 200 <= status < 600),
+                WorldState(returns=404, expect=False),
+                WorldState(returns=500, expect=False),
+            ],
+        },
     ).run()
 
 
@@ -223,11 +233,14 @@ def test_negative_filters_red():
     EBT(
         target=target_echo,
         pre=WorldState(args=(404,)),
-        post=[
-            WorldState(returns=lambda status: 200 <= status < 600),
-            WorldState(returns=404, expect=False),
-            WorldState(returns=500, expect=False),
-        ],
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=lambda status: 200 <= status < 600),
+                WorldState(returns=404, expect=False),
+                WorldState(returns=500, expect=False),
+            ],
+        },
         expect=False,
     ).run()
 

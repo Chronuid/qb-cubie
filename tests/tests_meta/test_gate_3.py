@@ -74,10 +74,22 @@ def _is_explicitly_negative_worldstate(module: cst.Module, expr: cst.BaseExpress
     return isinstance(expect_expr, cst.Name) and expect_expr.value in {"False", "None"}
 
 
-def _extract_post_worldstates(post_expr: cst.BaseExpression | None) -> list[cst.BaseExpression] | None:
+def _extract_post_worldstates(
+    module: cst.Module,
+    post_expr: cst.BaseExpression | None,
+) -> list[cst.BaseExpression] | None:
     """Return all statically declared WorldState calls in post, or None if unknown/empty."""
     if post_expr is None:
         return None
+    if isinstance(post_expr, cst.Dict):
+        states_expr: cst.BaseExpression | None = None
+        for dict_elem in post_expr.elements:
+            if isinstance(dict_elem, cst.DictElement) and _literal_string(module, dict_elem.key) == "states":
+                states_expr = dict_elem.value
+                break
+        if states_expr is None:
+            return None
+        post_expr = states_expr
     if isinstance(post_expr, cst.Name) and post_expr.value == "None":
         return None
     if _is_named_call(post_expr, "WorldState"):
@@ -133,7 +145,7 @@ class EbtLonelyNegationRule(CstRule):
             {2: "pre", 3: "post", 4: "expect", 9: "tags"},
             {"pre", "post", "expect", "tags"},
         )
-        post_states = _extract_post_worldstates(params.get("post"))
+        post_states = _extract_post_worldstates(self._module, params.get("post"))
         if not post_states:
             return
         if not all(_is_explicitly_negative_worldstate(self._module, state) for state in post_states):
@@ -174,38 +186,38 @@ def _format_diagnostics(diagnostics: list[LinterDiagnostic]) -> str:
         "EBT(target=f, post=WorldState(returns=1))\n",
         "EBT(target=f, post=WorldState(returns=1, expect=True))\n",
         "EBT(target=f, post=WorldState(returns=1), expect=False)\n",
-        "EBT(target=f, post=[WorldState(returns=1), WorldState(returns=99, expect=False)])\n",
-        "EBT(target=f, post=(WorldState(returns=99, expect=False), WorldState(returns=1)))\n",
+        "EBT(target=f, post={'quantor': 'all', 'states': [WorldState(returns=1), WorldState(returns=99, expect=False)]})\n",
+        "EBT(target=f, post={'quantor': 'all', 'states': (WorldState(returns=99, expect=False), WorldState(returns=1))})\n",
         "EBT(target=f, post=WorldState(returns=1, expect=flag))\n",
-        "EBT(target=f, post=[q1, WorldState(returns=99, expect=False)])\n",
+        "EBT(target=f, post={'quantor': 'all', 'states': [q1, WorldState(returns=99, expect=False)]})\n",
         "EBT(target=f, post=expected_states)\n",
         (
-            "EBT(target=f, post=WorldState(returns=99, expect=False), "
+            "EBT(target=f, post={'quantor': 'all', 'states': WorldState(returns=99, expect=False)}, "
             "tags={'meta:negative-invariant'})\n"
         ),
         (
-            "EBT(target=f, post=[WorldState(returns=404, expect=False), "
-            "WorldState(returns=500, expect=False)], tags={'meta:negative-invariant', 'safety'})\n"
+            "EBT(target=f, post={'quantor': 'all', 'states': [WorldState(returns=404, expect=False), "
+            "WorldState(returns=500, expect=False)]}, tags={'meta:negative-invariant', 'safety'})\n"
         ),
         (
-            "EBT(target=f, post=WorldState(returns=99, expect=False), "
+            "EBT(target=f, post={'quantor': 'all', 'states': WorldState(returns=99, expect=False)}, "
             "tags=['meta:negative-invariant'])\n"
         ),
         (
-            "EBT(target=f, post=WorldState(returns=99, expect=False), "
+            "EBT(target=f, post={'quantor': 'all', 'states': WorldState(returns=99, expect=False)}, "
             "tags=('meta:negative-invariant',))\n"
         ),
         (
-            "EBT(target=f, post=WorldState(returns=99, expect=False), "
+            "EBT(target=f, post={'quantor': 'all', 'states': WorldState(returns=99, expect=False)}, "
             "tags={'meta:negative-invariant': 'Rejects sentinel error code'})\n"
         ),
         (
-            "EBT(target=f, pre=[p1, p2], post=[WorldState(returns=404, expect=False), "
-            "WorldState(returns=500, expect=False)], "
+            "EBT(target=f, pre=[p1, p2], post={'quantor': 'all', 'states': [WorldState(returns=404, expect=False), "
+            "WorldState(returns=500, expect=False)]}, "
             "tags={'meta:negative-invariant': True, 'meta:cross-product-reason': 'Status matrix'})\n"
         ),
         (
-            "qb_cubie.EBT(target=f, post=qb_cubie.WorldState(returns=99, expect=False), "
+            "qb_cubie.EBT(target=f, post={'quantor': 'all', 'states': qb_cubie.WorldState(returns=99, expect=False)}, "
             "tags={'meta:negative-invariant'})\n"
         ),
         "other_func(post=WorldState(returns=99, expect=False))\n",
@@ -304,6 +316,17 @@ def test_lonely_negation_rule_accepts_clean_probes(clean_source: str) -> None:
             2,
             "0pos/3neg",
         ),
+        (
+            "EBT(target=f, post={'quantor': 'all', 'states': WorldState(returns=99, expect=False)})\n",
+            1,
+            "0pos/1neg",
+        ),
+        (
+            "EBT(target=f, post={'quantor': 'all', 'states': [WorldState(returns=404, expect=False), "
+            + "WorldState(returns=500, expect=False)]})\n",
+            1,
+            "0pos/2neg",
+        ),
     ],
     ids=[
         "single-expect-false",
@@ -322,6 +345,8 @@ def test_lonely_negation_rule_accepts_clean_probes(clean_source: str) -> None:
         "dict-tag-whitespace",
         "double-negation-without-tag",
         "line-offset-three-negatives",
+        "dict-wrapper-single-negative",
+        "dict-wrapper-two-negatives",
     ],
 )
 def test_lonely_negation_rule_detects_fault_probes(

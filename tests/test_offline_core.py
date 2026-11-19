@@ -161,7 +161,10 @@ def exercise(feature, base):
         trace = EBT(
             target=sum,
             pre=[WorldState(args=([1, 2],)), WorldState(args=([3],))],
-            post=[WorldState(returns=3), WorldState(returns=99, expect=False)],
+            post={
+                "quantor": "all",
+                "states": [WorldState(returns=3), WorldState(returns=99, expect=False)],
+            },
         ).run()
         assert trace.evaluation is True and len(trace.traces) == 4
         with pytest.raises(AssertionError):

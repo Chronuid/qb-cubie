@@ -39,18 +39,32 @@ def test_each_run_evaluates_only_its_own_positive_matches(execution_mode, values
 
 
 def test_previous_negative_match_does_not_poison_next_run(execution_mode):
-    case = EBT(target=echo, pre=WorldState(args=(0,)),
-               post=[WorldState(returns=int), WorldState(returns=0, expect=False)],
-               reporter=None, multiprocessing=execution_mode)
+    case = EBT(
+        target=echo,
+        pre=WorldState(args=(0,)),
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=0, expect=False)],
+        },
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
     assert case.run().evaluation is False
     case.pre = [WorldState(args=(1,))]
     assert case.run().evaluation is True
 
 
 def test_previous_positive_match_does_not_mask_next_negative_match(execution_mode):
-    case = EBT(target=echo, pre=WorldState(args=(1,)),
-               post=[WorldState(returns=int), WorldState(returns=0, expect=False)],
-               reporter=None, multiprocessing=execution_mode)
+    case = EBT(
+        target=echo,
+        pre=WorldState(args=(1,)),
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=0, expect=False)],
+        },
+        reporter=None,
+        multiprocessing=execution_mode,
+    )
     assert case.run().evaluation is True
     case.pre = [WorldState(args=(0,))]
     assert case.run().evaluation is False

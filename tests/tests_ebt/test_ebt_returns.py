@@ -89,7 +89,10 @@ def test_negative_none_contract_accepts_non_none_values(actual):
     result = EBT(
         target=echo,
         pre=WorldState(args=(actual,)),
-        post=[WorldState(returns=int), WorldState(returns=None, expect=False)],
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=None, expect=False)],
+        },
         reporter=None,
     ).run()
 
@@ -99,7 +102,10 @@ def test_negative_none_contract_accepts_non_none_values(actual):
 
 
 def test_negative_none_contract_rejects_none():
-    post = [WorldState(returns=int), WorldState(returns=None, expect=False)]
+    post = {
+        "quantor": "all",
+        "states": [WorldState(returns=int), WorldState(returns=None, expect=False)],
+    }
     result = EBT(
         target=echo,
         pre=WorldState(args=(None,)),
@@ -115,7 +121,10 @@ def test_negative_none_contract_rejects_none():
     inverted = EBT(
         target=echo,
         pre=WorldState(args=(None,)),
-        post=[WorldState(returns=int), WorldState(returns=None, expect=False)],
+        post={
+            "quantor": "all",
+            "states": [WorldState(returns=int), WorldState(returns=None, expect=False)],
+        },
         expect=False,
         reporter=None,
     ).run()
