@@ -119,7 +119,7 @@ Im Verzeichnis [`experiments/testguided-study`](./experiments/testguided-study/R
 
 Ein `WorldState` ist ein veränderlicher Datensatz für konkrete Eingaben oder ein erwartetes Ergebnismuster. EBT ruft das Target für jeden angegebenen Eingang einmal auf und vergleicht die beobachteten Ergebnisse.
 
-Bei mehreren Eingängen gilt dieselbe Liste erlaubter und verbotener Zielmuster für jeden Eingang. Es gibt keine automatische paarweise Zuordnung zwischen `pre[i]` und `post[i]`. Zusammengehörige Ein-/Ausgabepaare benötigen getrennte EBT-Verträge. Eine Liste erlaubter Würfelergebnisse prüft nur die beobachtete Ausgabe; auch ein konstanter Generator kann bestehen. Zufälligkeit und Verteilung werden damit nicht geprüft.
+Standardmäßig wirkt `pre` als reiner Allquantor (`"all"`, jeder Eingang muss bestehen) und `post` als reiner Existenzquantor (`"exists"`, mindestens ein Zielmuster muss passen); über `{"quantor": "all" | "exists", "states": ...}` lassen sich beide Quantoren explizit steuern, wobei Verbote (`WorldState(..., expect=False)`) ausschließlich unter `post={"quantor": "all", ...}` zulässig sind. Bei mehreren Eingängen gilt dieselbe Zielmenge für jeden Eingang; es gibt keine automatische paarweise Zuordnung zwischen `pre[i]` und `post[i]`. Zusammengehörige Ein-/Ausgabepaare benötigen getrennte EBT-Verträge. Eine Liste erlaubter Würfelergebnisse prüft nur die beobachtete Ausgabe; auch ein konstanter Generator kann bestehen. Zufälligkeit und Verteilung werden damit nicht geprüft.
 
 Typen, Unions, reguläre Ausdrücke und Prädikate können anstelle fester Rückgabewerte verwendet werden. Die genaue Bedeutung aller Felder und Vergleiche steht in der [verbindlichen Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
 

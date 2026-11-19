@@ -21,18 +21,29 @@ Dieses Handbuch zeigt, wie sich Cubies Standard-Quantoren (`pre="all"`, `post="e
 
 ## 1. Standardregeln vs. explizite Quantor-Steuerung
 
-Normalerweise wendet Cubie zwei feste Standardregeln an:
+**Einfach erklärt (Was ist überhaupt ein „Quantor“?):** Das Wort *Quantor* stammt aus der Logik und beantwortet beim Testen eine ganz einfache Alltagsfrage: **„Wie viele Punkte auf meiner Prüfliste müssen klappen, damit der Test gewonnen hat?“** Es gibt genau zwei Möglichkeiten:
 
-* Für **`pre`** gilt **„alle“ (`"all"`)**: Jede angegebene Eingabe muss den Test bestehen.
-* Für **`post`** gilt **„mindestens eines“ (`"exists"`)**: Die Rückgabe muss zu mindestens einem der erlaubten Zielmuster passen.
+* **`"all"` (der Allquantor $\forall$ — die UND-Checkliste):** Wie beim Sicherheitscheck vor einem Flugzeugstart muss **jeder einzelne Punkt** (`alle`) erfüllt sein (`Bedingung 1 UND Bedingung 2 UND ...`). Scheitert auch nur ein Punkt, ist der Check nicht bestanden.
+* **`"exists"` (der Existenzquantor $\exists$ — die ODER-Auswahlliste):** Wie an einer Supermarktkasse, die *„Bargeld ODER EC-Karte ODER Kreditkarte“* akzeptiert, reicht es völlig aus, wenn **mindestens eine** Option (`existiert mindestens eine`) passt (`Option 1 ODER Option 2 ODER ...`).
 
-Manchmal braucht man es genau andersherum. Dafür packt man die Zustände einfach in ein kleines Dictionary mit `"quantor"` (`"all"` oder `"exists"`) und `"states"` (als Liste oder als einzelnen `WorldState`).
+Ohne besondere Angabe wendet Cubie zwei feste, **100 % reine Standardregeln** an:
+
+* Für **`pre` (Eingaben)** gilt standardmäßig **`"all"` (Allquantor / UND)**: Jede angegebene Eingabe wird ausgeführt und muss den Test bestehen.
+* Für **`post` (Erwartungen)** gilt standardmäßig **`"exists"` (Existenzquantor / ODER)**: Die Rückgabe muss zu mindestens einem der angegebenen Zielmuster passen.
+
+> [!IMPORTANT]
+> **Grundgesetz der Quantoren-Reinheit:** Die Standard-Quantoren (`pre="all"`, `post="exists"`) werden **niemals** heimlich durch ein `expect`-Flag überschrieben! Wenn du die Quantoren ändern möchtest (oder in `post` ein Verbot mit `WorldState(..., expect=False)` einsetzen willst), legst du den Quantor immer **explizit** über ein kleines Python-Dictionary mit den beiden Schlüsseln `"quantor"` (`"all"` oder `"exists"`) und `"states"` (ein einzelner `WorldState` oder eine Liste von `WorldState`-Objekten) fest.
 
 ---
 
 ## 2. Muster 1: Alle Bedingungen gleichzeitig erzwingen (`post` mit `"all"`)
 
-Das ist nützlich, wenn ein Ergebnis mehrere Regeln auf einmal einhalten muss – zum Beispiel *„eine ganze Zahl **und** positiv **und** gerade“* (Typ-, Bereichs- und Paritätsprüfung). Verbotene Werte (`expect=False`) bleiben dabei natürlich weiterhin strikte Verbote:
+Mit `post={"quantor": "all", "states": [...]}` schaltest du `post` von der Standard-ODER-Auswahl auf eine **strikte UND-Checkliste** um. Das brauchst du in zwei typischen Situationen:
+
+1. **Mehrere Eigenschaften gleichzeitig prüfen:** Ein Ergebnis soll mehrere Teilregeln auf einmal einhalten – zum Beispiel *„muss eine ganze Zahl (`int`) sein **UND** größer als `0` (`value > 0`) **UND** durch `2` teilbar (`value % 2 == 0`, also eine gerade Zahl)“*.
+2. **Soll-Ziele mit Verboten (`expect=False`) kombinieren:** Weil `post` auf `"all"` steht, werden erlaubte Ziele (`expect=True`) und Verbote (`expect=False`) völlig einheitlich mit **UND** (`all(...)`) verknüpft: Jedes positive Muster muss zutreffen, und kein verbotenes Muster darf eintreten (siehe [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md)).
+
+Im folgenden Beispiel verdoppelt `double(4)` die Zahl zu `8` und wird gegen alle drei UND-Bedingungen in `post` geprüft:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -66,11 +77,17 @@ Alle Regeln erfüllt: True | pre=all | post=all
 ```
 </details>
 
+* **Einfach erklärt & formal:** Für `8` stimmen alle drei Teilregeln (`isinstance(8, int)`, `8 > 0`, `8 % 2 == 0`); scheitert auch nur eine einzige Regel in dieser Konjunktion ($\forall q \in Q : \text{sat}(q, y)$), schlägt der gesamte Schritt fehl.
+
 ---
 
 ## 3. Muster 2: Alternative Eingabe-Routen erlauben (`pre` mit `"exists"`)
 
-Das ist nützlich, wenn von mehreren Kandidaten oder Eingabe-Routen **mindestens eine** zum Erfolg führen muss:
+Mit `pre={"quantor": "exists", "states": [...]}` schaltest du die Eingabeseite von der Standard-UND-Pflicht auf eine **ODER-Auswahl** um.
+
+* **Einfach erklärt (Notstrom-Prinzip):** Stell dir einen Server-Dienst mit einer Hauptleitung (`"/main"`) und einer Ersatzleitung (`"/backup"`) vor. Für die Verfügbarkeit des Systems reicht es, wenn **mindestens eine** der beiden Leitungen mit `"ok"` antwortet.
+
+Selbst wenn `"/main"` gerade `"offline"` liefert, besteht der Gesamtlauf im folgenden Beispiel, sobald `"/backup"` erfolgreich `"ok"` meldet:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -99,15 +116,24 @@ Mindestens eine Route erreichbar: True | pre=exists | post=exists
 
 ---
 
-## 4. Leitplanken, `STATE-GUARD`s und Abgrenzung
+## 4. Leitplanken, `STATE-GUARD`s, Lebenszyklus und Abgrenzung
+
+Damit sich niemals fehlerhafte oder mehrdeutige Quantor-Konfigurationen in deine Tests einschleichen, prüft Cubie vor jedem Testlauf vier harte **`STATE-GUARD`-Leitplanken**:
+
+| Leitplanke / `STATE-GUARD` | Was wird geprüft? | Fehlertyp bei Verstoß |
+| :--- | :--- | :--- |
+| **1. Wrapper-Struktur** | Das Dictionary darf ausschließlich die Schlüssel `"quantor"` (`"all"` oder `"exists"`, strikt `str`) und `"states"` (ein einzelner `WorldState` oder eine nichtleere `list[WorldState]`) enthalten. | `TypeError` / `ValueError` (`STATE-GUARD`) |
+| **2. Verbot unter `post="exists"` & in `pre`** | Ein `WorldState(..., expect=False)` ist **nur** unter `post={"quantor": "all", ...}` zulässig. Unter `post="exists"` (Standard oder explizit) sowie in `pre` ist `expect=False` verboten. | `ValueError` (`STATE-GUARD`) |
+| **3. Strikte `bool`-Prüfung auf `expect`** | `WorldState.expect` und `EBT.expect` akzeptieren ausschließlich `True` oder `False` (`type(val) is bool`). Werte wie `None`, `0`, `1` oder `"true"` werden abgewiesen. | `TypeError` (`STATE-GUARD`) |
+| **4. Wiederverwendung & Sticky-Quantor-Reset** | Führst du dasselbe `EBT`-Objekt mehrfach mit `.run()` aus (oder änderst `case.post.append(...)` in-place), bleibt der deklarierte Quantor erhalten. Weist du `case.pre = ...` oder `case.post = ...` jedoch ohne Dict-Wrapper neu zu (z. B. `case.post = [ws1, ws2]`), setzt Cubie den Quantor automatisch auf den Standard (`pre="all"`, `post="exists"`) zurück. | Automatischer Reset in `_arrange()` |
 
 > [!TIP]
-> **Kurz gemerkt:** Als `"quantor"` sind nur `"all"` und `"exists"` erlaubt, und `"states"` darf niemals leer sein. Außerdem akzeptiert das Wrapper-Dictionary ausschließlich die Schlüssel `"quantor"` und `"states"`. Wenn etwas davon nicht stimmt, stoppt Cubie den Testlauf sofort mit einer klaren `STATE-GUARD`-Fehlermeldung, bevor überhaupt Code ausgeführt wird. Die wirksamen Quantoren stehen anschließend als `trace.pre_quantor` und `trace.post_quantor` im `RunTrace`.
+> **Kontrolle im `RunTrace` und JSON-Bericht:** Welche Quantoren in einem Lauf tatsächlich wirksam waren, kannst du jederzeit nach `.run()` über `trace.pre_quantor` und `trace.post_quantor` (sowie in den JSON-Berichten des `JsonReporter`) ablesen.
 
-Wichtig für die Abgrenzung zu [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md):
+Wichtig für die Abgrenzung zu den anderen Handbüchern:
 
-* **`post` mit `"all"` ersetzt keine Paar-Zuordnung:** Alle positiven Zustände in `post` gelten gemeinsam für *jeden* ausgeführten Eingang aus `pre`. Wenn zwei unterschiedliche Eingaben (`3` und `5`) unterschiedliche Rückgaben (`6` und `10`) verlangen, gehören sie weiterhin in getrennte Verträge (oder in `@pytest.mark.parametrize`).
-* **Erwartungssteuerung kombinierbar:** Auch in `post={"quantor": "all", ...}` lassen sich explizite Verbote via `WorldState(..., expect=False)` einstreuen; alle Details dazu beschreibt [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md). Zurück zur Gesamtübersicht geht es im [QA-Handbuch](GUIDE_Quality-Assurance.md).
+* **`post` mit `"all"` ersetzt keine Paar-Zuordnung:** Alle Zustände in `post` gelten gemeinsam für *jeden* ausgeführten Eingang aus `pre`. Wenn zwei unterschiedliche Eingaben (`3` und `5`) unterschiedliche Rückgaben (`6` und `10`) verlangen, gehören sie weiterhin in getrennte Verträge oder in `@pytest.mark.parametrize` (siehe [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md)).
+* **Erwartungssteuerung gezielt kombinieren:** Wie du in `post={"quantor": "all", ...}` positive Soll-Ziele und Verbote (`WorldState(..., expect=False)`) sicher kombinierst und die „einsame Negation“ (*Vacuous Pass*) vermeidest, beschreibt [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md). Zurück zur Gesamtübersicht geht es im [QA-Handbuch](GUIDE_Quality-Assurance.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

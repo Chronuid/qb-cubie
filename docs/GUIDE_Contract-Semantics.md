@@ -20,16 +20,16 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.8, abgegl
 
 | Begriff / API | Bedeutung im vorhandenen Code |
 | --- | --- |
-| EBT-Vertrag | Endliche Menge konkreter Ausführungen mit gemeinsamen erlaubten/verbotenen Zielmustern. Kein Korrektheitsbeweis. |
-| `WorldState` | Veränderliche Dataclass mit `args`, `kwargs`, `arena`, `fs`, `returns`, `expect`, `raises`, `exception`. Kein allgemein bewiesenes Zustandsprädikat und keine eingefrorene Momentaufnahme. |
-| `pre` | Ein `WorldState` oder eine nichtleere Liste davon. Für jeden Eintrag wird das Target einmal aufgerufen. `None` wird zu `[WorldState()]`; `[]` führt zu `ValueError`. Ungültige Typen und Listeneinträge führen zu `TypeError`. |
-| `post` | Ein `WorldState` oder eine nichtleere Liste gemeinsamer Zielmuster mit denselben Validierungsregeln wie `pre`. `None` wird zu `[WorldState()]`; es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
+| EBT-Vertrag | Endliche Menge konkreter Ausführungen mit quantifizierten Eingängen (`pre_quantor`, Standard `"all"`) und gemeinsamen Zielmustern (`post_quantor`, Standard `"exists"`). Kein Korrektheitsbeweis. |
+| `WorldState` | Veränderliche Dataclass mit `args`, `kwargs`, `arena`, `fs`, `returns`, `expect` (strikt `bool`), `raises`, `exception`. Kein allgemein bewiesenes Zustandsprädikat und keine eingefrorene Momentaufnahme. |
+| `pre` | Ein `WorldState`, eine nichtleere Liste davon, `None` (wird zu `[WorldState()]`) oder ein Quantor-Dictionary `{"quantor": "all" \| "exists", "states": ...}` (Standard-Quantor: `"all"`). Für jeden Eintrag wird das Target einmal aufgerufen. `[]`, unbekannte Wrapper-Schlüssel/-Quantoren oder `pre[i].expect=False` führen zu `ValueError("STATE-GUARD: ...")`; ungültige Typen und Listeneinträge zu `TypeError("STATE-GUARD: ...")`. |
+| `post` | Ein `WorldState`, eine nichtleere Liste gemeinsamer Zielmuster, `None` (wird zu `[WorldState()]`) oder `{"quantor": "all" \| "exists", "states": ...}` (Standard-Quantor: `"exists"`). Es gibt keine Inferenz von `post=42` zu `WorldState(returns=42)`. |
 | `args` | `None` ergibt keine Positionsargumente. Listen und Tupel werden in Positionsargumente entpackt; andere Objekte werden als ein Argument übergeben. `args=[1, 2]` ruft `f(1, 2)` auf; `args=([1, 2],)` ruft `f([1, 2])` auf; `args=(None,)` ruft `f(None)` auf. |
 | `kwargs` | Ein Dictionary mit Schlüsselwortargumenten; `None` wird zu `{}`. Andere Werte führen zu `TypeError`. |
 | `post.returns` | Erwarteter Rückgabewert oder Muster. Ausgelassen oder `qb_cubie.UNSPECIFIED` bedeutet „nicht prüfen“; explizites `None` erwartet den Wert `None`. |
-| `post.expect=True` | Erlaubtes Zielmuster. Alle in diesem Zustand aktivierten Prüfungen müssen passen. |
-| `post.expect=False` | Verbotenes Zielmuster. Kein solches Muster darf vollständig passen. `pre.expect` steuert die EBT-Auswertung nicht. |
-| `EBT(expect=False)` | Negiert das aggregierte Ergebnis aller Eingangsschritte. Erwartet weder eine Exception noch das Scheitern jedes einzelnen Schritts. |
+| `post.expect=True` | Gefordertes/erlaubtes Zielmuster (`sat(p, q) = match(p, q)`). Alle in diesem Zustand aktivierten Prüfungen müssen passen. `expect` muss strikt `bool` (`True`/`False`) sein (`TypeError("STATE-GUARD: ...")` bei `None`, `int`, etc.). |
+| `post.expect=False` | Verbotenes Zielmuster (`sat(p, q) = not match(p, q)`). **Ausschließlich unter `post={"quantor": "all", ...}` zulässig**; unter `post_quantor="exists"` (implizit oder explizit) sowie in `pre` wird `expect=False` vor der Target-Ausführung mit `ValueError("STATE-GUARD: ...")` abgewiesen. |
+| `EBT(expect=False)` | Negiert das nach `pre_quantor` und `post_quantor` fertig aggregierte Gesamtergebnis aller Eingangsschritte (`expect` strikt `bool`, sonst `TypeError("STATE-GUARD: ...")`). Erwartet weder eine Exception noch das Scheitern jedes einzelnen Schritts. |
 | `EBT.arena` | Ausführbare Arena oder `None`. Ohne Arena wird das Callable direkt im aufrufenden Prozess ausgeführt. Es wird keine Arena automatisch aus `fs` abgeleitet. |
 | `pre.arena` | Ein Objekt mit `setup` überschreibt die globale Arena. Ein String dient bei aktiver `PyVenv` als Pfad zur Basisumgebung; er erzeugt selbst keine Arena. |
 | `post.arena` | Ein String oder ein Objekt mit `env_path` liefert den Vergleichspfad für den Arena-Dateiabgleich. Andere Objekte liefern keine solche Vergleichsvorlage. |
@@ -48,22 +48,33 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.8, abgegl
 
 ## Endliche Auswertungsregel
 
-Seien `P` die deklarierten Eingänge, `Q+` die positiven und `Q−` die negativen Zielmuster. `match(p, q)` bedeutet: Das bei der Ausführung von `p` beobachtete Ergebnis erfüllt alle in `q` aktivierten Vergleiche.
+Seien `P` die nichtleere Liste der deklarierten Eingänge (`pre` mit `pre_quantor` $\in \{\text{"all"}, \text{"exists"}\}$, Standard `"all"`) und `Q` die nichtleere Liste der Zielmuster (`post` mit `post_quantor` $\in \{\text{"all"}, \text{"exists"}\}$, Standard `"exists"`). `match(p, q)` (`EvaluationTrace.evaluation`) bedeutet: Das bei der Ausführung von `p` beobachtete Ergebnis erfüllt alle in `q` aktivierten Vergleiche (`diffs is None`).
 
-Für jeden Eingang gilt:
+Vor der Ausführung stellt der `STATE-GUARD` sicher, dass alle `expect`-Flags strikt vom Typ `bool` sind (`TypeError`), für alle $p \in P$ stets `p.expect is True` gilt (`ValueError`) und unter `post_quantor == "exists"` für alle $q \in Q$ ebenfalls `q.expect is True` gilt (`ValueError`).
+
+Für jeden Eingang $p \in P$ und jedes Zielmuster $q \in Q$ gilt:
 
 ```text
-schritt_ok(p) = (Q+ ist leer ODER mindestens ein q aus Q+ passt)
-               UND (kein q aus Q− passt)
-lauf_ok      = alle schritt_ok(p)
-evaluation   = lauf_ok, falls EBT.expect=True, sonst NICHT lauf_ok
+sat(p, q)     = match(p, q),       falls q.expect is True
+                NICHT match(p, q), falls q.expect is False  (nur unter post_quantor="all" zulässig)
+
+schritt_ok(p) = mindestens ein q aus Q erfüllt sat(p, q), falls post_quantor == "exists"
+                alle q aus Q erfüllen sat(p, q),          falls post_quantor == "all"
+
+lauf_ok       = alle schritt_ok(p) für p aus P,           falls pre_quantor == "all"
+                mindestens ein schritt_ok(p) für p aus P, falls pre_quantor == "exists"
+
+evaluation    = lauf_ok, falls EBT.expect is True, sonst NICHT lauf_ok
 ```
 
-Sind ausschließlich negative Zielmuster angegeben, ist kein positives Match erforderlich. Das schließt nur die benannten Muster aus. Sind positive Muster vorhanden, reicht das Vermeiden negativer Muster allein nicht aus.
+**Einfach zusammengefasst (für Einsteiger & Alltag):**
+* **Im Standardfall (`pre="all"`, `post="exists"`):** Für **jede** Eingabe in `pre` (UND) muss **mindestens ein** Zielmuster in `post` (ODER) passen.
+* **Bei `post={"quantor": "all", "states": [...]}`:** Für die Eingabe müssen **alle** Einträge in `post` gleichzeitig erfüllt sein (UND) – alle positiven Muster (`expect=True`) müssen zutreffen und kein verbotenes Muster (`expect=False`) darf zutreffen.
+* **Warnung vor einsamer Negation (*Vacuous Pass*):** Besteht `post` unter `post_quantor == "all"` ausschließlich aus negativen Zielmustern (`expect=False`), schließt der Vertrag nur diese benannten Muster aus; jede andere Rückgabe (wie `None`) erfüllt dann `all(not match(p, q))` trivial. Verbote sollten daher stets mit mindestens einem positiven Zielmuster (`expect=True`) im selben `"quantor": "all"`-Vertrag kombiniert werden.
 
-Jeder Eingang wird gegen dieselbe gesamte Zielmenge verglichen. `pre=[1, 2]` und `post=[2, 4]` sind hier nur Kurznotation für die Mengenidee, **keine gültige API-Schreibweise**: Tatsächlich werden `WorldState`-Objekte benötigt. Auch mit diesen Objekten würde eine gemeinsame Zielmenge `{2, 4}` eine vertauschte Zuordnung akzeptieren. Für `f(1)=2` und `f(2)=4` sind getrennte Verträge nötig.
+Jeder Eingang wird gegen dieselbe gesamte Zielmenge verglichen. `pre=[1, 2]` und `post=[2, 4]` sind hier nur Kurznotation für die Mengenidee, **keine gültige API-Schreibweise**: Tatsächlich werden `WorldState`-Objekte benötigt. Auch mit diesen Objekten würde eine gemeinsame Zielmenge `{2, 4}` unter `post_quantor="exists"` eine vertauschte Zuordnung akzeptieren. Für `f(1)=2` und `f(2)=4` sind getrennte Verträge nötig.
 
-Die Quantoren beziehen sich nur auf die endlichen Listen und die jeweils beobachteten Ausführungen. Bei nichtdeterministischen Targets belegt ein Match weder alle möglichen Ausgaben noch deren Häufigkeit. Die Auswertungsregel ist kein Beweiskalkül und misst keine Testabdeckung.
+Die Quantoren beziehen sich nur auf die endlichen Listen und die jeweils beobachteten Ausführungen (für eine direkt an `evaluate_step_logic([], post_quantor)` übergebene leere Trace-Liste liefert `"exists"` gemäß `any([])` den Wert `False` und `"all"` gemäß `all([])` den Wert `True`; `EBT` selbst lehnt leere Zustandslisten vorab per `ValueError` ab). Bei nichtdeterministischen Targets belegt ein Match weder alle möglichen Ausgaben noch deren Häufigkeit. Die Auswertungsregel ist kein Beweiskalkül und misst keine Testabdeckung.
 
 ## Rückgabevergleich
 
@@ -202,7 +213,7 @@ vorher ausdrücklich provisioniert werden.
 
 Jeder `.run()`-Aufruf beginnt mit einer neuen Lauf-ID, leeren Traces und Outcomes sowie zurückgesetzter Bewertung und Laufzeit. Eine Instanz kann nacheinander wiederverwendet werden. Nach einem Ausführungsabbruch bleibt `run_trace` leer; nach einer Reporter-Assertion ist das abgeschlossene, fehlgeschlagene Ergebnis verfügbar.
 
-Zustandslisten werden beim Aufbau der EBT-Instanz und vor jedem Lauf geprüft. FS-Kurzformen werden vor jedem Lauf auf Namenskollisionen geprüft. Damit werden auch nachträgliche Konfigurationsänderungen validiert. Konfigurationsfehler propagieren unabhängig von `expect=False` und `reporter=None`.
+Zustandslisten, Quantor-Wrapper und `expect`-Flags (`bool`-Typ sowie das Verbot von `expect=False` in `pre` und unter `post_quantor="exists"`) werden beim Aufbau der EBT-Instanz und vor jedem Lauf in `_arrange()` geprüft. FS-Kurzformen werden vor jedem Lauf auf Namenskollisionen geprüft. Damit werden auch nachträgliche In-Place-Mutationen (etwa `case.post[0].expect = False` oder `case.post.append(...)`) vor der Ausführung validiert. Bei wiederholten `.run()`-Aufrufen ohne Neuzuweisung von `case.pre` bzw. `case.post` (sowie bei In-Place-Listenmutationen) bleiben explizit deklarierte Quantoren (`pre_quantor`, `post_quantor`) erhalten; wird `case.pre` oder `case.post` hingegen ohne Quantor-Dictionary neu zugewiesen (Einzel-`WorldState`, Liste oder `None`), setzt `_arrange()` den jeweiligen Quantor auf seinen Standardwert (`pre_quantor="all"`, `post_quantor="exists"`) zurück. Konfigurationsfehler propagieren unabhängig von `expect=False` und `reporter=None`.
 
 Die Vorzustände werden vor der Target-Ausführung erfasst. Aufgezeichnete Zustände, verschachtelte Rückgabewerte, Diffs und die Arena-Metadaten werden mittels `deepcopy` von den gelieferten Objekten getrennt. Diese Objekte müssen tief kopierbar sein; Kopierfehler werden weitergegeben. Spätere Läufe und Änderungen an den ursprünglichen Daten verändern zurückgegebene Ergebnisse nicht. Die Ergebnis-Dataclasses sind weiterhin durch den Empfänger veränderbar. Workspace-Pfade sind keine archivierten Dateiinhalte.
 
@@ -224,7 +235,7 @@ Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre ei
 ## Persistente EBT-Berichte
 
 `JsonReporter(path)` speichert einen abgeschlossenen `RunTrace` als UTF-8-JSON mit
-`schema_version: 1`, Lauf-ID, Target, Laufzeit, `expect`, Gesamtbewertung und allen
+`schema_version: 1`, Lauf-ID, Target, Laufzeit, `expect`, `pre_quantor`, `post_quantor`, Gesamtbewertung und allen
 Vergleichsspuren einschließlich positiver und negativer Post-Zustände.
 `pre`, `post`, `outcome` und aufgezeichnete Diffs bleiben nach Teardown auswertbar.
 Die Ausgabe liest weder Workspace noch Referenzdateien erneut. Dateien selbst

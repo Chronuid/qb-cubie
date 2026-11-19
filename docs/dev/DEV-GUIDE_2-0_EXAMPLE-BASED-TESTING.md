@@ -18,7 +18,7 @@ EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung vo
 
 ## Komponenten
 
-- `EBT` normalisiert Zustandslisten, führt je Eingang eine Aufgabe aus und aggregiert deren Vergleiche.
+- `EBT` normalisiert `pre`-/`post`-Eingaben (`WorldState`, nichtleere Listen, `None` oder explizite Quantor-Wrapper-Dictionaries `{"quantor": "all" | "exists", "states": ...}`, Standard `pre_quantor="all"`, `post_quantor="exists"`), führt je Eingang eine Aufgabe aus und aggregiert deren Vergleiche.
 - `WorldState` ist eine veränderliche Dataclass für Argumente, Rückgabemuster, Dateien und Arena-Konfiguration. Primitive `pre`-/`post`-Werte werden nicht automatisch in solche Objekte konvertiert.
 - `Arena` beschreibt Aufbau, Ausführung, Zustandserfassung und Aufräumen einer Umgebung. `TempFS` nutzt den Host-Interpreter, `PyVenv` eine kopierte virtuelle Umgebung; beide laufen in Kindprozessen ohne OS-Sicherheitsgrenze.
 - `EvaluationTrace` enthält einen rohen Vergleich zwischen einem beobachteten Ergebnis und einem Zielmuster. `RunTrace` bündelt Vergleiche und aggregiertes Ergebnis. Beide sind veränderlich.
@@ -26,7 +26,7 @@ EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung vo
 
 ## Ablauf und Grenzen
 
-`run()` ruft `_arrange()`, `_validate()` und `_report()` auf. Die Zustände werden als `WorldState` oder Listen davon übergeben. Für jeden Eingang gilt dieselbe Zielmenge; es gibt keine paarweise Zuordnung. Bei regulärem Abschluss wird der `RunTrace` zurückgegeben. Target- oder Reporter-Exceptions können die Rückgabe verhindern.
+`run()` ruft `_arrange()`, `_validate()` und `_report()` auf. Die Zustände werden als `WorldState`, nichtleere Listen davon, `None` oder als Quantor-Wrapper-Dictionary `{"quantor": "all" | "exists", "states": ...}` übergeben (Standard: `pre_quantor="all"`, `post_quantor="exists"`). Für jeden Eingang gilt dieselbe Zielmenge; es gibt keine paarweise Zuordnung. Bei regulärem Abschluss wird der `RunTrace` zurückgegeben. Target- oder Reporter-Exceptions können die Rückgabe verhindern.
 
 Der Aufruf ist synchron. EBT wartet Coroutine-Targets nicht automatisch ab; bei Bedarf muss ein synchroner Wrapper die asynchrone Ausführung übernehmen. Ohne Arena läuft das Callable im aufrufenden Prozess und dessen Zustand bleibt zwischen Eingangsschritten erhalten.
 

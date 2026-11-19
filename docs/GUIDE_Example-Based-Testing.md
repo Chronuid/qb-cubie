@@ -40,7 +40,7 @@ Kuratierte Referenzdaten müssen konsistent und überprüfbar sein. Ergänze sie
 
 ## Grenzen des aktuellen Prüfkerns
 
-Verwende pro Ausführung eine neue EBT-Instanz, nichtleere Zustandslisten und explizite Erwartungen. `returns=None` erwartet explizit `None`; ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` lässt den Rückgabewert offen. Die verbleibenden Fehler sind in der [Semantikreferenz](GUIDE_Contract-Semantics.md) und im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
+Verwende nichtleere Zustandslisten und explizite Erwartungen; bei aufeinanderfolgenden `.run()`-Aufrufen auf derselben EBT-Instanz setzt Cubie die Laufdaten (und bei Neuzuweisung von `pre`/`post` ohne Dict-Wrapper auch den jeweiligen Quantor) automatisch zurück, nicht jedoch externe Target-Seiteneffekte. `returns=None` erwartet explizit `None`; ausgelassenes `returns` oder `returns=qb_cubie.UNSPECIFIED` lässt den Rückgabewert offen. Die genauen Quantor- und `expect`-Regeln stehen in der [Semantikreferenz](GUIDE_Contract-Semantics.md), in [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) und in [Fortgeschrittene Quantoren](GUIDE_Quantifiers.md); historische Befunde sind im [Gutachten](../GUTACHTEN.md) dokumentiert. Erfolgreiche Beispiele sind begrenzte Beobachtungen, keine allgemeine Korrektheitsgarantie.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

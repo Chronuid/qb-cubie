@@ -67,6 +67,11 @@ Vertrag erfüllt: True
 ```
 </details>
 
+**Kurz erklärt für Programmier- und Python-Einsteiger:**
+* **`def double(x: int) -> int:`** definiert in Python eine **Funktion** (wie eine kleine Küchenmaschine): Oben wirfst du eine ganze Zahl `x` (`int`) hinein, drinnen rechnet sie `x * 2`, und mit **`return`** gibt sie das fertige Ergebnis zurück.
+* **`WorldState(...)`** ist dein **Wunschzettel (Zustandsbeschreibung)**: In **`pre=WorldState(args=3)`** steht, welches Argument (`args=3`) wir oben in die Funktion hineinstecken. In **`post=WorldState(returns=6)`** steht, welchen Rückgabewert (`returns=6`) wir unten erwarten.
+* **`EBT(...).run()`** führt den Vertrag aus und gibt das Prüfprotokoll **`trace`** zurück. Darin zeigt **`trace.evaluation`** als Wahrheitswert (`True` = bestanden, `False` = durchgefallen), ob der Vertrag eingehalten wurde.
+
 Damit Verträge auch bei mehreren Testfällen, Verboten und komplexeren Regeln verlässlich bleiben, baut Cubie auf drei einfachen Grundbausteinen auf:
 
 ### Baustein A: Klare Paare statt Mischmasch (Eindeutigkeit & Kopplung)
@@ -80,36 +85,36 @@ Wenn du mehrere Wertepaare prüfen willst (zum Beispiel `3 -> 6` und `5 -> 10`),
 
 ### Baustein B: Erlaubtes und Verbotenes steuern (`expect`-Flags)
 
-Standardmäßig bedeutet `expect=True`: *„Genau das soll passieren.“* Mit `expect=False` kannst du gezielt sagen, was **nicht** passieren darf – und zwar auf zwei Ebenen:
+Standardmäßig bedeutet `expect=True`: *„Genau das soll passieren.“* Mit `expect=False` (strikt `bool`: `True` oder `False`) kannst du gezielt sagen, was **nicht** passieren darf – und zwar auf zwei klar getrennten Ebenen, ohne dass jemals ein Quantor heimlich überschrieben wird:
 
-1. **Auf einem `WorldState` in `post` (Verbot):** Du legst fest, was herauskommen muss (`expect=True`), und verbietest gleichzeitig gefährliche Werte (`expect=False`, z. B. negative Preise). Hat ein alter Test versehentlich einen Bug als gültig abgespeichert, drehst du ihn mit `expect=False` um und ergänzt das echte Soll-Ziel: Sofort wird der Test ehrlich rot, bis der Bug behoben ist.
-2. **Auf `EBT(..., expect=False)` (Gegenprobe):** Du kehrst das Ergebnis des gesamten Vertrags um. So beweist du in der Red-Phase, dass dein Vertrag bei einem bekannten Fehler tatsächlich anschlägt.
+1. **Auf einem `WorldState` in `post` (Verbot unter `"quantor": "all"`):** Du legst fest, was herauskommen muss (`expect=True`), und verbietest gleichzeitig gefährliche Werte (`expect=False`, z. B. negative Preise). Weil Soll-Ziel **und** Verbot gleichzeitig gelten müssen (UND-Checkliste), stehen solche Zustände immer in **`post={"quantor": "all", "states": [...]}`**. Im Standard-ODER-Modus (`post="exists"`) sowie in `pre` blockiert Cubies `STATE-GUARD` jedes `WorldState(..., expect=False)` sofort mit einem `ValueError`.
+2. **Auf `EBT(..., expect=False)` (Gegenprobe auf Vertragsebene):** Du kehrst das fertige Gesamtergebnis des gesamten Vertrags am Ende um. So beweist du in der Red-Phase, dass dein Soll-Vertrag bei einem bekannten Fehler tatsächlich anschlägt.
 
 > [!CAUTION]
-> **Vorsicht vor der „einsamen Negation“ (*Vacuous Pass*):** Schreibst du in `post` *nur* ein Verbot (`expect=False`) ohne mindestens ein positives Soll-Ziel (`expect=True`), schlüpfen völlig falsche Werte (wie `None`) unbemerkt durch – weil sie technisch gesehen nicht der verbotene Wert sind.
+> **Vorsicht vor der „einsamen Negation“ (*Vacuous Pass*):** Selbst wenn du `post={"quantor": "all", "states": [...]}` nutzt, darfst du darin nicht *nur* Verbote (`expect=False`) ohne mindestens ein positives Soll-Ziel (`expect=True`) angeben. Sonst schlüpfen völlig falsche Rückgaben (wie `None`, also „Nichts“) unbemerkt grün durch, bloß weil sie technisch gesehen nicht der eine verbotene Wert sind.
 
-👉 **Alle Muster, Reparatur-Beispiele und Warnhinweise:** [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md)
+👉 **Alle Muster, Reparatur-Beispiele und `STATE-GUARD`-Regeln:** [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md)
 
 ### Baustein C: „Alle“ oder „mindestens eines“ gezielt wählen (`all` vs. `exists`)
 
-Ohne besondere Angabe arbeitet Cubie nach zwei Alltagsregeln:
+Ohne besondere Angabe arbeitet Cubie nach zwei **reinen Standardregeln**, die durch kein `expect`-Flag heimlich verändert werden:
 
-* In **`pre`** müssen **alle** angegebenen Eingänge bestehen (`"all"`).
-* In **`post`** reicht es, wenn **mindestens ein** erlaubtes Zielmuster passt (`"exists"`).
+* In **`pre`** gilt der **reine Allquantor (`"all"` — die UND-Checkliste)**: **Alle** angegebenen Eingänge müssen bestehen.
+* In **`post`** gilt der **reine Existenzquantor (`"exists"` — die ODER-Auswahlliste)**: Es reicht, wenn **mindestens ein** angegebenes Zielmuster passt.
 
-Manchmal brauchst du es genau umgekehrt. Dann verpackst du die Zustände einfach in `{"quantor": ..., "states": ...}`:
+Wenn du es andersherum brauchst (oder in `post` ein Verbot mit `expect=False` kombinierst), verpackst du die Zustände explizit in das Dictionary `{"quantor": ..., "states": ...}`:
 
-* **`post` mit `"all"`:** Das Ergebnis muss **alle** Regeln gleichzeitig erfüllen (z. B. *eine ganze Zahl **und** positiv **und** gerade*).
-* **`pre` mit `"exists"`:** Es genügt, wenn **mindestens eine** von mehreren Eingabe-Routen zum Erfolg führt (z. B. `/main` oder `/backup` antwortet mit `"ok"`).
+* **`post` mit `"all"` (UND-Checkliste):** Das Ergebnis muss **alle** Regeln gleichzeitig erfüllen (z. B. *eine ganze Zahl **und** positiv **und** nicht `-10`*).
+* **`pre` mit `"exists"` (ODER-Auswahlliste):** Es genügt, wenn **mindestens eine** von mehreren Eingabe-Routen zum Erfolg führt (z. B. Hauptleitung `/main` **oder** Ersatzleitung `/backup` antwortet mit `"ok"`).
 
-👉 **Alle Code-Beispiele und `STATE-GUARD`-Regeln:** [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md)
+👉 **Alle Code-Beispiele, `STATE-GUARD`-Regeln und Lebenszyklus-Details:** [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md)
 
 ### Spickzettel für den Einstieg
 
 | Was möchtest du prüfen? | Empfohlenes Mittel | Weiterführendes Handbuch |
 | :--- | :--- | :--- |
 | Mehrere konkrete Ein-/Ausgabepaare (`3 -> 6`, `5 -> 10`) | Getrennte Verträge oder `@pytest.mark.parametrize` | [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md) |
-| Soll-Wert fordern und gefährliche Werte verbieten | `WorldState(..., expect=True)` + `WorldState(..., expect=False)` | [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) |
+| Soll-Wert fordern und gefährliche Werte verbieten | `post={"quantor": "all", "states": [WorldState(..., expect=True), WorldState(..., expect=False)]}` | [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) |
 | Prüfen, ob ein Vertrag bei einem Bug wirklich rot wird | `EBT(..., expect=False)` auf dem Soll-Vertrag | [Erwartungssteuerung & Safety](GUIDE_Expect-Flags.md) |
 | Mehrere Bedingungen gleichzeitig oder alternative Routen | `{"quantor": "all" \| "exists", "states": ...}` | [Fortgeschrittene Quantoren](GUIDE_Quantifiers.md) |
 
@@ -119,38 +124,50 @@ Manchmal brauchst du es genau umgekehrt. Dann verpackst du die Zustände einfach
 
 ## 2. Die gefährlichste Falle der Qualitätssicherung: Charakterisierung ( $Q_{\text{Ist}}$ ) vs. Spezifikation ( $Q_{\text{Soll}}$ )
 
-Eine der wichtigsten Erfahrungen aus der praktischen Arbeit mit Test-Suiten – gerade nach explorativen Analysen – betrifft den Unterschied zwischen **Beobachtung ( $Q_{\text{Ist}}$ )** und **Gesetz ( $Q_{\text{Soll}}$ )** sowie den Grundsatz: **Ein einmal richtig eingestellter Prüffall wird nicht mehr manipuliert.**
+Eine der wichtigsten Erfahrungen aus der praktischen Arbeit mit Test-Suiten – gerade nach explorativen Analysen – betrifft den Unterschied zwischen **Beobachtung ( $Q_{\text{Ist}}$ )** und **Gesetz ( $Q_{\text{Soll}}$ )** sowie den Grundsatz: **Ein einmal richtig auf $Q_{\text{Soll}}$ eingestellter Prüffall wird in der Green-Phase nicht mehr manipuliert.**
 
-Wenn wir bestehenden Code explorativ auf Randfälle abklopfen, beobachten wir zunächst das tatsächliche Ist-Verhalten des Systems. Übernimmt man dieses beobachtete Verhalten in die Test-Suite, obwohl es sich um einen Bug handelt, entsteht ein **Fehler in der Test-Suite selbst**: Weil `WorldState` standardmäßig `expect=True` setzt, wird das beobachtete Fehlersymptom fälschlicherweise als erwünschter Zustand deklariert.
+* **Einfach erklärt ($Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$):**
+  * **$Q_{\text{Ist}}$ (Das Foto vom Tatort / Charakterisierung):** Beschreibt, was der Code im Moment *tatsächlich tut* – inklusive seiner Fehler und Eigenheiten.
+  * **$Q_{\text{Soll}}$ (Der Bauplan / Spezifikation):** Beschreibt, was der Code *eigentlich tun muss*, damit er fachlich und logisch korrekt arbeitet.
+  * **Die Falle:** Wenn man bestehenden Code ausprobiert und das beobachtete Ergebnis ($Q_{\text{Ist}}$) blind mit dem Standard `expect=True` in einen Test kopiert, obwohl darin ein Bug steckt, verteidigt der Test ab sofort den Bug!
 
 Die Folgen eines solchen Fehlers in der Test-Suite sind gravierend:
 
 * **Falscher Erfolg (False Positive):** Die Test-Suite leuchtet komplett grün (`PASSED`), obwohl der Defekt mitten im System steckt.
-* **Blockierte Reparatur:** Sobald der Bug im Produktionscode behoben wird, schlägt der fehlerhaft eingestellte Test rot fehl, weil er den Bug verteidigt.
+* **Blockierte Reparatur:** Sobald jemand den Bug im Produktionscode beheben will, schlägt der fehlerhaft auf $Q_{\text{Ist}}$ eingestellte Test rot fehl, weil er das alte Fehlverhalten erzwingt. (Genau das zeigte sich auch bei der Härtung des Cubie-Cores: Mehrere ältere Tests hatten sich darauf verlassen, dass `WorldState(expect=False)` im Standard-`post` heimlich den Existenzquantor überschreibt – erst die Umstellung dieser Tests von der fehlerhaften $Q_{\text{Ist}}$-Gewohnheit auf die explizite $Q_{\text{Soll}}$-Deklaration `post={"quantor": "all", ...}` machte den Weg für die Core-Reparatur frei.)
 
 ---
 
 ## 3. Test-Guided Development (TGD) in fünf Schritten
 
-Test-Guided Development erweitert klassisches TDD um explorative System-Audits, zustandsfreie Projektions-Adapter und die strikte Trennung orthogonaler Prüf-Ebenen. Dieser fünfstufige Ablauf hat sich bei der Entwicklung des Cubie-Kerns besonders bewährt:
+Test-Guided Development (TGD) erweitert klassisches Test-Driven Development (TDD) um explorative System-Audits, formale Meta-QA-Prüffragen an die Test-Suite selbst und die strikte Trennung orthogonaler Prüf-Schichten (`tests/` $\to$ `src/` $\to$ `docs/`). Die jüngste Reparatur der Quantoren-Semantik im Cubie-Core veranschaulicht diesen fünfstufigen Ablauf in der Praxis:
 
-### Schritt 1: Baseline & Exploratives Audit
-Bevor neue Regeln oder Features entstehen, wird der Ist-Zustand vermessen: Laufen bestehende Suiten grün? Welche impliziten Annahmen trifft der Code an seinen Grenzen (leere Eingaben, ungewöhnliche Pfadnamen, mehrstufige Sessions, Timeouts, Prozessgrenzen)? Explorative Mini-Experimente legen überraschende Kantenfälle frei, noch bevor eine Zeile Produktionscode geändert wird.
+### Schritt 1: Baseline, Exploratives Audit & Meta-QA-Hypothesenbildung (`ANALYSIS` & `HYPOTHESIS`)
+Bevor eine einzige Zeile Code oder Test geändert wird, wird der Ist-Zustand ($Q_{\text{Ist}}$) gegen das gewünschte Architektur-Gesetz ($Q_{\text{Soll}}$) vermessen und in überprüfbare Hypothesen überführt:
+* **Einfach erklärt:** Erst Detektivarbeit leisten und einen klaren Reparaturplan aufstellen, statt blind im Code herumzuprobieren.
+* **Für Experten (Meta-QA-Fragen an die Test-Suite):** Prüfe bestehende und geplante Tests vorab auf **logische Subsumtion** ($Q_{\text{pos}} \implies \neg Q_{\text{neg}}$, bei der ein positives Ziel das Verbot bereits impliziert und das Verbot dadurch ungetestet bleibt), **prädikatenlogische Tautologien** (wie $(y \in \mathbb{Z}) \lor (y \neq 99) \equiv \top$ unter `post="exists"`), **Vacuous Passes** (`0pos/Kneg`) und **überlebende Core-Mutanten** (schlägt wirklich ein Test fehl, wenn eine Kernfunktion wie `evaluate_step_logic()` ungefixt bleibt?).
 
 ### Schritt 2: Schlanke, zustandsfreie Test-Adapter (`Stateless Adapters`)
-Wenn das zu prüfende Subsystem komplexe Report-Objekte mit vielen internen Feldern zurückgibt, sollte der Test nicht an irrelevanten Implementierungsdetails kleben. Bewährt hat sich ein kurzer, zustandsfreier Test-Adapter (meist 5–12 Zeilen), der das Subsystem aufruft und das Ergebnis auf ein kanonisches Prüf-Dictionary projiziert (z. B. `{"passed": report.passed, "rules": [d.rule_id for d in report.diagnostics]}`). Dadurch bleiben die `WorldState`-Definitionen im `EBT`-Aufruf kompakt und selbsterklärend.
+Wenn das zu prüfende Subsystem komplexe Report-Objekte mit vielen internen Feldern zurückgibt, sollte der Test nicht an irrelevanten Implementierungsdetails kleben.
+* **Einfach erklärt:** Schreibe eine winzige Hilfsfunktion (5–12 Zeilen), die das komplexe Ergebnis auf ein kleines, übersichtliches Python-Dictionary mit den wirklich wichtigen Eckdaten zusammenfasst (z. B. `{"passed": report.passed, "rules": [d.rule_id for d in report.diagnostics]}`). Dadurch bleiben die `WorldState`-Definitionen im `EBT`-Aufruf kurz und auf einen Blick lesbar.
 
-### Schritt 3: Äquivalenzklassen & Kantenfälle statt Daten-Flut
-Zwanzig fast identische Happy-Path-Werte erhöhen die Laufzeit, aber nicht die Aussagekraft. Besser ist die gezielte Partitionierung in fachliche Äquivalenzklassen:
-* **Positiv-Invarianz:** Repräsentative Normalfälle unter realistischem Umgebungsrauschen.
-* **Exakte Schwellenwerte (Off-by-One):** Wenn eine Grenze bei $20$ Zeichen oder $30$ Zeilen liegt, prüfe gezielt $19$ vs. $20$ bzw. $30$ vs. $31$.
-* **Explizite `STATE-GUARD`s:** Ungültige Typen, leere Strings oder Werte außerhalb des Definitionsbereichs müssen frühzeitig mit einer klaren Fehlermeldung abgewiesen werden.
+### Schritt 3: Äquivalenzklassen, Kantenfälle & Lebenszyklus-Invarianten statt Daten-Flut
+Zwanzig fast identische Gutwetter-Tests erhöhen nur die Laufzeit, aber nicht die Sicherheit. Entscheidend ist die gezielte Abdeckung der fachlichen Äquivalenzklassen und Zustandsübergänge:
+* **Positiv-Invarianz & Schwellenwerte (Off-by-One):** Repräsentative Normalfälle sowie exakte Grenzwerte (z. B. $19$ vs. $20$ Zeichen oder $30$ vs. $31$ Codezeilen).
+* **Explizite `STATE-GUARD`s & Python-Typfallen:** Ungültige Konfigurationen müssen vor der Target-Ausführung mit `ValueError` oder `TypeError` (`match="STATE-GUARD"`) abgewiesen werden. Beachte dabei Python-Besonderheiten wie `issubclass(bool, int) is True`: Ein echter `bool`-Guard prüft `type(val) is bool`, damit Zahlen wie `1` oder `0` sowie `None` nicht durchrutschen.
+* **Lebenszyklus- & Mutations-Übergänge:** Wenn Objekte wiederverwendet werden (wie ein `EBT`-Fall über mehrere `.run()`-Aufrufe), prüfe den gesamten Zyklus: (1) zweiter Lauf *ohne* Neuzuweisung (Quantor bleibt erhalten), (2) In-Place-Listenmutation `case.post.append(...)` bzw. Attribut-Mutation `ws.expect = False`, und (3) Attribut-Neuzuweisung `case.post = [...]` ohne Wrapper (Quantor springt sauber auf den Standard `"exists"` bzw. `"all"` zurück).
 
-### Schritt 4: Prüffälle einmalig fixieren & Red-Phase prüfen
-Jeder Prüffall wird vor der Code-Änderung einmalig sauber eingestellt – entweder als positives Soll-Gesetz (`expect=True`) oder, falls ein exploratives Szenario das Fehlersymptom selbst abbildet, durch Setzen von `expect=False`. Sobald dieser Prüffall steht und gegen den ungefixten Code rot anschlägt, wird der Test selbst nicht mehr verändert.
+### Schritt 4: TGD Red-Phase — Test-Suite isoliert schärfen, Red-Nachweis führen & Tests einfrieren
+In der Red-Phase wird **ausschließlich `tests/`** bearbeitet (`src/` und `docs/` bleiben unangetastet):
+1. **Altlasten ($Q_{\text{Ist}}$) und Meta-Gates bereinigen:** Bestehende Tests, die versehentlich altes Fehlverhalten voraussetzen, werden auf die saubere $Q_{\text{Soll}}$-Deklaration (z. B. `post={"quantor": "all", "states": [...]}`) migriert; statische Wächter (`test_gate_2.py`, `test_gate_3.py`) werden nach der Wächter-Kalibrierungs-Triade (Clean-Probes, Fault-Probes, Repo-Scan) aktualisiert. Alle migrierten Bestands-Tests müssen bereits gegen den aktuellen Core **100 % grün (`PASSED`)** laufen.
+2. **Gezielter Red-Nachweis für neue Verträge:** Die neuen Guard-, Invarianten- und Lebenszyklus-Tests werden hinzugefügt und müssen gegen den noch unreparierten Core deterministisch **rot fehlschlagen (`FAILED`)** – das beweist, dass die neuen Tests scharf geschaltet sind und keinen überlebenden Mutanten dulden.
+3. **Strikter Test-Freeze:** Sobald dieses exakte Differenzsignal (Bestand grün, neue Verträge kontrolliert rot) steht, wird die Test-Suite **eingefroren**.
 
-### Schritt 5: Orthogonale Reparatur & Stil-Verifikation
-Bei der anschließenden Reparatur im Quellcode gilt das Gesetz der Orthogonalität: Ein struktureller Fehler darf statische Regeln nicht blind abschalten, und eine benutzerdefinierte Regel darf wichtige Standard-Checks nicht unbemerkt verdrängen. Den Abschluss bildet der Lauf über alle Ebenen (`pytest`, `AstLinter`/`CstLinter` und `DocEnsurance`).
+### Schritt 5: TGD Green-Phase & Living-Documentation-Sync — Core reparieren & alle Schichten synchronisieren
+In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/`** repariert:
+* **Unantastbarkeit der Tests & Eskalations-Protokoll (`GREEN_AUDIT`):** Während der Core-Reparatur gilt ein striktes Änderungsverbot auf `tests/**/*.py` (keine Edits, kein `skip`, kein Abschwächen von Assertions). Taucht unterwegs der begründete Verdacht auf, dass sich in der Red-Phase ein Denkfehler oder Widerspruch in einen Test eingeschlichen hat, wird der Test **nicht** heimlich umgeschrieben, sondern ein strukturierter Befundbericht (z. B. `tests/GREEN_AUDIT.md`) mit Zeilennummer, Reproduktionsbeleg und Klärungsvorschlag angelegt.
+* **Code-Härtung unter Stil-Gates:** Der Core wird innerhalb der harten Architektur-Grenzen (`MODULE_LIMIT = 777` Zeilen, `FUNCTION_LIMIT = 12` physische Body-Zeilen, einzeilige Docstrings, `0` Fehler in `ruff`, `pylint` und `mypy --warn-unreachable`) repariert, bis alle zuvor roten Tests auf **`PASSED`** springen.
+* **Living-Documentation-Sync (`DocEnsurance`):** Sobald ein neuer `STATE-GUARD` im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_styleguide.py::test_docs_code_examples`) und zeigt auf jedes Code-Beispiel in `docs/`, das noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen.
 
 ---
 
@@ -159,7 +176,7 @@ Bei der anschließenden Reparatur im Quellcode gilt das Gesetz der Orthogonalit�
 Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit ihrer Werkzeuge kennt – aber ihre Aussagen niemals überdehnt. Auch eine zu 100 % grüne Test-Suite unterliegt klaren erkenntnistheoretischen Grenzen:
 
 * **Beobachtete Konformität statt Allgemeinbeweis:** Ein bestandener `EBT`- oder `DocEnsurance`-Lauf zeigt, dass die konkret ausgeführten Beispiele unter den jeweiligen Testbedingungen zu den deklarierten Sollmustern passen. Er ist eine starke empirische Evidenz gegen Regressionen, ersetzt aber keinen mathematischen Korrektheitsbeweis über alle denkbaren Eingaben aus $\Sigma^*$.
-* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ( $\{P\}$ ), `target` ( $S$ ) und `post` ( $\{Q\}$ ) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten: Jeder ausgeführte Eingang aus `pre` muss mindestens einen positiven Zustand aus `post` (`expect=True`) erfüllen und darf keinen negativen Zustand (`expect=False`) verletzen. Details regelt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
+* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ( $\{P\}$: *Was stecken wir vorher hinein?* ), `target` ( $S$: *Welche Funktion führen wir aus?* ) und `post` ( $\{Q\}$: *Was muss nachher herauskommen?* ) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel der Informatik. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten nach reinen Quantoren: Standardmäßig muss jeder ausgeführte Eingang aus `pre` (`pre_quantor="all"`, UND) mindestens einen Zielzustand aus `post` (`post_quantor="exists"`, ODER) erfüllen. Über `{"quantor": "all" | "exists", "states": ...}` lassen sich beide Quantoren explizit umschalten, wobei Verbote (`WorldState(..., expect=False)`) ausschließlich unter `post={"quantor": "all", ...}` zulässig sind. Alle Details regelt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
 * **Vielfalt von Beispielen vs. formale Abdeckung:** Unterschiedliche Beispiele aus verschiedenen Äquivalenzklassen verbessern die praktische Abdeckung erheblich; ihre bloße Anzahl belegt jedoch noch keine mathematische Orthogonalität unabhängiger Merkmalsdimensionen und verhindert für sich genommen kein Overfitting.
 * **Einordnung von Reviews (`RBT`):** `RBT` übergibt eine sprachliche Prüfregel und eine Zielbezeichnung an einen menschlichen oder automatisierten Reviewer (`HeadlessReviewer`, `HumanReviewer` oder eigene `Reviewer`-Implementierungen). Ein positives Review dokumentiert ein qualifiziertes Urteil zum Prüfzeitpunkt, misst aber keine Laufzeit- oder Speicherbudgets automatisch.
 * **Isolations- statt Sicherheitsgrenze bei Arenen:** `TempFS` und `PyVenv` schützen hervorragend vor versehentlicher Verschmutzung des Arbeitsverzeichnisses und vor ungewollten Paket-Leaks aus der Host-Umgebung. Sie bilden jedoch keine Betriebssystem-Sandbox gegen aktiv schädlichen Code – führe in Arenen daher nur vertrauenswürdigen Projekt- und Testcode aus.
@@ -170,7 +187,7 @@ Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit
 
 Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit mit Cubie immer wieder auszahlen:
 
-1. **Einmal richtig eingestellte Prüffälle sind unantastbar:** Ein korrekt spezifizierter Prüffall wird zwischen Red- und Green-Phase niemals umgebaut. Nur wenn in der Test-Suite selbst ein Fehler auffällt – etwa weil ein explorativer Test ein Fehlersymptom versehentlich als gültig (`expect=True`) aufgezeichnet hat –, dreht man die Erwartung an diesem `WorldState` über `expect=False` um, ohne das Szenario selbst anzufassen.
+1. **Einmal richtig eingestellte Prüffälle sind in der Green-Phase unantastbar:** Ein in der Red-Phase auf $Q_{\text{Soll}}$ fixierter Prüffall wird während der Code-Reparatur niemals manipuliert (bei einem vermuteten Test-Widerspruch wird stattdessen ein transparenter Audit-Befund dokumentiert). Und falls vorab ein alter explorativer Test auffällt, der ein Fehlersymptom versehentlich als gültig (`expect=True`) aufgezeichnet hat, dreht man dieses Symptom mit `WorldState(..., expect=False)` um und kombiniert es mit dem positiven Soll-Ziel in `post={"quantor": "all", "states": [...]}` (oder negiert den gesamten Lauf über `EBT(..., expect=False)`).
 2. **Halte Code-Beispiele in der Doku klein und fokussiert:** Wenn ein Beispiel im Guide mehr als 30 Zeilen benötigt (`DOC-HIGH-COMPLEXITY`), teile es über `session=<id>` in logische Zwischenschritte mit erklärendem Text auf und gib in jedem Schritt ein kurzes, sprechendes Zwischenergebnis mit `print(...)` aus.
 3. **Nutze Warnungen als konstruktiven Kompass – aber verwechsle sie nicht mit harten Gates:** Mit `severity="warning"` lassen sich didaktische Hinweise (wie `NoOutput`, `LargeOutput` oder `RawTraceback` in `CUBIE_DOC_RULES`) sanft einführen, ohne sofort den Build zu brechen. Bedenke dabei jedoch: Eine `UserWarning` lässt `pytest` weiterhin grün (`Exit-Code 0`) und fällt in Kurz- oder IDE-Ausgaben leicht durchs Raster. Regeln, die verlässlich blockieren müssen (wie `HighComplexity` ab $> 30$ Zeilen), gehören deshalb explizit auf `severity="error"` – und genau dieser Unterschied sollte durch einen eigenen Blackbox-`EBT`-Test in der Red-Phase abgesichert werden (`expect=False` auf dem stillen Durchlauf).
 4. **Schreibe Fehlermeldungen für dein zukünftiges Ich:** Ein `STATE-GUARD` mit einer klaren Aussage, *welcher* Parameter *warum* abgewiesen wurde und *was* stattdessen erwartet wird, spart beim Debugging Stunden an Suchzeit.

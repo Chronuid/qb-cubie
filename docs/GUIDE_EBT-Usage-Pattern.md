@@ -140,9 +140,9 @@ Konfiguration lösen keine Wiederholung aus. Die genaue Fehlerklassifikation und
 den Vertrag für eigene Backends beschreibt das
 [Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
-## Erlaubte und verbotene Ergebnisse
+## Erlaubte Alternativen und verbotene Ergebnisse
 
-Über `expect=False` lassen sich einzelne Rückgabewerte explizit als unerwünscht ausschließen:
+Für mehrere erlaubte Ergebnis-Alternativen (wie `"OK"` **oder** `"WARN"`) nutzt `post` standardmäßig den reinen Existenzquantor (`"exists"`, ODER-Verknüpfung). Soll dagegen ein positives Zielmuster mit einem expliziten Verbot (`WorldState(..., expect=False)`) kombiniert werden, müssen beide Bedingungen gleichzeitig gelten und werden deshalb in `post={"quantor": "all", "states": [...]}` (Allquantor, UND-Verknüpfung) gebündelt:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -153,13 +153,22 @@ def choose_status():
 
 
 def test_status():
+    # 1. Standard post="exists" (ODER): Mindestens eine erlaubte Alternative passt
     EBT(
         target=choose_status,
-        post=[
-            WorldState(returns="OK"),
-            WorldState(returns="WARN"),
-            WorldState(returns="ERROR", expect=False),
-        ],
+        post=[WorldState(returns="OK"), WorldState(returns="WARN")],
+    ).run()
+
+    # 2. Explizites post="all" (UND): Muss ein String sein UND darf nicht "ERROR" sein
+    EBT(
+        target=choose_status,
+        post={
+            "quantor": "all",
+            "states": [
+                WorldState(returns=str),
+                WorldState(returns="ERROR", expect=False),
+            ],
+        },
     ).run()
 
 
@@ -176,19 +185,19 @@ OK
 ```
 </details>
 
-Die beobachtete Ausgabe muss zu mindestens einem positiven und zu keinem negativen Muster passen. Ohne positive Muster werden nur die negativen Muster ausgeschlossen. Ein zusätzliches negatives Muster ist hier zur Veranschaulichung enthalten; die beiden positiven Werte schließen `"ERROR"` bereits aus.
+Im Standard-Modus (`post_quantor="exists"`) sind ausschließlich positive Zielmuster (`expect=True`) zulässig; ein `WorldState(..., expect=False)` unter `post="exists"` oder in `pre` wird vor der Target-Ausführung durch einen `STATE-GUARD` (`ValueError`) abgewiesen. Unter `post={"quantor": "all", ...}` sollte jedes Verbot (`expect=False`) mit mindestens einem positiven Soll-Muster (`expect=True`) verankert werden, damit nicht beliebige falsche Typen (wie `None`) durch einen *Vacuous Pass* bestehen.
 
 Bei mehreren `pre`- und `post`-Einträgen gilt dieselbe gesamte Zielmenge für jeden Eingang. Ein gemeinsames `post` für die Werte `2` und `4` erlaubt auch eine Vertauschung. Es entsteht keine Zuordnung nach Listenposition.
 
-Das gleiche Prinzip kann einen beobachteten Würfelwert auf den Bereich `1` bis `6` beschränken. Eine konstante Rückgabe innerhalb dieses Bereichs besteht ebenfalls. Alle möglichen Ergebnisse, Zufälligkeit und Verteilung sind damit nicht geprüft.
+Das gleiche Prinzip kann einen beobachteten Würfelwert über `post={"quantor": "all", "states": [WorldState(returns=int), WorldState(returns=lambda v: 1 <= v <= 6)]}` (oder sechs positive Alternativen `1` bis `6` unter `post="exists"`) auf den Bereich `1` bis `6` beschränken. Eine konstante Rückgabe innerhalb dieses Bereichs besteht ebenfalls. Alle möglichen Ergebnisse, Zufälligkeit und Verteilung sind damit nicht geprüft.
 
-`EBT(expect=False)` negiert dagegen das Gesamtergebnis. Es prüft keine erwartete Exception; Target-Ausnahmen propagieren weiterhin.
+`EBT(expect=False)` negiert dagegen das fertige Gesamtergebnis auf Vertragsebene (`expect` akzeptiert auf `WorldState` und `EBT` strikt nur `bool`). Es prüft keine erwartete Exception; Target-Ausnahmen propagieren weiterhin.
 
 ## Explizite Quantor-Deklaration (`all` und `exists`)
 
-Standardmäßig verwendet `pre` den Allquantor (`"all"`, alle Eingänge müssen bestehen) und `post` für positive Zustände den Existenzquantor (`"exists"`, mindestens ein positives Muster muss zutreffen). Über ein Wrapper-Dictionary `{"quantor": "all" | "exists", "states": ...}` lässt sich diese Quantor-Semantik explizit festlegen – sowohl für eine Liste von `WorldState`-Objekten als auch für einen einzelnen `WorldState`.
+Standardmäßig verwendet `pre` den reinen Allquantor (`"all"`, alle Eingänge müssen bestehen) und `post` den reinen Existenzquantor (`"exists"`, mindestens ein Zielmuster muss zutreffen). Über ein Wrapper-Dictionary `{"quantor": "all" | "exists", "states": ...}` lässt sich diese Quantor-Semantik explizit festlegen – sowohl für eine Liste von `WorldState`-Objekten als auch für einen einzelnen `WorldState`.
 
-Mit `post={"quantor": "all", ...}` müssen **alle** positiven Ziel-Prädikate gleichzeitig erfüllt sein (UND-Verknüpfung); eingestreute Einträge mit `expect=False` bleiben weiterhin strikte Verbote:
+Mit `post={"quantor": "all", ...}` müssen **alle** deklarierten Ziel-Bedingungen gleichzeitig erfüllt sein (UND-Verknüpfung); positive Zustände (`expect=True`) müssen zutreffen und eingestreute Verbote (`expect=False`) dürfen nicht zutreffen:
 
 ```python
 from qb_cubie import EBT, WorldState
@@ -251,7 +260,7 @@ OK | pre=exists | post=exists
 ```
 </details>
 
-Das Wrapper-Dictionary akzeptiert ausschließlich die Schlüssel `"quantor"` (`"all"` oder `"exists"`) und `"states"` (ein einzelner `WorldState` oder eine nichtleere Liste von `WorldState`-Objekten). Ungültige Schlüssel, unbekannte Quantoren oder leere `"states"`-Listen lehnt der `STATE-GUARD` vor jeder Target-Ausführung ab; die wirksamen Quantoren werden als `pre_quantor` und `post_quantor` im `RunTrace` sowie im JSON-Bericht des `JsonReporter` gespeichert.
+Das Wrapper-Dictionary akzeptiert ausschließlich die Schlüssel `"quantor"` (`"all"` oder `"exists"`) und `"states"` (ein einzelner `WorldState` oder eine nichtleere Liste von `WorldState`-Objekten). Ungültige Schlüssel, unbekannte Quantoren, leere `"states"`-Listen, nicht-boolesche `expect`-Werte (`TypeError`) sowie `WorldState(..., expect=False)` in `pre` oder unter `post="exists"` (`ValueError`) lehnt der `STATE-GUARD` vor jeder Target-Ausführung ab. Bei wiederholten `.run()`-Aufrufen auf derselben `EBT`-Instanz bleiben explizit deklarierte Quantoren erhalten, bis `case.pre` oder `case.post` ohne Dict-Wrapper neu zugewiesen wird (Reset auf `pre="all"` bzw. `post="exists"`). Die wirksamen Quantoren werden als `pre_quantor` und `post_quantor` im `RunTrace` sowie im JSON-Bericht des `JsonReporter` gespeichert.
 
 ## Rückgabemuster
 
