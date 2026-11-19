@@ -9,6 +9,9 @@ Dieses Handbuch zeigt, wie `EBT`-Verträge eindeutig und wartbar aufgebaut werde
 
 ---
 
+> [!Note]  
+> Dieses Handbuch zur Qualitätssicherung befindet sich derzeit unter aktiver Mutation und Überarbeitung und könnte daher Fehler, Unvollständigkeiten oder veraltete Angaben enthalten.
+
 ---
 
 [README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  

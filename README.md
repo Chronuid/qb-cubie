@@ -11,9 +11,14 @@ Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 
 ---
 
+> [!Note]  
 > **Dieses Projekt ist experimentell und in einer frühen Entwicklungs-Phase.**  
 > Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
 > Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
+>
+> ---
+>
+> **Cubie befindet sich derzeit unter aktiver Mutation und Überarbeitung und könnte daher Fehler, Unvollständigkeiten oder veraltete Angaben enthalten.**
 
 ---
 

@@ -11,8 +11,7 @@ Cubie bündelt beispielbasierte Verhaltensverträge (`EBT`), isolierte Ausführu
 
 ---
 
-> [!Note]
-> **Hinweis (Disclaimer):**  
+> [!Note]  
 > Dieses Handbuch zur Qualitätssicherung befindet sich derzeit unter aktiver Mutation und Überarbeitung und könnte daher Fehler, Unvollständigkeiten oder veraltete Angaben enthalten.
 
 ---
