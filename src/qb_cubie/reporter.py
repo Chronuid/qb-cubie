@@ -113,7 +113,7 @@ class PytestReporter:
 
     @staticmethod
     def _evaluate_step_logic(traces: List[EvaluationTrace], post_quantor: Quantor = "exists") -> bool:
-        """Evaluates the boolean success of a single step based on positive and negative states."""
+        """Evaluate the boolean success of a single step purely under post_quantor."""
         __tracebackhide__ = True
         return evaluate_step_logic(traces, post_quantor)
 

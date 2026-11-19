@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Union, Set, get_origin, get_args, Option
 from .arenas._hydration import normalize_fs
 from .multiprocessors import PickleProcessor, LokyProcessor, MultiprocessManager
 from .multiprocessors import _validate_max_workers
-from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation, Quantor, StateInput, evaluate_step_logic
+from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation, Quantor, StateInput, evaluate_step_logic, validate_bool_expect
 from .reporter import PytestReporter
 from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
 from ._files import same_contents
@@ -83,6 +83,9 @@ class EBT:
     # pool in addition to CPU and input counts. None adds no user limit; a
     # positive integer is required otherwise. The cap applies per EBT instance.
 
+    _pre: Any
+    _post: Any
+
     def __init__(
         self, target: Any, arena: Optional[Arena] = None,
         pre: StateInput = None,
@@ -120,6 +123,28 @@ class EBT:
         return self.run_trace
 
 
+    @property
+    def pre(self) -> list[WorldState]:
+        """Return the configured pre-states."""
+        return self._pre
+
+    @pre.setter
+    def pre(self, value: StateInput) -> None:
+        """Store reassigned pre-states so the next arrange resets non-wrapper quantors."""
+        self._pre = value
+        self._pre_reassigned = True
+
+    @property
+    def post(self) -> list[WorldState]:
+        """Return the configured post-states."""
+        return self._post
+
+    @post.setter
+    def post(self, value: StateInput) -> None:
+        """Store reassigned post-states so the next arrange resets non-wrapper quantors."""
+        self._post = value
+        self._post_reassigned = True
+
     # ---------- SUB-SERVICES ------------------------------------------------------------------------------------------
 
     def _configure_states(
@@ -128,9 +153,10 @@ class EBT:
     ) -> None:
         self.target = target
         self.arena = arena
-        self.pre, self.pre_quantor = self._parse_state_config(pre, "pre", "all")
-        self.post, self.post_quantor = self._parse_state_config(post, "post", "exists")
-        self.expect = expect
+        self._pre_reassigned = self._post_reassigned = False
+        self._pre, self.pre_quantor = self._parse_state_config(pre, "pre", "all")
+        self._post, self.post_quantor = self._parse_state_config(post, "post", "exists")
+        self.expect = validate_bool_expect(expect, "EBT.expect")
         self.FS_IGNORES: Set[str] = {""}
         self.ARENA_IGNORES: Set[str] = {
             "bin", "Scripts", "pyvenv.cfg", "CACHEDIR.TAG", ".gitignore", ".lock",
@@ -167,13 +193,21 @@ class EBT:
         """Validate all declared states before normalizing their filesystems."""
         __tracebackhide__ = True
         _validate_max_workers(self.max_workers)
-        self.pre, self.pre_quantor = self._parse_state_config(self.pre, "pre", self.pre_quantor)
-        self.post, self.post_quantor = self._parse_state_config(self.post, "post", self.post_quantor)
+        validate_bool_expect(self.expect, "EBT.expect")
+        self._arrange_states()
         for state in (*self.pre, *self.post):
             state.validate_exception_contract()
-        normalized = self._normalized_states()
-        for state, fs in normalized:
+        for state, fs in self._normalized_states():
             state.fs = fs
+
+    def _arrange_states(self) -> None:
+        """Parse, reset reassigned quantors, and validate pre/post state contracts."""
+        pre_default: Quantor = "all" if self._pre_reassigned else self.pre_quantor
+        post_default: Quantor = "exists" if self._post_reassigned else self.post_quantor
+        self._pre, self.pre_quantor = self._parse_state_config(self._pre, "pre", pre_default)
+        self._post, self.post_quantor = self._parse_state_config(self._post, "post", post_default)
+        self._pre_reassigned = False
+        self._post_reassigned = False
 
     def _normalized_states(self) -> list[tuple[WorldState, dict]]:
         return [
@@ -183,7 +217,7 @@ class EBT:
         ]
 
     def _validate(self) -> None:
-        """Executes the pre-states (∀) and evaluates the outcome against all post-states (∃)."""
+        """Execute the pre-states and evaluate the outcome against post-states under their quantifiers."""
         __tracebackhide__ = True
         if not self.MULTIPROCESSING:
             self._validate_singleprocess()
@@ -526,13 +560,29 @@ class EBT:
         """Normalize and validate a WorldState, list, None, or quantor wrapper dict."""
         __tracebackhide__ = True
         if raw_value is None:
-            return [WorldState()], default_quantor
-        if isinstance(raw_value, WorldState):
-            return [raw_value], default_quantor
-        if isinstance(raw_value, dict):
-            return EBT._parse_quantor_wrapper(raw_value, field)
-        EBT._validate_states(raw_value, field)
-        return raw_value, default_quantor
+            states, quantor = [WorldState()], default_quantor
+        elif isinstance(raw_value, WorldState):
+            states, quantor = [raw_value], default_quantor
+        elif isinstance(raw_value, dict):
+            states, quantor = EBT._parse_quantor_wrapper(raw_value, field)
+        else:
+            EBT._validate_states(raw_value, field)
+            states, quantor = raw_value, default_quantor
+        EBT._validate_state_expects(states, field, quantor)
+        return states, quantor
+
+    @staticmethod
+    def _validate_state_expects(states: list[WorldState], field: str, quantor: Quantor) -> None:
+        """Enforce bool expect flags and reject expect=False in pre or under post='exists'."""
+        __tracebackhide__ = True
+        for index, state in enumerate(states):
+            state.validate_expect()
+            if not state.expect and (field == "pre" or quantor == "exists"):
+                context = "in pre" if field == "pre" else "under post_quantor='exists'"
+                raise ValueError(
+                    f"STATE-GUARD: {field}[{index}].expect=False is forbidden {context}; "
+                    "use WorldState(expect=True) or post={'quantor': 'all', 'states': [...]}."
+                )
 
     @staticmethod
     def _parse_quantor_wrapper(wrapper: dict[str, Any], field: str) -> tuple[list[WorldState], Quantor]:
@@ -688,7 +738,7 @@ class EBT:
 
     @staticmethod
     def _evaluate_step_logic(traces: List[EvaluationTrace], post_quantor: Quantor = "exists") -> bool:
-        """Evaluates the boolean success of a single step based on positive and negative states."""
+        """Evaluate the boolean success of a single step purely under post_quantor."""
         __tracebackhide__ = True
         return evaluate_step_logic(traces, post_quantor)
 

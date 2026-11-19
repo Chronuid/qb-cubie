@@ -70,12 +70,17 @@ class WorldState:
     arena: Optional[Any] = None
     fs: Optional[Any] = None
     returns: Any = UNSPECIFIED
-    expect: Optional[bool] = True
+    expect: bool = True
     raises: ExceptionExpectation | None = None
     exception: Exception | None = None
 
     def __post_init__(self) -> None:
+        self.validate_expect()
         self.validate_exception_contract()
+
+    def validate_expect(self) -> None:
+        """Validate that WorldState.expect is strictly a bool."""
+        validate_bool_expect(self.expect, "WorldState.expect")
 
     def validate_exception_contract(self) -> None:
         """Also called before each run, since WorldState is mutable."""
@@ -126,18 +131,27 @@ Quantor = Literal["all", "exists"]
 StateInput = WorldState | List[WorldState] | Dict[str, Any] | None
 
 
+def validate_bool_expect(value: Any, field: str) -> bool:
+    """Validate that an expect flag is strictly a bool, rejecting int, None, and other types."""
+    if type(value) is not bool:
+        raise TypeError(
+            f"STATE-GUARD: {field} must be a bool (True or False); received {type(value).__name__}."
+        )
+    return value
+
+
 def evaluate_step_logic(traces: List["EvaluationTrace"], post_quantor: Quantor = "exists") -> bool:
-    """Evaluate one step's success from positive and negative post-state traces."""
-    positives = [t for t in traces if t.post.expect]
-    negatives = [t for t in traces if not t.post.expect]
-    violates_neg = any(t.evaluation for t in negatives)
-    if not positives:
-        satisfies_pos = True
-    elif post_quantor == "all":
-        satisfies_pos = all(t.evaluation for t in positives)
-    else:
-        satisfies_pos = any(t.evaluation for t in positives)
-    return satisfies_pos and not violates_neg
+    """Evaluate one step's traces purely under the declared post_quantor."""
+    results: list[bool] = []
+    for trace in traces:
+        expected = validate_bool_expect(trace.post.expect, "post.expect")
+        if post_quantor == "exists" and not expected:
+            raise ValueError(
+                "STATE-GUARD: WorldState(expect=False) is forbidden under post_quantor='exists'; "
+                "use post={'quantor': 'all', 'states': [...]}."
+            )
+        results.append(trace.evaluation if expected else not trace.evaluation)
+    return all(results) if post_quantor == "all" else any(results)
 
 
 @dataclass
