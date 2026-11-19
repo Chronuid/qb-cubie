@@ -2,6 +2,24 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [0.0.9] - 2026-11-19
+
+### Neu
+- **Modularisierte Fach-Handbücher für Qualitätssicherung:** Detailkapitel aus [GUIDE_Quality-Assurance.md](./docs/GUIDE_Quality-Assurance.md) in drei eigenständige Guides ausgelagert und über `qb:frame`-Navigation im gesamten Dokumentationsbaum verlinkt:
+  - [GUIDE_Contract-Design.md](./docs/GUIDE_Contract-Design.md) (Vertragsaufbau, Eindeutigkeit & Kopplung),
+  - [GUIDE_Expect-Flags.md](./docs/GUIDE_Expect-Flags.md) (Erwartungssteuerung, Safety & `expect`-Flags),
+  - [GUIDE_Quantifiers.md](./docs/GUIDE_Quantifiers.md) (Fortgeschrittene Quantoren `all` vs. `exists`).
+- **Strikte `STATE-GUARD`-Validierung & Vertrags-Tests für `expect` und Quantor-Lebenszyklus:** Neue Validierung `validate_bool_expect` ([protocols.py](./src/qb_cubie/protocols.py)), `WorldState.validate_expect()` sowie `EBT._validate_state_expects()` und `EBT._arrange_states()` ([ebt.py](./src/qb_cubie/ebt.py)), abgesichert durch fünf neue Testsuiten in [test_ebt_quantor_declaration.py](./tests/tests_ebt/test_ebt_quantor_declaration.py) (Ablehnung von `expect=False` in `pre` und unter `post_quantor="exists"`, strikte `bool`-Prüfung, reine `evaluate_step_logic`-Invarianten sowie Quantor-Persistenz und -Reset bei Neuzuweisung).
+
+### Geändert
+- **Kritische Semantik-Korrektur (*Breaking Change*) bei `EBT`-Quantoren & `expect`-Flags:**
+  - `evaluate_step_logic(traces, post_quantor)` in [protocols.py](./src/qb_cubie/protocols.py) (sowie die Delegation in [ebt.py](./src/qb_cubie/ebt.py) und [reporter.py](./src/qb_cubie/reporter.py)) entfernt die implizite `Q+`/`Q-`-Sonderaufspaltung und wertet alle Post-Traces rein unter dem deklarierten `post_quantor` aus (`all` vs. `any`).
+  - `WorldState(..., expect=False)` ist ab sofort sowohl in `pre` als auch unter dem Standard-Quantor `post_quantor="exists"` unzulässig (`ValueError: STATE-GUARD: ...`); Verbote müssen explizit als Konjunktion `post={"quantor": "all", "states": [...]}` deklariert werden.
+  - `WorldState.expect` (Typ von `Optional[bool]` auf `bool` verengt) und `EBT.expect` erzwingen strikt `bool` (`True`/`False`) und weisen `None`, `int` oder andere Typen deterministisch per `TypeError("STATE-GUARD: ...")` ab.
+  - `EBT.pre` und `EBT.post` nutzen nun Properties mit Neuzuweisungs-Tracking (`_arrange_states()`): Wiederholte `.run()`-Läufe und In-Place-Listenmutationen behalten explizite Quantoren bei, während eine Neuzuweisung ohne Quantor-Wrapper den jeweiligen Quantor sauber auf den Standard (`pre_quantor="all"`, `post_quantor="exists"`) zurücksetzt.
+- **Testsuite & Meta-Gates 2/3 auf reine Quantor-Semantik migriert:** Bestehende Verträge mit `WorldState(..., expect=False)` in 9 Testmodulen (`test_offline_core.py`, `test_ebt_arena_mutation.py`, `test_ebt_contract_mutation.py`, `test_ebt_exception_contracts.py`, `test_ebt_persistent_reports.py`, `test_ebt_quantors.py`, `test_ebt_return_reporting.py`, `test_ebt_returns.py`, `test_ebt_run_isolation.py`) auf `post={"quantor": "all", "states": [...]}` umgestellt; [test_gate_2.py](./tests/tests_meta/test_gate_2.py) und [test_gate_3.py](./tests/tests_meta/test_gate_3.py) um die statische Auswertung von Quantor-Wrapper-Dictionaries erweitert.
+- **Dokumentation vollständig an die reparierte Quantor- und `expect`-Semantik angepasst:** [README.md](./README.md), [GUIDE_Contract-Semantics.md](./docs/GUIDE_Contract-Semantics.md) (inklusive Quantor-Wrappern, reiner Auswertungsregel, `STATE-GUARD`-Regeln, `_arrange()`-Lebenszyklus und `JsonReporter`-Quantorfeldern), [GUIDE_Contract-Design.md](./docs/GUIDE_Contract-Design.md), [GUIDE_EBT-Usage-Pattern.md](./docs/GUIDE_EBT-Usage-Pattern.md), [GUIDE_Example-Based-Testing.md](./docs/GUIDE_Example-Based-Testing.md), [GUIDE_Expect-Flags.md](./docs/GUIDE_Expect-Flags.md), [GUIDE_Quality-Assurance.md](./docs/GUIDE_Quality-Assurance.md), [GUIDE_Quantifiers.md](./docs/GUIDE_Quantifiers.md) sowie [DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md), [DEV-GUIDE_2-1_EBT-Class.md](./docs/dev/DEV-GUIDE_2-1_EBT-Class.md) und [DEV-GUIDE_2-2_WorldState-Class.md](./docs/dev/DEV-GUIDE_2-2_WorldState-Class.md) aktualisiert; Hinweis-Disclaimer zur aktiven Überarbeitung in den QA-Guides und in [README.md](./README.md) ergänzt.
+
 ## [0.0.8] - 2026-11-18
 
 ### Neu
