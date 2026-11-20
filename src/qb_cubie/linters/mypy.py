@@ -79,9 +79,9 @@ class MyPy:
     def _execute_subprocess(cmd: List[str], target: Union[str, Path]) -> subprocess.CompletedProcess:
         if isinstance(target, str):
             cmd.extend(["-c", target])
-            return subprocess.run(cmd, text=True, capture_output=True)
+            return subprocess.run(cmd, text=True, capture_output=True, encoding="utf-8", errors="replace")
         cmd.append(str(target))
-        return subprocess.run(cmd, text=True, capture_output=True)
+        return subprocess.run(cmd, text=True, capture_output=True, encoding="utf-8", errors="replace")
 
     @staticmethod
     def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:

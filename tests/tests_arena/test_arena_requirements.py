@@ -1,6 +1,7 @@
 """Only explicit provisioning installs packages; arena setup validates its base."""
 
 import importlib.util
+import os
 import subprocess
 import sys
 import sysconfig
@@ -18,7 +19,7 @@ from qb_cubie.arenas.pyvenv import ArenaBuilder, default_arena_path
 @pytest.fixture
 def base_env(tmp_path):
     base = tmp_path / "base"
-    venv.EnvBuilder(with_pip=False, symlinks=True).create(base)
+    venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
     return base
 
 

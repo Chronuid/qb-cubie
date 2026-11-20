@@ -149,7 +149,7 @@ def test_fs_verdict_and_recorded_changes_agree_with_reference(publication_run):
         for category, names in diff.items():
             assert category in recorded
             for name in names:
-                path = scope if scope in publication.expected else str(Path(scope) / name)
+                path = scope if scope in publication.expected else (Path(scope) / name).as_posix()
                 recorded[category].add(path)
     assert recorded == {category: publication.changes.get(category, set()) for category in recorded}
 

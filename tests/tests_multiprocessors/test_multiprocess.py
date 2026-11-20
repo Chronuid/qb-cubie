@@ -32,7 +32,10 @@ def target_mutate_fs_adapter(dummy_arg: str) -> str:
 
 def target_execute_in_venv(code: str) -> int:
     """Simulates a subprocess call (Python in a venv)."""
-    return os.system(f'python3 -c "{code}"')
+    import subprocess
+    import sys
+
+    return subprocess.run([sys.executable, "-c", code], check=False).returncode
 
 _global_memory_state = []
 def target_mutate_in_memory(val: str) -> str:
@@ -42,7 +45,10 @@ def target_mutate_in_memory(val: str) -> str:
 
 def target_mutate_venv(dummy_arg: str) -> int:
     """Simulates a real venv mutation (side effect in the arena) within the virtual arena."""
-    return os.system(f"echo '{dummy_arg}' > venv_mutation_marker.txt")
+    from pathlib import Path
+
+    Path("venv_mutation_marker.txt").write_text(f"{dummy_arg}\n", encoding="utf-8")
+    return 0
 
 
 # ---------- FORALL-TARGETS --------------------------------------------------------------------------------------------

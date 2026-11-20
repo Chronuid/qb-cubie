@@ -188,7 +188,7 @@ def test_nested_values_keep_type_information_and_cycles_are_described(tmp_path):
     path = tmp_path / "report.json"
     EBT(target=echo, pre=WorldState(args=(value,)), post=WorldState(returns=Any),
         reporter=json_reporter(path)).run()
-    encoded = json.loads(path.read_text())["traces"][0]["outcome"]["returns"]["value"]
+    encoded = json.loads(path.read_text(encoding="utf-8"))["traces"][0]["outcome"]["returns"]["value"]
     pair = encoded["nested"]["value"][0]
     assert pair["type"] == "builtins.tuple"
     assert [item["type"] for item in pair["value"]] == ["builtins.int", "builtins.bool"]
@@ -229,7 +229,7 @@ def test_observed_callable_is_a_return_value_and_reporting_does_not_reexecute_pr
     assert calls == [int]
     json_reporter(path).report(result)
     assert calls == [int]
-    trace = json.loads(path.read_text())["traces"][0]
+    trace = json.loads(path.read_text(encoding="utf-8"))["traces"][0]
     assert trace["post"]["returns"]["kind"] == "pattern"
     assert trace["outcome"]["returns"]["kind"] == "description"
     assert trace["outcome"]["returns"]["type"] == "builtins.type"

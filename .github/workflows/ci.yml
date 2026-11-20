@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Stage 1: Wheel checks active across Linux, macOS, and Windows.
-        # Full Windows repository test suite follows in Stage 2.
+        # Stage 2: Wheel checks active across Linux, macOS, and Windows.
+        # Full repository test suite is also active across all three platforms.
         # See docs/CI_PLATFORM_STATUS.md for details.
         os: [ubuntu-24.04, macos-15, windows-2022]
         python: ['3.13', '3.14']
@@ -36,11 +36,11 @@ jobs:
   tests:
     name: Repository / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 35
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        os: [ubuntu-24.04, macos-15, windows-2022]
         python: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v4

@@ -6,6 +6,7 @@ import json
 import math
 import os
 from pathlib import Path
+import posixpath
 import re
 import tempfile
 import types
@@ -201,15 +202,20 @@ class PytestReporter:
         return lines
 
     @staticmethod
+    def _posix_path(*parts: object) -> str:
+        """Normalize scoped relative diff segments to forward POSIX separators."""
+        return posixpath.normpath(posixpath.join(*(str(part).replace("\\", "/") for part in parts)))
+
+    @staticmethod
     def _summarize_fs_diffs(scoped_diffs: dict) -> tuple[dict[str, list[str]], list[str]]:
         """Aggregate scoped records without accessing expired workspace/reference paths."""
         changes: dict[str, set[str]] = {category: set() for category in ("missing", "unexpected", "modified")}
         errors = []
         for scope, diff in sorted(scoped_diffs.items(), key=lambda item: str(item[0])):
             if "error" in diff:
-                errors.append(f"      Error: {os.path.normpath(str(scope))}: {diff['error']}")
+                errors.append(f"      Error: {PytestReporter._posix_path(scope)}: {diff['error']}")
             for category, paths in changes.items():
-                paths.update(os.path.normpath(os.path.join(str(scope), str(name))) for name in diff.get(category, []))
+                paths.update(PytestReporter._posix_path(scope, name) for name in diff.get(category, []))
         return {category: sorted(paths) for category, paths in changes.items()}, errors
 
     @staticmethod

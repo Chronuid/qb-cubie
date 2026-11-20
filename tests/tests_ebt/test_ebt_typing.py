@@ -15,7 +15,7 @@ def dummy_return_dynamic():
 
 def create_dynamic_file():
     """Simulates the creation of a log file with volatile content."""
-    Path("dynamic.log").write_text("Timestamp: 123456")
+    Path("dynamic.log").write_text("Timestamp: 123456", encoding="utf-8")
     return True
 
 def dummy_return_timestamped_log():
@@ -41,7 +41,7 @@ def dummy_return_nested_data():
 
 def create_dynamic_json_file():
     """Simulates the creation of a JSON file with dynamic runtime data."""
-    Path("output.json").write_text(json.dumps({"task_id": "req_882", "duration": 1.45}))
+    Path("output.json").write_text(json.dumps({"task_id": "req_882", "duration": 1.45}), encoding="utf-8")
     return True
 
 
@@ -106,7 +106,7 @@ def test_typing_fs_content_evaluation(tmp_path):
     import json
     def validate_json_content(p: Path) -> bool:
         if not p.exists(): return False
-        data = json.loads(p.read_text())
+        data = json.loads(p.read_text(encoding="utf-8"))
         return isinstance(data.get("task_id"), str) and isinstance(data.get("duration"), float)
     EBT(
         arena=TempFS(),

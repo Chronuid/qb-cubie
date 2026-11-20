@@ -35,12 +35,12 @@ def target_uninstall_package() -> bool:
 
 def target_generate_volatile_metadata() -> bool:
     """Generates files that strictly fall under the PyVenv ignore list."""
-    import site
-    site_packages = Path(site.getsitepackages()[0])
-    (site_packages / "dummy.pyc").write_text("binary garbage")
+    import sysconfig
+    site_packages = Path(sysconfig.get_path("purelib"))
+    (site_packages / "dummy.pyc").write_text("binary garbage", encoding="utf-8")
     dist_info = site_packages / "fake-1.0.dist-info"
     dist_info.mkdir(exist_ok=True)
-    (dist_info / "RECORD").write_text("volatile hash data")
+    (dist_info / "RECORD").write_text("volatile hash data", encoding="utf-8")
     return True
 
 

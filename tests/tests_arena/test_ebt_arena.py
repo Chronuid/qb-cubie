@@ -192,7 +192,7 @@ def mutate_active_venv():
     venv_path = os.environ.get("VIRTUAL_ENV")
     if not venv_path: return False
     dummy_file = Path(venv_path) / "böse_mutation.txt"
-    dummy_file.write_text("Diese Datei sollte nie im Original landen!")
+    dummy_file.write_text("Diese Datei sollte nie im Original landen!", encoding="utf-8")
     return True
 
 def check_path_isolation(original_path: str):

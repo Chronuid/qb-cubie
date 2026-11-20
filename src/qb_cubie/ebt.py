@@ -703,8 +703,8 @@ class EBT:
         __tracebackhide__ = True
         exp_keys, act_keys = set(expected), set(actual)
         diff = {
-            "missing": [str(path) for path in sorted(exp_keys - act_keys)],
-            "unexpected": [str(path) for path in sorted(act_keys - exp_keys)],
+            "missing": [path.as_posix() for path in sorted(exp_keys - act_keys)],
+            "unexpected": [path.as_posix() for path in sorted(act_keys - exp_keys)],
             "modified": EBT._modified_paths(expected, actual),
         }
         return {key: value for key, value in diff.items() if value} or None
@@ -715,7 +715,7 @@ class EBT:
         for path in sorted(expected.keys() & actual.keys()):
             exp, act = expected[path], actual[path]
             if exp.is_dir() != act.is_dir() or (exp.is_file() and not same_contents(act, exp)):
-                modified.append(str(path))
+                modified.append(path.as_posix())
         return modified
 
     @staticmethod

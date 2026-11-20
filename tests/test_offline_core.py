@@ -29,10 +29,11 @@ def deny(reason):
     raise RuntimeError("OFFLINE CONTRACT: " + reason)
 
 def check_command(executable, command):
-    name = os.path.basename(os.fsdecode(executable)).lower()
-    parts = shlex.split(command) if isinstance(command, str) else list(command)
+    parts = shlex.split(command, posix=os.name != "nt") if isinstance(command, str) else list(command)
     parts = [os.fsdecode(part) for part in parts]
-    if name.startswith(("python", "pypy")):
+    raw_exe = executable if executable is not None else (parts[0] if parts else "")
+    name = os.path.basename(os.fsdecode(raw_exe).strip('"')).lower()
+    if name.removesuffix(".exe").startswith(("python", "pypy")):
         if "-m" in parts:
             module = parts[parts.index("-m") + 1]
             if module in {"pip", "ensurepip", "uv"}:
@@ -40,7 +41,7 @@ def check_command(executable, command):
         if "-S" in parts or "-I" in parts or "-E" in parts:
             deny("Python child would bypass the offline hook")
         return
-    if name not in {"mypy", "pylint"}:
+    if name.removesuffix(".exe") not in {"mypy", "pylint"}:
         deny("external command: " + repr(parts))
 
 def audit(event, args):
@@ -77,7 +78,7 @@ def prepared_environment(tmp_path_factory):
     """
     root = tmp_path_factory.mktemp("cubie-offline")
     base = root / "prepared-venv"
-    venv.EnvBuilder(with_pip=False, symlinks=True).create(base)
+    venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
     site_packages = Path(sysconfig.get_path(
         "purelib", vars={"base": str(base), "platbase": str(base)},
     ))
@@ -148,12 +149,13 @@ def exercise(feature, base):
     """Execute real public APIs under the audit hook, without backend mocks."""
     import qb_cubie
     from qb_cubie import EBT, WorldState
+    from qb_cubie.arenas._requirements import _environment_python
 
     if feature == "imports":
         assert all(hasattr(qb_cubie, name) for name in qb_cubie.__all__)
     elif feature == "prepared-environment":
         subprocess.run(
-            [str(Path(base) / "bin" / "python"), "-c",
+            [str(_environment_python(Path(base))), "-c",
              "import msgspec, cloudpickle, libcst, mypy, pylint"],
             check=True,
         )
@@ -197,7 +199,7 @@ def exercise(feature, base):
         EBT(target=edit_file, arena=arena,
             pre=WorldState(fs={"input.txt": str(source.resolve())}),
             post=WorldState(returns="offline", fs={
-                "output.txt": lambda path: path.read_text() == "OFFLINE",
+                "output.txt": lambda path: path.read_text(encoding="utf-8") == "OFFLINE",
             })).run()
         assert arena.workspace_path is None
     elif feature in {"pickle-processes", "loky-processes"}:
@@ -269,7 +271,7 @@ def exercise(feature, base):
     elif feature.startswith("pyvenv-"):
         # Prove the required codecs are already installed before testing reuse.
         subprocess.run(
-            [str(Path(base) / "bin" / "python"), "-c",
+            [str(_environment_python(Path(base))), "-c",
              "import msgspec, cloudpickle"],
             check=True,
         )

@@ -28,7 +28,10 @@ def target_mutate_fs(filename: str, content: str) -> str:
 
 def target_execute_in_venv(code: str) -> int:
     """Simulates a subprocess call (Python in a venv)."""
-    return os.system(f'python3 -c "{code}"')
+    import subprocess
+    import sys
+
+    return subprocess.run([sys.executable, "-c", code], check=False).returncode
 
 # =========== MOCKS ====================================================================================================
 

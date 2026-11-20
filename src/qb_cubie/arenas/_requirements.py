@@ -96,6 +96,7 @@ def _inspect_environment(python_exe: Path) -> dict:
             [str(python_exe.absolute()), "-B", "-c", _INSPECT_ENVIRONMENT],
             cwd=python_exe.parent.parent, env=_inspection_env(),
             check=True, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
         )
     except (OSError, subprocess.CalledProcessError) as error:
         detail = getattr(error, "stderr", None) or str(error)

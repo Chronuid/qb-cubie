@@ -23,9 +23,10 @@ def simulated_process(monkeypatch):
     calls = []
 
     def configure(returncode, stdout="", stderr=""):
-        def run(cmd, *, text, capture_output):
+        def run(cmd, *, text, capture_output, encoding=None, errors=None):
             assert text is True
             assert capture_output is True
+            assert encoding == "utf-8" and errors == "replace"
             calls.append(list(cmd))
             return subprocess.CompletedProcess(cmd, returncode, stdout, stderr)
 

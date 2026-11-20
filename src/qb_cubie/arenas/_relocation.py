@@ -5,6 +5,8 @@ import re
 import shlex
 from pathlib import Path
 
+from ._relocation_win32 import relocate_windows_launcher
+
 
 def relocate_scripts(base: Path, clone: Path) -> None:
     """Adapt copied entry points without modifying the source environment."""
@@ -28,7 +30,8 @@ def _relocate(script: Path, base: Path, clone: Path) -> None:
     if script.is_symlink():
         _relocate_link(script, base, clone)
     elif script.is_file() and script.suffix.lower() == ".exe":
-        raise _unsupported(script)
+        if not relocate_windows_launcher(script, base, clone):
+            raise _unsupported(script)
     elif script.is_file():
         _relocate_text(script, base, clone)
 

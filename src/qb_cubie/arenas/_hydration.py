@@ -25,7 +25,7 @@ def _filesystem_mapping(paths: Any, field: str) -> dict[str, str]:
     """Map unique destination basenames from a collection of host paths."""
     normalized: dict[str, str] = {}
     for value in paths:
-        path = Path(str(value).rstrip("/"))
+        path = Path(str(value).rstrip("/\\"))
         if path.name in normalized and Path(normalized[path.name]) != path:
             raise ValueError(
                 f"STATE-GUARD: {field}: ambiguous destination {path.name!r} for sources "

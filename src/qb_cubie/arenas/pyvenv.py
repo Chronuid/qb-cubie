@@ -437,7 +437,7 @@ class ArenaBuilder:
                 capture_output=True,
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"ArenaBuilder failed to create venv:\n{e.stderr.decode()}")
+            raise RuntimeError(f"ArenaBuilder failed to create venv:\n{e.stderr.decode(errors='replace')}")
 
     def _install_packages(self, packages: list[str]) -> None:
         """Installs the requested packages and codec dependencies in the base."""
@@ -450,4 +450,6 @@ class ArenaBuilder:
                 ["uv", "pip", "install", *packages, "--python", str(python_exe)], check=True, capture_output=True
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"ArenaBuilder failed to install packages {packages}:\n{e.stderr.decode()}")
+            raise RuntimeError(
+                f"ArenaBuilder failed to install packages {packages}:\n{e.stderr.decode(errors='replace')}"
+            )

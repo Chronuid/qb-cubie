@@ -34,7 +34,9 @@ def test_real_type_check_gate(tmp_path, check_case, faulty):
     if faulty:
         assert len(diagnostics) == 1
         assert diagnostics[0].rule_id == "return-value"
-        assert Path(diagnostics[0].file_path) == source
+        assert Path(os.path.normcase(os.path.realpath(diagnostics[0].file_path))) == Path(
+            os.path.normcase(os.path.realpath(source))
+        )
         assert diagnostics[0].line == 2
         if message:
             assert "Expected [] | Actual" in message

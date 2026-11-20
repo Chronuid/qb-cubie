@@ -5,7 +5,9 @@ Run with the project interpreter after `uv sync --locked --group dev`:
 This is an installation step and may access the network. Pytest never calls it.
 """
 
+import os
 import shutil
+import stat
 import sys
 from pathlib import Path
 
@@ -30,10 +32,20 @@ def _is_valid_venv(path: Path) -> bool:
     return (path / "pyvenv.cfg").is_file() and has_python
 
 
+def _remove_readonly(func, path: str, exc: BaseException) -> None:
+    if not isinstance(exc, PermissionError):
+        raise exc
+    os.chmod(path, stat.S_IMODE(os.lstat(path).st_mode) | stat.S_IWUSR)
+    parent = os.path.dirname(path)
+    if func in (os.unlink, os.rmdir) and parent:
+        os.chmod(parent, stat.S_IMODE(os.lstat(parent).st_mode) | stat.S_IWUSR | stat.S_IXUSR)
+    func(path)
+
+
 def _remove_incomplete_venv(path: Path) -> None:
     if path.exists() and not _is_valid_venv(path):
         print(f"Removing incomplete arena base {path}", flush=True)
-        shutil.rmtree(path)
+        shutil.rmtree(path, onexc=_remove_readonly)
 
 
 def main():

@@ -19,7 +19,7 @@ def mark_execution(marker):
 
 
 def read_workspace():
-    return {str(path): path.read_text(encoding="utf-8")
+    return {path.as_posix(): path.read_text(encoding="utf-8")
             for path in Path(".").rglob("*") if path.is_file()}
 
 

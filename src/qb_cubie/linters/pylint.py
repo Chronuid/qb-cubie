@@ -89,9 +89,9 @@ class Pylint:
         """Executes the Pylint process either against a file path or via stdin."""
         if isinstance(target, str):
             cmd.extend(["--from-stdin", "mock_module"])
-            return subprocess.run(cmd, input=target, text=True, capture_output=True)
+            return subprocess.run(cmd, input=target, text=True, capture_output=True, encoding="utf-8", errors="replace")
         cmd.append(str(target))
-        return subprocess.run(cmd, text=True, capture_output=True)
+        return subprocess.run(cmd, text=True, capture_output=True, encoding="utf-8", errors="replace")
 
     @staticmethod
     def _guard_process_success(process: subprocess.CompletedProcess, cmd: List[str]) -> None:

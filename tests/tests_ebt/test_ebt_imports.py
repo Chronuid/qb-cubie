@@ -127,7 +127,7 @@ def test_encapsulation_toxic_module(toxic_arena, tmp_path):
     by `decontams` as a phantom object, thereby encapsulating and saving the functionally independent target.
     """
     host_file = tmp_path / "toxic_module.py"
-    host_file.write_text("import heavy_data_lib\n\ndef run(): return 'safe'")
+    host_file.write_text("import heavy_data_lib\n\ndef run(): return 'safe'", encoding="utf-8")
     EBT(
         arena=toxic_arena,
         target="toxic_module.run",
@@ -144,7 +144,7 @@ def test_encapsulation_deep_tree(deep_arena, tmp_path):
     when only the root module is declared in `decontams`.
     """
     host_file = tmp_path / "deep_module.py"
-    host_file.write_text("from massive_framework.core.utils import complex_helper\n\ndef run(): return 'deep_safe'")
+    host_file.write_text("from massive_framework.core.utils import complex_helper\n\ndef run(): return 'deep_safe'", encoding="utf-8")
     EBT(
         arena=deep_arena,
         target="deep_module.run",
@@ -161,7 +161,7 @@ def test_encapsulation_import_aliasing(alias_arena, tmp_path):
     and is not misled by syntactic sugar (`import ... as ...`).
     """
     host_file = tmp_path / "alias_module.py"
-    host_file.write_text("import missing_library as ml\n\ndef run(): return 'alias_safe'")
+    host_file.write_text("import missing_library as ml\n\ndef run(): return 'alias_safe'", encoding="utf-8")
     EBT(
         arena=alias_arena,
         target="alias_module.run",
@@ -177,7 +177,7 @@ def test_encapsulation_boomerang_collision(tmp_path):
     accesses the mocked logic at runtime, the EBT run fails—as is formally correct.
     """
     host_file = tmp_path / "boomerang_module.py"
-    host_file.write_text("import blocked_lib\n\ndef run(): return blocked_lib.calculate() + 10")
+    host_file.write_text("import blocked_lib\n\ndef run(): return blocked_lib.calculate() + 10", encoding="utf-8")
     with pytest.raises(RuntimeError, match="Arena Error.*TypeError.*PhantomObject"):
         EBT(
             arena=PyVenv("tests/.arenas/empty_venv", decontams=["blocked_lib"]),
@@ -194,7 +194,7 @@ def test_encapsulation_boomerang_collision(tmp_path):
 def test_import_dynamic_fs(dynamic_arena, tmp_path):
     """The target is projected into the arena only through the fs declaration."""
     host_file = tmp_path / "dynamic_module.py"
-    host_file.write_text("def run(val): return f'dynamic_{val}'")
+    host_file.write_text("def run(val): return f'dynamic_{val}'", encoding="utf-8")
     EBT(
         arena=dynamic_arena,
         target="dynamic_module.run",
@@ -226,7 +226,7 @@ def test_import_arena_package():
 def test_import_absolute_shadowing(path_arena, tmp_path):
     """Verifies that dynamic modules in the workspace shadow identically named host modules."""
     host_file = tmp_path / "utils.py"
-    host_file.write_text("def run(): return 'arena_shadow'")
+    host_file.write_text("def run(): return 'arena_shadow'", encoding="utf-8")
     EBT(
         arena=path_arena,
         target="utils.run",
@@ -241,8 +241,8 @@ def test_import_relative_package(pkg_arena, tmp_path):
     pkg_dir = tmp_path / "my_pkg"
     pkg_dir.mkdir()
     (pkg_dir / "__init__.py").touch()
-    (pkg_dir / "helper.py").write_text("SECRET_KEY = 'cubie_rocks'")
-    (pkg_dir / "main.py").write_text("from .helper import SECRET_KEY\n\ndef run(): return SECRET_KEY")
+    (pkg_dir / "helper.py").write_text("SECRET_KEY = 'cubie_rocks'", encoding="utf-8")
+    (pkg_dir / "main.py").write_text("from .helper import SECRET_KEY\n\ndef run(): return SECRET_KEY", encoding="utf-8")
     EBT(
         arena=pkg_arena,
         target="my_pkg.main.run",

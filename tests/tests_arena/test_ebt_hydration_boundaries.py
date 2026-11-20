@@ -23,7 +23,7 @@ from qb_cubie import EBT, CloudpickleCodec, PickleCodec, PyVenv, TempFS, WorldSt
 def hydration_base(tmp_path_factory):
     """Provision a real, minimal Cloudpickle base offline, outside the repo."""
     base = tmp_path_factory.mktemp("hydration-codec-base")
-    venv.EnvBuilder(with_pip=False, symlinks=True).create(base)
+    venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
     site = Path(sysconfig.get_path("purelib", vars={"base": str(base), "platbase": str(base)}))
     shutil.copytree(Path(cloudpickle.__file__).parent, site / "cloudpickle")
     distribution = importlib.metadata.distribution("cloudpickle")

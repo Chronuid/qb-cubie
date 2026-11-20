@@ -9,10 +9,16 @@ from qb_cubie.protocols import WorldState
 # 1. ATTACK-VECTORS (Targets)
 # ==================================================================================================
 
-def attack_vector_pickle_rce(*args, **kwargs):
-    import os, pickle, inspect
+def attack_vector_pickle_rce(indicator_path: str, *args, **kwargs):
+    import inspect
+    import os
+    import pickle
+    from pathlib import Path
+
     class MaliciousPayload:
-        def __reduce__(self): return (os.system, ("touch /tmp/host_compromised.txt",))
+        def __reduce__(self):
+            return (Path.write_text, (Path(indicator_path), "compromised", "utf-8"))
+
     out_paths = []
     frame = inspect.currentframe()
     while frame:
@@ -27,11 +33,17 @@ def attack_vector_pickle_rce(*args, **kwargs):
     os._exit(0)
 
 
-def attack_vector_msgspec_rce(*args, **kwargs):
+def attack_vector_msgspec_rce(indicator_path: str, *args, **kwargs):
     """Tries to replicate output hijacking using msgspec."""
-    import os, inspect, msgspec
+    import inspect
+    import msgspec
+    import os
+    from pathlib import Path
+
     class MaliciousPayload: # 1. The same payload attempt as with Pickle
-        def __reduce__(self): return (os.system, ("touch /tmp/host_compromised.txt",))
+        def __reduce__(self):
+            return (Path.write_text, (Path(indicator_path), "compromised", "utf-8"))
+
     out_paths = []
     frame = inspect.currentframe()
     while frame: # 2. Search for the msgpack output file
@@ -48,7 +60,10 @@ def attack_vector_msgspec_rce(*args, **kwargs):
                     f.write(payload)
                 except TypeError: # Attack Attempt B: If that fails (and it will!),
                     # Let's write a malicious string instead, hoping that the host somehow evaluates it during unpacking.
-                    fake_payload = msgspec.msgpack.encode(["SUCCESS", "__import__('os').system('touch /tmp/host_compromised.txt')"])
+                    fake_payload = msgspec.msgpack.encode([
+                        "SUCCESS",
+                        f"__import__('pathlib').Path({indicator_path!r}).write_text('compromised', encoding='utf-8')",
+                    ])
                     f.write(fake_payload)
     os._exit(0)
 
@@ -57,19 +72,20 @@ def attack_vector_msgspec_rce(*args, **kwargs):
 # 2. THE REFEREE LOGIC (The Setup)
 # ==================================================================================================
 
-def assert_security_matrix(codec, attack_target, expect_compromise: bool):
+def assert_security_matrix(codec, attack_target, expect_compromise: bool, tmp_path: Path):
     """
     The generic test setup. It builds the arena using the codec, fires the target, and validates the result.
     """
     arena_path = "tests/.arenas/empty_venv"
-    indicator_file = Path("/tmp/host_compromised.txt")
+    indicator_file = tmp_path / "host_compromised.txt"
     if indicator_file.exists(): indicator_file.unlink()
     arena = PyVenv(arena_path, codec=codec)
     try:
         EBT(
             arena=arena,
             target=attack_target,
-            post=WorldState(returns="Irrelevant")
+            pre=WorldState(args=(str(indicator_file),)),
+            post=WorldState(returns="Irrelevant"),
         ).run()
     except Exception: pass
     is_compromised = indicator_file.exists()
@@ -84,18 +100,20 @@ def assert_security_matrix(codec, attack_target, expect_compromise: bool):
 # 3. THE ACTUAL TESTS
 # ==================================================================================================
 
-def test_pickle_codec_is_vulnerable_to_pickle_attack():
+def test_pickle_codec_is_vulnerable_to_pickle_attack(tmp_path: Path):
     """Demonstrates that the pickle codec is vulnerable."""
     assert_security_matrix(
         codec=PickleCodec(),
         attack_target=attack_vector_pickle_rce,
-        expect_compromise=True
+        expect_compromise=True,
+        tmp_path=tmp_path,
     )
 
-def test_msgspec_codec_is_not_vulnerable_to_pickle_attack():
+def test_msgspec_codec_is_not_vulnerable_to_pickle_attack(tmp_path: Path):
     """Verfication that the MSGspecCodec is not vulnerable."""
     assert_security_matrix(
         codec=MSGspecCodec(),
         attack_target=attack_vector_msgspec_rce,
-        expect_compromise=False
+        expect_compromise=False,
+        tmp_path=tmp_path,
     )

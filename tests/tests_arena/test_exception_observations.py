@@ -1,6 +1,7 @@
 """Real PyVenv/codec boundaries must preserve target error provenance."""
 
 import json
+import os
 import sysconfig
 import venv
 from pathlib import Path
@@ -22,7 +23,7 @@ from qb_cubie import (
 @pytest.fixture(scope="module")
 def observation_base(tmp_path_factory):
     base = tmp_path_factory.mktemp("exception-base")
-    venv.EnvBuilder(with_pip=False, symlinks=True).create(base)
+    venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
     site = Path(sysconfig.get_path("purelib", vars={"base": str(base), "platbase": str(base)}))
     site.mkdir(parents=True, exist_ok=True)
     (site / "prepared.pth").write_text(sysconfig.get_path("purelib") + "\n", encoding="utf-8")
@@ -78,7 +79,7 @@ def test_expected_errors_across_every_codec(arena, source, tmp_path, mode, accep
     assert arena.workspace_path is None
     report = tmp_path / "report.json"
     JsonReporter(report).report(result)
-    observed = json.loads(report.read_text())["traces"][0]["outcome"]["exception"]
+    observed = json.loads(report.read_text(encoding="utf-8"))["traces"][0]["outcome"]["exception"]
     if mode == "none":
         assert observed is None
     else:
