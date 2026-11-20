@@ -38,7 +38,7 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 `PyVenv(env_path=None, codec=None, decontams=None, custom_id=None)` verwendet standardmäßig `MSGspecCodec`. Ohne `env_path` löst `default_arena_path()` den Basispfad extern über `QB_CUBIE_DEFAULT_ARENA` oder den Plattform-Benutzer-Cache (`qb-cubie/arenas/py<major>.<minor>-empty`) auf, sodass keine Arena-Basen im Core-Paket liegen. `setup()` wählt den Basispfad aus `pre.arena`, wenn dort ein String steht, sonst aus `env_path`. Es prüft Codec-Abhängigkeiten ausschließlich lesend und meldet fehlende Anforderungen vor dem Kopieren. Installation und Änderungen an der Basis gehören zum ausdrücklichen Provisionierungsschritt.
 
-`workspace_path` bezeichnet den temporären Arbeitsordner und `virtual_path` dessen kopierte `.venv`. Das Target läuft mit dem Interpreter dieser Kopie. `get_state()` liefert den Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
+`PyVenv.setup()` legt einen gemeinsamen temporären Laufzeit-Root (`_root_path`) mit getrenntem `workspace_path` (`workspace/`, fachlicher Arbeitsordner für `CWD`, `pre.fs` und `post.fs`) und `virtual_path` (`.venv/`, geklonte virtuelle Umgebung) an. Pro `execute()`-Lauf verwaltet `_run_in_subprocess()` zusätzlich ein temporäres IPC-/Phantom-Verzeichnis (`ipc_*` mit `ipc_in<suffix>`, `ipc_out<suffix>` und `_cubie_phantom.py`) unterhalb von `_root_path`, das im Anschluss atomar abgeräumt wird. Das Target läuft mit dem Interpreter von `virtual_path`. `get_state()` liefert den sauberen Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
 
 Vor der Hydrierung passt `_relocation.relocate_scripts()` unterstützte POSIX-Python-Einstiegsskripte an den Klon an. Nicht unterstützte Launcher werden vor der Target-Ausführung abgelehnt. Insbesondere sind zusätzliche native Windows-`.exe`-Launcher ausgeschlossen. Der genaue Umfang und die Grenzen stehen im [Arena-Handbuch](../core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
 
@@ -51,6 +51,8 @@ Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` m
 Das `IPCC`-Protokoll definiert `file_suffix`, `requirements`, `dump(obj, path)`, `load(path)` und `get_runner_snippet(in_path, out_path)`.
 
 `MSGspecCodec` nutzt MessagePack für unterstützte Payloads und eine Modul-/Namensreferenz für das Target. `PickleCodec` verwendet Python-Pickle. `CloudpickleCodec` unterstützt zusätzliche dynamische Callables und Objektzustände; dabei können auch Host-Abhängigkeiten in den Payload gelangen. Sein `isolation`-Parameter bietet derzeit keine zusätzliche Dependency-Isolation: `_apply_dependency_isolation()` ist ein leerer Platzhalter.
+
+`PyVenv` startet den Kindprozess mit `python -P -c <script>` (ohne implizites `cwd` auf `sys.path[0]`) und stellt das temporäre IPC-Verzeichnis beim Start über `PYTHONPATH` bereit (während leere und `"."`-Einträge aus dem Host-`sys.path` herausgefiltert werden). Die drei eingebauten Codecs importieren zuerst die Transportmodule sowie `_cubie_phantom`, lösen anschließend sowohl `_cubie_phantom` aus `sys.modules` als auch das IPC-Verzeichnis aus `sys.path` und `PYTHONPATH` ab und fügen erst danach `os.getcwd()` als `sys.path[0]` ein. Eigene `IPCC`-Implementierungen sollten dieses Transport-First-Muster übernehmen, sobald ihre Runner Workspace-Module aus `cwd` importieren.
 
 Post-Prädikate werden beim normalen Arena-Lauf auf dem Host ausgewertet und verlangen für sich keinen bestimmten Arena-Codec. Werden sie durch EBT-Multiprocessing an Worker übertragen, gilt zusätzlich die Serialisierungsanforderung dieses Backends.
 
@@ -66,8 +68,7 @@ stdout/stderr-Ausgabe. Die Überwachung liest beide Pipes gleichzeitig und beend
 bei Abbruch die eigene Prozessgruppe mit SIGTERM/SIGKILL. Ohne Limits bleibt das
 bisherige Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte
 Ausgabe. Siehe [Arena-Handbuch](../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
-Dateiziele werden nicht auf den Workspace begrenzt; absolute Pfade und `..` können
-außerhalb schreiben. Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
+Die `pre.fs`-Hydrierung begrenzt Kopierziele auf den fachlichen Workspace (absolute Pfade, ausbrechende `..`-Komponenten und entweichende Symlinks/Junctions werden mit `ValueError` abgelehnt). Für laufende Targets selbst werden Dateiziele nicht eingeschränkt; Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
 Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.
 

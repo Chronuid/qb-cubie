@@ -211,32 +211,61 @@ def test_cyclic_links_are_rejected_before_execution(arena, tmp_path):
     _assert_rejected(arena, WorldState(fs={"bundle": str(source)}), tmp_path, "bundle")
 
 
-@pytest.mark.parametrize("mapping_kind", ["file", "tree", "directory-basename"])
-def test_pyvenv_hydration_cannot_write_through_base_symlinks(tmp_path, monkeypatch, mapping_kind):
-    scratch = tmp_path / "scratch"
-    scratch.mkdir()
-    monkeypatch.setattr(tempfile, "tempdir", str(scratch))
-    # A minimal base suffices: rejection must precede interpreter lookup. This
-    # models venv links without ever risking the actual host interpreter.
+def _minimal_symlink_base(tmp_path):
     base = tmp_path / "base"
-    base.mkdir()
+    venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(base)
     protected = tmp_path / "host-file.txt"
     protected.write_text("host original", encoding="utf-8")
     _symlink(base / "payload.txt", protected)
     source = tmp_path / "payload.txt"
     source.write_text("replacement", encoding="utf-8")
+    return base, protected, source
+
+
+@pytest.mark.parametrize("mapping_kind", ["file", "tree", "directory-basename"])
+def test_pyvenv_hydration_cannot_write_through_base_symlinks(tmp_path, monkeypatch, mapping_kind):
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(scratch))
+    base, protected, source = _minimal_symlink_base(tmp_path)
     if mapping_kind == "tree":
         tree = tmp_path / "tree"
         tree.mkdir()
         shutil.copyfile(source, tree / source.name)
-        destination, host_source = ".venv", tree
+        destination, host_source, expected_rel = ".venv", tree, ".venv/payload.txt"
     elif mapping_kind == "directory-basename":
-        destination, host_source = ".venv", source
+        destination, host_source, expected_rel = ".venv", source, ".venv"
     else:
-        destination, host_source = ".venv/payload.txt", source
+        destination, host_source, expected_rel = ".venv/payload.txt", source, ".venv/payload.txt"
     arena = PyVenv(env_path=str(base), codec=PickleCodec())
     try:
-        _assert_rejected(arena, WorldState(fs={destination: str(host_source)}), tmp_path, destination)
+        trace = EBT(
+            arena=arena,
+            target="builtins:int",
+            pre=WorldState(args=("1",), fs={destination: str(host_source)}),
+            post=WorldState(
+                returns=1,
+                arena=str(base),
+                fs={expected_rel: lambda p: p.is_file() and p.read_text(encoding="utf-8") == "replacement"},
+            ),
+        ).run()
+        assert trace.evaluation is True
+        assert arena.workspace_path is None
+        assert arena.virtual_path is None
+        assert list(scratch.iterdir()) == []
+    finally:
+        assert protected.read_text(encoding="utf-8") == "host original"
+
+
+@pytest.mark.parametrize("destination", ["../.venv/payload.txt", "../.venv"])
+def test_pyvenv_hydration_rejects_sibling_venv_traversal(tmp_path, monkeypatch, destination):
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(scratch))
+    base, protected, source = _minimal_symlink_base(tmp_path)
+    arena = PyVenv(env_path=str(base), codec=PickleCodec())
+    try:
+        _assert_rejected(arena, WorldState(fs={destination: str(source)}), tmp_path, destination)
     finally:
         assert protected.read_text(encoding="utf-8") == "host original"
 

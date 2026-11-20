@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [Unreleased]
+
+### Behoben
+- **`[BUG-001]` Strikte Workspace-Isolation in `PyVenv` (inkl. Defekt-Klassen K1–K6):**
+  - `PyVenv` ([pyvenv.py](./src/qb_cubie/arenas/pyvenv.py)) trennt unter einem gemeinsamen temporären Arena-Root (`_root_path`) den fachlichen Arbeitsbereich (`workspace/` als `workspace_path`), die geklonte Umgebung (`.venv/` als `virtual_path`) und die pro `execute()`-Lauf angelegte temporäre IPC-/Phantom-Ablage (`ipc_*` mit `ipc_in<suffix>`, `ipc_out<suffix>` und `_cubie_phantom.py` via `shutil.copyfile`); das Aufräumen nutzt `shutil.rmtree(..., onexc=_remove_readonly)` für Windows-freundliches Cleanup schreibgeschützter Dateien.
+  - Kindprozesse starten mit `python -P -c <script>`, leere/`"."`-Einträge werden aus dem geerbten `PYTHONPATH` gefiltert, und die drei eingebauten Codecs ([codecs.py](./src/qb_cubie/arenas/codecs.py)) nutzen ein gemeinsames Transport-First-Bootstrap-Detaching (`_DETACH_BOOTSTRAP`), sodass `pre.fs`-Dateien (`ipc_in.*`, `ipc_out.*`, `_cubie_phantom.py`, `.venv`, `pickle.py`, `msgspec.py`, `cloudpickle.py`, `importlib.py`) weder überschrieben noch gelöscht noch von Transport-Imports abgeschattet werden und vollständige Workspace-Vergleiche (`fs={".": ...}`) sauber arbeiten.
+  - Bestands-Tests in [test_ebt_arena.py](./tests/tests_arena/test_ebt_arena.py), [test_ebt_hydration_boundaries.py](./tests/tests_arena/test_ebt_hydration_boundaries.py) und [test_linter.py](./tests/tests_linter/test_linter.py) auf das getrennte Layout migriert bzw. gegen Vacuous Pass gehärtet; vollständige Regressionstest-Suite in [test_pyvenv_workspace_isolation.py](./tests/tests_arena/test_pyvenv_workspace_isolation.py) ergänzt sowie [GUIDE_Arena-Management.md](./docs/core/GUIDE_Arena-Management.md), [DEV-GUIDE_2-3_Arenas.md](./docs/dev/DEV-GUIDE_2-3_Arenas.md), [GUIDE_Contract-Semantics.md](./docs/core/GUIDE_Contract-Semantics.md) und [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) synchronisiert (dokumentiert in [TGD_1.md](./tests/tests_arena/TGD_1.md)).
+
 ## [0.0.9] - 2026-11-19
 
 ### Neu

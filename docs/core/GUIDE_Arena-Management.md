@@ -40,8 +40,9 @@ Verzeichnis-Junctions sowie Links in kopierten Bäumen. Relative interne Links
 bleiben erhalten, einschließlich interner Links auf noch nicht existierende
 Dateien. Linkketten werden nach Abschluss aller Mappings erneut geprüft;
 ausbrechende und zyklische Ketten sind ungültig. Die vertrauenswürdige PyVenv-Basis
-darf weiterhin Interpreter-Links nach außen enthalten. Die Hydrierung darf durch
-solche Links keine Hostdateien verändern.
+darf weiterhin Interpreter-Links nach außen enthalten; ihr Klon (`.venv`) liegt getrennt
+neben dem fachlichen `workspace_path`, sodass die `pre.fs`-Hydrierung diese Basis-Links
+nicht erreichen und keine Hostdateien über sie verändern kann.
 
 Diese Kopiergrenze entzieht Targets keine Rechte. Quellen, Konfigurationen,
 Basisumgebungen, Targets und IPC-Rückgaben müssen vertrauenswürdig sein. Targets
@@ -53,7 +54,7 @@ generierten Code. Details stehen in der
 
 ## PyVenv: kopierte virtuelle Umgebung
 
-`PyVenv(env_path=None)` kopiert eine vorhandene virtuelle Umgebung in den Workspace und startet deren Interpreter. Ohne `env_path` greift `default_arena_path()`: Ist `QB_CUBIE_DEFAULT_ARENA` gesetzt, wird dieser Pfad verwendet; andernfalls zeigt der Standard auf ein interpreter-spezifisches Verzeichnis im Benutzer-Cache (z. B. `~/.cache/qb-cubie/arenas/py3.13-empty` bzw. `$XDG_CACHE_HOME`), vollständig außerhalb des Core-Pakets. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
+`PyVenv(env_path=None)` kopiert eine vorhandene virtuelle Umgebung in ein getrenntes Verzeichnis (`.venv`) neben dem fachlichen Workspace (`workspace/`) und hält IPC-Dateien sowie `_cubie_phantom.py` in einem temporären Laufzeitverzeichnis außerhalb des Workspace (analog `TempFS`), sodass vollständige Workspace-Vergleiche `fs={".": ...}` und Namenskollisionen konfliktfrei funktionieren. Das Target startet mit dem Interpreter der geklonten `.venv`. Ohne `env_path` greift `default_arena_path()`: Ist `QB_CUBIE_DEFAULT_ARENA` gesetzt, wird dieser Pfad verwendet; andernfalls zeigt der Standard auf ein interpreter-spezifisches Verzeichnis im Benutzer-Cache (z. B. `~/.cache/qb-cubie/arenas/py3.13-empty` bzw. `$XDG_CACHE_HOME`), vollständig außerhalb des Core-Pakets. Ein String in `pre.arena` überschreibt bei aktiver `PyVenv` den Basispfad. Er erzeugt selbst keine ausführbare Arena.
 
 Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert und nicht im Core-Paket gehalten; auch der Standardpfad von `PyVenv()` muss vor der ersten Nutzung lokal provisioniert werden (z. B. über `ArenaBuilder().build()` oder `scripts/provision_test_arenas.py`). `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
 
@@ -174,7 +175,7 @@ Dateiausgabe, IPC-Dateigröße und Speicher des Targets werden nicht begrenzt.
 
 ## Grenzen von Isolation und Reproduzierbarkeit
 
-Targets können absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare Netzwerkzugänge nutzen. Hydrierungsziele werden nicht auf den Workspace begrenzt: Verwende kontrollierte relative Pfade ohne `..`. Auch eine versehentliche absolute Pfadangabe kann außerhalb schreiben.
+Targets können absolute Hostpfade, geerbte Umgebungsvariablen und verfügbare Netzwerkzugänge nutzen. Die `pre.fs`-Hydrierung begrenzt Schreibziele strikt auf den fachlichen Workspace (absolute Pfade und ausbrechende `..`-Pfade werden mit `ValueError` abgelehnt); laufende Targets selbst behalten jedoch die vollen Host-OS-Rechte des aufrufenden Benutzers.
 
 `PyVenv(decontams=[...])` ersetzt ausschließlich die ausdrücklich genannten Module durch Import-Platzhalter. Deren Aufruf, Kontextmanager-Nutzung oder Wahrheitswertprüfung scheitert mit `TypeError`; relevante Prüfungen können dadurch nicht stillschweigend verschwinden. Standardmäßig werden installierte Abhängigkeiten unverändert geladen. Fehlt pytest, unterstützt eine begrenzte Hilfe `fixture`, `mark` und `param` im Modulrumpf beim Laden von Testmodulen. Sie wird vor dem Target-Aufruf aus dem Importcache entfernt; gebundene Platzhalter verweigern Laufzeitaufrufe. Für echte pytest-Aufrufe muss pytest in der Basis installiert sein. Diese Importanpassungen entziehen keine Rechte. `PATH` und `VIRTUAL_ENV` wählen eine Umgebung aus, sie erzwingen keine OS-Isolation.
 

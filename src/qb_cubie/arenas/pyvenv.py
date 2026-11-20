@@ -1,6 +1,7 @@
 import locale
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -45,14 +46,24 @@ def _cache_root() -> Path:
     return Path.home() / ".cache"
 
 
+def _remove_readonly(func: Any, path: str, exc: BaseException) -> None:
+    """Clear read-only file bits during tree deletion so Windows clones clean up."""
+    if isinstance(exc, PermissionError):
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+        return
+    raise exc
+
+
 class _ArenaState:
     def __init__(self) -> None:
+        self._root_path: Optional[Path] = None
         self.workspace_path: Optional[Path] = None
         self.virtual_path: Optional[Path] = None
         self._config_state: Optional[WorldState] = None
         self._actual_returns: Any = None
         self._python_exe: Optional[Path] = None
-        self._env_vars: Optional[dict] = None
+        self._env_vars: Optional[dict[str, str]] = None
         self._in_path: Optional[str] = None
         self._out_path: Optional[str] = None
         self._process: Optional[subprocess.CompletedProcess] = None
@@ -97,7 +108,7 @@ class PyVenv(_ArenaState):
             self.setup(state or WorldState())
             return self.execute(target, args, kwargs)
         finally:
-            if self.workspace_path is not None:
+            if self._root_path is not None or self.workspace_path is not None:
                 self.teardown()
 
     def setup(self, state: WorldState) -> None:
@@ -106,11 +117,9 @@ class PyVenv(_ArenaState):
         self._config_state = state
         base_env = self._base_environment(state)
         self._ensure_codec_requirements(base_env)
-        workspace = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_"))
-        self.workspace_path = workspace
-        self.virtual_path = workspace / ".venv"
-        shutil.copytree(base_env, str(self.virtual_path), symlinks=True)
-        relocate_scripts(base_env, self.virtual_path)
+        virtual_path = self._prepare_directories()
+        shutil.copytree(base_env, str(virtual_path), symlinks=True)
+        relocate_scripts(base_env, virtual_path)
         self._hydrate()
 
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
@@ -141,14 +150,26 @@ class PyVenv(_ArenaState):
     def teardown(self) -> None:
         """Completely destroys the ephemeral clone and restores the original state."""
         __tracebackhide__ = True
-        if self.workspace_path is None:
+        if self._root_path is None:
             raise RuntimeError("STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
-        if self.workspace_path.exists():
-            shutil.rmtree(self.workspace_path)
+        if self._root_path.exists():
+            shutil.rmtree(self._root_path, onexc=_remove_readonly)
+        self._root_path = None
         self.workspace_path = None
         self.virtual_path = None
 
     # ----- Pipes ------------------------------------------------------------------------------------------------------
+
+    def _prepare_directories(self) -> Path:
+        """Create separate workspace and venv directories beneath an arena root."""
+        root = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_"))
+        workspace = root / "workspace"
+        workspace.mkdir()
+        virtual_path = root / ".venv"
+        self._root_path = root
+        self.workspace_path = workspace
+        self.virtual_path = virtual_path
+        return virtual_path
 
     def _base_environment(self, state: WorldState) -> Path:
         base_env = Path(state.arena) if isinstance(state.arena, str) else self.env_path
@@ -207,15 +228,16 @@ class PyVenv(_ArenaState):
     def _run_in_subprocess(self, target: Any, args: tuple, kwargs: dict) -> Any:
         """Wraps the callable, executes it in the arena, and unwraps the result."""
         __tracebackhide__ = True
-        if self._python_exe is None or self._env_vars is None:
-            raise RuntimeError("STATE-GUARD: Python executable or environment is missing.")
-        self._setup_ipc_files()
-        try:
-            self._serialize_inputs(target, args, kwargs)
-            self._invoke_script()
-            return self._deserialize_outputs()
-        finally:
-            self._teardown_ipc_files()
+        if self._python_exe is None or self._env_vars is None or self._root_path is None:
+            raise RuntimeError("STATE-GUARD: Python executable, environment, or root is missing.")
+        with tempfile.TemporaryDirectory(prefix="ipc_", dir=self._root_path) as ipc_dir:
+            self._setup_ipc_files(Path(ipc_dir))
+            try:
+                self._serialize_inputs(target, args, kwargs)
+                self._invoke_script()
+                return self._deserialize_outputs()
+            finally:
+                self._teardown_ipc_files()
 
     def _invoke_script(self) -> None:
         """Generates the runner script and launches the subprocess in the arena."""
@@ -227,13 +249,29 @@ class PyVenv(_ArenaState):
 
     # ↓--- _prepare_env() ---↓
 
+    @staticmethod
+    def _safe_host_paths() -> list[str]:
+        """Collect normalized host import paths while excluding site packages and CWD aliases."""
+        paths: list[str] = []
+        for entry in sys.path:
+            if not entry or entry == ".":
+                continue
+            lowered = entry.lower()
+            if "site-packages" in lowered or "dist-packages" in lowered:
+                continue
+            paths.append(str(Path(entry).absolute()))
+        return paths
+
     def _inject_project_code(self) -> None:
         """Isolates PYTHONPATH from host packages and blocks PYTHONHOME."""
         __tracebackhide__ = True
         if self._env_vars is None:
             raise RuntimeError("STATE-GUARD: '_env_vars' was not initialized.")
-        safe_paths = [p for p in sys.path if "site-packages" not in p and "dist-packages" not in p]
-        self._env_vars["PYTHONPATH"] = os.pathsep.join(safe_paths)
+        safe_paths = self._safe_host_paths()
+        if safe_paths:
+            self._env_vars["PYTHONPATH"] = os.pathsep.join(safe_paths)
+        else:
+            self._env_vars.pop("PYTHONPATH", None)
         self._env_vars.pop("PYTHONHOME", None)
 
     def _activate_arena_env(self) -> None:
@@ -247,17 +285,26 @@ class PyVenv(_ArenaState):
 
     # ↓--- _run_in_subprocess() ---↓
 
-    def _setup_ipc_files(self) -> None:
+    def _setup_ipc_files(self, ipc_dir: Path) -> None:
         """Creates temporary files for data exchange and injects the phantom middleware."""
         __tracebackhide__ = True
-        if self.workspace_path is None:
-            raise RuntimeError("STATE-GUARD: 'workspace_path' was not initialized.")
-        self._in_path = str(self.workspace_path / f"ipc_in{self.codec.file_suffix}")
-        self._out_path = str(self.workspace_path / f"ipc_out{self.codec.file_suffix}")
+        if self._env_vars is None:
+            raise RuntimeError("STATE-GUARD: '_env_vars' was not initialized.")
+        self._in_path = str(ipc_dir / f"ipc_in{self.codec.file_suffix}")
+        self._out_path = str(ipc_dir / f"ipc_out{self.codec.file_suffix}")
         phantom_src = CURRENT_DIR / "phantom_hook.py"
         if not phantom_src.exists():
             raise FileNotFoundError(f"STATE-GUARD: Phantom-Middleware missing at {phantom_src}")
-        shutil.copy2(phantom_src, self.workspace_path / "_cubie_phantom.py")
+        shutil.copyfile(phantom_src, ipc_dir / "_cubie_phantom.py")
+        self._prepend_ipc_pythonpath(ipc_dir)
+
+    def _prepend_ipc_pythonpath(self, ipc_dir: Path) -> None:
+        """Prepend the temporary IPC directory to PYTHONPATH for child bootstrap."""
+        if self._env_vars is None:
+            raise RuntimeError("STATE-GUARD: '_env_vars' was not initialized.")
+        existing = self._env_vars.get("PYTHONPATH", "")
+        ipc_entry = str(ipc_dir.absolute())
+        self._env_vars["PYTHONPATH"] = f"{ipc_entry}{os.pathsep}{existing}" if existing else ipc_entry
 
     def _serialize_inputs(self, target: Any, args: tuple, kwargs: dict) -> None:
         """Serializes the target and its parameters into the input file."""
@@ -295,12 +342,8 @@ class PyVenv(_ArenaState):
         return result
 
     def _teardown_ipc_files(self) -> None:
-        """Cleans up temporary files after execution completes and resets the state."""
+        """Resets active IPC file path references after execution completes."""
         __tracebackhide__ = True
-        if self._in_path and os.path.exists(self._in_path):
-            os.remove(self._in_path)
-        if self._out_path and os.path.exists(self._out_path):
-            os.remove(self._out_path)
         self._in_path = None
         self._out_path = None
 
@@ -319,7 +362,7 @@ class PyVenv(_ArenaState):
         if self._python_exe is None or self._env_vars is None or self.workspace_path is None:
             raise RuntimeError("STATE-GUARD: Python executable, environment, or workspace is missing.")
         self._process = run_process(
-            [str(self._python_exe), "-c", script], env=self._env_vars,
+            [str(self._python_exe), "-P", "-c", script], env=self._env_vars,
             cwd=self.workspace_path, capture_output=True,
             timeout=self.timeout, max_output_bytes=self.max_output_bytes,
         )

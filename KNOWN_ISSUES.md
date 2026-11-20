@@ -19,34 +19,6 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 
 ## Offene Bugs
 
-### [BUG-001] `PyVenv` verändert Testdaten durch eigene IPC-Dateien im Workspace
-
-- **Status:** Offen *(Gutachten-Befund B1, P1)*
-- **Schweregrad:** Hoch
-- **Bereich:** `src/qb_cubie/arenas/pyvenv.py` (`setup`, `_setup_ipc_files`, `_teardown_ipc_files`)
-- **Umgebung / Version:** reproduziert ab `v0.0.3`, unverändert in `v0.0.9` (Linux, Python 3.13)
-
-**Ist-Verhalten:**  
-`PyVenv` legt seine Austauschdateien (`ipc_in<suffix>`, `ipc_out<suffix>`), das Hilfsmodul `_cubie_phantom.py` sowie `.venv/` direkt im geprüften `workspace_path` ab. Dadurch teilen sich Infrastruktur und Testdaten denselben Namensraum:
-1. Eine über `pre.fs` bereitgestellte `ipc_in.<suffix>` wird vor dem Target-Aufruf still durch die IPC-Nutzlast überschrieben.
-2. Eine über `pre.fs` bereitgestellte `ipc_out.<suffix>` wird nach der Ausführung durch `_teardown_ipc_files()` gelöscht.
-3. Vollständige Workspace-Vergleiche (z. B. gegen ein leeres Referenzverzeichnis) schlagen durch `.venv/` und `_cubie_phantom.py` fehl.
-
-**Soll-Verhalten:**  
-Infrastrukturdateien (`ipc_in`, `ipc_out`, `_cubie_phantom.py`, `.venv`) liegen getrennt vom fachlichen Arbeitsbereich (analog zu den IPC-Dateien in `TempFS`). Bereitgestellte Testdaten werden weder überschrieben noch gelöscht.
-
-**Reproduktion:**  
-EBT-Vertrag mit `PyVenv` und `PickleCodec` ausführen, bei dem `pre.fs` eine Datei `ipc_in.pkl` (z. B. 3 Bytes) oder `ipc_out.pkl` bereitstellt: `os.path.getsize("ipc_in.pkl")` beobachtet die serialisierte IPC-Nutzlast statt 3 Bytes; `ipc_out.pkl` fehlt beim anschließenden Dateivergleich (`Path not found. Arena: False, Host: True`).
-
-**Workaround:**  
-In `PyVenv`-Tests keine Dateien namens `ipc_in.*`, `ipc_out.*` oder `_cubie_phantom.py` im Workspace-Root ablegen und Dateivergleiche auf fachliche Unterverzeichnisse eingrenzen.
-
-**Hinweise / Ursache:**  
-Quelle: [`GUTACHTEN.md` (§ 6.1, B1)](./GUTACHTEN.md#61-b1-pyvenv-verändert-testdaten-durch-eigene-ipc-dateien).  
-Empfohlene Korrektur: IPC-Dateien, Hilfsmodule und `.venv` außerhalb des geprüften Workspace führen und Namenskollisionen sowie vollständige Verzeichnisvergleiche durch Regressionstests absichern.
-
----
-
 ### [BUG-002] `PytestReporter` verliert Assertions unter optimiertem Python (`python -O`)
 
 - **Status:** Offen *(Gutachten-Befund B2, P1)*
@@ -175,6 +147,20 @@ Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwartete
 - **Grafischer Reviewer (`tkinter`):** Nur der Start der GUI benötigt `tkinter` und eine grafische Umgebung. Paketimport, EBT und Headless-RBT funktionieren ohne Tk.
 - **Dateivergleich:** Inhalte werden bei jedem Vergleich blockweise neu gelesen (kein persistenter Vergleichscache); gleichzeitig laufende Schreibzugriffe ergeben jedoch keine atomare Momentaufnahme.
 - **Vertragssemantik & Reporter:** Mehrere Eingänge teilen dieselbe Zielmenge (korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge). `JsonReporter` persistiert Ergebnisse, wirft aber selbst keine fachliche Assertion. Details stehen in der [Semantikreferenz](./docs/core/GUIDE_Contract-Semantics.md).
+
+---
+
+## Behoben (Archiv)
+
+### [BUG-001] `PyVenv` verändert Testdaten durch eigene IPC-Dateien im Workspace
+
+- **Status:** Behoben *(nach v0.0.9 / TGD-Zyklus 1)*
+- **Schweregrad:** Hoch
+- **Bereich:** `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`
+- **Umgebung / Version:** reproduziert ab `v0.0.3` bis `v0.0.9`; behoben ab Entwicklungsstand nach `v0.0.9`
+
+**Lösung:**  
+`PyVenv` trennt den fachlichen Workspace (`_root_path/workspace/`), die geklonte Umgebung (`_root_path/.venv/`) sowie die temporäre IPC- und Phantom-Ablage (`TemporaryDirectory(prefix="ipc_", dir=self._root_path)`) strikt voneinander, startet Kindprozesse mit `python -P -c` unter Herausfiltern von `""`/`"."` aus `PYTHONPATH`, und die Codecs lösen `_cubie_phantom` sowie das IPC-Verzeichnis nach dem Transport-Import ab, bevor `os.getcwd()` an `sys.path[0]` eingehängt wird. Vollständige Dokumentation und Verifikationsverlauf unter [`tests/tests_arena/TGD_1.md`](./tests/tests_arena/TGD_1.md) sowie [`GUTACHTEN.md` (§ 6.1, B1)](./GUTACHTEN.md#61-b1-pyvenv-verändert-testdaten-durch-eigene-ipc-dateien).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

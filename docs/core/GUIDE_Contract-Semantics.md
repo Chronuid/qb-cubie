@@ -153,7 +153,7 @@ und von der Verbosity. Ein ausschließlich fehlgeschlagener Vergleich liefert
 keine irreführende Zusammenfassung mit null Abweichungen. Die Formatierung greift
 nicht erneut auf die Vergleichsdateien zu und funktioniert auch nach deren Löschung.
 
-Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnissen vergleicht EBT rekursiv relative Datei- und Verzeichnispfade sowie Dateiinhalte, einschließlich leerer Unterverzeichnisse. Fehlende, zusätzliche und geänderte Einträge zählen als Abweichung. Ein Wechsel Datei ↔ Verzeichnis innerhalb eines gemappten Verzeichnisses am gleichen relativen Pfad wird als `modified` erfasst. Ein Typkonflikt des explizit gemappten Vergleichsobjekts selbst bleibt ein Vergleichsfehler mit `error`-Eintrag. Die Diff-Listen sind sortiert. Pfade außerhalb der angegebenen Vergleichspfade bleiben ungeprüft. `fs={".": "fixtures/post"}` vergleicht den gesamten Workspace gegen die Vorlage.
+Einzelne gemappte Dateien werden byteweise verglichen. Bei gemappten Verzeichnissen vergleicht EBT rekursiv relative Datei- und Verzeichnispfade sowie Dateiinhalte, einschließlich leerer Unterverzeichnisse. Fehlende, zusätzliche und geänderte Einträge zählen als Abweichung. Ein Wechsel Datei ↔ Verzeichnis innerhalb eines gemappten Verzeichnisses am gleichen relativen Pfad wird als `modified` erfasst. Ein Typkonflikt des explizit gemappten Vergleichsobjekts selbst bleibt ein Vergleichsfehler mit `error`-Eintrag. Die Diff-Listen sind sortiert. Pfade außerhalb der angegebenen Vergleichspfade bleiben ungeprüft. `fs={".": "fixtures/post"}` vergleicht den gesamten Workspace gegen die Vorlage und arbeitet bei `TempFS` und `PyVenv` konsistent ohne Infrastruktur-Artefakte (`.venv`, IPC-Dateien oder `_cubie_phantom.py`) im Workspace.
 
 Die Existenz eines ausdrücklich gemappten Verzeichnisses wird geprüft. Metadaten, Rechte und Symlink-Identität werden nicht verglichen; Symlinks werden entsprechend dem aufgelösten Datei-/Verzeichnistyp behandelt, unaufgelöste Links nicht erfasst. `FS_IGNORES` filtert Pfadsegmente samt Teilbaum. Beim Arena-Vergleich gelten `ARENA_IGNORES` und zusätzliche Filter für `.pyc` und `.dist-info`. Ein gleicher Dateibestand beweist weder identisches Laufzeitverhalten noch identische Abhängigkeiten.
 
@@ -177,9 +177,11 @@ Das gilt ebenfalls für interne Links auf noch nicht existierende Dateien.
 Ausbrechende oder zyklische Linkketten werden vor Target-Ausführung abgewiesen;
 auch spätere Mappings dürfen frühere Links nicht nach außen umlenken. Die Prüfung
 gilt für die FS-Hydrierung, nicht für `post.fs`-Vergleiche oder Target-Dateizugriffe.
-Die separat geklonte PyVenv-Basis bleibt eine vertrauenswürdige Eingabe; ihre
-Interpreter-Links werden nicht pauschal verboten, aber auch nicht als Schreibziele
-nach außen zugelassen.
+Die getrennt neben dem fachlichen Workspace geklonte `PyVenv`-Basis (`.venv`) bleibt
+eine vertrauenswürdige Eingabe und liegt außerhalb der Hydrierungsgrenze: Ihre
+Interpreter-Links werden nicht pauschal verboten, können aber durch `pre.fs` weder
+erreicht noch als Schreibziele nach außen genutzt werden (fachliche `pre.fs`-Pfade wie
+`".venv"` oder `".venv/..."` landen ausschließlich im Workspace).
 
 `TempFS` und `PyVenv` erhalten Benutzerrechte, verfügbare Netzwerkzugänge und Hostzugriffsmöglichkeiten. Temporäre Arbeitsordner und virtuelle Umgebungen sind keine OS-Sicherheitsgrenzen. Auch der Codec schafft keine solche Grenze. Pickle/Cloudpickle können bei der Deserialisierung Code ausführen. `CloudpickleCodec(isolation=1)` ruft einen leeren Platzhalter auf und bietet keine zusätzliche Dependency-Isolation.
 

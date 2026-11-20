@@ -20,7 +20,7 @@ def test_linter_discovery_and_ignores():
     EBT(
         arena=PyVenv("tests/.arenas/linter_env", codec=CloudpickleCodec()),
         target=linter.check,
-        pre=WorldState(),
+        pre=WorldState(fs={".venv/bad_code.py": "tests/fixtures/bad_code.py"}),
         post=WorldState(returns=[]),
     ).run()
 

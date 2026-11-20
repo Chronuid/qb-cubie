@@ -36,8 +36,7 @@ class PickleCodec:
     @staticmethod
     def get_runner_snippet(in_path: str, out_path: str) -> str:
         """Render the child runner with its input and output paths."""
-        import textwrap
-        return textwrap.dedent(_PICKLE_RUNNER.format(in_path=repr(in_path), out_path=repr(out_path)))
+        return _render_runner(_PICKLE_RUNNER, in_path, out_path)
 
 
 # ===== MSGSPEC-CODEC ===================================================================================================
@@ -73,8 +72,7 @@ class MSGspecCodec:
     @staticmethod
     def get_runner_snippet(in_path: str, out_path: str) -> str:
         """Render the child runner with its input and output paths."""
-        import textwrap
-        return textwrap.dedent(_MSGSPEC_RUNNER.format(in_path=repr(in_path), out_path=repr(out_path)))
+        return _render_runner(_MSGSPEC_RUNNER, in_path, out_path)
 
     # ----- Utilities (Workers) ----------------------------------------------------------------------------------------
 
@@ -167,8 +165,7 @@ class CloudpickleCodec:
     @staticmethod
     def get_runner_snippet(in_path: str, out_path: str) -> str:
         """Render the child runner with its input and output paths."""
-        import textwrap
-        return textwrap.dedent(_CLOUDPICKLE_RUNNER.format(in_path=repr(in_path), out_path=repr(out_path)))
+        return _render_runner(_CLOUDPICKLE_RUNNER, in_path, out_path)
 
     # ----- Utilities (Workers) ----------------------------------------------------------------------------------------
 
@@ -220,117 +217,136 @@ class CloudpickleCodec:
         pass
 
 
-_PICKLE_RUNNER = """
-            import pickle
-            import _cubie_phantom
+_DETACH_BOOTSTRAP = """\
+_ipc = os.path.normcase(os.path.realpath(os.path.dirname(_phantom.__file__)))
+sys.modules.pop("_cubie_phantom", None)
+sys.path[:] = [p for p in sys.path if not p or os.path.normcase(os.path.realpath(p)) != _ipc]
+_pp = os.pathsep.join(
+    p for p in os.environ.get("PYTHONPATH", "").split(os.pathsep)
+    if p and os.path.normcase(os.path.realpath(p)) != _ipc
+)
+if _pp:
+    os.environ["PYTHONPATH"] = _pp
+else:
+    os.environ.pop("PYTHONPATH", None)
+sys.path.insert(0, os.getcwd())"""
+
+
+def _render_runner(template: str, in_path: str, out_path: str) -> str:
+    """Render a child runner template with bootstrap detaching and IPC paths."""
+    return template.format(bootstrap=_DETACH_BOOTSTRAP, in_path=repr(in_path), out_path=repr(out_path))
+
+
+_PICKLE_RUNNER = """\
+import importlib, os, pickle, sys, _cubie_phantom as _phantom
+{bootstrap}
+try:
+    with open({in_path}, 'rb') as f:
+        decontams = pickle.load(f)
+        with _phantom.activate_hook(decontams) as imports:
+            t, a, k, capture = pickle.load(f)
+            if isinstance(t, str):
+                if ":" in t: module_name, qualname = t.split(":", 1)
+                else:
+                    parts = t.split(".")
+                    module_name = ".".join(parts[:-1])
+                    qualname = parts[-1]
+                mod = importlib.import_module(module_name)
+                t = mod
+                for part in qualname.split('.'): t = getattr(t, part)
+            imports.finish()
+            status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
             try:
-                with open({in_path}, 'rb') as f:
-                    decontams = pickle.load(f)
-                    with _cubie_phantom.activate_hook(decontams) as imports:
-                        t, a, k, capture = pickle.load(f)
-                        if isinstance(t, str):
-                            import importlib
-                            if ":" in t: module_name, qualname = t.split(":", 1)
-                            else:
-                                parts = t.split(".")
-                                module_name = ".".join(parts[:-1])
-                                qualname = parts[-1]
-                            mod = importlib.import_module(module_name)
-                            t = mod
-                            for part in qualname.split('.'): t = getattr(t, part)
-                        imports.finish()
-                        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
-                        try:
-                            res = t(*a, **k)
-                        except Exception as error:
-                            if not capture: raise
-                            status = "TARGET_EXCEPTION"
-                            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
-                                   "message": str(error),
-                                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
-                with open({out_path}, 'wb') as f: pickle.dump((status, res), f)
-            except Exception as e:
-                error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                with open({out_path}, 'wb') as f: pickle.dump(("ERROR", error_msg), f)
-        """
+                res = t(*a, **k)
+            except Exception as error:
+                if not capture: raise
+                status = "TARGET_EXCEPTION"
+                res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                       "message": str(error),
+                       "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+    with open({out_path}, 'wb') as f: pickle.dump((status, res), f)
+except Exception as e:
+    error_msg = f"{{type(e).__name__}}: {{str(e)}}"
+    with open({out_path}, 'wb') as f: pickle.dump(("ERROR", error_msg), f)
+"""
 
 
-_MSGSPEC_RUNNER = """
-                import msgspec
-                import importlib
-                import _cubie_phantom
-                try:
-                    # ----- 1. Load and split payload -----
-                    with open({in_path}, 'rb') as f: data = msgspec.msgpack.decode(f.read())
-                    target_info = data["target"]
-                    decontams = data.get("decontams", [])
-                    # ----- 2. Activate the hook and load the target into the context. -----
-                    with _cubie_phantom.activate_hook(decontams) as imports:
-                        mod = importlib.import_module(target_info["module"])
-                        parts = target_info["qualname"].split('.')
-                        if target_info["type"] == "instance":
-                            cls_obj = mod
-                            for part in parts[:-1]: cls_obj = getattr(cls_obj, part)
-                            inst = cls_obj.__new__(cls_obj)
-                            inst.__dict__.update(target_info.get("state", {{}}))
-                            func = getattr(inst, parts[-1])
-                        else:
-                            func = mod
-                            for part in parts: func = getattr(func, part)
-                        imports.finish()
-                        # ----- 3. Execute target and report successful result -----
-                        capture = target_info.get("capture_exception", False)
-                        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
-                        try:
-                            res = func(*data["args"], **data["kwargs"])
-                        except Exception as error:
-                            if not capture: raise
-                            status = "TARGET_EXCEPTION"
-                            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
-                                   "message": str(error),
-                                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
-                    with open({out_path}, 'wb') as f: f.write(msgspec.msgpack.encode([status, res]))
-                except Exception as e: # Exception abfangen und an den Host melden
-                    error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                    with open({out_path}, 'wb') as f: f.write(msgspec.msgpack.encode(["ERROR", error_msg]))
-            """
+_MSGSPEC_RUNNER = """\
+import importlib, os, sys, msgspec, msgspec.msgpack, _cubie_phantom as _phantom
+{bootstrap}
+try:
+    # ----- 1. Load and split payload -----
+    with open({in_path}, 'rb') as f: data = msgspec.msgpack.decode(f.read())
+    target_info = data["target"]
+    decontams = data.get("decontams", [])
+    # ----- 2. Activate the hook and load the target into the context. -----
+    with _phantom.activate_hook(decontams) as imports:
+        mod = importlib.import_module(target_info["module"])
+        parts = target_info["qualname"].split('.')
+        if target_info["type"] == "instance":
+            cls_obj = mod
+            for part in parts[:-1]: cls_obj = getattr(cls_obj, part)
+            inst = cls_obj.__new__(cls_obj)
+            inst.__dict__.update(target_info.get("state", {{}}))
+            func = getattr(inst, parts[-1])
+        else:
+            func = mod
+            for part in parts: func = getattr(func, part)
+        imports.finish()
+        # ----- 3. Execute target and report successful result -----
+        capture = target_info.get("capture_exception", False)
+        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+        try:
+            res = func(*data["args"], **data["kwargs"])
+        except Exception as error:
+            if not capture: raise
+            status = "TARGET_EXCEPTION"
+            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                   "message": str(error),
+                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+    with open({out_path}, 'wb') as f: f.write(msgspec.msgpack.encode([status, res]))
+except Exception as e: # Exception abfangen und an den Host melden
+    error_msg = f"{{type(e).__name__}}: {{str(e)}}"
+    with open({out_path}, 'wb') as f: f.write(msgspec.msgpack.encode(["ERROR", error_msg]))
+"""
 
 
-_CLOUDPICKLE_RUNNER = """
-            import cloudpickle, importlib, _cubie_phantom
-            try:
-                # ----- 1. Fully rehydrate the payload from the byte stream -----
-                with open({in_path}, 'rb') as f: data = cloudpickle.load(f)
-                target = data["target"]
-                decontams = data.get("decontams", [])
-                args = data.get("args", ())
-                kwargs = data.get("kwargs", {{}})
-                # ----- 2. Activate hook and prepare target in the arena vacuum -----
-                with _cubie_phantom.activate_hook(decontams) as imports:
-                    # --- Resolve late-binding string targets ---
-                    if isinstance(target, str):
-                        if ":" in target: module_name, qualname = target.split(":", 1)
-                        else:
-                            parts = target.split(".")
-                            module_name = ".".join(parts[:-1])
-                            qualname = parts[-1]
-                        target = importlib.import_module(module_name)
-                        for part in qualname.split('.'): target = getattr(target, part)
-                    imports.finish()
-                    # ----- 3. Execute -----
-                    capture = data.get("capture_exception", False)
-                    status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
-                    try:
-                        res = target(*args, **kwargs)
-                    except Exception as error:
-                        if not capture: raise
-                        status = "TARGET_EXCEPTION"
-                        res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
-                               "message": str(error),
-                               "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
-                # ----- 4. Serialize successful result -----
-                with open({out_path}, 'wb') as f: cloudpickle.dump([status, res], f)
-            except Exception as e:
-                error_msg = f"{{type(e).__name__}}: {{str(e)}}"
-                with open({out_path}, 'wb') as f: cloudpickle.dump(["ERROR", error_msg], f)
-        """
+_CLOUDPICKLE_RUNNER = """\
+import cloudpickle, importlib, os, sys, _cubie_phantom as _phantom
+{bootstrap}
+try:
+    # ----- 1. Fully rehydrate the payload from the byte stream -----
+    with open({in_path}, 'rb') as f: data = cloudpickle.load(f)
+    target = data["target"]
+    decontams = data.get("decontams", [])
+    args = data.get("args", ())
+    kwargs = data.get("kwargs", {{}})
+    # ----- 2. Activate hook and prepare target in the arena vacuum -----
+    with _phantom.activate_hook(decontams) as imports:
+        # --- Resolve late-binding string targets ---
+        if isinstance(target, str):
+            if ":" in target: module_name, qualname = target.split(":", 1)
+            else:
+                parts = target.split(".")
+                module_name = ".".join(parts[:-1])
+                qualname = parts[-1]
+            target = importlib.import_module(module_name)
+            for part in qualname.split('.'): target = getattr(target, part)
+        imports.finish()
+        # ----- 3. Execute -----
+        capture = data.get("capture_exception", False)
+        status = "CAPTURED_SUCCESS" if capture else "SUCCESS"
+        try:
+            res = target(*args, **kwargs)
+        except Exception as error:
+            if not capture: raise
+            status = "TARGET_EXCEPTION"
+            res = {{"type": type(error).__module__ + "." + type(error).__qualname__,
+                   "message": str(error),
+                   "mro": [cls.__module__ + "." + cls.__qualname__ for cls in type(error).__mro__]}}
+    # ----- 4. Serialize successful result -----
+    with open({out_path}, 'wb') as f: cloudpickle.dump([status, res], f)
+except Exception as e:
+    error_msg = f"{{type(e).__name__}}: {{str(e)}}"
+    with open({out_path}, 'wb') as f: cloudpickle.dump(["ERROR", error_msg], f)
+"""

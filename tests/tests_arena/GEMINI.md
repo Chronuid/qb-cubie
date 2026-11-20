@@ -1,5 +1,3 @@
-# Reperatur von BUG-001
-
 ### [BUG-001] `PyVenv` verändert Testdaten durch eigene IPC-Dateien im Workspace
 
 - **Status:** Offen *(Gutachten-Befund B1, P1)*
@@ -26,41 +24,15 @@ In `PyVenv`-Tests keine Dateien namens `ipc_in.*`, `ipc_out.*` oder `_cubie_phan
 Quelle: [`GUTACHTEN.md` (§ 6.1, B1)](./GUTACHTEN.md#61-b1-pyvenv-verändert-testdaten-durch-eigene-ipc-dateien).  
 Empfohlene Korrektur: IPC-Dateien, Hilfsmodule und `.venv` außerhalb des geprüften Workspace führen und Namenskollisionen sowie vollständige Verzeichnisvergleiche durch Regressionstests absichern.
 
+---
+
+Ich bin kein Experte hier. Ich habe den Bug selbst noch garnicht erlebt. Es wäre gut, wenn wir dafür sorgen könnten, dass unsere Entscheidungen es uns später leichter machen die CI-Matrix für Windows reaktivieren zu können. Bitte treffe auf Basis der @tests/tests_arena/ANALYSIS.md selber eine möglichst gute Entscheidung, welche es uns auch in der Zukunft einfacher macht das Projekt zu pflegen.
+
 ## Weiteres
-
-@docs/dev/README.md 
-
-### **Dein Bericht**: 
-
+@docs/dev/README.md
+@docs/GUIDE_Quality-Assurance.md
 @tests/tests_arena/ANALYSIS.md
 
-### **Im Bericht**:
-Halte dich grob an die Konvention mit dem Provenance-Kopf im Header des Dokuments:
-```text
-    <!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="Antigravity-CLI" model="Gemini-4-Neon" effort="High" -->
-    # Analysis: Reperatur vom Cubie-Core
-    
-    **Dokument-Informationen & Herkunft:**
-    - **Plattform / Umgebung:** Antigravity-CLI
-    - **Modell:** Gemini-4-Neon
-    - **Reasoning-Effort:** High
-    - **Analysedatum:** 20. November 2026, ~ 10:30 (CET)
-    - **Synthesebasis:** # Das hier musst du noch ausfüllen.
-    - **Stand**: qb-cubie (v0.0.8) 
-    - **Git-Log**: #`git log -n 1`
-    ```text
-    commit c8beda64ea7104aa6f9e8165fb41552da170e4c9 (HEAD -> main)
-    Author: Chronuid <Dominickwirzba@gmail.com>
-    Date:   Fri Nov 20 10:04:31 2026 +0100
-    
-        Added the QA-GUIDES as routing table to the docs/README.md
-    ``` 
+## Auftrag
 
---- # Trennlinie
-
---- # Trennlinie
-
-<!-- /qb:frame -->
-
-# Hier packst du deine Analyse rein.
-```
+Lass uns das neue TGD-Muster mal in einem Komplett-Durchlauf austesten. Bitte orchestriere alle Schritte und dokumentiere am Ende den Verlauf unter @tests/tests_arena/TGD_1.md mit dem Provenance-Header aus CUBIE_DOC_FRAME_2.

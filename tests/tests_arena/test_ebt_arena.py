@@ -253,12 +253,12 @@ def test_arena_teardown_destroys_clone():
 
 
 # ======================================================================================================================
-# --- PROOF of '.venv'-ENCAPSULATION
+# --- PROOF of WORKSPACE / '.venv' SEPARATION
 # ======================================================================================================================
 
-def check_venv_folder_exists():
-    """Verifies that the .venv folder exists in the current working directory."""
-    return Path(".venv").is_dir()
+def check_workspace_is_empty():
+    """Verifies that the workspace working directory contains no arena or IPC artifacts."""
+    return sorted(p.name for p in Path.cwd().iterdir()) == []
 
 def check_no_system_folders_in_root():
     """Verifies that system folders like bin or lib do not exist directly in the workspace root."""
@@ -267,36 +267,43 @@ def check_no_system_folders_in_root():
     return any((root / folder).exists() for folder in ["bin", "Scripts", "lib", "Lib"])
 
 def check_system_folders_in_venv():
-    """Verifies that the system folders are correctly encapsulated within the .venv subfolder."""
-    venv_dir = Path(".venv")
-    # Depending on the OS, uv generates "bin" (Linux/macOS) or "Scripts" (Windows)
+    """Verifies that the system folders are located in the separated VIRTUAL_ENV outside CWD."""
+    venv_path = os.environ.get("VIRTUAL_ENV")
+    if not venv_path:
+        return False
+    venv_dir = Path(venv_path)
+    if not venv_dir.is_dir() or venv_dir.resolve().is_relative_to(Path.cwd().resolve()):
+        return False
     has_bin = (venv_dir / "bin").is_dir() or (venv_dir / "Scripts").is_dir()
     has_lib = (venv_dir / "lib").is_dir() or (venv_dir / "Lib").is_dir()
-    return has_bin or has_lib
+    return has_bin and has_lib
 
 def check_virtual_env_var_mapping():
-    """Verifies that the VIRTUAL_ENV environment variable points exactly to the .venv subfolder."""
+    """Verifies that VIRTUAL_ENV points to the sibling .venv directory outside the workspace."""
     venv_path = os.environ.get("VIRTUAL_ENV")
-    if not venv_path: return False
-    return venv_path == str(Path.cwd() / ".venv")
+    if not venv_path or "cubie_arena_" not in venv_path:
+        return False
+    venv = Path(venv_path).resolve()
+    cwd = Path.cwd().resolve()
+    return venv.name == ".venv" and not venv.is_relative_to(cwd) and venv.parent == cwd.parent
 
 # ======================================================================================================================
 
-def test_clean_workspace_contains_venv_folder():
-    """Evidence 1: The workspace root contains a .venv subdirectory."""
+def test_clean_workspace_excludes_venv_folder():
+    """Evidence 1: The default workspace root contains no .venv, phantom, or IPC files."""
     EBT(
-        custom_id="proof_clean_venv_exists",
+        custom_id="proof_clean_venv_excluded",
         arena=PyVenv(),
-        target=check_venv_folder_exists,
+        target=check_workspace_is_empty,
         post=WorldState(returns=True)
     ).run()
 
-def test_bugreport_workspace_contains_venv_folder():
-    """Evidence 2: The bugreport workspace root contains a .venv subdirectory."""
+def test_bugreport_workspace_excludes_venv_folder():
+    """Evidence 2: The linter workspace root contains no .venv, phantom, or IPC files."""
     EBT(
-        custom_id="proof_bugreport_venv_exists",
+        custom_id="proof_bugreport_venv_excluded",
         arena=PyVenv("tests/.arenas/linter_env"),
-        target=check_venv_folder_exists,
+        target=check_workspace_is_empty,
         post=WorldState(returns=True)
     ).run()
 
@@ -310,7 +317,7 @@ def test_workspace_root_is_clean():
     ).run()
 
 def test_venv_contains_system_folders():
-    """Evidence 4: The system folders are physically located in the .venv subdirectory."""
+    """Evidence 4: The system folders are physically located in the separated VIRTUAL_ENV."""
     EBT(
         custom_id="proof_venv_is_populated",
         arena=PyVenv(),
@@ -319,7 +326,7 @@ def test_venv_contains_system_folders():
     ).run()
 
 def test_virtual_env_var_is_correct():
-    """Evidence 5: Environment mapping at the OS level targets the .venv folder specifically."""
+    """Evidence 5: VIRTUAL_ENV targets the sibling .venv folder outside the workspace."""
     EBT(
         custom_id="proof_env_var_mapping",
         arena=PyVenv(),
