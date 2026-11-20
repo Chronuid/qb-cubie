@@ -3,7 +3,7 @@
 
 # EBT-Nutzungsmuster
 
-![Cubie](.assets/cubie-logo-written.png)
+![Cubie](../.assets/cubie-logo-written.png)
 
 Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_Contract-Semantics.md) definiert alle Felder, Vergleichsregeln und bekannten Fehler. Verwende explizite, nichtleere Verträge. Eine EBT-Instanz kann nacheinander mehrfach ausgeführt werden; jeder Lauf erzeugt eine eigene Ergebnis-Momentaufnahme. Die folgenden Python-Blöcke sind vollständige pytest-Beispiele.
 
@@ -11,7 +11,7 @@ Die Beispiele zeigen die vorhandene API. Die [zentrale Semantikreferenz](GUIDE_C
 
 ---
 
-[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -138,7 +138,7 @@ Datei-, Netzwerk- und Datenbankoperationen werden nicht zurückgerollt. Das
 Workerlimit gilt auch im Ersatzbackend. Fehler beim Aufräumen oder bei der
 Konfiguration lösen keine Wiederholung aus. Die genaue Fehlerklassifikation und
 den Vertrag für eigene Backends beschreibt das
-[Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+[Multiprocessing-Handbuch](../dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
 ## Erlaubte Alternativen und verbotene Ergebnisse
 
@@ -482,26 +482,25 @@ Eine erwartete Umgebungsänderung lässt sich über `post=WorldState(arena="test
 
 <div align="center">
 
-![Cubie](.assets/cubie-small.png)
+![Cubie](../.assets/cubie-small.png)
 
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
-
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
-
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
-[↦ | Hintergrund & Essays | ↤](./misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 
 </div>
 <!-- /qb:frame -->

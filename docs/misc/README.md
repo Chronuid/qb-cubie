@@ -22,8 +22,8 @@ Sie sind keine verbindlichen API-Verträge oder Nachweise implementierter Funkti
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
 | [Clean-Code Pragmatismus](./Clean-Code-Pragmatism.md) | Dieser Essay diskutiert kontextabhängige Entwurfsentscheidungen und pragmatische Clean-Code-Prinzipien. |
-| [Die Suchmaschine von Babel: eine Metapher](./Die-Suchmaschine-von-Babel.md) | **Status: konzeptioneller Essay.** Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. Den implementierten Vertrag beschreibt die [Semantikreferenz](../GUIDE_Contract-Semantics.md). |
-| [Erweitertes Property-Based Testing: konzeptionelle Einordnung](./Erweitertes-PBT.md) | **Status: konzeptioneller Vorschlag, keine implementierte Cubie-API.** Die frühere Bezeichnung „ePBT“ fasste unterschiedliche Qualitätssicherungsverfahren zusammen. Sie bezeichnet hier keinen etablierten Beweiskalkül und keine automatisch nachgewiesenen universellen Eigenschaften. Die vorhandene Cubie-Semantik steht in der [Vertragsreferenz](../GUIDE_Contract-Semantics.md). |
+| [Die Suchmaschine von Babel: eine Metapher](./Die-Suchmaschine-von-Babel.md) | **Status: konzeptioneller Essay.** Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. Den implementierten Vertrag beschreibt die [Semantikreferenz](../core/GUIDE_Contract-Semantics.md). |
+| [Erweitertes Property-Based Testing: konzeptionelle Einordnung](./Erweitertes-PBT.md) | **Status: konzeptioneller Vorschlag, keine implementierte Cubie-API.** Die frühere Bezeichnung „ePBT“ fasste unterschiedliche Qualitätssicherungsverfahren zusammen. Sie bezeichnet hier keinen etablierten Beweiskalkül und keine automatisch nachgewiesenen universellen Eigenschaften. Die vorhandene Cubie-Semantik steht in der [Vertragsreferenz](../core/GUIDE_Contract-Semantics.md). |
 | [FP-OOP-Isomorphismus](./FP-OOP-Isomorphismus.md) | Dieser Essay untersucht Beziehungen zwischen funktionaler und objektorientierter Programmierung. |
 <!-- /qb:frame -->
 
@@ -50,21 +50,16 @@ den jeweiligen Bereichen geführt:
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](../GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Clean-Code Pragmatismus | ↤](./Clean-Code-Pragmatism.md)  

@@ -16,7 +16,8 @@
 
 | Ablage | Inhalt und Geltung |
 | --- | --- |
-| `docs/GUIDE_*.md` | Nutzungsleitfäden und Beschreibung der vorhandenen Schnittstellen. Für den Einstieg in Cubie hier beginnen. |
+| [docs/core](core/README.md) | Verbindliche Core-Referenzen und Nutzungsmuster (`Contract-Semantics`, `EBT`, `RBT`, `Arena-Management`, `Linter`). |
+| `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
 | [docs/services](services/GUIDE_DocEnsurance.md) | Leitfäden zu den Services in `qb_cubie.services` (`DocEnsurance` sowie [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
 | [docs/dev](dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | Technische Entwicklerübersichten, [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md) für die Arbeit am Cubie-Code. |
 | [docs/misc](misc/README.md) | Hintergrundtexte und optionale historische Entwicklungsunterlagen. Die Bereichsdokumentation ist ohne diese Unterlagen verständlich. |
@@ -25,7 +26,7 @@
 
 Für die Bedeutung von Qualität und bestandenen Prüfungen gelten die
 [Qualitätsbegriffe](GUIDE_Quality-Assurance.md) und die
-[Vertragssemantik](GUIDE_Contract-Semantics.md).
+[Vertragssemantik](core/GUIDE_Contract-Semantics.md).
 
 Der gesamte Benchmark-Bereich ist **experimentell und gehört nicht zum
 qb-cubie Core**. Der gemeinsame [Benchmark-Guide](GUIDE_Benchmarks.md) erklärt
@@ -57,21 +58,16 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  

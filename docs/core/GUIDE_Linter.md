@@ -3,7 +3,7 @@
 
 # Linter
 
-![Cubie](.assets/cubie-logo-written.png)
+![Cubie](../.assets/cubie-logo-written.png)
 
 Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (wie Pylint) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
 
@@ -13,7 +13,7 @@ Die Analysewerkzeuge sind optional: `python -m pip install 'qb-cubie[linters]'` 
 
 ---
 
-[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -220,26 +220,25 @@ for d in diagnostics:
 
 <div align="center">
 
-![Cubie](.assets/cubie-small.png)
+![Cubie](../.assets/cubie-small.png)
 
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
-
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
-
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
-[↦ | Hintergrund & Essays | ↤](./misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 
 </div>
 <!-- /qb:frame -->

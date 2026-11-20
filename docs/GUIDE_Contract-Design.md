@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Dieses Handbuch zeigt, wie `EBT`-Verträge eindeutig und wartbar aufgebaut werden: Warum jedes konkrete Ein-/Ausgabepaar einen eigenen Vertrag braucht, wie `@pytest.mark.parametrize` sauber skaliert und wie man Unterspezifikation durch gedankenloses Mischen von `pre`- und `post`-Listen vermeidet. Die formalen Auswertungsregeln stehen in der [Vertragssemantik](GUIDE_Contract-Semantics.md).
+Dieses Handbuch zeigt, wie `EBT`-Verträge eindeutig und wartbar aufgebaut werden: Warum jedes konkrete Ein-/Ausgabepaar einen eigenen Vertrag braucht, wie `@pytest.mark.parametrize` sauber skaliert und wie man Unterspezifikation durch gedankenloses Mischen von `pre`- und `post`-Listen vermeidet. Die formalen Auswertungsregeln stehen in der [Vertragssemantik](core/GUIDE_Contract-Semantics.md).
 
 ---
 
@@ -140,7 +140,7 @@ Vertrag erfüllt: True | Geprüfte Paare: 4
 ```
 </details>
 
-Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern** ist, folgt direkt aus den reinen Standard-Quantoren von `EBT` (siehe [Vertragssemantik](GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
+Warum hier **4 statt 2 Paare** geprüft werden und warum dies ein **Anti-Pattern** ist, folgt direkt aus den reinen Standard-Quantoren von `EBT` (siehe [Vertragssemantik](core/GUIDE_Contract-Semantics.md#endliche-auswertungsregel)):
 
 * **Einfach erklärt (Die Speisekarten-Verwechslung):** Stell dir vor, zwei Gäste bestellen im Restaurant: Gast 1 bestellt für Eingabe `3` (erwartet Gericht `6`), Gast 2 bestellt für Eingabe `5` (erwartet Gericht `10`). Wenn du beide Bestellungen `[3, 5]` in `pre` und beide Gerichte `[6, 10]` gemeinsam in `post` wirfst, weiß Cubie **nicht**, welches Gericht zu welchem Gast gehört! Stattdessen legt Cubie beiden Gästen einfach die gemeinsame Speisekarte `{6, 10}` hin und prüft für jeden Gast nur: *„Stand das servierte Gericht irgendwo auf der Karte?“* Selbst wenn die Küche die Teller komplett vertauscht (`3 -> 10` und `5 -> 6`) oder jedem Gast stur `6` hinstellt (`return 6`), steht `6` auf der Karte – und der Test wird trotz kaputter Küche **grün**!
 * **Technisch & formal (Kartesisches Kreuzprodukt $N \times M$):** Standardmäßig wirkt `pre` als **reiner Allquantor (`"all"`, *für jede Eingabe*)** und `post` als **reiner Existenzquantor (`"exists"`, *muss mindestens eines der Zielmuster aus `post` passen*)**. `EBT` bildet daher das Kreuzprodukt aus allen `pre`- und `post`-Einträgen und prüft sowohl `3` als auch `5` jeweils gegen `6` **und** gegen `10` ($2 \times 2 = 4$ Vergleiche in `trace.traces`, Formel: $\forall p \in \text{pre} : \exists q \in \text{post} : \text{match}(p, q)$).
@@ -196,21 +196,16 @@ Normierung erfüllt: True | Geprüfte Eingänge: 3
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  

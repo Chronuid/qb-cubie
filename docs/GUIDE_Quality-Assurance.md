@@ -7,7 +7,7 @@
 
 **Ein Handbuch für Einsteiger und Experten zu deklarativen Verträgen, Test-Guided Development (TGD) und lebendiger Verifikation.**
 
-Cubie bündelt beispielbasierte Verhaltensverträge (`EBT`), isolierte Ausführungs-Arenen (`TempFS`, `PyVenv`), statische Syntaxbaum-Analysen (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`), selbstverifizierende Dokumentation (`DocEnsurance`) und strukturierte Reviews (`RBT`) unter einer gemeinsamen Orchestrierung. Für die exakten Auswertungsregeln bildet die [Vertragssemantik](GUIDE_Contract-Semantics.md) die technische Referenz.
+Cubie bündelt beispielbasierte Verhaltensverträge (`EBT`), isolierte Ausführungs-Arenen (`TempFS`, `PyVenv`), statische Syntaxbaum-Analysen (`AstLinter`, `CstLinter`, `Pylint`, `MyPy`), selbstverifizierende Dokumentation (`DocEnsurance`) und strukturierte Reviews (`RBT`) unter einer gemeinsamen Orchestrierung. Für die exakten Auswertungsregeln bildet die [Vertragssemantik](core/GUIDE_Contract-Semantics.md) die technische Referenz.
 
 ---
 
@@ -176,7 +176,7 @@ In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/
 Gute Ingenieurskunst zeichnet sich dadurch aus, dass sie die Leistungsfähigkeit ihrer Werkzeuge kennt – aber ihre Aussagen niemals überdehnt. Auch eine zu 100 % grüne Test-Suite unterliegt klaren erkenntnistheoretischen Grenzen:
 
 * **Beobachtete Konformität statt Allgemeinbeweis:** Ein bestandener `EBT`- oder `DocEnsurance`-Lauf zeigt, dass die konkret ausgeführten Beispiele unter den jeweiligen Testbedingungen zu den deklarierten Sollmustern passen. Er ist eine starke empirische Evidenz gegen Regressionen, ersetzt aber keinen mathematischen Korrektheitsbeweis über alle denkbaren Eingaben aus $\Sigma^*$.
-* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ( $\{P\}$: *Was stecken wir vorher hinein?* ), `target` ( $S$: *Welche Funktion führen wir aus?* ) und `post` ( $\{Q\}$: *Was muss nachher herauskommen?* ) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel der Informatik. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten nach reinen Quantoren: Standardmäßig muss jeder ausgeführte Eingang aus `pre` (`pre_quantor="all"`, UND) mindestens einen Zielzustand aus `post` (`post_quantor="exists"`, ODER) erfüllen. Über `{"quantor": "all" | "exists", "states": ...}` lassen sich beide Quantoren explizit umschalten, wobei Verbote (`WorldState(..., expect=False)`) ausschließlich unter `post={"quantor": "all", ...}` zulässig sind. Alle Details regelt die [Vertragssemantik](GUIDE_Contract-Semantics.md).
+* **Die Hoare-Analogie $\{P\}\ S\ \{Q\}$ als Strukturmodell:** Die Anordnung `pre` ( $\{P\}$: *Was stecken wir vorher hinein?* ), `target` ( $S$: *Welche Funktion führen wir aus?* ) und `post` ( $\{Q\}$: *Was muss nachher herauskommen?* ) in `EBT` ist eine bewusste architektonische und didaktische Analogie zum Hoare-Tripel der Informatik. Ein `WorldState` ist dabei ein konkreter Datensatz oder ein Prädikat-Muster, und die Auswertung prüft endliche, explizite Zustandslisten nach reinen Quantoren: Standardmäßig muss jeder ausgeführte Eingang aus `pre` (`pre_quantor="all"`, UND) mindestens einen Zielzustand aus `post` (`post_quantor="exists"`, ODER) erfüllen. Über `{"quantor": "all" | "exists", "states": ...}` lassen sich beide Quantoren explizit umschalten, wobei Verbote (`WorldState(..., expect=False)`) ausschließlich unter `post={"quantor": "all", ...}` zulässig sind. Alle Details regelt die [Vertragssemantik](core/GUIDE_Contract-Semantics.md).
 * **Vielfalt von Beispielen vs. formale Abdeckung:** Unterschiedliche Beispiele aus verschiedenen Äquivalenzklassen verbessern die praktische Abdeckung erheblich; ihre bloße Anzahl belegt jedoch noch keine mathematische Orthogonalität unabhängiger Merkmalsdimensionen und verhindert für sich genommen kein Overfitting.
 * **Einordnung von Reviews (`RBT`):** `RBT` übergibt eine sprachliche Prüfregel und eine Zielbezeichnung an einen menschlichen oder automatisierten Reviewer (`HeadlessReviewer`, `HumanReviewer` oder eigene `Reviewer`-Implementierungen). Ein positives Review dokumentiert ein qualifiziertes Urteil zum Prüfzeitpunkt, misst aber keine Laufzeit- oder Speicherbudgets automatisch.
 * **Isolations- statt Sicherheitsgrenze bei Arenen:** `TempFS` und `PyVenv` schützen hervorragend vor versehentlicher Verschmutzung des Arbeitsverzeichnisses und vor ungewollten Paket-Leaks aus der Host-Umgebung. Sie bilden jedoch keine Betriebssystem-Sandbox gegen aktiv schädlichen Code – führe in Arenen daher nur vertrauenswürdigen Projekt- und Testcode aus.
@@ -203,21 +203,16 @@ Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit 
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  

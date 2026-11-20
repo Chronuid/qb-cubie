@@ -109,21 +109,16 @@ Schreibschutz vor dem Beenden der Arena manuell entfernen.
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](../GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  

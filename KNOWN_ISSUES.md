@@ -103,17 +103,49 @@ Empfohlene Korrektur: Ungültige Pfade in `CstLinter.check()` explizit ablehnen 
 
 ---
 
+### [BUG-004] `DocFrame.update()` aktualisiert keine verstreuten relativen Links außerhalb generierter Router-/Footer-Blöcke bei Doku-Umbauten
+
+- **Status:** Offen
+- **Schweregrad:** Mittel
+- **Bereich:** `src/qb_cubie/services/doc_frame/doc_frame.py` (`DocFrame.update`, `_render_file_frames`) & `src/qb_cubie/services/doc_frame/doc_frame_rules.py` (`DocFrameBrokenRoute`)
+- **Umgebung / Version:** `v0.0.9` / Commit `561338af`, Python `3.13`, Linux (plattformunabhängig)
+
+**Ist-Verhalten:**  
+Wenn Markdown-Dokumente in einen neuen Unterordner verschoben werden (z. B. `docs/GUIDE_*.md` $\to$ `docs/core/GUIDE_*.md`), synchronisiert `DocFrame.update()` ausschließlich die automatisch generierten Navigations- und Router-Blöcke (`HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER`). Alle übrigen relativen Markdown-Links bleiben unberührt:
+1. Relative Links im Fließtext (Body) anderer Dokumente zeigen weiterhin auf den alten Pfad und brechen still (z. B. `[Vertragssemantik](GUIDE_Contract-Semantics.md)` statt `core/GUIDE_Contract-Semantics.md`).
+2. Relative Links innerhalb geschützter `HeaderContentSlot`-Intros (z. B. `[Gutachten](../GUTACHTEN.md)` in einer verschobenen Datei oder `[Semantikreferenz](../GUIDE_Contract-Semantics.md)` in `docs/dev/*.md`) werden ebenfalls nicht angepasst – bei verschobenen Dokumenten schlägt `DocFrameBrokenRoute` fehl, während kaputte Body-Links gar nicht erst gemeldet werden.
+3. Beim Umzug der fünf Core-Guides nach `docs/core/` mussten verstreute Links über 19 Dateien hinweg manuell nachgezogen werden.
+
+**Soll-Verhalten:**  
+`DocFrame.update()` löst bei Doku-Umbauten anhand des `DocumentCatalog` (eindeutige Dateinamen bzw. verschobene Ziele) veraltete relative Markdown-Links – sowohl in geschützten Head-Slots als auch im Dokumentkörper (außerhalb von Code-Fences) – automatisch auf die neuen relativen Pfade auf (inkl. Erhalt von `#anchor`-Fragmenten) oder meldet mehrdeutige/tote Links konsistent über `DocFrameBrokenRoute`.
+
+**Reproduktion:**  
+1. Beliebiges Dokument mit eingehenden Fließtext-Links in ein Unterverzeichnis verschieben (z. B. `git mv docs/GUIDE_Linter.md docs/core/GUIDE_Linter.md`).
+2. `DocFrame.update()` ausführen:
+```bash
+.venv/bin/python -c "from qb_cubie.services import DocFrame; DocFrame.update()"
+```
+3. Ergebnis: Footer-Routen werden aktualisiert, alle relativen Fließtext- und Intro-Links auf `GUIDE_Linter.md` in anderen Dokumenten sowie ausgehende relative Links in der verschobenen Datei zeigen weiterhin auf den alten, nun ungültigen Pfad.
+
+**Workaround:**  
+Nach dem Verschieben von Dokumenten alle verstreuten Links im Repository per Suche/Skript manuell umschreiben und anschließend `DocFrame.update()` sowie einen eigenen Broken-Link-Check über den Dokumentkörper ausführen.
+
+**Hinweise / Ursache:**  
+`DocFrame._render_file_frames()` fasst per Design ausschließlich `<!-- qb:frame ... -->`-Spans an und lässt `HeaderContentSlot`-Fließtext sowie den Dokumentkörper unangetastet; `DocFrameBrokenRoute` prüft zudem nur Links innerhalb von `FrameSpan.inner_content`. Da `DocumentCatalog` in Pass 1 bereits alle Markdown-Dateien im Repository kennt, ließe sich ein optionaler Link-Healer (z. B. auf Basis eindeutiger Basenames oder eines expliziten Rename-Mappings) sauber in Pass 2 integrieren.
+
+---
+
 ## Bekannte Einschränkungen / Plattform-Spezifika
 
 Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwarteten Bugs), aber für den produktiven Einsatz zu beachten:
 
-- **Keine OS-Sicherheitsgrenze in Core-Arenen:** `TempFS` und `PyVenv` laufen mit Benutzerrechten des Hosts und eignen sich nur für vertrauenswürdigen Code (siehe [Arena-Management](./docs/GUIDE_Arena-Management.md)).
+- **Keine OS-Sicherheitsgrenze in Core-Arenen:** `TempFS` und `PyVenv` laufen mit Benutzerrechten des Hosts und eignen sich nur für vertrauenswürdigen Code (siehe [Arena-Management](./docs/core/GUIDE_Arena-Management.md)).
 - **Windows-CI vorübergehend eingefroren:** Übliche POSIX-Python-Einstiegsskripte werden in `PyVenv` auf den Klon angepasst; zusätzliche native Windows-`.exe`-Launcher werden vor Target-Ausführung abgelehnt. Die vollständige Testsuite läuft in der CI unter Linux, macOS erhält die Wheel-Prüfung, und Windows-Checks sind vorübergehend eingefroren (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)).
 - **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Historische Traces archivieren keine Dateiinhalte.
 - **PyVenv-Importhilfen (`decontams`):** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes `pytest` unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; Laufzeitaufrufe benötigen die echte Bibliothek.
 - **Grafischer Reviewer (`tkinter`):** Nur der Start der GUI benötigt `tkinter` und eine grafische Umgebung. Paketimport, EBT und Headless-RBT funktionieren ohne Tk.
 - **Dateivergleich:** Inhalte werden bei jedem Vergleich blockweise neu gelesen (kein persistenter Vergleichscache); gleichzeitig laufende Schreibzugriffe ergeben jedoch keine atomare Momentaufnahme.
-- **Vertragssemantik & Reporter:** Mehrere Eingänge teilen dieselbe Zielmenge (korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge). `JsonReporter` persistiert Ergebnisse, wirft aber selbst keine fachliche Assertion. Details stehen in der [Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
+- **Vertragssemantik & Reporter:** Mehrere Eingänge teilen dieselbe Zielmenge (korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge). `JsonReporter` persistiert Ergebnisse, wirft aber selbst keine fachliche Assertion. Details stehen in der [Semantikreferenz](./docs/core/GUIDE_Contract-Semantics.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -125,21 +157,16 @@ Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwartete
 
 ![Cubie](./docs/.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./docs/GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./docs/GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./docs/GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  

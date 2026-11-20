@@ -11,7 +11,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 
 > [!NOTE]
 > **Abgrenzung zu Anwender-Handbüchern & Verträgen:**  
-> Die Dokumente unter `docs/dev/` beschreiben interne Architektur, Implementierungsdetails und Entwicklungsprozesse für die Arbeit am Code. Für die verbindliche öffentliche Vertragssemantik und Nutzungsbeispiele gelten die Handbücher unter [`docs/`](../README.md) – insbesondere die [Vertragssemantik](../GUIDE_Contract-Semantics.md) und das [QA-Handbuch](../GUIDE_Quality-Assurance.md).
+> Die Dokumente unter `docs/dev/` beschreiben interne Architektur, Implementierungsdetails und Entwicklungsprozesse für die Arbeit am Code. Für die verbindliche öffentliche Vertragssemantik und Nutzungsbeispiele gelten die Handbücher unter [`docs/`](../README.md) – insbesondere die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [QA-Handbuch](../GUIDE_Quality-Assurance.md).
 
 ---
 
@@ -41,12 +41,12 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/` abgelegten Entw
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="." recursive="false" -->
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
-| [Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) | RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abnahmen oder eigene automatisierte Reviewer nutzbar. Es führt das Target nicht aus und liefert keinen formalen Korrektheits- oder Sicherheitsnachweis. Die [Semantikreferenz](../GUIDE_Contract-Semantics.md) definiert die Grenzen; vollständige Beispiele stehen im [RBT-Nutzungshandbuch](../GUIDE_RBT-Usage-Pattern.md). |
+| [Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) | RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abnahmen oder eigene automatisierte Reviewer nutzbar. Es führt das Target nicht aus und liefert keinen formalen Korrektheits- oder Sicherheitsnachweis. Die [Semantikreferenz](../core/GUIDE_Contract-Semantics.md) definiert die Grenzen; vollständige Beispiele stehen im [RBT-Nutzungshandbuch](../core/GUIDE_RBT-Usage-Pattern.md). |
 | [RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) | Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.protocols`. |
-| [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../GUIDE_Contract-Semantics.md). |
-| [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) | `EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung. |
-| [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) | `WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../GUIDE_Contract-Semantics.md). |
-| [Arenen und IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md) | Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen. |
+| [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md). |
+| [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) | `EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung. |
+| [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) | `WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../core/GUIDE_Contract-Semantics.md). |
+| [Arenen und IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md) | Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen. |
 | [`Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md) | Diese Entwicklerreferenz beschreibt Multiprozess-Ausführung und die zugehörigen Schnittstellen. |
 | [`Linter`](./DEV-GUIDE_2-5_Linter.md) | Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integration. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
@@ -115,21 +115,16 @@ qb-cubie docframe update docs/dev/README.md
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](../GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  

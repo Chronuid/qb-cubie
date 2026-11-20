@@ -185,7 +185,7 @@ ein Verzeichnis mit einer gleichnamigen enthaltenen Datei bleiben unterscheidbar
 Der Reporter benötigt keine erneuten Dateisystemzugriffe und funktioniert auch
 dann, wenn Workspace und Referenz beim späteren Berichten bereits entfernt sind.
 Die Änderung der Einzeldatei-Diffs ist in der
-[Vertragssemantik](../../docs/GUIDE_Contract-Semantics.md#dateisystem-und-arenen)
+[Vertragssemantik](../../docs/core/GUIDE_Contract-Semantics.md#dateisystem-und-arenen)
 dokumentiert; Verbraucher der strukturierten Diffs müssen den früheren
 Host-Basename durch die relative Selbstreferenz `"."` ersetzen.
 

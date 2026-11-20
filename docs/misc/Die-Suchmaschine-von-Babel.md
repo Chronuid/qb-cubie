@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-**Status: konzeptioneller Essay.** Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. Den implementierten Vertrag beschreibt die [Semantikreferenz](../GUIDE_Contract-Semantics.md).
+**Status: konzeptioneller Essay.** Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. Den implementierten Vertrag beschreibt die [Semantikreferenz](../core/GUIDE_Contract-Semantics.md).
 
 ---
 
@@ -42,21 +42,16 @@ Die Metapher motiviert sorgfältige Spezifikation. Sie verspricht keine vollstä
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](../GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Clean-Code Pragmatismus | ↤](./Clean-Code-Pragmatism.md)  

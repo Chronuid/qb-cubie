@@ -121,7 +121,7 @@ Ein `WorldState` ist ein veränderlicher Datensatz für konkrete Eingaben oder e
 
 Standardmäßig wirkt `pre` als reiner Allquantor (`"all"`, jeder Eingang muss bestehen) und `post` als reiner Existenzquantor (`"exists"`, mindestens ein Zielmuster muss passen); über `{"quantor": "all" | "exists", "states": ...}` lassen sich beide Quantoren explizit steuern, wobei Verbote (`WorldState(..., expect=False)`) ausschließlich unter `post={"quantor": "all", ...}` zulässig sind. Bei mehreren Eingängen gilt dieselbe Zielmenge für jeden Eingang; es gibt keine automatische paarweise Zuordnung zwischen `pre[i]` und `post[i]`. Zusammengehörige Ein-/Ausgabepaare benötigen getrennte EBT-Verträge. Eine Liste erlaubter Würfelergebnisse prüft nur die beobachtete Ausgabe; auch ein konstanter Generator kann bestehen. Zufälligkeit und Verteilung werden damit nicht geprüft.
 
-Typen, Unions, reguläre Ausdrücke und Prädikate können anstelle fester Rückgabewerte verwendet werden. Die genaue Bedeutung aller Felder und Vergleiche steht in der [verbindlichen Semantikreferenz](./docs/GUIDE_Contract-Semantics.md).
+Typen, Unions, reguläre Ausdrücke und Prädikate können anstelle fester Rückgabewerte verwendet werden. Die genaue Bedeutung aller Felder und Vergleiche steht in der [verbindlichen Semantikreferenz](./docs/core/GUIDE_Contract-Semantics.md).
 
 ## Datei-Workflows und Arenen
 
@@ -130,10 +130,10 @@ Typen, Unions, reguläre Ausdrücke und Prädikate können anstelle fester Rück
 Die Hydrierung von `pre.fs` begrenzt Schreibziele auf den Workspace und weist
 absolute Ziele, Pfadausbrüche und nach außen führende Links mit `ValueError` ab.
 Hostquellen, Konfigurationen, Targets und Rückgaben müssen dennoch vertrauenswürdig
-sein. Die [Pfadprüfung](./docs/GUIDE_Arena-Management.md#pfadgrenzen-der-hydrierung)
+sein. Die [Pfadprüfung](./docs/core/GUIDE_Arena-Management.md#pfadgrenzen-der-hydrierung)
 ersetzt keine Sicherheitsgrenze für nicht vertrauenswürdigen Code.
 
-Ein vollständiges Beispiel für eine Dateitransformation steht im [EBT-Nutzungshandbuch](./docs/GUIDE_EBT-Usage-Pattern.md). Für `fs`-Prüfungen muss eine Arena explizit angegeben werden.
+Ein vollständiges Beispiel für eine Dateitransformation steht im [EBT-Nutzungshandbuch](./docs/core/GUIDE_EBT-Usage-Pattern.md). Für `fs`-Prüfungen muss eine Arena explizit angegeben werden.
 
 ## Review-Based Testing (RBT)
 
@@ -199,21 +199,16 @@ Für den historischen Prüfstand siehe außerdem das [Gutachten](./GUTACHTEN.md)
 
 ![Cubie](./docs/.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./docs/GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./docs/GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./docs/GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./docs/GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./docs/GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./docs/GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./docs/GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  

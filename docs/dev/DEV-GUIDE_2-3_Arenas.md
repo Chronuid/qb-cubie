@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen.
+Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen.
 
 ---
 
@@ -40,11 +40,11 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 `workspace_path` bezeichnet den temporären Arbeitsordner und `virtual_path` dessen kopierte `.venv`. Das Target läuft mit dem Interpreter dieser Kopie. `get_state()` liefert den Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
 
-Vor der Hydrierung passt `_relocation.relocate_scripts()` unterstützte POSIX-Python-Einstiegsskripte an den Klon an. Nicht unterstützte Launcher werden vor der Target-Ausführung abgelehnt. Insbesondere sind zusätzliche native Windows-`.exe`-Launcher ausgeschlossen. Der genaue Umfang und die Grenzen stehen im [Arena-Handbuch](../GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
+Vor der Hydrierung passt `_relocation.relocate_scripts()` unterstützte POSIX-Python-Einstiegsskripte an den Klon an. Nicht unterstützte Launcher werden vor der Target-Ausführung abgelehnt. Insbesondere sind zusätzliche native Windows-`.exe`-Launcher ausgeschlossen. Der genaue Umfang und die Grenzen stehen im [Arena-Handbuch](../core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
+Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../core/GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
 
 ## IPCC und Codec-Auswahl
 
@@ -65,7 +65,7 @@ Beide Arenen delegieren an `_process.run_process()`. Die optionalen POSIX-Limits
 stdout/stderr-Ausgabe. Die Überwachung liest beide Pipes gleichzeitig und beendet
 bei Abbruch die eigene Prozessgruppe mit SIGTERM/SIGKILL. Ohne Limits bleibt das
 bisherige Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte
-Ausgabe. Siehe [Arena-Handbuch](../GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
+Ausgabe. Siehe [Arena-Handbuch](../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
 Dateiziele werden nicht auf den Workspace begrenzt; absolute Pfade und `..` können
 außerhalb schreiben. Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
@@ -81,21 +81,16 @@ Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtu
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](../GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  

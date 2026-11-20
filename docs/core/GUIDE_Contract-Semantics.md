@@ -3,15 +3,15 @@
 
 # Verbindliche Vertragssemantik
 
-![Cubie](.assets/cubie-logo-written.png)
+![Cubie](../.assets/cubie-logo-written.png)
 
-Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.9, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../GUTACHTEN.md).
-
----
+Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.0.9, abgeglichen mit `src/qb_cubie/ebt.py`, `protocols.py`, `rbt.py` und den Arenen. Sie unterscheidet die Auswertungsregel von bekannten Fehlern und berücksichtigt die Produktivkorrekturen zu Abschnitt 9.1 des [Gutachtens vom 10. November 2026](../../GUTACHTEN.md).
 
 ---
 
-[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+---
+
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -285,7 +285,7 @@ nicht zuverlässig erkennen.
 Sind alle geeigneten Backends ausgefallen, bleibt die letzte Infrastruktur-
 Ausnahme als Ursache des abschließenden `RuntimeError` erhalten. Details für
 eigene Mapper und die Anforderungen an den Exception-Transport stehen im
-[Multiprocessing-Handbuch](dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+[Multiprocessing-Handbuch](../dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
 ## Bekannte Abweichungen und praktische Folgen
 
@@ -302,26 +302,25 @@ Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Han
 
 <div align="center">
 
-![Cubie](.assets/cubie-small.png)
+![Cubie](../.assets/cubie-small.png)
 
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+
+[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
 [↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Linter | ↤](./GUIDE_Linter.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
-
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
-
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
-[↦ | Hintergrund & Essays | ↤](./misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 
 </div>
 <!-- /qb:frame -->

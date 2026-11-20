@@ -34,7 +34,7 @@ Die GitHub Actions Checks für Windows (`CI / Wheel / windows-2022 / Python 3.13
 1. **Verzeichnisstruktur und native Launcher (`.exe`):**
    - Auf Windows liegen Interpreter und Skripte unter `Scripts/` statt `bin/`.
    - Venvs auf Windows verwenden kompilierte Wrapper-Binärdateien (`.exe`) anstelle von POSIX-Shebang-Skripten.
-   - Gemäß [Arena-Handbuch](GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung) (Zeile 56) sind *native Windows-Konsolenlauncher derzeit nicht unterstützt*. `PyVenv.setup()` ist primär auf POSIX-Skripte und Trampoline ausgelegt.
+   - Gemäß [Arena-Handbuch](core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung) (Zeile 56) sind *native Windows-Konsolenlauncher derzeit nicht unterstützt*. `PyVenv.setup()` ist primär auf POSIX-Skripte und Trampoline ausgelegt.
 2. **Subprozess-Umgebung und `PATH`-Isolation:**
    - [check_wheel.py](../scripts/check_wheel.py) und `PyVenv` isolieren Kindprozess-Umgebungen streng (`PATH` wird auf den Interpreter-Pfad begrenzt).
    - Unter Windows erfordert die C-Laufzeitumgebung und Netzwerk-I/O zwingend Zugriff auf Systembibliotheken in `C:\Windows\System32` (z. B. `vcruntime140.dll`, `kernel32.dll`, `ws2_32.dll`). Ein strikt bereinigter `PATH` führt unter Windows zu Ausführungsfehlern oder Deadlocks im Testtreiber.
@@ -70,21 +70,16 @@ Für ein zukünftiges Release sind folgende Schritte für nativen Windows-Suppor
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](./GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](./GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](./GUIDE_Example-Based-Testing.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
-[↦ | Linter | ↤](./GUIDE_Linter.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
-[↦ | RBT-Nutzungsmuster | ↤](./GUIDE_RBT-Usage-Pattern.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
