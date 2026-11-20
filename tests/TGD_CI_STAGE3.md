@@ -94,3 +94,27 @@ Die Dateien unter `tests/` sind ab sofort **eingefroren**. Im nächsten Durchlau
 4. [`experiments/benchmarks/cubie_benchmarks/data/`](../experiments/benchmarks/cubie_benchmarks/data/): Explizites `newline="\n"` in allen 70 `write_text(...)`-Aufrufen der `smoke`- und `base`-Szenario-Templates.
 5. [`experiments/benchmarks/cubie_benchmarks/reporting/_files.py`](../experiments/benchmarks/cubie_benchmarks/reporting/_files.py#L55): `Path(url2pathname(url.path))` statt `Path(unquote(url.path))`.
 6. Abschließend: `tests/test_styleguide.py`, `tests/test_lint.py`, vollständige Testsuite, `python scripts/check_wheel.py dist`, Living-Documentation-Sync (`docs/CI_PLATFORM_STATUS.md`, `CHANGELOG.md`, `KNOWN_ISSUES.md`) sowie `python -m qb_cubie docframe update`.
+
+---
+
+## Schritt 5: Phase B — Green-Phase & Abschlussverifikation (abgeschlossen)
+
+Unter striktem **Test-Freeze** (keine Änderungen an Testdateien unter `tests/*.py`) wurden alle 5 Zielkomponenten umgesetzt:
+
+1. [`src/qb_cubie/arenas/pyvenv.py`](../src/qb_cubie/arenas/pyvenv.py#L44-L47): Expliziter `else:`-Zweig in `_cache_root()` gegen `mypy --platform darwin` (`[unreachable]`).
+2. [`src/qb_cubie/arenas/_process.py`](../src/qb_cubie/arenas/_process.py#L150-L167): `getattr(signal, "SIGKILL", signal.SIGTERM)` und `getattr(os, "killpg", None)` gegen `mypy --platform win32` (`[attr-defined]`).
+3. [`src/qb_cubie/arenas/_relocation.py`](../src/qb_cubie/arenas/_relocation.py#L77-L120): CRLF-Trampoline-Erkennung (`\r?\n`), `_is_python_interpreter()` mit Backslash-Normalisierung und case-insensitivem `(?:\.exe)?`-Match sowie Ablehnung unbekannter `#!`-Skripte ohne `+x`-Bit via `_unsupported(script)`.
+4. [`experiments/benchmarks/cubie_benchmarks/data/`](../experiments/benchmarks/cubie_benchmarks/data/): Alle 70 betroffenen `smoke`- und `base`-Szenario-Templates auf explizites `newline="\n"` bei `write_text(...)` umgestellt (AST-verifiziert).
+5. [`experiments/benchmarks/cubie_benchmarks/reporting/_files.py`](../experiments/benchmarks/cubie_benchmarks/reporting/_files.py#L9-L56): `Path(url2pathname(url.path))` statt `Path(unquote(url.path))`.
+6. **Living-Documentation-Sync:** [`docs/CI_PLATFORM_STATUS.md`](../docs/CI_PLATFORM_STATUS.md), [`CHANGELOG.md`](../CHANGELOG.md) und [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md) aktualisiert und per `python -m qb_cubie docframe update --exclude docs/feature-drafts --exclude experiments --exclude tests` geprüft (`Updated 0 file(s); all frames up to date.`).
+
+### Abschluss-Verifikationsmatrix
+
+| Prüfschritt | Kommando | Ergebnis |
+| :--- | :--- | :--- |
+| Eingefrorene Stage-3-Verträge | `.venv/bin/python -m pytest tests/tests_arena/test_ci_platform_stage3.py -q --tb=short` | **`12 passed in 5.16s`** |
+| Styleguide & Linter (inkl. `slow`) | `.venv/bin/python -m pytest tests/test_styleguide.py tests/test_lint.py -m "" -v --tb=short` | **`23 passed in 26.10s`** (`ruff`, `pylint`, `mypy`, Modul-/Funktionsgrößen, Docstrings, Doc-Beispiele) |
+| Vollständige Suite (`not slow`) | `.venv/bin/python -m pytest -m "not slow" -q` | **`1698 passed, 12 skipped, 162 deselected, 6 warnings in 198.76s`** |
+| Vollständige Suite (`slow`) | `.venv/bin/python -m pytest -m slow -q` | **`162 passed, 1710 deselected in 230.82s`** |
+| Wheel-Build & -Prüfung | `uv build --python .venv/bin/python && .venv/bin/python scripts/check_wheel.py dist` | **`PASS` (Exit-Code `0`, alle Wheel-Profile inkl. `benchmarks`)** |
+| DocFrame-Sync | `.venv/bin/python -m qb_cubie docframe update --exclude docs/feature-drafts --exclude experiments --exclude tests` | **`Updated 0 file(s); all frames up to date.`** |

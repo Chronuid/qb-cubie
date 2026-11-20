@@ -6,8 +6,8 @@ from indexer import build_index
 def test_index(tmp_path):
     source, output = tmp_path / "docs", tmp_path / "out"
     source.mkdir()
-    (source / "z.txt").write_text("last", encoding="utf-8")
-    (source / "a.txt").write_text("first", encoding="utf-8")
+    (source / "z.txt").write_text("last", encoding="utf-8", newline="\n")
+    (source / "a.txt").write_text("first", encoding="utf-8", newline="\n")
     implemented = True
     try:
         build_index(source, output)

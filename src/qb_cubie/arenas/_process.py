@@ -151,13 +151,16 @@ def _stop_process_group(process: subprocess.Popen) -> None:
     """Escalate even if the leader has already exited but descendants survive."""
     if _signal_group(process.pid, signal.SIGTERM):
         _wait_group(process)
-        _signal_group(process.pid, signal.SIGKILL)
+        _signal_group(process.pid, getattr(signal, "SIGKILL", signal.SIGTERM))
     process.wait(timeout=1)
 
 
 def _signal_group(pid: int, sig: int) -> bool:
+    killpg = getattr(os, "killpg", None)
+    if killpg is None:
+        return False
     try:
-        os.killpg(pid, sig)
+        killpg(pid, sig)
         return True
     except ProcessLookupError:
         return False

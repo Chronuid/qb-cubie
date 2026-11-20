@@ -6,7 +6,8 @@ import json
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
+from urllib.request import url2pathname
 
 
 def now():
@@ -52,7 +53,7 @@ def wheel_hash():
         origin = json.loads(data or "{}")
         url = urlparse(origin.get("url", ""))
         if url.scheme == "file" and url.path.endswith(".whl"):
-            return _wheel_digest(origin, Path(unquote(url.path)))
+            return _wheel_digest(origin, Path(url2pathname(url.path)))
     except (importlib.metadata.PackageNotFoundError, OSError, ValueError):
         return None
     return None

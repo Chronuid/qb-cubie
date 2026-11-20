@@ -43,7 +43,8 @@ def _cache_root() -> Path:
             return Path(local_app_data)
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Caches"
-    return Path.home() / ".cache"
+    else:
+        return Path.home() / ".cache"
 
 
 def _remove_readonly(func: Any, path: str, exc: BaseException) -> None:

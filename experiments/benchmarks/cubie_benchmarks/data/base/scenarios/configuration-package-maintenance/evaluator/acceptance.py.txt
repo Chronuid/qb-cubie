@@ -50,7 +50,7 @@ def test_priority(observed):
 def test_schema(tmp_path):
     source=tmp_path/'in'
     (source/'layer').mkdir(parents=True)
-    (source/'layer'/'app.json').write_text('{"port":7}',encoding='utf-8')
+    (source/'layer'/'app.json').write_text('{"port":7}',encoding='utf-8',newline='\n')
     with pytest.raises(ValueError,match='schema'):
         merge_packages(source,tmp_path/'bad',schema={'name'})
     assert not (tmp_path/'bad').exists()

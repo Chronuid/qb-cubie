@@ -10,4 +10,5 @@ def merge_packages(source, destination, priority=None, schema=None):
     output=Path(destination)
     output.mkdir()
     for name,values in merged.items():
-        (output/name).write_text(json.dumps(values,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+        payload=json.dumps(values,sort_keys=True,separators=(',',':'))+'\n'
+        (output/name).write_text(payload,encoding='utf-8',newline='\n')

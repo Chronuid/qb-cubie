@@ -12,4 +12,5 @@ def build_catalog(source, destination, exclude=()):
         target=output/'files'/name
         target.parent.mkdir(parents=True,exist_ok=True)
         target.write_bytes(path.read_bytes())
-    (output/'index.txt').write_text(''.join(name+'\n' for name,_ in reversed(chosen)),encoding='utf-8')
+    payload=''.join(name+'\n' for name,_ in reversed(chosen))
+    (output/'index.txt').write_text(payload,encoding='utf-8',newline='\n')

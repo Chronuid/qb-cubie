@@ -22,7 +22,7 @@ Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integra
 | :--- | :---: | :---: | :--- | :--- |
 | **Linux** (`ubuntu-24.04`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `/proc`-Watchdog & `SIGKILL`-Crash-Check) + provisionierte Test-Arenen |
 | **macOS** (`macos-15`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow`; `/proc`-Watchdog Linux-only, POSIX-Prozessgruppen über `test_process_limits.py` & `test_ci_platform_stage1.py` geprüft) |
-| **Windows** (`windows-2022`) | ✅ Aktiv (Stufe 2) | ✅ Aktiv (Stufe 2) | **Tier 1 (Aktiv — Stufe 2)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `provision_test_arenas.py`, Win32-Job-Objects, `uv`/`distlib`-Launcher-Relokation & nativem `cowsay.exe`-Test; POSIX-Signal-/Symlink-Watchdogs POSIX-only) |
+| **Windows** (`windows-2022`) | ✅ Aktiv (Stufe 3) | ✅ Aktiv (Stufe 3) | **Tier 1 (Aktiv — Stufe 3)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `provision_test_arenas.py`, Win32-Job-Objects, `uv`/`distlib`- & Text-Shebang-Relokation, Benchmark-LF-Invarianz & nativem `cowsay.exe`-Test; POSIX-Signal-/Symlink-Watchdogs POSIX-only) |
 
 ---
 
@@ -52,6 +52,22 @@ Mit Stufe 2 ist auch die vollständige Repository-Suite unter `windows-2022` in 
 3. **UTF-8-Subprocess-Hygiene & Test-Portabilität:**
    - [`mypy.py`](../src/qb_cubie/linters/mypy.py), [`pylint.py`](../src/qb_cubie/linters/pylint.py) und [`_requirements.py`](../src/qb_cubie/arenas/_requirements.py) lesen Subprocess-Ausgaben explizit mit `encoding="utf-8", errors="replace"`; [`pyvenv.py`](../src/qb_cubie/arenas/pyvenv.py) decodiert `uv`-`stderr` mit `errors="replace"`; [`_hydration.py`](../src/qb_cubie/arenas/_hydration.py) trimmt auch `\`; [`scripts/provision_test_arenas.py`](../scripts/provision_test_arenas.py) nutzt `onexc=_remove_readonly`.
    - Verbliebene POSIX-Annahmen in Repository-Tests (`/tmp`/`touch`, `python3`/`echo`, `bin/python`, `site.getsitepackages()[0]`, `shlex.split`, `symlinks=True` und implizites Plattform-Encoding) wurden plattformneutral bereinigt; ausschließlich intrinsische OS-Spezifika (`test_ebt_resource_limits.py` `/proc`-Watchdog Linux-only, `test_quality_gate.py` `SIGKILL` POSIX-only, nativer `cowsay.exe`-Test Windows-only) behalten ehrliche Plattform-Marker.
+
+---
+
+## 4. Behobene Ursachen in Stufe 3 (CI-Run `44735125009` — `macos-15` & `windows-2022`)
+
+Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98bf4247`, protokolliert in [`tests/TGD_CI_STAGE3.md`](../tests/TGD_CI_STAGE3.md)) und friert sie als Plattformverträge in [`tests/tests_arena/test_ci_platform_stage3.py`](../tests/tests_arena/test_ci_platform_stage3.py) ein:
+1. **Multi-Platform-Mypy (`--warn-unreachable` für `linux`, `darwin`, `win32`):**
+   - [`pyvenv.py`](../src/qb_cubie/arenas/pyvenv.py) nutzt einen expliziten `else:`-Zweig in `_cache_root()` gegen `mypy --platform darwin` (`[unreachable]`).
+   - [`_process.py`](../src/qb_cubie/arenas/_process.py) greift über `getattr(signal, "SIGKILL", signal.SIGTERM)` und `getattr(os, "killpg", None)` auf POSIX-Symbole zu (`mypy --platform win32` `[attr-defined]`).
+2. **Windows-Text-Shebangs & CRLF-Trampoline-Relokation ([`_relocation.py`](../src/qb_cubie/arenas/_relocation.py)):**
+   - `_python_header()` und `_shell_header()` normalisieren Backslashes, erkennen `python.exe`/`pythonw.exe` (case-insensitive) und verarbeiten CRLF-Shell-Trampolines (`\r?\n`); extensionlose unbekannte `#!`-Skripte ohne POSIX-`+x`-Bit werden deterministisch per `_unsupported(script)` abgewiesen.
+3. **Benchmark-LF-Invarianz & Windows-`file://`-URLs (`experiments/benchmarks/`):**
+   - Alle 70 betroffenen `smoke`- und `base`-Szenario-Templates unter [`experiments/benchmarks/cubie_benchmarks/data/`](../experiments/benchmarks/cubie_benchmarks/data/) übergeben explizites `newline="\n"` an `write_text(...)`.
+   - [`cubie_benchmarks/reporting/_files.py`](../experiments/benchmarks/cubie_benchmarks/reporting/_files.py) löst `file://`-Wheel-URLs über `Path(url2pathname(url.path))` statt `Path(unquote(url.path))` auf.
+4. **Verbliebene Windows-Test-Altlasten (`tests/`):**
+   - [`test_fs_reporting.py`](../tests/tests_user_workflows/test_fs_reporting.py) normiert relative Pfade via `.as_posix()`, [`test_settings_bundle.py`](../tests/tests_user_workflows/test_settings_bundle.py) vergleicht Text via `.read_text(encoding="utf-8")`, und [`test_offline_core.py`](../tests/test_offline_core.py) verwendet einen Windows-`list2cmdline`-kompatiblen Tokenizer inkl. `taskkill`-Freigabe im Audit-Guard.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
