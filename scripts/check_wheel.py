@@ -8,14 +8,53 @@ pytest is installed explicitly as a test harness after checking the core alone.
 
 import argparse
 import hashlib
+import ntpath
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import venv
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def build_wheel_environment(
+    base_env,
+    *,
+    python: Path,
+    virtualenv: Path,
+    os_name: str | None = None,
+    base_prefix: str | None = None,
+) -> dict[str, str]:
+    """Construct an isolated environment for wheel verification without host linter leaks."""
+    target_os = os.name if os_name is None else os_name
+    prefix = sys.base_prefix if base_prefix is None else base_prefix
+    environment = {
+        key: value for key, value in base_env.items()
+        if not key.startswith(("PYTHON", "PYTEST", "QB_CUBIE_", "CUBIE_"))
+    }
+    environment["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
+    environment["PYTHONUTF8"] = "1"
+    environment["VIRTUAL_ENV"] = str(virtualenv)
+    # Only the test venv may supply optional linter executables.
+    if target_os == "nt":
+        system_root = base_env.get("SystemRoot") or base_env.get("SYSTEMROOT") or r"C:\Windows"
+        system_paths = [
+            ntpath.dirname(str(python)),
+            str(prefix),
+            ntpath.join(system_root, "System32"),
+            system_root,
+            ntpath.join(system_root, "System32", "Wbem"),
+        ]
+        environment["PATH"] = ";".join(system_paths)
+        for var in ("SystemRoot", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "TEMP", "TMP"):
+            if var in base_env:
+                environment[var] = base_env[var]
+    else:
+        environment["PATH"] = str(python.parent)
+    return environment
 
 
 def main():
@@ -27,38 +66,14 @@ def main():
         parser.error(f"Expected exactly one qb-cubie wheel, found {len(wheels)} in {args.wheel_dir}")
 
     # Do not inherit source paths, Python startup hooks or pytest configuration.
-    environment = {
-        key: value for key, value in os.environ.items()
-        if not key.startswith(("PYTHON", "PYTEST", "QB_CUBIE_", "CUBIE_"))
-    }
-    environment["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
-    environment["PYTHONUTF8"] = "1"
     with tempfile.TemporaryDirectory(prefix="qb-cubie-wheel-") as temporary:
-        root = Path(temporary)
+        root = Path(temporary).resolve()
         if root.is_relative_to(PROJECT_ROOT):
             raise RuntimeError("The temporary test directory must be outside the checkout (check TMPDIR/TEMP)")
         virtualenv = root / "venv"
         venv.EnvBuilder(with_pip=True, symlinks=os.name != "nt").create(virtualenv)
         python = virtualenv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        environment["VIRTUAL_ENV"] = str(virtualenv)
-        # Only the test venv may supply optional linter executables.
-        if os.name == "nt":
-            system_root = os.environ.get("SystemRoot", r"C:\Windows")
-            system_paths = [
-                str(python.parent),
-                os.path.join(system_root, "System32"),
-                system_root,
-                os.path.join(system_root, "System32", "Wbem"),
-            ]
-            orig_path = os.environ.get("PATH", "")
-            if orig_path:
-                system_paths.append(orig_path)
-            environment["PATH"] = os.pathsep.join(system_paths)
-            for var in ("SystemRoot", "COMSPEC", "PATHEXT", "TEMP", "TMP"):
-                if var in os.environ:
-                    environment[var] = os.environ[var]
-        else:
-            environment["PATH"] = str(python.parent)
+        environment = build_wheel_environment(os.environ, python=python, virtualenv=virtualenv)
         tests = root / "tests"
         shutil.copytree(PROJECT_ROOT / "tests/wheel", tests)
         shutil.copytree(PROJECT_ROOT / "experiments/tests/benchmarks/fixtures/phase3", tests / "phase3-example")

@@ -58,9 +58,9 @@ generierten Code. Details stehen in der
 
 Die Basis muss zur Maschine und zum Interpreter passen. Basisumgebungen werden nicht versioniert und nicht im Core-Paket gehalten; auch der Standardpfad von `PyVenv()` muss vor der ersten Nutzung lokal provisioniert werden (z. B. über `ArenaBuilder().build()` oder `scripts/provision_test_arenas.py`). `setup()` prüft die Codec-Anforderungen ausschließlich lesend. Bei fehlenden oder unpassenden Paketen bricht es vor dem Kopieren mit einem Hinweis auf den `ArenaBuilder` ab. Es startet keinen Installer und verändert die Basis nicht.
 
-Nach dem Kopieren passt `setup()` übliche POSIX-Python-Einstiegsskripte an den Klon an: absolute Python-Shebangs und die üblichen `/bin/sh`-Trampoline mit `'''exec'`. Damit funktionieren auch Pfade mit Leerzeichen und langen Interpreterpfaden. Die Basis bleibt unverändert. Nicht unterstützte ausführbare Skripte mit Basisreferenzen sowie zusätzliche `.exe`-Launcher werden vor dem Target-Aufruf mit `RuntimeError` abgelehnt. Die Python-Interpreter selbst sind von dieser `.exe`-Einschränkung ausgenommen. Absolute interne Skriptlinks werden auf den Klon umgebogen; externe Skriptlinks werden abgelehnt.
+Nach dem Kopieren passt `setup()` übliche POSIX-Python-Einstiegsskripte an den Klon an: absolute Python-Shebangs und die üblichen `/bin/sh`-Trampoline mit `'''exec'`. Damit funktionieren auch Pfade mit Leerzeichen und langen Interpreterpfaden. Die Basis bleibt unverändert. Nicht unterstützte ausführbare Skripte mit Basisreferenzen (einschließlich `\`-Pfaden unter Windows) sowie zusätzliche `.exe`-Launcher werden vor dem Target-Aufruf mit `RuntimeError` abgelehnt. Die Python-Interpreter selbst (inklusive Windows-Varianten wie `pythonw3.x.exe`, `python3.xt.exe` oder `python_d.exe`) sind von dieser `.exe`-Einschränkung ausgenommen. Absolute interne Skriptlinks (auch über aufgelöste Root-Symlinks wie `/var` $\to$ `/private/var` unter macOS) werden auf den Klon umgebogen; externe Skriptlinks werden abgelehnt.
 
-Das ist eine begrenzte Unterstützung kopierter Umgebungen, keine allgemeine Relokation beliebiger Venvs. Aktivierungsskripte werden nicht für eine interaktive Shell angepasst; PyVenv setzt `PATH` und `VIRTUAL_ENV` selbst. Absolute Pfade in Paketdaten, nativen Bibliotheken oder Anwendungscode werden nicht umgeschrieben. Für nicht unterstützte Launcher eine passende Basis ohne diese Launcher provisionieren und das Modul über `sys.executable -m ...` aufrufen. Native Windows-Konsolenlauncher sind derzeit nicht unterstützt.
+Das ist eine begrenzte Unterstützung kopierter Umgebungen, keine allgemeine Relokation beliebiger Venvs. Aktivierungsskripte werden nicht für eine interaktive Shell angepasst; PyVenv setzt `PATH` und `VIRTUAL_ENV` selbst. Absolute Pfade in Paketdaten, nativen Bibliotheken oder Anwendungscode werden nicht umgeschrieben. Für nicht unterstützte Launcher eine passende Basis ohne diese Launcher provisionieren und das Modul über `sys.executable -m ...` aufrufen. Zusätzliche native Windows-Konsolenlauncher (wie Paket-`.exe`-Wrapper) werden erst in Stufe 2 unterstützt und bleiben vorerst abgelehnt.
 
 Der `ArenaBuilder` wird über `from qb_cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
 
@@ -161,17 +161,9 @@ und eine kurze Fehlermeldung zurückgegeben.
 
 Ein Timeout löst `TimeoutError` aus, eine Ausgabeüberschreitung `RuntimeError`.
 Auch `EBT(expect=False)` wandelt solche Abbrüche nicht in einen Erfolg um.
-Die Überwachung beendet bei Abbruch die eigene Prozessgruppe mit `SIGTERM`
-und nach bis zu 0,2 Sekunden mit `SIGKILL`. Das gilt auch bei unterbrochener
-Überwachung und wenn der Runner bereits beendet ist, aber Nachkommen die Pipes
-offen halten. Die Arena räumt anschließend Workspace und IPC-Dateien auf.
-Die Beendigung und das Aufräumen können zusätzlich zur Frist Zeit benötigen.
+Die Überwachung beendet bei Abbruch unter POSIX (Linux/macOS) die eigene Prozessgruppe mit `SIGTERM` und nach bis zu 0,2 Sekunden mit `SIGKILL`; unter Windows beendet sie den Prozessbaum über ein Win32-Job-Object (`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` / `TerminateJobObject`) bzw. `taskkill /F /T /PID` als Fallback. Das gilt auch bei unterbrochener Überwachung und wenn der Runner bereits beendet ist, aber Nachkommen die Pipes offen halten. Die Arena räumt anschließend Workspace (einschließlich schreibgeschützter Dateien) und IPC-Dateien auf. Die Beendigung und das Aufräumen können zusätzlich zur Frist Zeit benötigen.
 
-Die neuen Limits erfordern POSIX-Prozessgruppen (Linux/macOS); auf Windows
-werden gesetzte Limits vor der Ausführung mit `NotImplementedError` abgelehnt.
-Aufrufe ohne Limits behalten ihr bisheriges Verhalten auf allen Plattformen.
-Gezielt aus der Prozessgruppe ausgebrochene Prozesse werden nicht erfasst.
-Dateiausgabe, IPC-Dateigröße und Speicher des Targets werden nicht begrenzt.
+Die neuen Limits werden sowohl unter POSIX (Linux/macOS) als auch unter Windows unterstützt; ausschließlich sonstige, nicht unterstützte Plattformen lehnen gesetzte Limits vor der Ausführung mit `NotImplementedError` ab. Aufrufe ohne Limits behalten ihr bisheriges Verhalten auf allen Plattformen. Gezielt vom Job-Object bzw. aus der Prozessgruppe ausgebrochene Prozesse werden nicht erfasst. Dateiausgabe, IPC-Dateigröße und Speicher des Targets werden nicht begrenzt.
 
 ## Grenzen von Isolation und Reproduzierbarkeit
 

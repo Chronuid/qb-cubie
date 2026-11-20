@@ -1,4 +1,4 @@
-"""Bounded POSIX arena execution; unlimited calls retain subprocess.run semantics."""
+"""Bounded POSIX and Windows arena execution; unlimited calls retain subprocess.run semantics."""
 
 import math
 import os
@@ -9,12 +9,14 @@ import time
 from pathlib import Path
 from typing import BinaryIO, cast
 
+from ._process_win32 import run_win32_process
+
 
 def validate_limits(timeout: float | None, max_output_bytes: int | None) -> None:
     _validate_timeout(timeout)
     _validate_output(max_output_bytes)
-    if os.name != "posix" and (timeout is not None or max_output_bytes is not None):
-        raise NotImplementedError("Arena execution limits currently require POSIX process groups")
+    if os.name not in {"posix", "nt"} and (timeout is not None or max_output_bytes is not None):
+        raise NotImplementedError("Arena execution limits require POSIX or Windows process management")
 
 
 def run_process(
@@ -27,6 +29,10 @@ def run_process(
     if timeout is None and max_output_bytes is None:
         return subprocess.run(args, cwd=cwd, env=env, capture_output=capture_output, check=False)
     capture = capture_output or max_output_bytes is not None
+    if os.name == "nt":
+        return run_win32_process(
+            args, cwd=cwd, env=env, timeout=timeout, max_output_bytes=max_output_bytes, capture=capture,
+        )
     with selectors.DefaultSelector() as selector:
         process, deadline = _start_process(args, cwd, env, capture, timeout)
         output = _monitor_process(process, selector, deadline, timeout, max_output_bytes, capture)

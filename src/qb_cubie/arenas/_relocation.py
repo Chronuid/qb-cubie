@@ -23,7 +23,7 @@ def _unsupported(script: Path) -> RuntimeError:
 
 
 def _relocate(script: Path, base: Path, clone: Path) -> None:
-    if re.fullmatch(r"(?:python|[π𝜋]thon)(?:w|\d+(?:\.\d+)*)?(?:\.exe)?", script.name, re.IGNORECASE):
+    if re.fullmatch(r"(?:python|[π𝜋]thon)w?(?:\d+(?:\.\d+)*t?)?(?:_d)?(?:\.exe)?", script.name, re.IGNORECASE):
         return
     if script.is_symlink():
         _relocate_link(script, base, clone)
@@ -33,13 +33,23 @@ def _relocate(script: Path, base: Path, clone: Path) -> None:
         _relocate_text(script, base, clone)
 
 
+def _relative_to_base(target: Path, base: Path) -> Path | None:
+    """Return target's relative path inside base while tolerating symlinked root prefixes."""
+    if target.is_relative_to(base):
+        return target.relative_to(base)
+    resolved_target, resolved_base = target.resolve(), base.resolve()
+    if resolved_target.is_relative_to(resolved_base):
+        return resolved_target.relative_to(resolved_base)
+    return None
+
+
 def _relocate_link(script: Path, base: Path, clone: Path) -> None:
     target = Path(os.readlink(script))
     if not target.is_absolute():
         target = script.parent / target
-    if target.is_relative_to(base):
+    if (rel := _relative_to_base(target, base)) is not None:
         script.unlink()
-        target = clone / target.relative_to(base)
+        target = clone / rel
         script.symlink_to(target)
     if not target.resolve().is_relative_to(clone.resolve()):
         raise _unsupported(script)
@@ -49,7 +59,11 @@ def _relocate_link(script: Path, base: Path, clone: Path) -> None:
 
 def _relocate_text(script: Path, base: Path, clone: Path) -> None:
     content = script.read_bytes()
-    prefixes = (os.fsencode(base) + b"/", os.fsencode(base.resolve()) + b"/")
+    prefixes = tuple(
+        os.fsencode(root) + sep
+        for root in dict.fromkeys((base, base.resolve()))
+        for sep in (b"/", b"\\")
+    )
     if not any(prefix in content for prefix in prefixes):
         return
     relocated = _rewrite_script(script, content, prefixes, clone)

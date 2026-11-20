@@ -62,12 +62,14 @@ Pickle/Cloudpickle-Deserialisierung kann Code ausführen. MessagePack reduziert 
 
 `custom_id` fließt in `arena_id` mit einem achtstelligen UUID-Anteil ein. Temporäre Verzeichnisse erhalten zusätzlich von `tempfile.mkdtemp` erzeugte Namen. Die IDs helfen bei der Zuordnung; sie sind kein Beweis absoluter Eindeutigkeit.
 
-Beide Arenen delegieren an `_process.run_process()`. Die optionalen POSIX-Limits
-`timeout` und `max_output_bytes` begrenzen Runner-Laufzeit und gemeinsame
-stdout/stderr-Ausgabe. Die Überwachung liest beide Pipes gleichzeitig und beendet
-bei Abbruch die eigene Prozessgruppe mit SIGTERM/SIGKILL. Ohne Limits bleibt das
-bisherige Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte
-Ausgabe. Siehe [Arena-Handbuch](../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
+Beide Arenen delegieren an `_process.run_process()` (bzw. unter Windows an
+`_process_win32.run_win32_process()`). Die optionalen Limits `timeout` und
+`max_output_bytes` begrenzen Runner-Laufzeit und gemeinsame stdout/stderr-Ausgabe
+auf POSIX (über gleichzeitige `selectors`-Pipe-Überwachung und `SIGTERM`/`SIGKILL`
+auf die Prozessgruppe) ebenso wie auf Windows (über zwei Reader-Threads und
+Win32-Job-Objects mit `taskkill`-Fallback). Ohne Limits bleibt das bisherige
+Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte Ausgabe.
+Siehe [Arena-Handbuch](../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
 Die `pre.fs`-Hydrierung begrenzt Kopierziele auf den fachlichen Workspace (absolute Pfade, ausbrechende `..`-Komponenten und entweichende Symlinks/Junctions werden mit `ValueError` abgelehnt). Für laufende Targets selbst werden Dateiziele nicht eingeschränkt; Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
 Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.

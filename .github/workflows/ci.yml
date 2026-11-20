@@ -16,10 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Note: windows-2022 is temporarily frozen until native Windows console
-        # launcher relocation and subprocess PATH handling are addressed.
+        # Stage 1: Wheel checks active across Linux, macOS, and Windows.
+        # Full Windows repository test suite follows in Stage 2.
         # See docs/CI_PLATFORM_STATUS.md for details.
-        os: [ubuntu-24.04, macos-15]
+        os: [ubuntu-24.04, macos-15, windows-2022]
         python: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
@@ -34,12 +34,13 @@ jobs:
         run: python scripts/check_wheel.py dist
 
   tests:
-    name: Repository / Ubuntu / Python ${{ matrix.python }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    name: Repository / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-24.04, macos-15]
         python: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
@@ -52,5 +53,7 @@ jobs:
         run: uv sync --locked --group dev --python ${{ matrix.python }}
       - name: Provision arena bases
         run: uv run --no-sync python scripts/provision_test_arenas.py
-      - name: Run repository tests
-        run: uv run --no-sync python -m pytest -m "" -q
+      - name: Run fast repository tests
+        run: uv run --no-sync python -m pytest -m "not slow" -q
+      - name: Run slow repository tests
+        run: uv run --no-sync python -m pytest -m slow -q

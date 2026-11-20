@@ -47,12 +47,14 @@ def _cache_root() -> Path:
 
 
 def _remove_readonly(func: Any, path: str, exc: BaseException) -> None:
-    """Clear read-only file bits during tree deletion so Windows clones clean up."""
-    if isinstance(exc, PermissionError):
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-        return
-    raise exc
+    """Clear read-only bits during tree deletion so Windows and POSIX clones clean up."""
+    if not isinstance(exc, PermissionError):
+        raise exc
+    os.chmod(path, stat.S_IMODE(os.lstat(path).st_mode) | stat.S_IWUSR)
+    parent = os.path.dirname(path)
+    if func in (os.unlink, os.rmdir) and parent:
+        os.chmod(parent, stat.S_IMODE(os.lstat(parent).st_mode) | stat.S_IWUSR | stat.S_IXUSR)
+    func(path)
 
 
 class _ArenaState:
@@ -75,8 +77,8 @@ class PyVenv(_ArenaState):
     # Hydration destinations are confined to the workspace. Targets retain host
     # OS rights; sources, base environments, targets and IPC results must be trusted.
     #
-    # Optional POSIX limits: timeout in seconds and a shared stdout/stderr budget
-    # in bytes. Neither limit includes environment provisioning or cloning.
+    # Optional POSIX and Windows limits: timeout in seconds and a shared stdout/stderr
+    # budget in bytes. Neither limit includes environment provisioning or cloning.
 
     def __init__(
         self,
@@ -162,7 +164,7 @@ class PyVenv(_ArenaState):
 
     def _prepare_directories(self) -> Path:
         """Create separate workspace and venv directories beneath an arena root."""
-        root = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_"))
+        root = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_")).resolve()
         workspace = root / "workspace"
         workspace.mkdir()
         virtual_path = root / ".venv"

@@ -122,7 +122,7 @@ def test_installed_export_handshakes_and_plans_do_not_infer(tmp_path, provider):
     cli('validate', root / 'package', '--check-references', cwd=tmp_path)
     for role, count in [('reviewer', 2), ('developer', 1)]:
         answer = cli('validate-agent', root / f'agents/{role}.toml', cwd=tmp_path)
-        declared = tomllib.loads((root / f'agents/{role}.toml').read_text())
+        declared = tomllib.loads((root / f'agents/{role}.toml').read_text(encoding="utf-8"))
         runtime = json.loads((root / f'adapter/{role}.json').read_bytes())
         assert answer['model_provenance'] == {**declared['model'], 'source': 'matched_agent_handshake'}
         assert declared['model'] == runtime['model']
@@ -172,7 +172,7 @@ def test_both_installed_smoke_sets_keep_model_calls_usage_and_hash_bound_evidenc
         assert all(hashlib.sha256((output / name).read_bytes()).hexdigest() == digest
                    for name, digest in manifest['artifact_hashes'].items())
         for stderr in output.glob('episodes/*/transport/stderr.log'):
-            summary, = [json.loads(line) for line in stderr.read_text().splitlines()]
+            summary, = [json.loads(line) for line in stderr.read_text(encoding="utf-8").splitlines()]
             evidence_path = Path(summary['manifest_path'])
             assert hashlib.sha256(evidence_path.read_bytes()).hexdigest() == summary['manifest_sha256']
             bound_manifests.append(evidence_path)

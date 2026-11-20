@@ -132,7 +132,8 @@ def test_mypy_with_native_absolute_file_path(tmp_path, invalid):
                post=WorldState(returns=lambda diagnostics: (
                    len(diagnostics) == 1 and diagnostics[0].rule_id == "assignment"
                    and diagnostics[0].severity == "error" and diagnostics[0].line == 1
-                   and Path(diagnostics[0].file_path) == source
+                   and Path(os.path.normcase(os.path.realpath(diagnostics[0].file_path)))
+                   == Path(os.path.normcase(os.path.realpath(source)))
                ) if invalid else diagnostics == []))
     if os.environ["QB_CUBIE_WHEEL_PROFILE"] == "core":
         with pytest.raises(RuntimeError, match="qb-cubie\\[linters\\]"):

@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integration (GitHub Actions) von `qb-cubie` sowie den Hintergrund zu vorübergehend eingefrorenen Plattform-Checks.
+Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integration (GitHub Actions) von `qb-cubie` sowie den schrittweisen Ausbau für macOS und Windows.
 
 ---
 
@@ -19,46 +19,34 @@ Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integra
 ## 1. Übersicht der CI-Matrix
 
 | Plattform / Runner | Python 3.13 | Python 3.14 | Status | Scope |
-| :--- | :---: | :---: | :---: | :--- |
-| **Linux** (`ubuntu-24.04`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | Wheel-Prüfung + Vollständige Repository-Testsuite + provisionierte Test-Arenen |
-| **macOS** (`macos-15`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | Wheel-Prüfung in isolierter Testumgebung (Core + Linter) |
-| **Windows** (`windows-2022`) | ⏸️ Eingefroren | ⏸️ Eingefroren | **Vorübergehend eingefroren** | Aus CI-Matrix ausgeklammert (Details siehe unten) |
+| :--- | :---: | :---: | :--- | :--- |
+| **Linux** (`ubuntu-24.04`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `/proc`-Watchdog) + provisionierte Test-Arenen |
+| **macOS** (`macos-15`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv — Stufe 1)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow`; `/proc`-Watchdog in `test_ebt_resource_limits.py` übersprungen, POSIX-Prozessgruppen über `test_process_limits.py` & `test_ci_platform_stage1.py` geprüft) |
+| **Windows** (`windows-2022`) | 🔄 Stufe 1 (Wheel aktiv) | 🔄 Stufe 1 (Wheel aktiv) | **Stufe 1 reaktiviert** | `CI / Wheel` mit Win32-Prozesslimits & isoliertem `PATH` aktiv; vollständige `Repository`-Suite folgt in Stufe 2 |
 
 ---
 
-## 2. Dokumentation der Windows-CI-Befunde (`windows-2022`)
+## 2. Behobene Ursachen in Stufe 1 (`macos-15` & `CI / Wheel / windows-2022`)
 
-Die GitHub Actions Checks für Windows (`CI / Wheel / windows-2022 / Python 3.13` und `3.14`) schlugen nach ca. 1 Minute fehl.
-
-### Ursachenanalyse:
-1. **Verzeichnisstruktur und native Launcher (`.exe`):**
-   - Auf Windows liegen Interpreter und Skripte unter `Scripts/` statt `bin/`.
-   - Venvs auf Windows verwenden kompilierte Wrapper-Binärdateien (`.exe`) anstelle von POSIX-Shebang-Skripten.
-   - Gemäß [Arena-Handbuch](core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung) (Zeile 56) sind *native Windows-Konsolenlauncher derzeit nicht unterstützt*. `PyVenv.setup()` ist primär auf POSIX-Skripte und Trampoline ausgelegt.
-2. **Subprozess-Umgebung und `PATH`-Isolation:**
-   - [check_wheel.py](../scripts/check_wheel.py) und `PyVenv` isolieren Kindprozess-Umgebungen streng (`PATH` wird auf den Interpreter-Pfad begrenzt).
-   - Unter Windows erfordert die C-Laufzeitumgebung und Netzwerk-I/O zwingend Zugriff auf Systembibliotheken in `C:\Windows\System32` (z. B. `vcruntime140.dll`, `kernel32.dll`, `ws2_32.dll`). Ein strikt bereinigter `PATH` führt unter Windows zu Ausführungsfehlern oder Deadlocks im Testtreiber.
-3. **POSIX-Prozessgrenzen:**
-   - Prozessgruppen, Signalweiterleitung und Ressourcenlimits (`resource`-Modul) basieren auf POSIX-Standards. Windows erfordert stattdessen Win32-Job-Objects.
+1. **macOS Symlink-Roots (`/var` $\to$ `/private/var`):**
+   - [`TempFS.setup()`](../src/qb_cubie/arenas/tempfs.py) und [`PyVenv._prepare_directories()`](../src/qb_cubie/arenas/pyvenv.py) lösen temporäre Arbeitswurzeln nun per `.resolve()` kanonisch auf; `_relocate_link()` in [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) gleicht Symlink-Präfixe aufgelöst ab.
+   - Da macOS kein `/proc`-Dateisystem besitzt, bleiben die 38 tiefen `/proc`-Watchdog-Checks in `tests/tests_arena/test_ebt_resource_limits.py` ehrlich auf Linux beschränkt; POSIX-Prozessgruppen-Abbrüche werden auf macOS über `tests/tests_arena/test_process_limits.py` und `tests/tests_arena/test_ci_platform_stage1.py` verifiziert.
+   - Um unter `spawn`-Multiprocessing eine sichere CI-Laufzeit einzuhalten, führt der `tests`-Job in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) zunächst `-m "not slow" -q` und anschließend sequentiell `-m slow -q` bei `timeout-minutes: 35` aus.
+2. **Win32-Prozesslimits via Job Objects & Reader-Threads (`_process.py` + `_process_win32.py`):**
+   - [`_process.py`](../src/qb_cubie/arenas/_process.py) delegiert `timeout` und `max_output_bytes` unter `os.name == "nt"` an [`_process_win32.py`](../src/qb_cubie/arenas/_process_win32.py) (Win32 Job Objects mit `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` / `TerminateJobObject`, `taskkill`-Fallback und zwei unbuffered Daemon-Reader-Threads mit gemeinsamem Byte-Budget). Damit funktionieren auch `DocEnsurance(..., timeout=...)`, `qb-cubie.exe docframe update` (nun mit explizitem `newline="\n"` in [`doc_frame.py`](../src/qb_cubie/services/doc_frame/doc_frame.py)) und `TempFS`/`PyVenv` mit gesetzten Limits unter Windows.
+3. **Subprozess-`PATH`-, Timeout- & Encoding-Härtung für `CI / Wheel`:**
+   - [`scripts/check_wheel.py`](../scripts/check_wheel.py) kapselt `build_wheel_environment()` ohne Rückfall auf den Host-`PATH` (`orig_path`), sodass Host-Linter das isolierte `core`-Profil nicht verunreinigen.
+   - [`cubie_benchmarks/execution/_process.py`](../experiments/benchmarks/cubie_benchmarks/execution/_process.py) ergänzt Windows-Systempfade, `PYTHONUTF8="1"` und `encoding="utf-8", errors="replace"`; [`ollama_agents/reviewer/tools.py`](../experiments/ollama-agents/ollama_agents/reviewer/tools.py) ersetzt `os.killpg` unter Windows durch `CREATE_NEW_PROCESS_GROUP` + `taskkill`.
+   - [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) akzeptiert Windows-Interpretervarianten wie `pythonw3.13.exe`, `python3.13t.exe` und `python_d.exe` und erkennt auch `\`-Basispfade in Einstiegsskripten.
 
 ---
 
-## 3. Temporäre Einfrierung
+## 3. Verbleibende Lücken für Stufe 2 (`CI / Repository / windows-2022`)
 
-Um einen stabilen, 100 % grünen CI-Zustand für das Release **v0.0.3** sicherzustellen, wurde `windows-2022` vorübergehend aus der aktiven Matrix in `.github/workflows/ci.yml` entfernt:
-
-- **Linux und macOS** decken POSIX-Umgebungen unter Python 3.13 und Python 3.14 vollständig ab.
-- Die Python 3.14-Kompatibilität (einschließlich des neuen `𝜋thon`-Launchers) wurde erfolgreich verifiziert.
-
----
-
-## 4. Roadmap zur Reaktivierung von Windows
-
-Für ein zukünftiges Release sind folgende Schritte für nativen Windows-Support geplant:
-1. Anpassung der `PATH`-Bereinigung in `check_wheel.py` und `qb_cubie.arenas._env`, sodass `System32` und `%SystemRoot%` auf Windows-Systemen erhalten bleiben.
-2. Erkennung der Windows-Venv-Struktur (`Scripts/python.exe`) bei Arena-Kopien.
-3. Fallback auf `sys.executable -m ...` anstelle von nativer Launcher-Relokation für Konsolenskripte unter Windows.
-4. Reaktivierung von `windows-2022` in der GitHub Actions Matrix.
+Die vollständige Repository-Testsuite unter Windows (`tests`-Job) benötigt noch folgende Bausteine aus Stufe 2 (detailliert in [`tests/ANALYSIS_CI_MATRIX.md`](../tests/ANALYSIS_CI_MATRIX.md)):
+1. **Sichere `.exe`-Console-Script-Relokation:** Kontrollierte Dual-Format-Anpassung für verifizierte `distlib`/`pip`-Wrapper (`PE + #! + ZIP`) und `uv-trampoline`-Launcher (`UVSC`/`UVPY`/`UVUV`) für `cowsay_env` und `linter_env` bei unveränderter Ablehnung beliebiger nativer `.exe`-Binaries.
+2. **Plattformübergreifende Diff-Pfade:** Normierung relativer Pfade in [`ebt.py`](../src/qb_cubie/ebt.py) (`_generate_diff`, `_modified_paths`) und [`reporter.py`](../src/qb_cubie/reporter.py) (`_summarize_fs_diffs`) auf kanonische POSIX-Slashes (`/`).
+3. **Test- & Linter-Hygiene unter Windows:** Beseitigung verbliebener POSIX-Shell-Kommandos (`/tmp`, `touch`, `python3`, `echo ... > ...`), `symlinks=os.name != "nt"` in Test-Venv-Fixtures sowie explizites UTF-8-Subprozess-Decoding in `mypy.py`/`pylint.py`/`_requirements.py` und Freischaltung von `windows-2022` im `tests`-Job von `.github/workflows/ci.yml`.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

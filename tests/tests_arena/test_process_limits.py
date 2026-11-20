@@ -32,14 +32,23 @@ def test_invalid_limits_are_rejected_before_setup(arena, parameter, value, error
 
 
 def test_unsupported_platform_rejects_limits_explicitly(monkeypatch):
-    monkeypatch.setattr(_process, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(_process, "os", SimpleNamespace(name="java"))
     _process.validate_limits(None, None)
     for limits in ((1, None), (None, 0)):
-        with pytest.raises(NotImplementedError, match="POSIX"):
+        with pytest.raises(NotImplementedError, match="POSIX or Windows"):
             _process.validate_limits(*limits)
 
 
-@pytest.mark.skipif(os.name != "posix", reason="Limits require POSIX process groups")
+def test_windows_platform_accepts_limits_validation(monkeypatch):
+    monkeypatch.setattr(_process, "os", SimpleNamespace(name="nt"))
+    for limits in ((1, 0), (1, None), (None, 0)):
+        _process.validate_limits(*limits)
+
+
+@pytest.mark.skipif(
+    os.name not in {"posix", "nt"},
+    reason="Limits require POSIX or Windows process management",
+)
 def test_output_buffer_memory_is_bounded(tmp_path):
     # The child offers 16 MiB on each stream. Retaining it before checking the
     # 1 KiB budget would exceed the independent allocation threshold by far.
@@ -57,7 +66,10 @@ def test_output_buffer_memory_is_bounded(tmp_path):
     assert peak < 1024 * 1024, f"Output monitoring allocated {peak} bytes for a 1024-byte budget"
 
 
-@pytest.mark.skipif(os.name != "posix", reason="Limits require POSIX process groups")
+@pytest.mark.skipif(
+    os.name not in {"posix", "nt"},
+    reason="Limits require POSIX or Windows process management",
+)
 def test_timeout_still_applies_after_both_streams_close(tmp_path):
     script = "import os, time; os.close(1); os.close(2); time.sleep(2)"
     with pytest.raises(TimeoutError, match="timed out"):
@@ -67,7 +79,10 @@ def test_timeout_still_applies_after_both_streams_close(tmp_path):
         )
 
 
-@pytest.mark.skipif(os.name != "posix", reason="Limits require POSIX process groups")
+@pytest.mark.skipif(
+    os.name not in {"posix", "nt"},
+    reason="Limits require POSIX or Windows process management",
+)
 def test_binary_output_is_counted_without_decoding(tmp_path):
     process = _process.run_process(
         [sys.executable, "-c", "import os; os.write(1, b'\\xff'); os.write(2, b'\\xfe')"],
@@ -77,7 +92,10 @@ def test_binary_output_is_counted_without_decoding(tmp_path):
     assert process.stdout == b"\xff" and process.stderr == b"\xfe"
 
 
-@pytest.mark.skipif(os.name != "posix", reason="Limits require POSIX process groups")
+@pytest.mark.skipif(
+    os.name not in {"posix", "nt"},
+    reason="Limits require POSIX or Windows process management",
+)
 def test_timeout_includes_process_startup(tmp_path, monkeypatch):
     original = _process.subprocess.Popen
 

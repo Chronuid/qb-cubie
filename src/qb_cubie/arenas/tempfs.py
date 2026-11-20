@@ -1,7 +1,9 @@
 import multiprocessing
+import os
 import pickle
-import subprocess
 import shutil
+import stat
+import subprocess
 import sys
 import tempfile
 import uuid
@@ -16,6 +18,17 @@ from ._hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 
 
+def _remove_readonly(func: Any, path: str, exc: BaseException) -> None:
+    """Clear read-only bits on files and parent directories during tree removal."""
+    if not isinstance(exc, PermissionError):
+        raise exc
+    os.chmod(path, stat.S_IMODE(os.lstat(path).st_mode) | stat.S_IWUSR)
+    parent = os.path.dirname(path)
+    if func in (os.unlink, os.rmdir) and parent:
+        os.chmod(parent, stat.S_IMODE(os.lstat(parent).st_mode) | stat.S_IWUSR | stat.S_IXUSR)
+    func(path)
+
+
 class TempFS:
     """Executes targets in a fresh host-interpreter process with an ephemeral workspace."""
 
@@ -26,7 +39,7 @@ class TempFS:
     # Hydration destinations are confined to the workspace. This does not restrict
     # target OS rights: inputs, targets and Cloudpickle results must be trusted.
     #
-    # Optional POSIX limits: timeout in seconds and a combined stdout/stderr
+    # Optional POSIX and Windows limits: timeout in seconds and a combined stdout/stderr
     # budget in bytes. Output-limited runs replay output after exit.
 
     def __init__(
@@ -64,8 +77,7 @@ class TempFS:
         self._actual_returns = None
         if state.arena:
             warnings.warn("TempFS is not intended for venv or side-package isolation; use PyVenv instead.")
-        workspace_dir = tempfile.mkdtemp(prefix=f"{self.arena_id}_")
-        self.workspace_path = Path(workspace_dir)
+        self.workspace_path = Path(tempfile.mkdtemp(prefix=f"{self.arena_id}_")).resolve()
         self._hydrate()
 
     def execute(self, target: Any, args: tuple, kwargs: dict) -> Any:
@@ -104,7 +116,7 @@ class TempFS:
         if self.workspace_path is None:
             raise RuntimeError("STATE-GUARD: Teardown was started, but 'workspace_path' is missing.")
         if self.workspace_path.exists():
-            shutil.rmtree(self.workspace_path)
+            shutil.rmtree(self.workspace_path, onexc=_remove_readonly)
         self.workspace_path = None
 
     # ----- Pipes ------------------------------------------------------------------------------------------------------

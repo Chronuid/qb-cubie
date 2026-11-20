@@ -38,6 +38,7 @@ def _execute(command, directory, timeout):
     """Capture a bounded subprocess observation in an isolated environment."""
     started = time.time()
     with subprocess.Popen(command, cwd=directory, env=_environment(), text=True,
+                          encoding="utf-8", errors="replace",
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           start_new_session=os.name != "nt") as process:
         stdout, stderr, timed_out = _communicate(process, timeout)
@@ -69,7 +70,16 @@ def _kill(process):
 
 def _environment():
     """Build a subprocess environment without inherited provider credentials."""
-    names = {"SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LANG", "LC_ALL"}
+    names = {"SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "TEMP", "TMP", "LANG", "LC_ALL"}
+    path_entries = [str(Path(sys.executable).parent)]
+    if os.name == "nt":
+        system_root = os.environ.get("SYSTEMROOT") or os.environ.get("SystemRoot") or r"C:\Windows"
+        path_entries.extend([
+            os.path.join(system_root, "System32"),
+            system_root,
+            os.path.join(system_root, "System32", "Wbem"),
+        ])
     return {**{key: value for key, value in os.environ.items() if key in names},
-            "PATH": str(Path(sys.executable).parent),
-            "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1"}
+            "PATH": os.pathsep.join(path_entries),
+            "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONUTF8": "1"}

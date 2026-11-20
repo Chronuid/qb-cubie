@@ -60,8 +60,13 @@ def _pytest(root, timeout):
 def _process(command, root, environment, timeout, out, err):
     """Terminate and reap the test process group if its deadline is reached."""
     try:
+        kwargs = (
+            {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)}
+            if os.name == "nt"
+            else {}
+        )
         process = subprocess.Popen(command, cwd=root, env=environment, stdout=out, stderr=err,
-                                   start_new_session=True)
+                                   start_new_session=os.name != "nt", **kwargs)
         code = _wait(process, timeout)
     except OSError as error:
         raise infrastructure(f'Cannot execute visible tests: {error}') from error
@@ -75,9 +80,22 @@ def _wait(process, timeout):
     try:
         return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired as error:
-        os.killpg(process.pid, signal.SIGKILL)
+        _kill_process(process)
         process.wait()
         raise AdapterError('agent_timeout', 'Visible test execution timeout') from error
+
+
+def _kill_process(process):
+    """Terminate a timed-out test process tree cleanly on Windows or POSIX."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True, check=False)
+        if process.poll() is None:
+            process.kill()
+        return
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
 
 
 def _output(stream):

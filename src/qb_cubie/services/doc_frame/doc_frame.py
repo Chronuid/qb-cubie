@@ -208,7 +208,7 @@ class DocFrame:
             file_path = Path(file_path_str)
             new_content = self._render_file_frames(file_path, content, catalog)
             if new_content != content:
-                file_path.write_text(new_content, encoding="utf-8")
+                file_path.write_text(new_content, encoding="utf-8", newline="\n")
                 updated.append(file_path.resolve().relative_to(catalog.root).as_posix())
         return DocFrameReport(str(self.target_path), True, tuple(updated), catalog, ())
 
