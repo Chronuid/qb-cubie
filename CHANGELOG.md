@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
-## [Unreleased]
+## [0.0.10] - 2026-11-20
 
 ### Neu / Geändert
 - **Stärkung der CI-Matrix — Stufe 2 (`CI / Repository / windows-2022` abgeschlossen):**
