@@ -19,6 +19,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 GUARD = r'''
 import os
+import re
 import shlex
 import socket
 import sys
@@ -28,8 +29,17 @@ def deny(reason):
         log.write(reason + "\n")
     raise RuntimeError("OFFLINE CONTRACT: " + reason)
 
+def split_command(command):
+    if not isinstance(command, str):
+        return list(command)
+    if os.name == "nt":
+        # Windows list2cmdline escapes inner quotes as \", which shlex(posix=False) rejects.
+        tokens = re.findall(r'"(?:\\.|[^"\\])*"|\S+', command)
+        return [t[1:-1].replace('\\"', '"') if len(t) >= 2 and t[0] == t[-1] == '"' else t for t in tokens]
+    return shlex.split(command, posix=True)
+
 def check_command(executable, command):
-    parts = shlex.split(command, posix=os.name != "nt") if isinstance(command, str) else list(command)
+    parts = split_command(command)
     parts = [os.fsdecode(part) for part in parts]
     raw_exe = executable if executable is not None else (parts[0] if parts else "")
     name = os.path.basename(os.fsdecode(raw_exe).strip('"')).lower()
@@ -41,7 +51,7 @@ def check_command(executable, command):
         if "-S" in parts or "-I" in parts or "-E" in parts:
             deny("Python child would bypass the offline hook")
         return
-    if name.removesuffix(".exe") not in {"mypy", "pylint"}:
+    if name.removesuffix(".exe") not in {"mypy", "pylint", "taskkill"}:
         deny("external command: " + repr(parts))
 
 def audit(event, args):

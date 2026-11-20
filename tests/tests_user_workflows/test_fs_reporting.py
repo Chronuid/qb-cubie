@@ -123,7 +123,7 @@ def publication_run(request, tmp_path, monkeypatch):
     with monkeypatch.context() as context:
         context.chdir(direct)
         assert write_publication(publication.actual) is None
-    observed = {str(path.relative_to(direct)): path.read_bytes()
+    observed = {path.relative_to(direct).as_posix(): path.read_bytes()
                 for path in direct.rglob("*") if path.is_file()}
     assert observed == publication.actual
     case = EBT(

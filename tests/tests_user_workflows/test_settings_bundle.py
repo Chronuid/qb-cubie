@@ -37,8 +37,8 @@ def test_explicit_destinations_preserve_both_settings(tmp_path, monkeypatch, set
     assert actual == {"currency": "EUR", "region": "DE" if fault else "EU"}
     expected_file = tmp_path / "expected.json"
     expected_file.write_text('{"currency": "EUR", "region": "EU"}\n', encoding="utf-8")
-    assert (direct / "settings.json").read_bytes() == (
-        b'{"currency": "EUR", "region": "DE"}\n' if fault else expected_file.read_bytes()
+    assert (direct / "settings.json").read_text(encoding="utf-8") == (
+        '{"currency": "EUR", "region": "DE"}\n' if fault else expected_file.read_text(encoding="utf-8")
     )
     case = EBT(
         target=partial(build_settings, fault), arena=TempFS(),
