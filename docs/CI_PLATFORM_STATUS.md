@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integration (GitHub Actions) von `qb-cubie` sowie den schrittweisen Ausbau für macOS und Windows.
+Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integration (GitHub Actions) von `qb-cubie` sowie den Status vorübergehend eingefrorener Plattform-Checks (`windows-2022`).
 
 ---
 
@@ -22,11 +22,28 @@ Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integra
 | :--- | :---: | :---: | :--- | :--- |
 | **Linux** (`ubuntu-24.04`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `/proc`-Watchdog & `SIGKILL`-Crash-Check) + provisionierte Test-Arenen |
 | **macOS** (`macos-15`) | ✅ Besteht | ✅ Besteht | **Tier 1 (Aktiv)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow`; `/proc`-Watchdog Linux-only, POSIX-Prozessgruppen über `test_process_limits.py` & `test_ci_platform_stage1.py` geprüft) |
-| **Windows** (`windows-2022`) | ✅ Aktiv (Stufe 3) | ✅ Aktiv (Stufe 3) | **Tier 1 (Aktiv — Stufe 3)** | `Wheel` + vollständige `Repository`-Testsuite (`not slow` + `slow` inkl. `provision_test_arenas.py`, Win32-Job-Objects, `uv`/`distlib`- & Text-Shebang-Relokation, Benchmark-LF-Invarianz & nativem `cowsay.exe`-Test; POSIX-Signal-/Symlink-Watchdogs POSIX-only) |
+| **Windows** (`windows-2022`) | ⏸️ Eingefroren | ⏸️ Eingefroren | **Vorübergehend eingefroren** | CI-Checks in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`Wheel` & `Repository`) deaktiviert — CI derzeit rot (aktuelle Befunde in [`tests/CI-Data.md`](../tests/CI-Data.md) hinterlegt) |
 
 ---
 
-## 2. Behobene Ursachen in Stufe 1 (`macos-15` & `CI / Wheel / windows-2022`)
+## 2. Temporäre Einfrierung (`windows-2022`)
+
+Nach dem Abschluss von Stufe 3 (`bf955ea8`) sind **Linux (`ubuntu-24.04`)** und **macOS (`macos-15`)** über Python 3.13 und Python 3.14 in beiden CI-Jobs (`Wheel` und `Repository`) grün und bleiben als **Tier 1** aktiv.
+
+Die GitHub-Actions-Checks für **Windows (`windows-2022`)** schlagen weiterhin fehl (Rohdaten in [`tests/CI-Data.md`](../tests/CI-Data.md)) und werden für Release `v0.0.10` bewusst eingefroren:
+
+- In [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) ist `windows-2022` aus der aktiven Matrix beider Jobs (`wheel` und `tests`) entfernt (`os: [ubuntu-24.04, macos-15]`).
+- **Offene Befunde `Wheel / windows-2022` (Python 3.13 & 3.14 — 1 Fehler, 3 bestanden):**
+  - `tests/ollama_agents_installed.py::test_installed_two_plus_five_study_preserves_all_attempts_and_external_evidence`: mindestens ein archivierter Study-Run endet nicht mit `status == "completed"`.
+- **Offene Befunde `Repository / windows-2022` (Python 3.13 — 55 Fehler, 1632 bestanden, 23 übersprungen):**
+  - Backslash-Escaping in Fehlertext-Assertions (`str(path)` gegen `repr`-escapte Windows-Pfade in `test_ebt_fs_collisions.py`, `test_ebt_hydration_boundaries.py`, `test_settings_bundle.py`).
+  - OS-/Case-abhängige Datei- und Diagnose-Sortierung (`test_docframe_cli.py`, `test_docframe_rules_and_guards.py`, `test_doc_ensurance.py`).
+  - Windows-spezifische Einzelbefunde in `test_arena_requirements.py` (`failed to locate pyvenv.cfg` statt `missing pyvenv.cfg`), `test_ci_platform_stage1.py` (extensionloses `#!`-Skript `tool` abgelehnt) und `test_ci_platform_stage2.py` (lokales Callable `invoke_cowsay` unter `spawn` nicht pickelbar).
+- Die bisherigen Arbeiten aus den Stufen 1–3 bleiben im Repository und in den folgenden Abschnitten als Ausgangsbasis für eine spätere Wiederaufnahme dokumentiert.
+
+---
+
+## 3. Behobene Ursachen in Stufe 1 (`macos-15` & `CI / Wheel / windows-2022`)
 
 1. **macOS Symlink-Roots (`/var` $\to$ `/private/var`):**
    - [`TempFS.setup()`](../src/qb_cubie/arenas/tempfs.py) und [`PyVenv._prepare_directories()`](../src/qb_cubie/arenas/pyvenv.py) lösen temporäre Arbeitswurzeln nun per `.resolve()` kanonisch auf; `_relocate_link()` in [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) gleicht Symlink-Präfixe aufgelöst ab.
@@ -41,7 +58,7 @@ Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integra
 
 ---
 
-## 3. Behobene Ursachen in Stufe 2 (`CI / Repository / windows-2022`)
+## 4. Behobene Ursachen in Stufe 2 (`CI / Repository / windows-2022`)
 
 Mit Stufe 2 ist auch die vollständige Repository-Suite unter `windows-2022` in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`timeout-minutes: 45`) freigeschaltet (Details in [`tests/ANALYSIS_CI_MATRIX.md`](../tests/ANALYSIS_CI_MATRIX.md)):
 1. **Sichere Windows-`.exe`-Console-Script-Relokation ([`_relocation_win32.py`](../src/qb_cubie/arenas/_relocation_win32.py) & [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py)):**
@@ -55,7 +72,7 @@ Mit Stufe 2 ist auch die vollständige Repository-Suite unter `windows-2022` in 
 
 ---
 
-## 4. Behobene Ursachen in Stufe 3 (CI-Run `44735125009` — `macos-15` & `windows-2022`)
+## 5. Behobene Ursachen in Stufe 3 (CI-Run `44735125009` — `macos-15` & `windows-2022`)
 
 Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98bf4247`, protokolliert in [`tests/TGD_CI_STAGE3.md`](../tests/TGD_CI_STAGE3.md)) und friert sie als Plattformverträge in [`tests/tests_arena/test_ci_platform_stage3.py`](../tests/tests_arena/test_ci_platform_stage3.py) ein:
 1. **Multi-Platform-Mypy (`--warn-unreachable` für `linux`, `darwin`, `win32`):**
