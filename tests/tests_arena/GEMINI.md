@@ -49,11 +49,11 @@ Halte dich grob an die Konvention mit dem Provenance-Kopf im Header des Dokument
     - **Stand**: qb-cubie (v0.0.8) 
     - **Git-Log**: #`git log -n 1`
     ```text
-    commit cf621be1e70df8fd4b248f084601af9ee99b2478 (HEAD -> main, origin/main)
+    commit c8beda64ea7104aa6f9e8165fb41552da170e4c9 (HEAD -> main)
     Author: Chronuid <Dominickwirzba@gmail.com>
-    Date:   Fri Nov 20 09:19:54 2026 +0100
+    Date:   Fri Nov 20 10:04:31 2026 +0100
     
-        Wrote down another bug.
+        Added the QA-GUIDES as routing table to the docs/README.md
     ``` 
 
 --- # Trennlinie
