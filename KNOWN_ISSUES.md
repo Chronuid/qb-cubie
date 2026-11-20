@@ -135,6 +135,35 @@ Nach dem Verschieben von Dokumenten alle verstreuten Links im Repository per Suc
 
 ---
 
+### [BUG-005] `CUBIE_DOC_FRAME_3`-Routing-Dokumente (`README.md`) erzwingen eine redundante `foot`-Zone
+
+- **Status:** Offen
+- **Schweregrad:** Niedrig
+- **Bereich:** `src/qb_cubie/services/doc_frame/doc_frame.py` (`CUBIE_DOC_FRAME_3`) & `src/qb_cubie/services/doc_frame/doc_frame_rules.py` (`_has_missing_zones`, `DocFrameMissing`)
+- **Umgebung / Version:** `v0.0.9` / Commit `561338af`, Python `3.13`, Linux (plattformunabhängig)
+
+**Ist-Verhalten:**  
+`_has_missing_zones()` erzwingt für jedes Dokument pauschal sowohl eine `head`- als auch eine `foot`-Zone (`if "head" not in zones or "foot" not in zones`), und das Preset `CUBIE_DOC_FRAME_3` konfiguriert `foot=STD_FOOTER_BLOCKS`. Dadurch müssen reine Routing-Dokumente (z. B. `docs/core/README.md`, `docs/dev/README.md`, `docs/misc/README.md`) zusätzlich zu ihrer `zone="router"`-Übersichtstabelle noch eine vollständige `zone="foot"`-Navigation mitführen, die das lokale Routing erneut dupliziert. Fehlt `zone="foot"`, bricht `DocFrameMissing` mit `DOCFRAME-MISSING` ab.
+
+**Soll-Verhalten:**  
+Routing-Dokumente mit `CUBIE_DOC_FRAME_3` benötigen keine `foot`-Zone (bzw. `foot` ist für `FramePattern`-Presets ohne konfigurierte `foot`-Blöcke optional), da diese Dokumente das Routing bereits selbst über `zone="router"` abbilden. `_has_missing_zones()` sollte eine Zone nur dann als Pflicht prüfen, wenn das zugehörige `FramePattern` für diese Zone auch Blöcke definiert (`pat.head`, `pat.router`, `pat.foot`).
+
+**Reproduktion:**  
+1. In einem `CUBIE_DOC_FRAME_3`-Dokument (z. B. `docs/core/README.md`) den `<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->`-Block entfernen.
+2. `DocEnsurance` mit `CUBIE_DOCFRAME_RULES` ausführen:
+```bash
+.venv/bin/python -m pytest tests/test_styleguide.py -k "test_docs_code_examples"
+```
+3. Ergebnis: `[DOCFRAME-MISSING] ... Document is missing required 'head' or 'foot' qb:frame block.`
+
+**Workaround:**  
+In `CUBIE_DOC_FRAME_3`-Routing-Dokumenten vorerst weiterhin eine `zone="foot"`-Sektion mitführen.
+
+**Hinweise / Ursache:**  
+In `src/qb_cubie/services/doc_frame/doc_frame_rules.py` prüft `_has_missing_zones()` die Existenz von `"head"` und `"foot"` hartkodiert statt dynamisch anhand von `bool(pat.head)` / `bool(pat.foot)` (wie es für `pat.router` bereits geschieht). Zudem weist `CUBIE_DOC_FRAME_3` in `doc_frame.py` derzeit `foot=STD_FOOTER_BLOCKS` statt `foot=()` zu.
+
+---
+
 ## Bekannte Einschränkungen / Plattform-Spezifika
 
 Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwarteten Bugs), aber für den produktiven Einsatz zu beachten:
