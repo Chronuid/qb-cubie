@@ -15,8 +15,8 @@ def index_text(source, output):
 def test_index(tmp_path):
     source, output = tmp_path / "docs", tmp_path / "out"
     source.mkdir()
-    (source / "z.txt").write_text("last", encoding="utf-8")
-    (source / "a.txt").write_text("first", encoding="utf-8")
+    (source / "z.txt").write_text("last", encoding="utf-8", newline="\n")
+    (source / "a.txt").write_text("first", encoding="utf-8", newline="\n")
     trace = EBT(target=index_text, pre=WorldState(args=(source, output)),
                 post=WorldState(returns="a.txt\nz.txt\n"), reporter=None).run()
     assert trace.evaluation is True

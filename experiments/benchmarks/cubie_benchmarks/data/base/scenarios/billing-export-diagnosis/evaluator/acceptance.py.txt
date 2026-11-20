@@ -10,7 +10,7 @@ def observation(root, item):
     source_root=root/'inputs'
     source_root.mkdir()
     source=source_root/'source.csv'
-    source.write_text(item['source'],encoding='utf-8')
+    source.write_text(item['source'],encoding='utf-8',newline='\n')
     output=root/'out'
     try:
         returned=export_invoices(source,output)

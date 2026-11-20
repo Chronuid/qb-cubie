@@ -76,20 +76,26 @@ def _relocate_text(script: Path, base: Path, clone: Path) -> None:
 
 def _rewrite_script(script: Path, content: bytes, prefixes: tuple[bytes, ...], clone: Path) -> bytes | None:
     header, _, body = content.partition(b"\n")
+    header = header.rstrip(b"\r")
     if header.startswith(b"#!") and any(header[2:].startswith(prefix) for prefix in prefixes):
         return _python_header(header[2:], prefixes, clone) + body
-    if content.startswith(b"#!/bin/sh\n'''exec' "):
+    if content.startswith((b"#!/bin/sh\n'''exec' ", b"#!/bin/sh\r\n'''exec' ")):
         return _shell_header(content, prefixes, clone)
-    if script.stat().st_mode & 0o111 or script.suffix.lower() in {".py", ".bat", ".cmd", ".ps1"}:
+    if header.startswith(b"#!") or script.stat().st_mode & 0o111 or script.suffix.lower() in {".py", ".bat", ".cmd", ".ps1"}:
         raise _unsupported(script)
     return None  # Activation helpers are not part of the subprocess activation API.
+
+
+def _is_python_interpreter(executable: str) -> bool:
+    name = Path(executable.replace("\\", "/")).name
+    return bool(re.fullmatch(r"python(?:w|\d+(?:\.\d+)*)?(?:\.exe)?", name, re.IGNORECASE))
 
 
 def _python_header(command: bytes, prefixes: tuple[bytes, ...], clone: Path) -> bytes:
     prefix = next(prefix for prefix in prefixes if command.startswith(prefix))
     relative, *arguments = os.fsdecode(command[len(prefix):]).split()
-    executable = str(clone / relative)
-    if not re.fullmatch(r"python(?:w|\d+(?:\.\d+)*)?", Path(executable).name):
+    executable = str(clone / relative.replace("\\", "/"))
+    if not _is_python_interpreter(executable):
         raise RuntimeError("Unsupported console shebang: only Python entry points can be relocated.")
     # A shell trampoline also supports spaces and paths beyond shebang length limits.
     command_line = shlex.join([executable, *arguments])
@@ -98,15 +104,16 @@ def _python_header(command: bytes, prefixes: tuple[bytes, ...], clone: Path) -> 
 
 def _shell_header(content: bytes, prefixes: tuple[bytes, ...], clone: Path) -> bytes:
     lines = content.split(b"\n", 3)
-    if len(lines) != 4 or lines[2] != b"' '''":
+    if len(lines) != 4 or lines[2].rstrip(b"\r") != b"' '''":
         raise RuntimeError("Unsupported console shell trampoline cannot be relocated.")
-    command = shlex.split(os.fsdecode(lines[1][len(b"'''exec' "):]))
+    line_end = b"\r" if lines[1].endswith(b"\r") else b""
+    command = shlex.split(os.fsdecode(lines[1].rstrip(b"\r")[len(b"'''exec' "):]))
     if command[-2:] != ["$0", "$@"] or len(command) != 3:
         raise RuntimeError("Unsupported console shell trampoline arguments cannot be relocated.")
     executable = os.fsdecode(_replace_prefixes(os.fsencode(command[0]), prefixes, clone))
-    if not re.fullmatch(r"python(?:w|\d+(?:\.\d+)*)?", Path(executable).name):
+    if not _is_python_interpreter(executable):
         raise RuntimeError("Unsupported console shell interpreter cannot be relocated.")
-    lines[1] = os.fsencode(f"'''exec' {shlex.quote(executable)} \"$0\" \"$@\"")
+    lines[1] = os.fsencode(f"'''exec' {shlex.quote(executable)} \"$0\" \"$@\"") + line_end
     return b"\n".join(lines)
 
 

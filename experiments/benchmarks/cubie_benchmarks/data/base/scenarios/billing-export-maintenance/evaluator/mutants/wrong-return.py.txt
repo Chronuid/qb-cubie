@@ -21,5 +21,6 @@ def export_invoices(source, destination):
             writer.writerow([row['id'],cents,row['category']])
             total+=cents
     manifest={'count':len(paid),'total_cents':total}
-    (output/'manifest.json').write_text(json.dumps(manifest,sort_keys=True,separators=(',',':'))+'\n',encoding='utf-8')
+    payload=json.dumps(manifest,sort_keys=True,separators=(',',':'))+'\n'
+    (output/'manifest.json').write_text(payload,encoding='utf-8',newline='\n')
     return 1
