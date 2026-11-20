@@ -48,6 +48,15 @@ Repositorypfade und Shellbefehle beziehen sich, sofern nicht anders angegeben,
 auf die Repositorywurzel. Dateinamen eines beschriebenen Beispielprojekts
 beziehen sich dagegen auf dieses Beispielprojekt.
 
+## Quality-Assurance-Handbücher
+
+| Handbuch | Schwerpunkt und Inhalt |
+| --- | --- |
+| [Qualitätssicherung mit Cubie](GUIDE_Quality-Assurance.md) | Einstieg und Gesamtüberblick zu deklarativen Verträgen, den orthogonalen Prüfschichten (`EBT`, Arenen, Linter, `DocEnsurance`, `RBT`), Test-Guided Development (TGD) sowie den Grundlagen von `EBT`. |
+| [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md) | Eindeutiger und wartbarer Aufbau von `EBT`-Verträgen: ein Vertrag pro Ein-/Ausgabepaar, saubere Skalierung mit `@pytest.mark.parametrize` und Vermeidung von Unterspezifikation durch gemischte `pre`-/`post`-Listen. |
+| [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md) | Einsatz von `expect=True` und `expect=False` auf `WorldState`- und `EBT`-Ebene, Kombination von Soll-Zielen und Negativ-Filtern unter `post={"quantor": "all", ...}`, `STATE-GUARD`-Regeln, Red-Phase-Gegenproben und Vermeidung von *Vacuous Pass*. |
+| [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md) | Standard-Quantoren (`pre="all"`, `post="exists"`) und deren explizite Umkehrung: mehrere Bedingungen gleichzeitig mit `post` auf `"all"` erzwingen (UND) oder alternative Eingabe-Routen mit `pre` auf `"exists"` zulassen (ODER). |
+
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
 ---
