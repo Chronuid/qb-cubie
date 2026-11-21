@@ -502,10 +502,6 @@ Bevor mit dem Bau des Analyse-Werkzeugs (Stufe 1) begonnen wird, sollten fünf D
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
 [↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
 [↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
-[↦ | GEMINI | ↤](./GEMINI.md)  
-[↦ | TGD-Protokoll 2: CI-Matrix-Stärkung — Stufe 1 (`macos-15` Repository-Suite & Reaktivierung `CI / Wheel / windows-2022`) | ↤](./TGD_CI_STAGE1.md)  
-[↦ | TGD-Protokoll 3: CI-Matrix-Stärkung — Stufe 2 (`CI / Repository / windows-2022`) | ↤](./TGD_CI_STAGE2.md)  
-[↦ | TGD-Protokoll 4: CI-Matrix-Stärkung — Stufe 3 (Red-Phase & Test-Freeze nach CI-Run `44735125009`) | ↤](./TGD_CI_STAGE3.md)  
 
 </div>
 <!-- /qb:frame -->

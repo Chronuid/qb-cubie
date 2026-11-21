@@ -1,6 +1,7 @@
 import re
 import typing
-from typing import Any, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable, Literal
+from collections.abc import Sequence
+from typing import Any, Final, Optional, Protocol, runtime_checkable, Dict, List, Callable, Iterable, Literal
 from dataclasses import dataclass, field
 from pathlib import Path
 from enum import Enum
@@ -254,3 +255,83 @@ class DeviceResources:
     ram_mb: Optional[int] = None
     cpu_cores: Optional[float] = None
     # Extensible in the future to include I/O limits, GPU allocations, etc.
+
+
+# ========== SERVICE-DIAGNOSTIC-PROTOCOLS ==============================================================================
+
+VALID_SEVERITIES: Final[tuple[str, ...]] = ("error", "warning")
+
+
+def validate_severity(severity: str) -> str:
+    """Validates that a configured diagnostic severity is supported."""
+    if not isinstance(severity, str) or severity not in VALID_SEVERITIES:
+        raise ValueError(
+            f"STATE-GUARD: severity must be one of {VALID_SEVERITIES}; received {severity!r}."
+        )
+    return severity
+
+
+@dataclass(frozen=True)
+class Diagnostic:
+    """Describes a domain-neutral structural, rule-based, or runtime diagnostic."""
+
+    file_path: str
+    rule_id: str
+    line: int
+    message: str
+    severity: str = "error"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+
+@runtime_checkable
+class DiagnosticProtocol(Protocol):
+    """Structural contract for any diagnostic emitted by a qb-cubie service."""
+
+    @property
+    def file_path(self) -> str: ...
+    @property
+    def rule_id(self) -> str: ...
+    @property
+    def line(self) -> int: ...
+    @property
+    def message(self) -> str: ...
+    @property
+    def severity(self) -> str: ...
+
+
+@runtime_checkable
+class ServiceReportProtocol(Protocol):
+    """Uniform report contract for services delegating diagnostics to PytestReporter."""
+
+    @property
+    def target(self) -> str: ...
+    @property
+    def passed(self) -> bool: ...
+    @property
+    def diagnostics(self) -> Sequence[DiagnosticProtocol]: ...
+
+
+@runtime_checkable
+class FileCheckProtocol(Protocol):
+    """Domain-neutral contract for rules checking whole files within a target workspace."""
+
+    @property
+    def rule_id(self) -> str: ...
+    @property
+    def severity(self) -> str | None: ...
+    @property
+    def context_key(self) -> str: ...
+    def prepare_context(
+        self,
+        target: str | Path,
+        excludes: Sequence[str],
+        patterns: Sequence[Any],
+    ) -> Any: ...
+    def check_file(
+        self,
+        file_path: str,
+        content: str,
+        context: Any,
+    ) -> Sequence[DiagnosticProtocol]: ...

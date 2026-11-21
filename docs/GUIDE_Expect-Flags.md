@@ -237,7 +237,7 @@ Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
 * **Merksatz für `expect=False`:** Nutze `WorldState(..., expect=False)` immer innerhalb von `post={"quantor": "all", "states": [...]}` und kombiniere es dort mit mindestens einem positiven Soll-Ziel (`expect=True`, z. B. Typ, Wertebereich oder Struktur), damit dein Vertrag nicht durch einen *Vacuous Pass* blind für andere Fehler wird.
 
 > [!TIP]
-> **Weiterführende Handbücher:** Wie du Verträge eindeutig auf einzelne Wertepaare schneidest, zeigt [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md). Wie du die Quantoren `"all"` und `"exists"` sowie ihren Lebenszyklus bei wiederholten Läufen steuerst, erklärt [Fortgeschrittene Quantoren](GUIDE_Quantifiers.md). Zurück zur Gesamtübersicht geht es im [QA-Handbuch](GUIDE_Quality-Assurance.md).
+> **Weiterführende Handbücher:** Wie du Verträge eindeutig auf einzelne Wertepaare schneidest, zeigt [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md). Wie du die Quantoren `"all"` und `"exists"` sowie ihren Lebenszyklus bei wiederholten Läufen steuerst, erklärt [Fortgeschrittene Quantoren](GUIDE_Quantifiers.md). Den vollständigen Ablauf für Red-Phase-Gegenproben, Test-Freeze und `GREEN_AUDIT` beschreibt [Test-Guided Development (TGD)](GUIDE_TGD.md). Zurück zur Gesamtübersicht geht es im [QA-Handbuch](GUIDE_Quality-Assurance.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -254,6 +254,7 @@ Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  

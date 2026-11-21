@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle.
+Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle.
 
 ---
 
@@ -18,7 +18,7 @@ Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/services/
 
 ## 1. Makro-Architektur: Dependency Rule & Service-Isolation
 
-Services unter `src/qb_cubie/services/` sind **Bounded Contexts** (jeweils genau eine fachliche Domäne) und folgen einer strikten, unidirektionalen **Dependency Rule** von außen nach innen:
+Services unter `src/qb_cubie/core/services/` sind **Bounded Contexts** (jeweils genau eine fachliche Domäne) und folgen einer strikten, unidirektionalen **Dependency Rule** von außen nach innen:
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -94,28 +94,29 @@ Domänenspezifische Typen (z. B. `FramePattern`, `EvidenceRecord`) verbleiben **
 
 ## 4. Referenz-Blueprint & Entkopplungs-Matrix
 
-| Dimension | Altlast-Anti-Pattern (`DocEnsurance` $\leftrightarrow$ `DocFrame`) | Ziel-Architektur (`Coverage` & entkoppelte Services) |
+| Dimension | Historisches Anti-Pattern (bereinigt) | Realisierte Ziel-Architektur (`doc_ensurance`, `doc_frame` & künftig `coverage`) |
 | --- | --- | --- |
-| **Geteilte Typen** | `doc_frame_rules` importiert `DocDiagnostic`, `DocRuleProtocol`, `validate_severity` direkt aus `doc_ensurance`. | `Diagnostic`, `validate_severity` und `FileCheckProtocol` liegen im **Core**; Services importieren nur den Core. |
-| **Domänen-Grenze** | `DocEnsurance` erkennt `FramePattern` und baut `DocumentCatalog` aus `doc_frame`. | `DocFrame` kapselt Rahmen/Kataloge vollständig; `DocEnsurance` prüft nur neutrale Dokument-Regeln/Snippets. |
+| **Geteilte Typen** | `doc_frame_rules` importierte `DocDiagnostic`, `DocRuleProtocol`, `validate_severity` direkt aus `doc_ensurance`. | `Diagnostic`, `DiagnosticProtocol`, `VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol` und `FileCheckProtocol` liegen in `qb_cubie.core.protocols`; Services importieren nur den Core. |
+| **Domänen-Grenze** | `DocEnsurance` erkannte `FramePattern` (`hasattr(..., "render_zone")`) und baute `DocumentCatalog` aus `doc_frame`. | `DocFrame` kapselt Rahmen/Kataloge vollständig und bedient `FileCheckProtocol` über `_DocFrameRuleBase`; `DocEnsurance` führt beliebige `FileCheckProtocol`-Regeln domänenneutral aus. |
+| **Service-Fassade** | `qb_cubie.core.services/__init__.py` lud alle Geschwister-Services eager beim Import. | PEP-562-Lazy-Fassade (`__getattr__`) in `qb_cubie.core.services/__init__.py` löst Submodule und Re-Exports bedarfsgerecht auf, ohne Geschwister-Services zu laden. |
 | **Neuer Service (`coverage`)** | — | `qb_cubie.core.services.coverage` nutzt nur Stdlib (`sys.monitoring`, `ast`, `json`) + Core (`CatalogExtractorProtocol`, `EvidenceCollectorProtocol`, `CoverageRuleProtocol`, `CoverageProfile`). |
-| **Service-Verknüpfung** | Direkter Cross-Import zwischen Services. | `CaseCoverage` akzeptiert beliebige `EvidenceRecord`-Lieferanten per `EvidenceCollectorProtocol`; Aufrufer (z. B. `tests/test_styleguide.py`) stecken einen dünnen `DocEnsurance`-Adapter ein. |
-| **CLI & Presets** | Vermischte Zuständigkeiten. | Eigener Einstiegspunkt (`qb-cubie coverage ...`) und gekapseltes Default-Profil (`CUBIE_COVERAGE_PROFILE`). |
+| **Service-Verknüpfung** | Direkter Cross-Import zwischen Services. | Komposition erfolgt im Composition Root (z. B. `tests/test_styleguide.py`) über Core-Protocols (`FileCheckProtocol`, `EvidenceCollectorProtocol`) oder dünne Adapter. |
+| **CLI & Presets** | Vermischte Zuständigkeiten. | Eigener Einstiegspunkt (`qb-cubie <service> ...`) und gekapseltes Default-Profil (z. B. `CUBIE_DOCFRAME_RULES`, `CUBIE_COVERAGE_PROFILE`). |
 
-### Migrationspfad in 3 Schritten
+### Migrationsstatus (3-Stufen-Plan)
 
-1. **Neubau ab Tag 1 isoliert:** `qb_cubie.core.services.coverage` strikt unter diesen Regeln aufsetzen; generische Primitiven (`Diagnostic`, `validate_severity`) direkt als schlanke Core-Verträge schneiden.
-2. **Core-Umhängung:** `DocEnsurance` und `DocFrame` auf die neuen Core-Verträge migrieren und den Cross-Import `doc_frame_rules` $\to$ `doc_ensurance` entfernen.
-3. **Domänen-Bereinigung:** `FramePattern`-/`DocumentCatalog`-Sonderlogik aus `DocEnsurance` entfernen und bei Bedarf im Composition Root über einen Adapter verbinden.
+1. **Core-Umhängung (umgesetzt):** Domänenneutrale Primitiven (`Diagnostic`, `DiagnosticProtocol`, `VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol`, `FileCheckProtocol`) sind nach `qb_cubie.core.protocols` promoviert; `DocEnsurance`, `DocFrame` und `PytestReporter` nutzen ausschließlich den Core, und alle Cross-Imports zwischen `doc_frame` und `doc_ensurance` sind entfernt.
+2. **Domänen- & Budget-Bereinigung (umgesetzt):** `FramePattern`-/`DocumentCatalog`-Sonderlogik wurde aus `DocEnsurance` entfernt (ersetzt durch generisches `_run_file_rules` auf `FileCheckProtocol`), die Quellenauflösung nach `_source_loader.py` ausgelagert ($\le 500$ Zeilen/Modul) und `qb_cubie.core.services/__init__.py` auf Lazy-Imports umgestellt.
+3. **Neubau ab Tag 1 isoliert (laufend / nächste Services):** Neue Services wie `qb_cubie.core.services.coverage` werden von Beginn an unter Meta-Gate 4 (`tests/tests_meta/test_gate_4.py`) isoliert aufgebaut.
 
 ---
 
 ## 5. Operations-Checkliste & Meta-Gate für Agenten
 
-Ein Service unter `src/qb_cubie/services/<name>/` gilt erst dann als **abgeschlossen**, wenn alle vier Prüfungen bestehen:
+Ein Service unter `src/qb_cubie/core/services/<name>/` gilt erst dann als **abgeschlossen**, wenn alle vier Prüfungen bestehen (automatisch durchgesetzt von `tests/tests_meta/test_gate_4.py`):
 
-1. **Meta-Gate Import-Grenze (`CstRule` / `test_gate_*.py`):** Statische AST/CST-Prüfung bestätigt null Imports von `qb_cubie.core.services.*` (inkl. `TYPE_CHECKING`) und null I/O-Imports in reinen Domain-Modulen.
-2. **Isolations-Probe:** `python -c "import qb_cubie.core.services.<name>"` sowie alle Unit-Tests des Services laufen grün, wenn Geschwister-Services im Testlauf entfernt oder blockiert sind.
+1. **Meta-Gate Import- & Domänen-Grenze (`tests/tests_meta/test_gate_4.py`):** Statische CST-Prüfung bestätigt null Imports von `qb_cubie.core.services.*` (inkl. `TYPE_CHECKING`, `META-SERVICE-ISOLATION`), null verbotene I/O-Operationen in reinen Domain-Modulen (`META-SERVICE-PURE-DOMAIN-IO`) sowie null Domänen-Kopplung (`META-SERVICE-DOMAIN-COUPLING`).
+2. **Isolations-Probe:** `python -c "import qb_cubie.core.services.<name>"` sowie alle Unit-Tests des Services laufen grün, wenn Geschwister-Services im Subprozess per `sys.meta_path` blockiert sind.
 3. **Schicht- & Budget-Audit:** Azyklischer interner Import-Graph (`models` $\to$ `protocols` $\to$ `engine/rules` $\to$ `adapters/cli`), Funktionen $\le 12$ Zeilen, Module $\le 500$ Zeilen, `__init__.py` ohne Seiteneffekte.
 4. **Statische & Dynamische Verifikation:** `MyPy`, `Pylint`, `AstLinter`/`CstLinter` und `pytest` laufen fehlerfrei; alle Vorbedingungen sind durch explizite `STATE-GUARD`s abgesichert.
 
@@ -135,6 +136,7 @@ Ein Service unter `src/qb_cubie/services/<name>/` gilt erst dann als **abgeschlo
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  

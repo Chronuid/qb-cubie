@@ -8,7 +8,7 @@ import fnmatch
 from pathlib import Path
 from typing import Final, Protocol, runtime_checkable
 
-from ..doc_ensurance.protocols import DocDiagnostic
+from ...protocols import Diagnostic
 
 VALID_ZONES: Final[tuple[str, ...]] = ("head", "router", "foot")
 VALID_WRAP_TAGS: Final[tuple[str, ...]] = ("div", "center")
@@ -158,7 +158,7 @@ class DocFrameReport:
     passed: bool
     updated_files: tuple[str, ...] = field(default_factory=tuple)
     catalog: DocumentCatalog | None = None
-    diagnostics: tuple[DocDiagnostic, ...] = field(default_factory=tuple)
+    diagnostics: tuple[Diagnostic, ...] = field(default_factory=tuple)
 
 
 @runtime_checkable

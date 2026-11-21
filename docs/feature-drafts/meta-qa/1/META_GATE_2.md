@@ -222,6 +222,7 @@ Meta-Gate 2 (`test_gate_2.py`) ist vollständig kalibriert, schnell (`~4,1 s` in
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../services/GUIDE_DocFrame.md)  

@@ -12,9 +12,10 @@ from typing import Any, Final
 
 from ...arenas.tempfs import TempFS
 from ...linter import DEFAULT_EXCLUDES, CstLinter, LinterDiagnostic
-from ...protocols import Arena, Reporter, WorldState
+from ...protocols import Arena, DiagnosticProtocol, FileCheckProtocol, Reporter, WorldState
 from ...reporter import PytestReporter
 from ._markdown_scanner import _MarkdownScanner
+from ._source_loader import resolve_sources
 from .doc_patterns import (
     CUBIE_DOC_STYLE,
     DEFAULT_DOC_RULES,
@@ -58,8 +59,8 @@ __all__ = [
     "TaggedScope",
 ]
 
-_MD_PREFIXES = ("#", "`", "~", "<", ">", "-", "*", "+", "!", "[", "|")
 _DEFAULT_REPORTER: Final[PytestReporter] = PytestReporter()
+_RuleEntry = DocRuleProtocol | FileCheckProtocol
 
 
 # ========== 1. ARENA SESSION WORKER (IPC-SAFE PRIMITIVES) =============================================================
@@ -122,13 +123,13 @@ class DocEnsurance:
         """Initializes the documentation verification service with default project conventions."""
         self.timeout = self._validate_timeout(timeout)
         self.target: str | Path = target if target is not None else self._default_project_dir()
-        self.pattern, self._frame_patterns = self._split_patterns(pattern)
+        self.pattern, self._extra_patterns = self._normalize_patterns(pattern)
         self.scope = scope or TaggedScope()
         self.arena = self._configure_arena(arena, self.timeout)
         self.reporter = reporter
         self.pre_state = pre_state or WorldState()
         self.excludes = set(DEFAULT_EXCLUDES) | set(excludes or ())
-        self.rules: list[DocRuleProtocol] = self._build_rules(self.pattern, rules)
+        self.rules: list[_RuleEntry] = self._build_rules(self.pattern, rules)
         self._reset_state()
 
     def register_rule(self, *rules: Any) -> DocEnsurance:
@@ -144,11 +145,11 @@ class DocEnsurance:
     @classmethod
     def _build_rules(
         cls, pattern: DocPatternProtocol, custom: Sequence[Any] | None
-    ) -> list[DocRuleProtocol]:
+    ) -> list[_RuleEntry]:
         """Merges default rules, pattern block rules, and user-provided rules without silent muting."""
         explicit_empty = custom is not None and len(custom) == 0
         defaults = (OutputMatchRule(severity="error"),) if explicit_empty else DEFAULT_DOC_RULES
-        registry: dict[str, DocRuleProtocol] = {r.rule_id: r for r in defaults}
+        registry: dict[str, _RuleEntry] = {r.rule_id: r for r in defaults}
         for raw in (*cls._extract_pattern_rules(pattern), *cls._flatten_rules(custom or ())):
             cls._register_into(registry, cls._coerce_rule(raw))
         if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.values()):
@@ -167,31 +168,27 @@ class DocEnsurance:
         return flat
 
     @staticmethod
-    def _split_patterns(
-        raw: Any,
-    ) -> tuple[DocPatternProtocol, tuple[Any, ...] | None]:
-        """Separates example DocPatternProtocol objects from optional DocFrame FramePatterns."""
+    def _normalize_patterns(raw: Any) -> tuple[DocPatternProtocol, tuple[DocPatternProtocol, ...]]:
+        """Validates pattern inputs and returns the primary scanner plus all patterns."""
         if raw is None:
-            return CUBIE_DOC_STYLE, None
+            return CUBIE_DOC_STYLE, ()
         items = list(raw) if isinstance(raw, (list, tuple)) else [raw]
-        doc_pats = [p for p in items if isinstance(p, DocPatternProtocol) and not hasattr(p, "render_zone")]
-        frame_pats = [p for p in items if isinstance(p, DocPatternProtocol) and hasattr(p, "render_zone")]
-        if len(doc_pats) + len(frame_pats) != len(items):
+        if not all(isinstance(p, DocPatternProtocol) for p in items):
             raise TypeError("STATE-GUARD: Invalid pattern item passed to DocEnsurance.")
-        primary = doc_pats[0] if doc_pats else (frame_pats[0] if frame_pats else CUBIE_DOC_STYLE)
-        return primary, (tuple(frame_pats) if frame_pats else None)
+        primary = next((p for p in items if hasattr(p, "anchor")), items[0] if items else CUBIE_DOC_STYLE)
+        return primary, tuple(items)
 
     @classmethod
-    def _index_existing_rules(cls, rules: Sequence[DocRuleProtocol]) -> dict[str, DocRuleProtocol]:
+    def _index_existing_rules(cls, rules: Sequence[_RuleEntry]) -> dict[str, _RuleEntry]:
         """Indexes existing rules into a mutable registry while preserving duplicate linter slots."""
-        registry: dict[str, DocRuleProtocol] = {}
+        registry: dict[str, _RuleEntry] = {}
         for rule in rules:
             key = cls._unique_rule_key(registry, rule.rule_id) if rule.rule_id in registry else rule.rule_id
             registry[key] = rule
         return registry
 
     @classmethod
-    def _register_into(cls, registry: dict[str, DocRuleProtocol], rule: DocRuleProtocol) -> None:
+    def _register_into(cls, registry: dict[str, _RuleEntry], rule: _RuleEntry) -> None:
         """Registers a rule by rule_id while merging or preserving multiple linter instances."""
         existing = registry.get(rule.rule_id)
         if existing is not None and isinstance(rule, DocLinterRule) and isinstance(existing, DocLinterRule):
@@ -202,7 +199,7 @@ class DocEnsurance:
         registry[rule.rule_id] = rule
 
     @staticmethod
-    def _unique_rule_key(registry: dict[str, DocRuleProtocol], rule_id: str) -> str:
+    def _unique_rule_key(registry: dict[str, _RuleEntry], rule_id: str) -> str:
         """Finds a collision-free slot key when multiple linters share the same rule_id."""
         idx = len(registry)
         while f"{rule_id}#{idx}" in registry:
@@ -226,7 +223,7 @@ class DocEnsurance:
         """Resets internal pipeline buffers before a verification run."""
         self._sources: list[tuple[str, str]] = []
         self._sessions: list[ExampleSession] = []
-        self._diagnostics: list[DocDiagnostic] = []
+        self._diagnostics: list[DiagnosticProtocol] = []
         self._traces: list[SessionTrace] = []
         self.report_result: DocReport | None = None
 
@@ -241,10 +238,10 @@ class DocEnsurance:
         return [r for b in blocks if b is not None for r in getattr(b, "rules", ())]
 
     @staticmethod
-    def _coerce_rule(item: Any) -> DocRuleProtocol:
-        """Normalizes rule classes, Linter instances, and DocRuleProtocol objects."""
+    def _coerce_rule(item: Any) -> _RuleEntry:
+        """Normalizes rule classes, Linter instances, FileCheckProtocol, and DocRuleProtocol objects."""
         instance = item() if isinstance(item, type) else item
-        if isinstance(instance, DocRuleProtocol):
+        if isinstance(instance, (DocRuleProtocol, FileCheckProtocol)):
             return instance
         if hasattr(instance, "check") and hasattr(instance, "name"):
             return DocLinterRule(linter=instance)
@@ -297,13 +294,13 @@ class DocEnsurance:
         """Validates inputs, parses Markdown blocks, and groups valid examples into sessions."""
         __tracebackhide__ = True
         self._reset_state()
-        self._sources = self._resolve_sources(self.target, self.excludes)
+        self._sources = resolve_sources(self.target, self.excludes)
         all_examples = self._scan_all_sources()
         self._sessions = self.scope.group(all_examples)
 
     def _scan_all_sources(self) -> list[ExtractedExample]:
-        """Scans all loaded Markdown sources, checking document frame rules and code examples."""
-        self._run_document_rules()
+        """Scans all loaded Markdown sources, checking file-level rules and code examples."""
+        self._run_file_rules()
         all_examples: list[ExtractedExample] = []
         for file_path, content in self._sources:
             examples, diags = self.pattern.scan(_MarkdownScanner(content).parse(), file_path)
@@ -311,18 +308,24 @@ class DocEnsurance:
             all_examples.extend(self._partition_executable(examples, diags))
         return all_examples
 
-    def _run_document_rules(self) -> None:
-        """Executes registered document-level rules (such as CUBIE_DOCFRAME_RULES) across file sources."""
-        doc_rules = [r for r in self.rules if hasattr(r, "check_document")]
-        if not doc_rules or not self._sources or self._sources[0][0] == "IN_MEMORY":
+    def _run_file_rules(self) -> None:
+        """Executes registered FileCheckProtocol rules across loaded file sources."""
+        file_rules = [r for r in self.rules if isinstance(r, FileCheckProtocol)]
+        if not file_rules or not self._sources or self._sources[0][0] == "IN_MEMORY":
             return
-        from ..doc_frame.doc_frame import DocFrame
-
-        frame_svc = DocFrame(target=self.target, pattern=self._frame_patterns, excludes=tuple(self.excludes))
-        catalog = frame_svc.build_catalog()
+        contexts = self._prepare_file_rule_contexts(file_rules)
         for file_path, content in self._sources:
-            for rule in doc_rules:
-                self._diagnostics.extend(rule.check_document(file_path, content, catalog, frame_svc.patterns))
+            for rule in file_rules:
+                self._diagnostics.extend(rule.check_file(file_path, content, contexts[rule.context_key]))
+
+    def _prepare_file_rule_contexts(self, file_rules: Sequence[FileCheckProtocol]) -> dict[str, Any]:
+        """Builds each unique file-rule workspace context once per verification run."""
+        contexts: dict[str, Any] = {}
+        excludes = tuple(self.excludes)
+        for rule in file_rules:
+            if rule.context_key not in contexts:
+                contexts[rule.context_key] = rule.prepare_context(self.target, excludes, self._extra_patterns)
+        return contexts
 
     def _partition_executable(
         self, examples: list[ExtractedExample], diags: list[DocDiagnostic]
@@ -361,73 +364,11 @@ class DocEnsurance:
             self.reporter.report(report)
 
     @staticmethod
-    def _has_errors(diags: Sequence[DocDiagnostic]) -> bool:
+    def _has_errors(diags: Sequence[DiagnosticProtocol]) -> bool:
         """Checks whether any recorded diagnostic has error severity."""
         return any(d.severity == "error" for d in diags)
 
     # ---------- UTILITIES ---------------------------------------------------------------------------------------------
-    @classmethod
-    def _resolve_sources(cls, target: Any, excludes: set[str]) -> list[tuple[str, str]]:
-        """Validates the target and loads Markdown content from file, directory, or memory."""
-        if isinstance(target, Path):
-            return cls._load_path_sources(target, excludes)
-        if isinstance(target, str):
-            if not target.strip():
-                raise ValueError("STATE-GUARD: Markdown target string must not be empty.")
-            if cls._looks_like_path(target):
-                return cls._load_path_sources(Path(target.strip()), excludes)
-            return [("IN_MEMORY", target)]
-        raise TypeError(
-            f"STATE-GUARD: target must be a Markdown str or Path; received {type(target).__name__}."
-        )
-
-    @staticmethod
-    def _looks_like_path(target: str) -> bool:
-        """Distinguishes single-line filesystem path strings from in-memory Markdown."""
-        stripped = target.strip()
-        if "\n" in stripped or stripped.startswith(_MD_PREFIXES) or "](" in stripped or "://" in stripped:
-            return False
-        if Path(stripped).exists() or stripped.lower().endswith((".md", ".markdown")):
-            return True
-        if " " not in stripped:
-            return any(ch in stripped for ch in ("/", "\\", ".", "_", "-"))
-        first = stripped.split()[0]
-        return ("/" in first or "\\" in first) and not stripped.endswith((".", "!", "?"))
-
-    @classmethod
-    def _crawl_directory(cls, root: Path, excludes: set[str]) -> list[Path]:
-        """Recursively collects sorted Markdown files while respecting relative exclusions."""
-        resolved = root.resolve()
-        return [
-            path for path in sorted(resolved.rglob("*.md"))
-            if path.is_file() and not cls._is_excluded(path.relative_to(resolved), resolved.name, excludes)
-        ]
-
-    @staticmethod
-    def _is_excluded(rel_path: Path, root_name: str, excludes: set[str]) -> bool:
-        """Checks whether a path relative to root matches any segment or subpath exclusion."""
-        rel_posix = rel_path.as_posix()
-        for excl in excludes:
-            stripped = excl.strip("/")
-            if not stripped:
-                continue
-            norm = stripped.removeprefix(f"{root_name}/")
-            if rel_posix == norm or rel_posix.startswith(f"{norm}/") or ("/" not in stripped and norm in rel_path.parts):
-                return True
-        return False
-
-    @classmethod
-    def _load_path_sources(cls, target: Path, excludes: set[str]) -> list[tuple[str, str]]:
-        """Loads either a single Markdown file or crawls a directory recursively."""
-        if not target.exists():
-            raise FileNotFoundError(f"STATE-GUARD: Documentation path not found: {target}")
-        if target.is_file():
-            return [(str(target), target.read_text(encoding="utf-8"))]
-        files = cls._crawl_directory(target, excludes)
-        if not files:
-            raise ValueError(f"STATE-GUARD: No Markdown files found in directory: {target}")
-        return [(str(path), path.read_text(encoding="utf-8")) for path in files]
-
     def _execute_session(self, session: ExampleSession) -> tuple[SessionTrace, list[DocDiagnostic]]:
         """Runs a single session in the arena and evaluates all step outcomes and rules."""
         payload = [
@@ -482,7 +423,8 @@ class DocEnsurance:
         self, step: ExtractedExample, actual_out: str | None, session_id: str | None, *, include_linters: bool = True
     ) -> list[DocDiagnostic]:
         """Runs registered rules for a step and attaches the canonical session_id."""
-        rules = self.rules if include_linters else [r for r in self.rules if not isinstance(r, DocLinterRule)]
+        step_rules = [r for r in self.rules if isinstance(r, DocRuleProtocol)]
+        rules = step_rules if include_linters else [r for r in step_rules if not isinstance(r, DocLinterRule)]
         return [dataclasses.replace(d, session_id=session_id) for r in rules for d in r.check(step, actual_out)]
 
     def _run_session_linters(self, session: ExampleSession) -> list[DocDiagnostic]:

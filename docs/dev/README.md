@@ -37,7 +37,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | **Code schreiben, strukturieren & prüfen** | [Styleguide](./Style-Guide.md) und [Testsuite-Leitfaden](../../tests/README.md) |
 | **Review-Based Testing (`qb_cubie.core.rbt`) verstehen** | [Review-Based Testing](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./core/DEV-GUIDE_1-1_RBT-Classes.md) |
 | **Example-Based Testing (`qb_cubie.core.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
-| **Services (`qb_cubie.core.services`) entwickeln & erweitern** | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
+| **Services (`qb_cubie.core.services`) entwickeln & erweitern** | [Service-Architektur & Isolation](./DEV-GUIDE_Services.md) $\to$ [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md) und [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) |
 | **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
 | **`CUBIE_DOC_FRAME_*`-Konventionen nachschlagen** | [`CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) |
@@ -74,7 +74,7 @@ Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der
 | [DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) | Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`CUBIE_DOC_FRAME_1` bis `CUBIE_DOC_FRAME_3`), Zonen, Attribute, Prüfregeln und Sync-Kommandos für Agenten. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
-| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
+| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
 | [Styleguide](./Style-Guide.md) | Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes. |
 <!-- /qb:frame -->
@@ -96,11 +96,12 @@ Technische Entwicklerreferenzen zu den wiederverwendbaren Verifikations- und Dok
 
 ## QA-Handbücher
 
-Für die Qualitätssicherung, das Test-Guided Development (TGD) sowie den sauberen Aufbau deklarativer Verträge gelten diese vier QA-Handbücher aus `docs/`:
+Für die Qualitätssicherung, das Test-Guided Development (TGD) sowie den sauberen Aufbau deklarativer Verträge gelten diese fünf QA-Handbücher aus `docs/`:
 
 | Handbuch | Fokus & Inhalt |
 | :--- | :--- |
-| [Qualitätssicherung mit Cubie](../GUIDE_Quality-Assurance.md) | Leitfaden zu deklarativen Verträgen, orthogonalen Prüfschichten, Test-Guided Development (TGD) und $Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$. |
+| [Qualitätssicherung mit Cubie](../GUIDE_Quality-Assurance.md) | Leitfaden zu deklarativen Verträgen, orthogonalen Prüfschichten, TGD-Überblick und $Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$. |
+| [Test-Guided Development (TGD)](../GUIDE_TGD.md) | TGD für Einsteiger und Experten: TDD mit kontrollierter Rückwärtstür (`GREEN_AUDIT`) nach Karl Poppers Fallibilismus, optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`), Fünf-Schritte-Ablauf und Living Documentation. |
 | [Vertragsaufbau: Eindeutigkeit & Kopplung](../GUIDE_Contract-Design.md) | Paarweise Verträge, `@pytest.mark.parametrize` und Vermeidung von Unterspezifikation durch gemischte `pre`/`post`-Listen. |
 | [Erwartungssteuerung & Safety (`expect`-Flags)](../GUIDE_Expect-Flags.md) | Einsatz von `expect=True`/`expect=False` auf `WorldState`- und `EBT`-Ebene, Red-Phase-Gegenproben und Schutz vor *Vacuous Passes*. |
 | [Fortgeschrittene Quantoren (`all` vs. `exists`)](../GUIDE_Quantifiers.md) | Umschalten der Standard-Quantoren (`pre="all"`, `post="exists"`) für UND-Checklisten in `post` und ODER-Routen in `pre`. |
@@ -145,6 +146,7 @@ qb-cubie docframe update docs/dev/core/README.md
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  

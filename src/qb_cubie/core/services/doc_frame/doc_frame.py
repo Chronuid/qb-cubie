@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from ...linter import DEFAULT_EXCLUDES
-from ..doc_ensurance.protocols import DocDiagnostic, ExtractedExample, MdBlock
+from ...protocols import Diagnostic
 from ._catalog_scanner import build_catalog_from_sources, parse_frame_spans
 from .frame_blocks import (
     AssetImage,
@@ -55,8 +55,8 @@ class FramePattern:
         return self.id
 
     def scan(
-        self, blocks: Sequence[MdBlock], file_path: str
-    ) -> tuple[list[ExtractedExample], list[DocDiagnostic]]:
+        self, blocks: Sequence[Any], file_path: str
+    ) -> tuple[list[Any], list[Diagnostic]]:
         """Satisfies DocPatternProtocol when FramePattern is passed in DocEnsurance(pattern=...)."""
         _ = (blocks, file_path)
         return [], []

@@ -22,12 +22,13 @@ Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Doku
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Datei, $\le 12$ Codezeilen pro Funktionskörper) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/services/doc_ensurance/` in fünf spezialisierte Module unterteilt:
+Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Datei, $\le 12$ Codezeilen pro Funktionskörper) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_ensurance/` in sechs spezialisierte Module unterteilt:
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
-| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Severity-Guards und Protokoll-Verträge | `MdBlock`, `ExtractedExample`, `ExampleSession`, `DocDiagnostic`, `SessionTrace`, `DocReport`, `DocBlockProtocol`, `DocRuleProtocol`, `DocPatternProtocol`, `DocScopeProtocol`, `ServiceReportProtocol` |
+| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Re-Exports promovierter Core-Primitiven (`VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol` aus `qb_cubie.core.protocols`) und Protokoll-Verträge | `MdBlock`, `ExtractedExample`, `ExampleSession`, `DocDiagnostic`, `SessionTrace`, `DocReport`, `DocBlockProtocol`, `DocRuleProtocol`, `DocPatternProtocol`, `DocScopeProtocol`, `ServiceReportProtocol` |
 | **`_markdown_scanner.py`** | Zustandslose Tokenisierungs-Engine (Ebene 0) | `_MarkdownScanner` (zeilenbasierter Zustandsautomat: Markdown-Text $\to$ `list[MdBlock]`) |
+| **`_source_loader.py`** | Imperative I/O-Shell für Pfad-Heuristik, Verzeichnis-Crawling und Excludes | `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
 | **`doc_patterns.py`** | Atomare Struktur-Matcher (Ebene 1), Basis-Regeln (Ebene 2), Anker-Scanner (Ebene 3) & Session-Scoping (Ebene 4) | `Explanation`, `CodeSnippet`, `CollapsibleResult`, `ExplanationRule`, `CodeRule`, `OutputRule`, `DocLinterRule`, `MissingOutputRule`, `OutputMatchRule`, `ExamplePattern`, `TaggedScope`, `CUBIE_DOC_STYLE`, `DEFAULT_DOC_RULES` |
 | **`doc_rules.py`** | Didaktische Standard-Prüfregeln (Ebene 2) | `NoOutput`, `HighComplexity`, `LargeOutput`, `RawTraceback`, `CUBIE_DOC_RULES` |
 | **`doc_ensurance.py`** | Stateful Orchestrator (Ebene 5) & IPC-sicherer Arena-Worker | `DocEnsurance`, `_execute_session_payload`, `_execute_single_step`, `_classify_step_exception` |
@@ -83,7 +84,7 @@ Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@datacla
    Das universelle Diagnose-DTO für Strukturbrüche, Regelverstöße, Linter-Befunde und Laufzeitfehler. Ein `__post_init__`-Hook erzwingt über `validate_severity(self.severity)`, dass ausschließlich `"error"` oder `"warning"` (`VALID_SEVERITIES`) instanziiert werden können.
 
 5. **`SessionTrace(session_id, actual_outputs, passed)` & `DocReport(target, passed, sessions, diagnostics)`**
-   `SessionTrace` protokolliert die real beobachteten Ausgaben (`actual_outputs: tuple[str, ...]`) pro Schritt sowie den Booleschen Gesamtstatus einer Session. `DocReport` bündelt alle `SessionTrace`s und `DocDiagnostic`s des Laufs und implementiert das `@runtime_checkable` `ServiceReportProtocol`, über das `PytestReporter` beliebige Cubie-Services einheitlich auswertet.
+   `SessionTrace` protokolliert die real beobachteten Ausgaben (`actual_outputs: tuple[str, ...]`) pro Schritt sowie den Booleschen Gesamtstatus einer Session. `DocReport` bündelt alle `SessionTrace`s und Diagnosen (`diagnostics: tuple[DiagnosticProtocol, ...]`, sodass sowohl `DocDiagnostic` als auch domänenneutrale Core-`Diagnostic`-Records aus `FileCheckProtocol`-Regeln einheitlich getragen werden) und implementiert das in `qb_cubie.core.protocols` definierte `ServiceReportProtocol`, über das `PytestReporter` beliebige Cubie-Services auswertet.
 
 ---
 
@@ -236,7 +237,7 @@ class DocRuleProtocol(Protocol):
 3. **Explizite Service-Regeln:** Über `DocEnsurance(rules=...)` oder `service.register_rule(*rules)` übergebene Einträge.
 
 Dabei gelten drei zentrale Invarianten:
-* **0-Arg-Klassen- & Linter-Coercion (`_coerce_rule`):** Wird eine Klasse übergeben (`isinstance(item, type)`), instanziiert `_coerce_rule` diese parameterlos (`item()`). Erfüllt das Objekt danach `DocRuleProtocol`, wird es direkt genutzt; besitzt es `.check` und `.name` (das `Linter`-Protokoll), wird es automatisch in `DocLinterRule(linter=instance)` gewrappt. Alles andere löst sofort einen `TypeError("STATE-GUARD: Rule must implement DocRuleProtocol or Linter...")` aus.
+* **0-Arg-Klassen-, `FileCheckProtocol`- & Linter-Coercion (`_coerce_rule`):** Wird eine Klasse übergeben (`isinstance(item, type)`), instanziiert `_coerce_rule` diese parameterlos (`item()`). Erfüllt das Objekt danach `DocRuleProtocol` oder das Core-`FileCheckProtocol`, wird es direkt genutzt; besitzt es `.check` und `.name` (das `Linter`-Protokoll), wird es automatisch in `DocLinterRule(linter=instance)` gewrappt. Alles andere löst sofort einen `TypeError("STATE-GUARD: Rule must implement DocRuleProtocol or Linter...")` aus.
 * **Deterministischer Override & `DOC-NO-OUTPUT`-Vorrang:** Regeln mit identischer `rule_id` überschreiben bestehende Einträge in der Registry. Sobald `DOC-NO-OUTPUT` (`NoOutput`) in der Registry aktiv ist, wird `DOC-OUT-MISSING` (`MissingOutputRule`) automatisch per `registry.pop("DOC-OUT-MISSING", None)` entfernt, damit leere Ergebnisblöcke niemals doppelt gemeldet werden.
 * **Verlustfreies Linter-Merging (`_register_into` & `_merge_linter_rules`):** Da `DocLinterRule` seine `rule_id` als `f"DOC-LINT:{self.linter.name}"` bildet, hätten zwei `CstLinter`-Instanzen beide die ID `"DOC-LINT:CST-Linter"`. Damit der zweite `CstLinter` den ersten nicht stillschweigend überschreibt, prüft `_register_into`:
   * Handelt es sich bei beiden um `CstLinter` mit identischer `severity`, werden ihre `.rules` und `_excludes` über `_merge_linter_rules` zu einem einzigen kombinierten `CstLinter` verschmolzen.
@@ -282,19 +283,22 @@ Der Aufruf `service.run()` durchläuft analog zu `EBT` drei strikt getrennte Mak
 
 ### 5.1 Phase 1: `_arrange()` – Ziel-Auflösung, Ausschlüsse & asymmetrische Vorfilterung
 
-1. **Pfad-Heuristik (`_resolve_sources` & `_looks_like_path`):**
-   Wird `target` als `str` übergeben, entscheidet `_looks_like_path(target)`, ob es sich um einen Dateisystempfad oder einen In-Memory-Markdown-String handelt:
+1. **Pfad-Heuristik (`_source_loader.py`: `resolve_sources` & `looks_like_path`):**
+   Wird `target` als `str` übergeben, entscheidet `looks_like_path(target)`, ob es sich um einen Dateisystempfad oder einen In-Memory-Markdown-String handelt:
    * Enthält der String Zeilenumbrüche (`\n`), beginnt er mit typischen Markdown-Präfixen (`#`, `` ` ``, `~`, `<`, `>`, `-`, `*`, `+`, `!`, `[`, `|`) oder enthält er Markdown-Links (`](`, `://`), wird er sofort als `("IN_MEMORY", target)` behandelt.
    * Existiert der Pfad im Dateisystem oder endet er auf `.md` / `.markdown`, gilt er als Dateipfad (sodass ein Tippfehler wie `"docs/missing_guide.md"` garantiert einen `FileNotFoundError`-`STATE-GUARD` wirft).
    * Einzeilige Strings ohne Leerzeichen gelten als Pfad, sobald sie Pfad- oder Dateizeichen (`/`, `\`, `.`, `_`, `-`) enthalten (z. B. `"docs_typo"` $\to$ `FileNotFoundError`, aber `"Hello"` $\to$ `IN_MEMORY`). Enthält der String Leerzeichen, gilt er nur dann als Pfad, wenn das erste Wort einen Pfadtrenner (`/` oder `\`) besitzt und der String nicht mit Satzzeichen (`.`, `!`, `?`) endet (sodass Fließtext wie `"Read/write operations in Python."` als `IN_MEMORY` erkannt wird).
 
-2. **Elternpfad- und Basename-sichere Excludes (`_crawl_directory` & `_is_excluded`):**
+2. **Elternpfad- und Basename-sichere Excludes (`_source_loader.py`: `crawl_directory` & `is_excluded`):**
    Beim rekursiven Scannen eines Verzeichnisses (`resolved.rglob("*.md")`) wird jeder Pfad zunächst via `path.relative_to(resolved)` relativ zum Scan-Root normalisiert:
    * Dadurch können Ordnernamen *oberhalb* des Scan-Roots (etwa wenn das Projekt selbst in einem Ordner `/tmp/experiments/subproject` liegt und `excludes=("experiments",)` aktiv ist) niemals zu Fehl-Ausschlüssen führen.
-   * In `_is_excluded` wird ein führendes `{root_name}/` über `stripped.removeprefix(f"{root_name}/")` abgetrennt, damit `DocEnsurance(target="docs", excludes=("docs/drafts",))` und `excludes=("drafts",)` identisch funktionieren.
-   * Enthält das Exclude-Muster einen Schrägstrich (`/`), prüft `_is_excluded` exakt auf `rel_posix == norm` oder `rel_posix.startswith(f"{norm}/")`; nur reine Segmentnamen ohne `/` werden gegen `rel_path.parts` geprüft. So schließt `excludes=("docs/guide.md",)` zwar `docs/guide.md` aus, lässt aber `docs/tutorials/guide.md` unangetastet.
+   * In `is_excluded` wird ein führendes `{root_name}/` über `stripped.removeprefix(f"{root_name}/")` abgetrennt, damit `DocEnsurance(target="docs", excludes=("docs/drafts",))` und `excludes=("drafts",)` identisch funktionieren.
+   * Enthält das Exclude-Muster einen Schrägstrich (`/`), prüft `is_excluded` exakt auf `rel_posix == norm` oder `rel_posix.startswith(f"{norm}/")`; nur reine Segmentnamen ohne `/` werden gegen `rel_path.parts` geprüft. So schließt `excludes=("docs/guide.md",)` zwar `docs/guide.md` aus, lässt aber `docs/tutorials/guide.md` unangetastet.
 
-3. **Asymmetrische Vorfilterung bei Strukturfehlern (`_partition_executable` vs. `_has_structural_errors`):**
+3. **Domänenneutrale Datei-Regeln (`_run_file_rules` & `_prepare_file_rule_contexts`):**
+   Zu Beginn von `_scan_all_sources()` führt `_run_file_rules()` alle registrierten `FileCheckProtocol`-Regeln über die geladenen Dateien aus (sofern keine reine `IN_MEMORY`-Quelle vorliegt). Pro eindeutigem `rule.context_key` wird `rule.prepare_context(self.target, excludes, self._extra_patterns)` genau einmal aufgerufen und der resultierende Kontext an `rule.check_file(file_path, content, context)` weitergereicht — vollständig entkoppelt von einzelnen Geschwister-Services.
+
+4. **Asymmetrische Vorfilterung bei Strukturfehlern (`_partition_executable` vs. `_has_structural_errors`):**
    Nachdem `self.pattern.scan(...)` alle Beispiele und Strukturdiagnosen (`DOC-PRE`, `DOC-POST`) einer Datei geliefert hat, unterscheidet `_partition_executable` zwischen isolierten Snippets und getaggten Session-Schritten:
    * **Ungetaggte Snippets (`session_id is None`)** mit einem strukturellen `"error"` (`DOC-PRE` oder `DOC-POST`) werden **nicht** in die Arena geschickt (spart Prozess-Overhead), durchlaufen aber sofort alle statischen Regeln via `self._run_step_rules(ex, None, None)`. Haben die Strukturdiagnosen hingegen nur `severity="warning"`, wird das Snippet regulär ausgeführt.
    * **Getaggte Session-Schritte (`session_id is not None`)** werden **trotz** eines `DOC-PRE`- oder `DOC-POST`-Fehlers in die `executable`-Liste übernommen und in der Arena ausgeführt. *Architektonischer Grund:* Würde Schritt 1 einer `session=alpha` wegen einer zu kurzen Erklärung vor der Arena-Ausführung verworfen, fehlten allen nachfolgenden Schritten derselben Session die dort definierten Variablen und Dateien, was eine Kaskade künstlicher `NameError`-Diagnosen (`DOC-EXEC`) auslösen würde. Damit die Session trotz Ausführung nicht als bestanden gilt, prüft `_evaluate_outcomes` am Ende über `_has_structural_errors(session)`, ob für einen der Schritte bereits ein struktureller `"error"` vorlag, und setzt `SessionTrace.passed = False`.
@@ -471,6 +475,7 @@ passed=True | sessions=1 | outputs=('21', '42')
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  

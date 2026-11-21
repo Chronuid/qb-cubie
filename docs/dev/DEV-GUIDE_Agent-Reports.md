@@ -89,7 +89,7 @@ Drei Felder sind verbindlich und dürfen nicht leer sein. Sie werden idealerweis
 
 ## 3. Leitlinien für Analysen, Hypothesen, Audits & TGD-Berichte
 
-Halte Berichte **knapp, überprüfbar und entscheidungsreif**:
+Halte Berichte **knapp, überprüfbar und entscheidungsreif** (Einordnung der TGD-Phasen `ANALYSIS`, `HYPOTHESIS` und `GREEN_AUDIT` im [TGD-Handbuch](../GUIDE_TGD.md)):
 
 1. **Kurzfassung zuerst:** Starte mit einer kurzen *Executive Summary* (2–5 Kernbefunde, Blocker oder Entscheidungen), damit Leser und Folge-Agenten das Ergebnis in 30 Sekunden erfassen.
 2. **Belege statt Behauptungen:** Verankere jede technische Aussage an konkreten Dateipfaden, Zeilennummern, Symbolnamen, Kommandos oder echten Test-/CI-Ausgaben.
@@ -124,6 +124,7 @@ qb-cubie docframe update <pfad/zum/bericht.md>
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  

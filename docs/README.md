@@ -17,7 +17,7 @@
 | Ablage | Inhalt und Geltung |
 | --- | --- |
 | [docs/core](core/README.md) | Verbindliche Core-Referenzen und Nutzungsmuster (`Contract-Semantics`, `EBT`, `RBT`, `Arena-Management`, `Linter`). |
-| `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
+| `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Test-Guided Development (TGD), Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
 | [docs/services](services/GUIDE_DocEnsurance.md) | Leitfäden zu den Services in `qb_cubie.core.services` (`DocEnsurance` sowie [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
 | [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
 | [docs/misc](misc/README.md) | Hintergrundtexte und optionale historische Entwicklungsunterlagen. Die Bereichsdokumentation ist ohne diese Unterlagen verständlich. |
@@ -56,6 +56,7 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 | [Vertragsaufbau: Eindeutigkeit & Kopplung](GUIDE_Contract-Design.md) | Eindeutiger und wartbarer Aufbau von `EBT`-Verträgen: ein Vertrag pro Ein-/Ausgabepaar, saubere Skalierung mit `@pytest.mark.parametrize` und Vermeidung von Unterspezifikation durch gemischte `pre`-/`post`-Listen. |
 | [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md) | Einsatz von `expect=True` und `expect=False` auf `WorldState`- und `EBT`-Ebene, Kombination von Soll-Zielen und Negativ-Filtern unter `post={"quantor": "all", ...}`, `STATE-GUARD`-Regeln, Red-Phase-Gegenproben und Vermeidung von *Vacuous Pass*. |
 | [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md) | Standard-Quantoren (`pre="all"`, `post="exists"`) und deren explizite Umkehrung: mehrere Bedingungen gleichzeitig mit `post` auf `"all"` erzwingen (UND) oder alternative Eingabe-Routen mit `pre` auf `"exists"` zulassen (ODER). |
+| [Test-Guided Development (TGD)](GUIDE_TGD.md) | TGD für Einsteiger und Experten: TDD mit kontrollierter Rückwärtstür (`GREEN_AUDIT`) im Sinne von Karl Poppers Fallibilismus, optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`), der Fünf-Schritte-Ablauf und Living Documentation. |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -72,6 +73,7 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  

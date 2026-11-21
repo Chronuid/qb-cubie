@@ -27,7 +27,7 @@ Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisation
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um die Schranken des Cubie-Styleguides ($\le 777$ Zeilen pro Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/services/doc_frame/` in fünf spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/services/docframe.py`):
+Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in fünf spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`):
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
@@ -81,7 +81,7 @@ Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@datacla
 
 2. **`FrameSpan(frame_id, zone, attrs, open_tag, inner_content, close_tag, start_line, end_line, start_idx, end_idx)`**
    Repräsentiert einen einzelnen geparsten `<!-- qb:frame ... --> ... <!-- /qb:frame -->`-Block mit dualen Koordinaten:
-   * `start_line` & `end_line`: 1-basierte Zeilennummern für präzise `DocDiagnostic`-Positionsangaben.
+   * `start_line` & `end_line`: 1-basierte Zeilennummern für präzise `Diagnostic`-Positionsangaben (`qb_cubie.core.protocols.Diagnostic`).
    * `start_idx` & `end_idx`: 0-basierte Zeichen-Offsets im Original-String für exaktes In-Place-Slicing während Pass 2.
    * `open_tag`, `inner_content`, `close_tag`: Der exakte öffnende Kommentar-Tag, der unmodifizierte Innenbereich zwischen den Tags sowie der schließende Kommentar-Tag.
 
@@ -360,13 +360,13 @@ Presets: CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3
 
 ---
 
-## 5. Diagnose-Regeln (`CUBIE_DOCFRAME_RULES`) & `DocEnsurance`-Kopplung (`doc_frame_rules.py`)
+## 5. Diagnose-Regeln (`CUBIE_DOCFRAME_RULES`) & entkoppelte `FileCheckProtocol`-Integration (`doc_frame_rules.py`)
 
-Damit veraltete oder unvollständige Rahmen im CI-Lauf zuverlässig auffallen, ohne `DocEnsurance`-Code-Prüfungen (`DOC-PRE`, `DOC-POST`, `DOC-OUT`, `DOC-HIGH-COMPLEXITY`) stummzuschalten, stellt `doc_frame_rules.py` vier orthogonale Dokument-Prüfregeln bereit (`CUBIE_DOCFRAME_RULES`).
+Damit veraltete oder unvollständige Rahmen im CI-Lauf zuverlässig auffallen, ohne `DocEnsurance`-Code-Prüfungen (`DOC-PRE`, `DOC-POST`, `DOC-OUT`, `DOC-HIGH-COMPLEXITY`) stummzuschalten, stellt `doc_frame_rules.py` vier orthogonale Dokument-Prüfregeln bereit (`CUBIE_DOCFRAME_RULES: Final[tuple[FileCheckProtocol, ...]]`).
 
 ### 5.1 Die vier Rahmen-Prüfregeln und ihre kaskadenfreie Abschirmung
 
-Jede Regel in `CUBIE_DOCFRAME_RULES` implementiert das `DocRuleProtocol` (wobei `check(example, actual_output)` als No-op `[]` liefert) sowie die Dokument-Methode `check_document(file_path, content, catalog, patterns) -> list[DocDiagnostic]`. Alle vier Regeln prüfen vorab über `_validate_known_patterns`, ob jede im Dokument referenzierte `frame_id` in `patterns` registriert ist (andernfalls `ValueError("STATE-GUARD: Unknown FramePattern id ...")`):
+Jede Regel in `CUBIE_DOCFRAME_RULES` erbt von `_DocFrameRuleBase`, implementiert das domänenneutrale Core-`FileCheckProtocol` (`context_key = "doc_frame"`, `prepare_context`, `check_file` $\to$ `check_document`) sowie `check(example, actual_output)` als No-op `[]`, und emittiert ausschließlich Core-`Diagnostic`-Records aus `qb_cubie.core.protocols` (null Cross-Imports zu `doc_ensurance`). Alle vier Regeln prüfen vorab über `_validate_known_patterns`, ob jede im Dokument referenzierte `frame_id` in `patterns` registriert ist (andernfalls `ValueError("STATE-GUARD: Unknown FramePattern id ...")`):
 
 1. **`DocFrameMissing` (`DOCFRAME-MISSING`, Default: `"error"`, Alias: `DocFrameMissingRule`):**
    Prüft über `_has_missing_zones(spans, unclosed, patterns)` drei strukturelle Grundbedingungen:
@@ -386,18 +386,18 @@ Jede Regel in `CUBIE_DOCFRAME_RULES` implementiert das `DocRuleProtocol` (wobei 
    Berechnet im Dry-Run über `pat.render_zone(span.zone, ctx)` den Soll-Zustand jeder Zone und vergleicht `span.inner_content.strip() != expected.strip()`.
    * **Kaskadenfreie Abschirmung:** Damit ein einzelner Ursachenfehler niemals doppelt gemeldet wird, bricht `DocFrameOutdated` sofort ab (`return []`), wenn `_has_missing_zones` zutrifft, und überspringt in `_check_spans_sync` gezielt jeden Span, für den `_find_incomplete_provenance` oder `_find_broken_route_in_span` bereits einen Befund liefert.
 
-### 5.2 Orthogonale Integration in `DocEnsurance` (`_split_patterns` & `_run_document_rules`)
+### 5.2 Entkoppelte Integration in `DocEnsurance` (`FileCheckProtocol` & `_run_file_rules`)
 
-In `DocEnsurance` greifen drei Mechanismen ineinander, um Code-Beispiel-Verifikation und Rahmen-Verifikation in einem einzigen Durchlauf zu vereinen:
-* **Pattern-Partitionierung (`DocEnsurance._split_patterns`):** Übergibt der Aufrufer `pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)`, trennt `_split_patterns` das primäre `ExamplePattern` (ohne `render_zone`-Attribut) sauber von den `FramePattern`-Instanzen (`hasattr(p, "render_zone")`, gespeichert in `self._frame_patterns`).
+`DocEnsurance` kennt weder `DocFrame` noch `FramePattern` oder `DocumentCatalog`. Die orthogonale Ausführung beider Services in einem Durchlauf läuft ausschließlich über Core-Protokolle:
+* **Pattern-Normalisierung (`DocEnsurance._normalize_patterns`):** Übergibt der Aufrufer `pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)`, validiert `_normalize_patterns` alle Elemente gegen `DocPatternProtocol`, wählt das primäre Anker-Pattern (`hasattr(p, "anchor")`) und hält alle Muster neutral in `self._extra_patterns` bereit.
 * **Rekursives Regel-Flattening (`DocEnsurance._flatten_rules`):** Erlaubt die direkte Übergabe verschachtelter Regel-Tupel wie `rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES)`.
-* **Einmaliger Katalog-Aufbau in `_run_document_rules`:** Zu Beginn von `_scan_all_sources()` sammelt `DocEnsurance` alle registrierten Regeln mit `hasattr(r, "check_document")`. Sofern Dateisystem-Quellen vorliegen (`self._sources[0][0] != "IN_MEMORY"`), baut `DocFrame(target=self.target, pattern=self._frame_patterns, excludes=tuple(self.excludes)).build_catalog()` einmalig den `DocumentCatalog` auf und führt anschließend jede Dokument-Regel über alle geladenen `(file_path, content)`-Paare aus.
+* **Einmaliger Kontext-Aufbau via `FileCheckProtocol` (`_run_file_rules`):** Zu Beginn von `_scan_all_sources()` sammelt `DocEnsurance` alle registrierten `FileCheckProtocol`-Regeln. Sofern Dateisystem-Quellen vorliegen (`self._sources[0][0] != "IN_MEMORY"`), ruft `_prepare_file_rule_contexts` pro eindeutigem `context_key` (`"doc_frame"`) einmalig `rule.prepare_context(target, excludes, self._extra_patterns)` auf — darin baut `_prepare_docframe_context` einmalig den `DocumentCatalog` sowie die `FramePattern`-Map — und führt anschließend `rule.check_file(file_path, content, context)` über alle geladenen `(file_path, content)`-Paare aus.
 
 ---
 
 ## 6. Entwickler-Rezepte: Eigene Erweiterungen bauen (DI-Guide)
 
-Dank der strikten Protokoll-Trennung (`FrameBlockProtocol`, `FramePattern`, `check_document`) lassen sich eigene Rahmen-Bausteine, Router-Konfigurationen und Dokument-Prüfregeln ohne Änderung am `doc_frame`-Kern implementieren und per Dependency Injection übergeben.
+Dank der strikten Protokoll-Trennung (`FrameBlockProtocol`, `FramePattern`, Core-`FileCheckProtocol`) lassen sich eigene Rahmen-Bausteine, Router-Konfigurationen und Dokument-Prüfregeln ohne Änderung am `doc_frame`-Kern implementieren und per Dependency Injection übergeben.
 
 ### 6.1 Eigenen Rahmen-Baustein (`FrameBlockProtocol`) implementieren
 
@@ -472,48 +472,47 @@ print(CatalogRouter().render(ctx))
 ```
 </details>
 
-### 6.3 Eigene Dokument-Prüfregel (`check_document`) mit State-Guard implementieren
+### 6.3 Eigene Datei-Prüfregel (`FileCheckProtocol`) mit State-Guard implementieren
 
-Soll `DocEnsurance` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-Konvention durchsetzen (z. B. dass jeder `CUBIE_DOC_FRAME_1`-Header zwingend ein explizites `banner="..."`-Attribut im Kommentar-Tag deklarieren muss), implementiert man `DocRuleProtocol` ergänzt um `check_document`:
+Soll `DocEnsurance` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-Konvention durchsetzen (z. B. dass jeder `CUBIE_DOC_FRAME_1`-Header zwingend ein explizites `banner="..."`-Attribut im Kommentar-Tag deklarieren muss), implementiert man das domänenneutrale Core-`FileCheckProtocol` (`context_key`, `prepare_context`, `check_file`) und emittiert Core-`Diagnostic`-Records:
 
 ```python
+from collections.abc import Sequence
 from dataclasses import dataclass
-from qb_cubie.core.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
-from qb_cubie.core.services.doc_frame import DocumentCatalog, FramePattern, parse_frame_spans
-
+from pathlib import Path
+from typing import Any
+from qb_cubie.core.protocols import Diagnostic, FileCheckProtocol, validate_severity
+from qb_cubie.core.services import DocEnsurance
+from qb_cubie.core.services.doc_frame import parse_frame_spans
 
 @dataclass(frozen=True)
 class RequireExplicitBannerRule:
     rule_id: str = "DOCFRAME-EXPLICIT-BANNER"
     severity: str = "warning"
+    context_key: str = "explicit-banner"
 
     def __post_init__(self) -> None:
         validate_severity(self.severity)
 
-    def check(self, example: ExtractedExample, actual_output: str | None = None) -> list[DocDiagnostic]:
-        _ = (example, actual_output)
-        return []
+    def prepare_context(self, target: str | Path, excludes: Sequence[str], patterns: Sequence[Any]) -> None:
+        return None
 
-    def check_document(
-        self, file_path: str, content: str, catalog: DocumentCatalog, patterns: dict[str, FramePattern]
-    ) -> list[DocDiagnostic]:
-        _ = (catalog, patterns)
+    def check_file(self, file_path: str, content: str, context: None) -> list[Diagnostic]:
         spans, _ = parse_frame_spans(content)
         return [
-            DocDiagnostic(file_path, self.rule_id, s.start_line, "Missing explicit banner attribute.", severity=self.severity)
+            Diagnostic(file_path, self.rule_id, s.start_line, "Missing explicit banner attribute.", self.severity)
             for s in spans if s.zone == "head" and s.frame_id == "CUBIE_DOC_FRAME_1" and not s.attrs.get("banner")
         ]
 
-
 service = DocEnsurance(rules=[RequireExplicitBannerRule], reporter=None)
-print([r.rule_id for r in service.rules])
+print(f"FileCheck={isinstance(RequireExplicitBannerRule(), FileCheckProtocol)} | {[r.rule_id for r in service.rules]}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-['DOC-OUT-MISSING', 'DOC-OUT', 'DOCFRAME-EXPLICIT-BANNER']
+FileCheck=True | ['DOC-OUT-MISSING', 'DOC-OUT', 'DOCFRAME-EXPLICIT-BANNER']
 ```
 </details>
 
@@ -532,6 +531,7 @@ print([r.rule_id for r in service.rules])
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  

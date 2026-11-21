@@ -138,42 +138,17 @@ Die Folgen eines solchen Fehlers in der Test-Suite sind gravierend:
 
 ---
 
-## 3. Test-Guided Development (TGD) in fünf Schritten
+## 3. Test-Guided Development (TGD) im Überblick
 
-Test-Guided Development (TGD) erweitert klassisches Test-Driven Development (TDD) um explorative System-Audits, formale Meta-QA-Prüffragen an die Test-Suite selbst und die strikte Trennung orthogonaler Prüf-Schichten (`tests/` $\to$ `src/` $\to$ `docs/`). Die jüngste Reparatur der Quantoren-Semantik im Cubie-Core veranschaulicht diesen fünfstufigen Ablauf in der Praxis:
+**TGD (*Test-Guided Development*)** ist im Kern klassisches **TDD** (*Phase Red* $\to$ *Phase Green*) – mit einer entscheidenden Erweiterung: **Während der Phase Green darfst du das Produkt aus Phase Red hinterfragen.** Weil auch die Qualitätssicherung fehlbar ist (Karl Poppers Epistemologie / Fallibilismus), bietet TGD eine kontrollierte Rückwärtstür statt stillem Test-Umschreiben:
 
-### Schritt 1: Baseline, Exploratives Audit & Meta-QA-Hypothesenbildung (`ANALYSIS` & `HYPOTHESIS`)
-Bevor eine einzige Zeile Code oder Test geändert wird, wird der Ist-Zustand ($Q_{\text{Ist}}$) gegen das gewünschte Architektur-Gesetz ($Q_{\text{Soll}}$) vermessen und in überprüfbare Hypothesen überführt:
-* **Einfach erklärt:** Erst Detektivarbeit leisten und einen klaren Reparaturplan aufstellen, statt blind im Code herumzuprobieren.
-* **Für Experten (Meta-QA-Fragen an die Test-Suite):** Prüfe bestehende und geplante Tests vorab auf **logische Subsumtion** ($Q_{\text{pos}} \implies \neg Q_{\text{neg}}$, bei der ein positives Ziel das Verbot bereits impliziert und das Verbot dadurch ungetestet bleibt), **prädikatenlogische Tautologien** (wie $(y \in \mathbb{Z}) \lor (y \neq 99) \equiv \top$ unter `post="exists"`), **Vacuous Passes** (`0pos/Kneg`) und **überlebende Core-Mutanten** (schlägt wirklich ein Test fehl, wenn eine Kernfunktion wie `evaluate_step_logic()` ungefixt bleibt?).
+1. **Phase Red (`tests/`):** Soll-Verträge ($Q_{\text{Soll}}$) schärfen, gezielt rot gegen den unreparierten Code nachweisen und die Test-Suite einfrieren.
+2. **Phase Green (`src/`) + Rückwärtstür (`GREEN_AUDIT`):** Produktionscode reparieren, bis alle Tests grün laufen – bei striktem Änderungsverbot auf `tests/`. Zeigt sich unterwegs ein Fehler aus der Phase Red, wird er als nachvollziehbarer Befundbericht (`GREEN_AUDIT`) eskaliert, um geordnet zurück in die Phase Red zur Test-Reparatur zu wechseln.
+3. **Phase Living-Documentation (`docs/`):** Handbücher und Code-Beispiele (`DocEnsurance` / `DocFrame`) synchronisieren, damit die Dokumentation sauber bleibt und im nächsten Zyklus wieder verlässlich genutzt werden kann.
 
-### Schritt 2: Schlanke, zustandsfreie Test-Adapter (`Stateless Adapters`)
-Wenn das zu prüfende Subsystem komplexe Report-Objekte mit vielen internen Feldern zurückgibt, sollte der Test nicht an irrelevanten Implementierungsdetails kleben.
-* **Einfach erklärt:** Schreibe eine winzige Hilfsfunktion (5–12 Zeilen), die das komplexe Ergebnis auf ein kleines, übersichtliches Python-Dictionary mit den wirklich wichtigen Eckdaten zusammenfasst (z. B. `{"passed": report.passed, "rules": [d.rule_id for d in report.diagnostics]}`). Dadurch bleiben die `WorldState`-Definitionen im `EBT`-Aufruf kurz und auf einen Blick lesbar.
+Bei komplexen Umbauten – insbesondere mit KI-Agenten – können dem Zyklus zwei optionale **Stützräder** vorgeschaltet werden: eine **`ANALYSIS`**-Phase (erst verstehen, was gerade Sache ist) und eine **`HYPOTHESIS`**-Phase in sauberer wissenschaftlicher Sprache (Ideen prüfen und Denkfehler noch vor dem Testbau abfangen).
 
-### Schritt 3: Äquivalenzklassen, Kantenfälle & Lebenszyklus-Invarianten statt Daten-Flut
-Zwanzig fast identische Gutwetter-Tests erhöhen nur die Laufzeit, aber nicht die Sicherheit. Entscheidend ist die gezielte Abdeckung der fachlichen Äquivalenzklassen und Zustandsübergänge:
-* **Positiv-Invarianz & Schwellenwerte (Off-by-One):** Repräsentative Normalfälle sowie exakte Grenzwerte (z. B. $19$ vs. $20$ Zeichen oder $30$ vs. $31$ Codezeilen).
-* **Explizite `STATE-GUARD`s & Python-Typfallen:** Ungültige Konfigurationen müssen vor der Target-Ausführung mit `ValueError` oder `TypeError` (`match="STATE-GUARD"`) abgewiesen werden. Beachte dabei Python-Besonderheiten wie `issubclass(bool, int) is True`: Ein echter `bool`-Guard prüft `type(val) is bool`, damit Zahlen wie `1` oder `0` sowie `None` nicht durchrutschen.
-* **Lebenszyklus- & Mutations-Übergänge:** Wenn Objekte wiederverwendet werden (wie ein `EBT`-Fall über mehrere `.run()`-Aufrufe), prüfe den gesamten Zyklus: (1) zweiter Lauf *ohne* Neuzuweisung (Quantor bleibt erhalten), (2) In-Place-Listenmutation `case.post.append(...)` bzw. Attribut-Mutation `ws.expect = False`, und (3) Attribut-Neuzuweisung `case.post = [...]` ohne Wrapper (Quantor springt sauber auf den Standard `"exists"` bzw. `"all"` zurück).
-
-### Schritt 4: TGD Red-Phase — Test-Suite isoliert schärfen, Red-Nachweis führen & Tests einfrieren
-In der Red-Phase wird **ausschließlich `tests/`** bearbeitet (`src/` und `docs/` bleiben unangetastet):
-1. **Altlasten ($Q_{\text{Ist}}$) und Meta-Gates bereinigen:** Bestehende Tests, die versehentlich altes Fehlverhalten voraussetzen, werden auf die saubere $Q_{\text{Soll}}$-Deklaration (z. B. `post={"quantor": "all", "states": [...]}`) migriert; statische Wächter (`test_gate_2.py`, `test_gate_3.py`) werden nach der Wächter-Kalibrierungs-Triade (Clean-Probes, Fault-Probes, Repo-Scan) aktualisiert. Alle migrierten Bestands-Tests müssen bereits gegen den aktuellen Core **100 % grün (`PASSED`)** laufen.
-2. **Gezielter Red-Nachweis für neue Verträge:** Die neuen Guard-, Invarianten- und Lebenszyklus-Tests werden hinzugefügt und müssen gegen den noch unreparierten Core deterministisch **rot fehlschlagen (`FAILED`)** – das beweist, dass die neuen Tests scharf geschaltet sind und keinen überlebenden Mutanten dulden.
-3. **Strikter Test-Freeze:** Sobald dieses exakte Differenzsignal (Bestand grün, neue Verträge kontrolliert rot) steht, wird die Test-Suite **eingefroren**.
-
-### Schritt 5: TGD Green-Phase & Living-Documentation-Sync — Core reparieren & alle Schichten synchronisieren
-In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/`** repariert:
-* **Unantastbarkeit der Tests & Eskalations-Protokoll (`GREEN_AUDIT`):** Während der Core-Reparatur gilt ein striktes Änderungsverbot auf `tests/**/*.py` (keine Edits, kein `skip`, kein Abschwächen von Assertions). Taucht unterwegs der begründete Verdacht auf, dass sich in der Red-Phase ein Denkfehler oder Widerspruch in einen Test eingeschlichen hat, wird der Test **nicht** heimlich umgeschrieben, sondern ein strukturierter Befundbericht (z. B. `tests/GREEN_AUDIT.md`) mit Zeilennummer, Reproduktionsbeleg und Klärungsvorschlag angelegt.
-* **Code-Härtung unter Stil-Gates:** Der Core wird innerhalb der harten Architektur-Grenzen (`MODULE_LIMIT = 777` Zeilen, `FUNCTION_LIMIT = 12` physische Body-Zeilen, einzeilige Docstrings, `0` Fehler in `ruff`, `pylint` und `mypy --warn-unreachable`) repariert, bis alle zuvor roten Tests auf **`PASSED`** springen.
-* **Living-Documentation-Sync (`DocEnsurance`):** Sobald ein neuer `STATE-GUARD` im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_styleguide.py::test_docs_code_examples`) und zeigt auf jedes Code-Beispiel in `docs/`, das noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen.
-
-> [!TIP]
-> **Der gesamte TGD-Fluss benötigt eine starke Orchestrierung.**  
-> Gebe den Agenten daher nur einen Schritt auf einmal und orchestriere es selbst, wenn es wirklich eine hohe Qualität erfordert. Dann weist du, dass alles richtig gemacht wird und kannst flexibel eingreifen.  
->
-> Der Gesamt-Durchlauf durch orchestrierende Agenten sollte noch als experimentell verstanden werden. 
+👉 **Ausführliche Erklärung (Einsteiger & Experten), Stützräder, der bewährte Fünf-Schritte-Ablauf und Orchestrierungs-Tipps:** [Test-Guided Development (TGD)](GUIDE_TGD.md)
 
 ---
 
@@ -214,6 +189,7 @@ Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit 
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  

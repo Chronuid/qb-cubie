@@ -6,16 +6,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 import re
-from typing import Final
+from typing import Any, Final
 
-from ..doc_ensurance.protocols import (
-    DocDiagnostic,
-    DocRuleProtocol,
-    ExtractedExample,
-    validate_severity,
-)
+from ...protocols import Diagnostic, FileCheckProtocol, validate_severity
 from ._catalog_scanner import parse_frame_spans
-from .doc_frame import FramePattern
+from .doc_frame import DocFrame, FramePattern
 from .frame_blocks import ProvenanceBlock, resolve_banner_rel_path
 from .protocols import DocumentCatalog, FrameRenderContext, FrameSpan
 
@@ -79,9 +74,58 @@ def _find_broken_route_in_span(
     return None
 
 
+def _prepare_docframe_context(
+    target: str | Path,
+    excludes: Sequence[str],
+    patterns: Sequence[Any],
+) -> tuple[DocumentCatalog, dict[str, FramePattern]]:
+    """Builds the Pass 1 DocumentCatalog and FramePattern map for document-level checks."""
+    frame_pats = tuple(p for p in patterns if isinstance(p, FramePattern)) or None
+    frame_svc = DocFrame(target=target, pattern=frame_pats, excludes=excludes)
+    return frame_svc.build_catalog(), frame_svc.patterns
+
+
+class _DocFrameRuleBase:
+    """Shared FileCheckProtocol adapter for DocFrame document-level diagnostic rules."""
+
+    @property
+    def context_key(self) -> str:
+        """Returns the shared cache key so all DocFrame rules reuse one catalog build."""
+        return "doc_frame"
+
+    def prepare_context(
+        self,
+        target: str | Path,
+        excludes: Sequence[str],
+        patterns: Sequence[Any],
+    ) -> tuple[DocumentCatalog, dict[str, FramePattern]]:
+        """Builds the shared DocumentCatalog and normalized FramePattern registry."""
+        return _prepare_docframe_context(target, excludes, patterns)
+
+    def check_file(
+        self,
+        file_path: str,
+        content: str,
+        context: tuple[DocumentCatalog, dict[str, FramePattern]],
+    ) -> list[Diagnostic]:
+        """Delegates a single-file check to check_document using the prepared frame context."""
+        catalog, patterns = context
+        return self.check_document(file_path, content, catalog, patterns)
+
+    def check_document(
+        self,
+        file_path: str,
+        content: str,
+        catalog: DocumentCatalog,
+        patterns: dict[str, FramePattern],
+    ) -> list[Diagnostic]:
+        """Evaluates a single Markdown document against this frame rule."""
+        raise NotImplementedError
+
+
 # ========== DOC-FRAME DIAGNOSTIC RULES ================================================================================
 @dataclass(frozen=True)
-class DocFrameMissing:
+class DocFrameMissing(_DocFrameRuleBase):
     """Flags Markdown files missing required head, foot, or router qb:frame blocks."""
 
     severity: str = "error"
@@ -91,8 +135,8 @@ class DocFrameMissing:
         validate_severity(self.severity)
 
     def check(
-        self, example: ExtractedExample, actual_output: str | None = None
-    ) -> list[DocDiagnostic]:
+        self, example: Any, actual_output: str | None = None
+    ) -> list[Diagnostic]:
         """No-op on code snippets; frame checks run at the document level."""
         _ = (example, actual_output)
         return []
@@ -103,19 +147,19 @@ class DocFrameMissing:
         content: str,
         catalog: DocumentCatalog,
         patterns: dict[str, FramePattern],
-    ) -> list[DocDiagnostic]:
+    ) -> list[Diagnostic]:
         """Emits DOCFRAME-MISSING when a document lacks valid head, foot, or router blocks."""
         _ = catalog
         spans, unclosed = parse_frame_spans(content)
         _validate_known_patterns(spans, patterns, file_path)
         missing, line, msg = _has_missing_zones(spans, unclosed, patterns)
         if missing:
-            return [DocDiagnostic(file_path, self.rule_id, line, msg, severity=self.severity)]
+            return [Diagnostic(file_path, self.rule_id, line, msg, severity=self.severity)]
         return []
 
 
 @dataclass(frozen=True)
-class DocFrameProvenanceIncomplete:
+class DocFrameProvenanceIncomplete(_DocFrameRuleBase):
     """Flags CUBIE_DOC_FRAME_2 documents with missing or empty required provenance fields."""
 
     severity: str = "error"
@@ -125,8 +169,8 @@ class DocFrameProvenanceIncomplete:
         validate_severity(self.severity)
 
     def check(
-        self, example: ExtractedExample, actual_output: str | None = None
-    ) -> list[DocDiagnostic]:
+        self, example: Any, actual_output: str | None = None
+    ) -> list[Diagnostic]:
         """No-op on code snippets; frame checks run at the document level."""
         _ = (example, actual_output)
         return []
@@ -137,7 +181,7 @@ class DocFrameProvenanceIncomplete:
         content: str,
         catalog: DocumentCatalog,
         patterns: dict[str, FramePattern],
-    ) -> list[DocDiagnostic]:
+    ) -> list[Diagnostic]:
         """Emits DOCFRAME-PROVENANCE-INCOMPLETE when a required provenance key is blank or absent."""
         _ = catalog
         spans, unclosed = parse_frame_spans(content)
@@ -148,12 +192,12 @@ class DocFrameProvenanceIncomplete:
             missing_key = _find_incomplete_provenance(span, patterns[span.frame_id])
             if missing_key is not None:
                 msg = f"Required provenance field '{missing_key}' is missing or empty."
-                return [DocDiagnostic(file_path, self.rule_id, span.start_line, msg, severity=self.severity)]
+                return [Diagnostic(file_path, self.rule_id, span.start_line, msg, severity=self.severity)]
         return []
 
 
 @dataclass(frozen=True)
-class DocFrameBrokenRoute:
+class DocFrameBrokenRoute(_DocFrameRuleBase):
     """Flags qb:frame blocks that reference non-existent Markdown routes or banner assets."""
 
     severity: str = "error"
@@ -163,8 +207,8 @@ class DocFrameBrokenRoute:
         validate_severity(self.severity)
 
     def check(
-        self, example: ExtractedExample, actual_output: str | None = None
-    ) -> list[DocDiagnostic]:
+        self, example: Any, actual_output: str | None = None
+    ) -> list[Diagnostic]:
         """No-op on code snippets; frame checks run at the document level."""
         _ = (example, actual_output)
         return []
@@ -175,7 +219,7 @@ class DocFrameBrokenRoute:
         content: str,
         catalog: DocumentCatalog,
         patterns: dict[str, FramePattern],
-    ) -> list[DocDiagnostic]:
+    ) -> list[Diagnostic]:
         """Emits DOCFRAME-BROKEN-ROUTE when a linked document or banner asset is missing on disk."""
         spans, unclosed = parse_frame_spans(content)
         _validate_known_patterns(spans, patterns, file_path)
@@ -186,12 +230,12 @@ class DocFrameBrokenRoute:
             broken = _find_broken_route_in_span(path_obj, span, catalog.root)
             if broken is not None:
                 msg = f"Broken route or asset reference in frame ({span.zone}): {broken!r} not found."
-                return [DocDiagnostic(file_path, self.rule_id, span.start_line, msg, severity=self.severity)]
+                return [Diagnostic(file_path, self.rule_id, span.start_line, msg, severity=self.severity)]
         return []
 
 
 @dataclass(frozen=True)
-class DocFrameOutdated:
+class DocFrameOutdated(_DocFrameRuleBase):
     """Flags qb:frame blocks whose stored content diverges from the current DocumentCatalog."""
 
     severity: str = "error"
@@ -201,8 +245,8 @@ class DocFrameOutdated:
         validate_severity(self.severity)
 
     def check(
-        self, example: ExtractedExample, actual_output: str | None = None
-    ) -> list[DocDiagnostic]:
+        self, example: Any, actual_output: str | None = None
+    ) -> list[Diagnostic]:
         """No-op on code snippets; frame checks run at the document level."""
         _ = (example, actual_output)
         return []
@@ -213,7 +257,7 @@ class DocFrameOutdated:
         content: str,
         catalog: DocumentCatalog,
         patterns: dict[str, FramePattern],
-    ) -> list[DocDiagnostic]:
+    ) -> list[Diagnostic]:
         """Emits DOCFRAME-OUTDATED when a well-formed frame zone differs from freshly rendered output."""
         spans, unclosed = parse_frame_spans(content)
         _validate_known_patterns(spans, patterns, file_path)
@@ -228,7 +272,7 @@ class DocFrameOutdated:
         spans: list[FrameSpan],
         catalog: DocumentCatalog,
         patterns: dict[str, FramePattern],
-    ) -> list[DocDiagnostic]:
+    ) -> list[Diagnostic]:
         """Compares each valid frame span against the freshly rendered zone output."""
         rel_path = path_obj.resolve().relative_to(catalog.root).as_posix()
         for span in spans:
@@ -239,7 +283,7 @@ class DocFrameOutdated:
             expected = pat.render_zone(span.zone, ctx)
             if span.inner_content.strip() != expected.strip():
                 msg = f"Frame zone '{span.zone}' ({span.frame_id}) is out of sync; run DocFrame.update()."
-                return [DocDiagnostic(str(path_obj), self.rule_id, span.start_line, msg, severity=self.severity)]
+                return [Diagnostic(str(path_obj), self.rule_id, span.start_line, msg, severity=self.severity)]
         return []
 
 
@@ -248,7 +292,7 @@ DocFrameOutdatedRule = DocFrameOutdated
 DocFrameBrokenRouteRule = DocFrameBrokenRoute
 DocFrameProvenanceRule = DocFrameProvenanceIncomplete
 
-CUBIE_DOCFRAME_RULES: Final[tuple[DocRuleProtocol, ...]] = (
+CUBIE_DOCFRAME_RULES: Final[tuple[FileCheckProtocol, ...]] = (
     DocFrameMissing(severity="error"),
     DocFrameOutdated(severity="error"),
     DocFrameBrokenRoute(severity="error"),

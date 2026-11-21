@@ -46,39 +46,39 @@ Die GitHub-Actions-Checks für **Windows (`windows-2022`)** schlagen weiterhin f
 ## 3. Behobene Ursachen in Stufe 1 (`macos-15` & `CI / Wheel / windows-2022`)
 
 1. **macOS Symlink-Roots (`/var` $\to$ `/private/var`):**
-   - [`TempFS.setup()`](../src/qb_cubie/arenas/tempfs.py) und [`PyVenv._prepare_directories()`](../src/qb_cubie/arenas/pyvenv.py) lösen temporäre Arbeitswurzeln nun per `.resolve()` kanonisch auf; `_relocate_link()` in [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) gleicht Symlink-Präfixe aufgelöst ab.
-   - Da macOS kein `/proc`-Dateisystem besitzt, bleiben die 38 tiefen `/proc`-Watchdog-Checks in `tests/tests_arena/test_ebt_resource_limits.py` ehrlich auf Linux beschränkt; POSIX-Prozessgruppen-Abbrüche werden auf macOS über `tests/tests_arena/test_process_limits.py` und `tests/tests_arena/test_ci_platform_stage1.py` verifiziert.
+   - [`TempFS.setup()`](../src/qb_cubie/core/arenas/tempfs.py) und [`PyVenv._prepare_directories()`](../src/qb_cubie/core/arenas/pyvenv.py) lösen temporäre Arbeitswurzeln nun per `.resolve()` kanonisch auf; `_relocate_link()` in [`_relocation.py`](../src/qb_cubie/core/arenas/_relocation.py) gleicht Symlink-Präfixe aufgelöst ab.
+   - Da macOS kein `/proc`-Dateisystem besitzt, bleiben die 38 tiefen `/proc`-Watchdog-Checks in `tests/tests_core/tests_arenas/test_ebt_resource_limits.py` ehrlich auf Linux beschränkt; POSIX-Prozessgruppen-Abbrüche werden auf macOS über `tests/tests_core/tests_arenas/test_process_limits.py` und `tests/tests_core/tests_arenas/test_ci_platform_stage1.py` verifiziert.
    - Um unter `spawn`-Multiprocessing eine sichere CI-Laufzeit einzuhalten, führt der `tests`-Job in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) zunächst `-m "not slow" -q` und anschließend sequentiell `-m slow -q` bei `timeout-minutes: 35` aus.
 2. **Win32-Prozesslimits via Job Objects & Reader-Threads (`_process.py` + `_process_win32.py`):**
-   - [`_process.py`](../src/qb_cubie/arenas/_process.py) delegiert `timeout` und `max_output_bytes` unter `os.name == "nt"` an [`_process_win32.py`](../src/qb_cubie/arenas/_process_win32.py) (Win32 Job Objects mit `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` / `TerminateJobObject`, `taskkill`-Fallback und zwei unbuffered Daemon-Reader-Threads mit gemeinsamem Byte-Budget). Damit funktionieren auch `DocEnsurance(..., timeout=...)`, `qb-cubie.exe docframe update` (nun mit explizitem `newline="\n"` in [`doc_frame.py`](../src/qb_cubie/services/doc_frame/doc_frame.py)) und `TempFS`/`PyVenv` mit gesetzten Limits unter Windows.
+   - [`_process.py`](../src/qb_cubie/core/arenas/_process.py) delegiert `timeout` und `max_output_bytes` unter `os.name == "nt"` an [`_process_win32.py`](../src/qb_cubie/core/arenas/_process_win32.py) (Win32 Job Objects mit `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` / `TerminateJobObject`, `taskkill`-Fallback und zwei unbuffered Daemon-Reader-Threads mit gemeinsamem Byte-Budget). Damit funktionieren auch `DocEnsurance(..., timeout=...)`, `qb-cubie.exe docframe update` (nun mit explizitem `newline="\n"` in [`doc_frame.py`](../src/qb_cubie/core/services/doc_frame/doc_frame.py)) und `TempFS`/`PyVenv` mit gesetzten Limits unter Windows.
 3. **Subprozess-`PATH`-, Timeout- & Encoding-Härtung für `CI / Wheel`:**
    - [`scripts/check_wheel.py`](../scripts/check_wheel.py) kapselt `build_wheel_environment()` ohne Rückfall auf den Host-`PATH` (`orig_path`), sodass Host-Linter das isolierte `core`-Profil nicht verunreinigen.
    - [`cubie_benchmarks/execution/_process.py`](../experiments/benchmarks/cubie_benchmarks/execution/_process.py) ergänzt Windows-Systempfade, `PYTHONUTF8="1"` und `encoding="utf-8", errors="replace"`; [`ollama_agents/reviewer/tools.py`](../experiments/ollama-agents/ollama_agents/reviewer/tools.py) ersetzt `os.killpg` unter Windows durch `CREATE_NEW_PROCESS_GROUP` + `taskkill`.
-   - [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) akzeptiert Windows-Interpretervarianten wie `pythonw3.13.exe`, `python3.13t.exe` und `python_d.exe` und erkennt auch `\`-Basispfade in Einstiegsskripten.
+   - [`_relocation.py`](../src/qb_cubie/core/arenas/_relocation.py) akzeptiert Windows-Interpretervarianten wie `pythonw3.13.exe`, `python3.13t.exe` und `python_d.exe` und erkennt auch `\`-Basispfade in Einstiegsskripten.
 
 ---
 
 ## 4. Behobene Ursachen in Stufe 2 (`CI / Repository / windows-2022`)
 
 Mit Stufe 2 ist auch die vollständige Repository-Suite unter `windows-2022` in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`timeout-minutes: 45`) freigeschaltet (Details in [`tests/ANALYSIS_CI_MATRIX.md`](../tests/ANALYSIS_CI_MATRIX.md)):
-1. **Sichere Windows-`.exe`-Console-Script-Relokation ([`_relocation_win32.py`](../src/qb_cubie/arenas/_relocation_win32.py) & [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py)):**
+1. **Sichere Windows-`.exe`-Console-Script-Relokation ([`_relocation_win32.py`](../src/qb_cubie/core/arenas/_relocation_win32.py) & [`_relocation.py`](../src/qb_cubie/core/arenas/_relocation.py)):**
    - Verifizierte `uv 0.11.3` PE-Ressourcen-Trampolines (`RT_RCDATA`: `UV_TRAMPOLINE_KIND == b"\x01"`, `UV_PYTHON_PATH` via `FreeLibrary` $\to$ `BeginUpdateResourceW`/`UpdateResourceW`/`EndUpdateResourceW`) und `distlib`/`pip`-ZIP-Wrapper (`MZ... + #!<base>\...\python*.exe + PK\x03\x04...`) werden kontrolliert auf den Klon angepasst; sichere relative Python-Ziele ohne `..`-Ausbruch bleiben unverändert gültig.
    - Beliebige übrige native `.exe`-Binaries oder externe Interpreterziele werden unverändert streng mit `RuntimeError("Unsupported console entry point...")` vor Target-Ausführung abgewiesen.
-2. **Plattformübergreifende Diff-Pfade ([`ebt.py`](../src/qb_cubie/ebt.py) & [`reporter.py`](../src/qb_cubie/reporter.py)):**
+2. **Plattformübergreifende Diff-Pfade ([`ebt.py`](../src/qb_cubie/core/ebt.py) & [`reporter.py`](../src/qb_cubie/core/reporter.py)):**
    - `EBT._generate_diff()` / `_modified_paths()` geben relative Schlüssel über `.as_posix()` aus, `PytestReporter._summarize_fs_diffs()` normalisiert über `_posix_path()` auf kanonische Vorwärtsschrägstriche (`/`).
 3. **UTF-8-Subprocess-Hygiene & Test-Portabilität:**
-   - [`mypy.py`](../src/qb_cubie/linters/mypy.py), [`pylint.py`](../src/qb_cubie/linters/pylint.py) und [`_requirements.py`](../src/qb_cubie/arenas/_requirements.py) lesen Subprocess-Ausgaben explizit mit `encoding="utf-8", errors="replace"`; [`pyvenv.py`](../src/qb_cubie/arenas/pyvenv.py) decodiert `uv`-`stderr` mit `errors="replace"`; [`_hydration.py`](../src/qb_cubie/arenas/hydration.py) trimmt auch `\`; [`scripts/provision_test_arenas.py`](../scripts/provision_test_arenas.py) nutzt `onexc=_remove_readonly`.
+   - [`mypy.py`](../src/qb_cubie/core/linters/mypy.py), [`pylint.py`](../src/qb_cubie/core/linters/pylint.py) und [`_requirements.py`](../src/qb_cubie/core/arenas/_requirements.py) lesen Subprocess-Ausgaben explizit mit `encoding="utf-8", errors="replace"`; [`pyvenv.py`](../src/qb_cubie/core/arenas/pyvenv.py) decodiert `uv`-`stderr` mit `errors="replace"`; [`hydration.py`](../src/qb_cubie/core/arenas/hydration.py) trimmt auch `\`; [`scripts/provision_test_arenas.py`](../scripts/provision_test_arenas.py) nutzt `onexc=_remove_readonly`.
    - Verbliebene POSIX-Annahmen in Repository-Tests (`/tmp`/`touch`, `python3`/`echo`, `bin/python`, `site.getsitepackages()[0]`, `shlex.split`, `symlinks=True` und implizites Plattform-Encoding) wurden plattformneutral bereinigt; ausschließlich intrinsische OS-Spezifika (`test_ebt_resource_limits.py` `/proc`-Watchdog Linux-only, `test_quality_gate.py` `SIGKILL` POSIX-only, nativer `cowsay.exe`-Test Windows-only) behalten ehrliche Plattform-Marker.
 
 ---
 
 ## 5. Behobene Ursachen in Stufe 3 (CI-Run `44735125009` — `macos-15` & `windows-2022`)
 
-Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98bf4247`, protokolliert in [`tests/TGD_CI_STAGE3.md`](../tests/TGD_CI_STAGE3.md)) und friert sie als Plattformverträge in [`tests/tests_arena/test_ci_platform_stage3.py`](../tests/tests_arena/test_ci_platform_stage3.py) ein:
+Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98bf4247`) und friert sie als Plattformverträge in [`tests/tests_core/tests_arenas/test_ci_platform_stage3.py`](../tests/tests_core/tests_arenas/test_ci_platform_stage3.py) ein:
 1. **Multi-Platform-Mypy (`--warn-unreachable` für `linux`, `darwin`, `win32`):**
-   - [`pyvenv.py`](../src/qb_cubie/arenas/pyvenv.py) nutzt einen expliziten `else:`-Zweig in `_cache_root()` gegen `mypy --platform darwin` (`[unreachable]`).
-   - [`_process.py`](../src/qb_cubie/arenas/_process.py) greift über `getattr(signal, "SIGKILL", signal.SIGTERM)` und `getattr(os, "killpg", None)` auf POSIX-Symbole zu (`mypy --platform win32` `[attr-defined]`).
-2. **Windows-Text-Shebangs & CRLF-Trampoline-Relokation ([`_relocation.py`](../src/qb_cubie/arenas/_relocation.py)):**
+   - [`pyvenv.py`](../src/qb_cubie/core/arenas/pyvenv.py) nutzt einen expliziten `else:`-Zweig in `_cache_root()` gegen `mypy --platform darwin` (`[unreachable]`).
+   - [`_process.py`](../src/qb_cubie/core/arenas/_process.py) greift über `getattr(signal, "SIGKILL", signal.SIGTERM)` und `getattr(os, "killpg", None)` auf POSIX-Symbole zu (`mypy --platform win32` `[attr-defined]`).
+2. **Windows-Text-Shebangs & CRLF-Trampoline-Relokation ([`_relocation.py`](../src/qb_cubie/core/arenas/_relocation.py)):**
    - `_python_header()` und `_shell_header()` normalisieren Backslashes, erkennen `python.exe`/`pythonw.exe` (case-insensitive) und verarbeiten CRLF-Shell-Trampolines (`\r?\n`); extensionlose unbekannte `#!`-Skripte ohne POSIX-`+x`-Bit werden deterministisch per `_unsupported(script)` abgewiesen.
 3. **Benchmark-LF-Invarianz & Windows-`file://`-URLs (`experiments/benchmarks/`):**
    - Alle 70 betroffenen `smoke`- und `base`-Szenario-Templates unter [`experiments/benchmarks/cubie_benchmarks/data/`](../experiments/benchmarks/cubie_benchmarks/data/) übergeben explizites `newline="\n"` an `write_text(...)`.
@@ -101,6 +101,7 @@ Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  

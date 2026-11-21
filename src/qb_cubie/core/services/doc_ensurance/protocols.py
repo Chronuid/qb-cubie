@@ -2,18 +2,14 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Final, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-VALID_SEVERITIES: Final[tuple[str, ...]] = ("error", "warning")
-
-
-def validate_severity(severity: str) -> str:
-    """Validates that a configured diagnostic severity is supported."""
-    if not isinstance(severity, str) or severity not in VALID_SEVERITIES:
-        raise ValueError(
-            f"STATE-GUARD: severity must be one of {VALID_SEVERITIES}; received {severity!r}."
-        )
-    return severity
+from ...protocols import (
+    VALID_SEVERITIES as VALID_SEVERITIES,
+    DiagnosticProtocol,
+    ServiceReportProtocol as ServiceReportProtocol,
+    validate_severity,
+)
 
 
 # ========== DOC-ENSURANCE DATA RECORDS ================================================================================
@@ -79,22 +75,10 @@ class DocReport:
     target: str
     passed: bool
     sessions: tuple[SessionTrace, ...] = field(default_factory=tuple)
-    diagnostics: tuple[DocDiagnostic, ...] = field(default_factory=tuple)
+    diagnostics: tuple[DiagnosticProtocol, ...] = field(default_factory=tuple)
 
 
 # ========== DOC-ENSURANCE PROTOCOLS ===================================================================================
-@runtime_checkable
-class ServiceReportProtocol(Protocol):
-    """Uniform report contract for services delegating diagnostics to PytestReporter."""
-
-    @property
-    def target(self) -> str: ...
-    @property
-    def passed(self) -> bool: ...
-    @property
-    def diagnostics(self) -> Sequence[DocDiagnostic]: ...
-
-
 @runtime_checkable
 class DocRuleProtocol(Protocol):
     """Contract for pluggable documentation rules checking explanation, code, or output."""

@@ -10,13 +10,18 @@ import posixpath
 import re
 import tempfile
 import types
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
-from .protocols import EvaluationTrace, Quantor, ReviewData, RunTrace, UNSPECIFIED, evaluate_step_logic
+from .protocols import (
+    EvaluationTrace,
+    Quantor,
+    ReviewData,
+    RunTrace,
+    ServiceReportProtocol,
+    UNSPECIFIED,
+    evaluate_step_logic,
+)
 from ._execution import exception_details, qualified_name
-
-if TYPE_CHECKING:
-    from .services.doc_ensurance.protocols import ServiceReportProtocol
 
 # ========== PYTEST REPORTER ===========================================================================================
 

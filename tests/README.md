@@ -71,16 +71,17 @@ Die Konfiguration liegt in [`pyproject.toml`](../pyproject.toml) (`--strict-mark
 - `slow` – schwere Skalierungs-, Timeout-/Watchdog-, Netzwerk-, Tool-Subprozess- oder Doku-Ausführungstests
 
 **Subsystem- & Kategorie-Dimension:**
-- `ebt` (`tests/tests_ebt/`)
-- `arena` (`tests/tests_arena/`)
-- `multiprocess` (`tests/tests_multiprocessors/`)
-- `linter` (`tests/tests_linter/`, `tests/test_lint.py`)
-- `services` (`tests/tests_services/`)
+- `ebt` (`tests/tests_core/tests_ebt/`)
+- `arena` (`tests/tests_core/tests_arenas/`)
+- `multiprocess` (`tests/tests_core/tests_multiprocessors/`)
+- `linter` (`tests/tests_core/tests_linters/`, `tests/test_lint.py`)
+- `services` (`tests/tests_core/tests_services/`)
 - `workflows` (`tests/tests_user_workflows/`)
 - `reviewer` (`test_headless_reviewer.py`, `test_human_reviewer_fresh_decision.py`, `test_rbt_reporter.py`, `test_rbt_demo.py`)
-- `meta` (`test_lint.py`, `test_styleguide.py`, `test_default_collection_contract.py`, `test_offline_core.py`, `test_core_without_tk.py`)
+- `meta` (`tests/tests_meta/test_gate_1.py`–`test_gate_4.py`, `test_lint.py`, `test_styleguide.py`, `test_default_collection_contract.py`, `test_offline_core.py`, `test_core_without_tk.py`)
 - `lint` (`test_lint.py`, `test_styleguide.py`)
-- `hypothesis` (`tests/tests_multiprocessors/test_mp_hypothesis.py`)
+- `hypothesis` (`tests/tests_core/tests_multiprocessors/test_mp_hypothesis.py`)
+- CLI-Tests liegen unter `tests/tests_cli/`
 
 ---
 
