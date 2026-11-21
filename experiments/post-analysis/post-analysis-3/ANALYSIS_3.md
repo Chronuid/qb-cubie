@@ -355,6 +355,7 @@ Dabei wurden **neun konkrete technische Befunde und Kantenfälle** identifiziert
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../docs/GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../../docs/GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../../docs/GUIDE_TGD.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../docs/services/GUIDE_DocFrame.md)  

@@ -1,3 +1,19 @@
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
+<div align="center">
+
+# GEMINI
+
+![Cubie](.assets/cubie-logo-written.png)
+
+---
+
+---
+
+[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+
+</div>
+<!-- /qb:frame -->
+
 # Ziel
 
 Verschlankung von @GUIDE_Quality-Assurance.md und Erzeugung eines neuen QA-Handbuchs namens @GUIDE_TGD.md
@@ -39,3 +55,31 @@ Verschiebe den aktuellen Abschnitt '## 3. Test-Guided Development (TGD) in fünf
 Erkläre darin meine Erklärung für Einsteiger und Experten geeignet, so wie wir es bereits im @GUIDE_Quality-Assurance.md Handbuch etablierten.
 Baue das Sauber nach den @docs/dev/DEV-GUIDE_DocFrame-Conventions.md auf.
 Hinterlege im @GUIDE_Quality-Assurance.md eine Kurzfassung mit einer Referenz auf das neue Handbuch.
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Cubie](.assets/cubie-small.png)
+
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
+
+[↦ | Core-Dokumentation | ↤](./core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
+[↦ | Hintergrund & Essays | ↤](./misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
+
+</div>
+<!-- /qb:frame -->
