@@ -496,7 +496,7 @@ Bevor mit dem Bau des Analyse-Werkzeugs (Stufe 1) begonnen wird, sollten fünf D
 [↦ | DocFrame (Prototyp) | ↤](../docs/services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](../docs/core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](../docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../docs/dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../docs/feature-drafts/virtualization/README.md)  
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  

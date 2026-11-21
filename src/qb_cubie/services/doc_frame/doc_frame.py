@@ -94,7 +94,7 @@ SERVICE_ROUTER: Final[FolderRouter] = FolderRouter(dir="docs/services", glob="GU
 CONTEXT_ROUTER: Final[SiblingRouter] = SiblingRouter(
     hubs=(
         ("Core-Dokumentation", "docs/core/README.md"),
-        ("Entwicklerübersicht & Internals", "docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md"),
+        ("Entwicklerdokumentation", "docs/dev/README.md"),
         ("Hintergrund & Essays", "docs/misc/README.md"),
         ("Feature-Drafts: Virtualisierung", "docs/feature-drafts/virtualization/README.md"),
     )

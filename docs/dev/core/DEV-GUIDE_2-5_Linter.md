@@ -3,7 +3,7 @@
 
 # `Linter`
 
-![Cubie](../.assets/cubie-logo-written.png)
+![Cubie](../../.assets/cubie-logo-written.png)
 
 Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integration.
 
@@ -11,12 +11,12 @@ Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integra
 
 ---
 
-[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
 
-Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (AST) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md).
+Das Linter-Modul orchestriert die statische Code-Analyse innerhalb des Cubie-Ökosystems. Es abstrahiert die Komplexität externer CLI-Tools (AST) und nativer Python-Syntaxbäume (CST) hinter einer einheitlichen, protokollbasierten Schnittstelle, um Diagnosen verschiedener Werkzeuge einheitlich auszuwerten. Die Analyse bietet keine OS-Sicherheitsgrenze und keinen allgemeinen Korrektheitsnachweis. Bekannte Einschränkungen beschreibt die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md).
 
 ---
 
@@ -90,20 +90,21 @@ Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des 
 
 <div align="center">
 
-![Cubie](../.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Core-Dokumentation | ↤](../core/README.md)  
-[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
+[↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
 [↦ | RBT-Klassen | ↤](./DEV-GUIDE_1-1_RBT-Classes.md)  
 [↦ | EBT: Entwicklerübersicht | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
@@ -112,11 +113,6 @@ Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des 
 [↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
 [↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
 [↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
-[↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
-[↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
-[↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
-[↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
-[↦ | Styleguide | ↤](./Style-Guide.md)  
 
 </div>
 <!-- /qb:frame -->

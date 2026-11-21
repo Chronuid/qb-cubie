@@ -287,7 +287,7 @@ nicht zuverlässig erkennen.
 Sind alle geeigneten Backends ausgefallen, bleibt die letzte Infrastruktur-
 Ausnahme als Ursache des abschließenden `RuntimeError` erhalten. Details für
 eigene Mapper und die Anforderungen an den Exception-Transport stehen im
-[Multiprocessing-Handbuch](../dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+[Multiprocessing-Handbuch](../dev/core/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
 ## Bekannte Abweichungen und praktische Folgen
 
@@ -315,7 +315,7 @@ Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Han
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
-[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  

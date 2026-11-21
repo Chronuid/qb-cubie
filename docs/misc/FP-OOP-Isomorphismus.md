@@ -393,7 +393,7 @@ Um dieses System im Team als Standard (Styleguide) zu etablieren, gelten drei go
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Clean-Code Pragmatismus | ↤](./Clean-Code-Pragmatism.md)  
 [↦ | Die Suchmaschine von Babel: eine Metapher | ↤](./Die-Suchmaschine-von-Babel.md)  

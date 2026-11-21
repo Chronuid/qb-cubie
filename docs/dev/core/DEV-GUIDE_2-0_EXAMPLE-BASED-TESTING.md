@@ -3,15 +3,15 @@
 
 # EBT: Entwicklerübersicht
 
-![Cubie](../.assets/cubie-logo-written.png)
+![Cubie](../../.assets/cubie-logo-written.png)
 
-EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md).
-
----
+EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md).
 
 ---
 
-[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -47,20 +47,21 @@ Explizites `returns=None` verlangt eine None-Rückgabe; ausgelassenes `returns` 
 
 <div align="center">
 
-![Cubie](../.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Core-Dokumentation | ↤](../core/README.md)  
-[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
+[↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
 [↦ | RBT-Klassen | ↤](./DEV-GUIDE_1-1_RBT-Classes.md)  
 [↦ | EBT: Entwicklerübersicht | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
@@ -69,11 +70,6 @@ Explizites `returns=None` verlangt eine None-Rückgabe; ausgelassenes `returns` 
 [↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
 [↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
 [↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
-[↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
-[↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
-[↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
-[↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
-[↦ | Styleguide | ↤](./Style-Guide.md)  
 
 </div>
 <!-- /qb:frame -->

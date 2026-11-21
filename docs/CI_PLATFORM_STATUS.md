@@ -106,7 +106,7 @@ Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](./core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 

@@ -198,7 +198,7 @@ Seiteneffekte wiederholen.
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
-[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  

@@ -101,6 +101,7 @@ def _seed_routing_files(root: Path) -> None:
     """Seeds dev guides, misc essays, an unroutable scratchpad, and a dynamic new guide."""
     (root / "docs/GUIDE_New.md").write_text(_make_guide("Neuer Guide"), encoding="utf-8")
     (root / "docs/GUIDE_Scratch.md").write_text(_make_guide("Scratchpad", attrs='routable="false"'), encoding="utf-8")
+    (root / "docs/dev/README.md").write_text(_make_index_readme(mode="table"), encoding="utf-8")
     (root / "docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md").write_text(_make_guide("Dev EBT"), encoding="utf-8")
     (root / "docs/dev/DEV-GUIDE_2-5_Linter.md").write_text(_make_guide("Dev Linter"), encoding="utf-8")
     (root / "docs/dev/services/DEV-GUIDE_DocFrame.md").write_text(_make_guide("Dev DocFrame"), encoding="utf-8")
@@ -147,7 +148,7 @@ def _project_sibling_top_level(root: Path) -> dict[str, Any]:
     """Projects top-level SiblingRouter hub links and hidden subfolder siblings."""
     qa_txt = (root / "docs/GUIDE_Quality-Assurance.md").read_text(encoding="utf-8")
     return {
-        "has_dev_hub": "./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md" in qa_txt,
+        "has_dev_hub": "./dev/README.md" in qa_txt,
         "has_misc_hub": "./misc/README.md" in qa_txt,
         "hides_dev_sibling": "DEV-GUIDE_2-5_Linter.md" not in qa_txt,
         "hides_misc_sibling": "Essay_A.md" not in qa_txt,

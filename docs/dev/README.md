@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`: Architektur- und Klassenübersichten für Kernmodule und Services sowie verbindliche Leitfäden zu Styleguide, Bug-Dokumentation und Releases.
+Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`: Core-Architektur (`docs/dev/core/`), Services-Internals (`docs/dev/services/`) sowie verbindliche Leitfäden zu Styleguide, Bug-Dokumentation, Agenten-Berichten und Releases (`docs/dev/`).
 
 ---
 
@@ -20,39 +20,61 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 </div>
 <!-- /qb:frame -->
 
+## Bereichs-Navigation (`docs/dev/`)
+
+| Bereich | Fokus & Inhalt | Einstieg |
+| :--- | :--- | :--- |
+| **Core-Internals** (`docs/dev/core/`) | Architektur- und Klassenreferenzen für RBT (`1.x`) und EBT, `WorldState`, Arenen, `Multiprocessors`, `Linter` (`2.x`). | [Core-Internals Index](./core/README.md) |
+| **Prozesse & Konventionen** (`docs/dev/`) | Styleguide, `CUBIE_DOC_FRAME_*`-Konventionen, Agenten-Berichte, Bug-Dokumentation, Release-Ablauf und Next Steps. | [Übersicht unten](#prozesse-konventionen--styleguide-docsdev) |
+| **Services-Internals** (`docs/dev/services/`) | Technische Referenzen zu den wiederverwendbaren Services in `qb_cubie.services` (`DocEnsurance`, `DocFrame`). | [Übersicht unten](#services-internals-docsdevservices) |
+
+---
+
 ## Einstieg nach Aufgabe
 
 | Ziel / Aufgabe | Empfohlener Einstieg |
 | :--- | :--- |
 | **Code schreiben, strukturieren & prüfen** | [Styleguide](./Style-Guide.md) und [Testsuite-Leitfaden](../../tests/README.md) |
-| **Review-Based Testing (`qb_cubie.rbt`) verstehen** | [Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) |
-| **Example-Based Testing (`qb_cubie.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./DEV-GUIDE_2-5_Linter.md) |
+| **Review-Based Testing (`qb_cubie.rbt`) verstehen** | [Review-Based Testing](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./core/DEV-GUIDE_1-1_RBT-Classes.md) |
+| **Example-Based Testing (`qb_cubie.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
 | **Services (`qb_cubie.services`) entwickeln & erweitern** | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md) und [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) |
 | **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
+| **`CUBIE_DOC_FRAME_*`-Konventionen nachschlagen** | [`CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) |
 | **Releases vorbereiten & CI-Kompatibilität prüfen** | [Release-Vorbereitung](./DEV-GUIDE_Release-Preparation.md) und [CI Plattformstatus](../CI_PLATFORM_STATUS.md) |
 | **Nächste Entwicklungsschritte & Aufräum-Roadmap einsehen** | [Next Steps](./DEV-GUIDE_Next-Steps.md) |
 
 ---
 
-## Kern-Architektur, Konventionen & Prozesse (`docs/dev/`)
+## Core-Architektur & Klassenreferenzen (`docs/dev/core/`)
 
-Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/` abgelegten Entwickler-Dokumente (RBT `1.x`, EBT & Kern-Subsysteme `2.x`, Prozess-Leitfäden und Styleguide) und wird automatisch durch `DocFrame` (`CUBIE_DOC_FRAME_3`) synchronisiert:
+Alle Kernmodul-Referenzen (RBT `1.x`, EBT & Ausführungsschicht `2.x`) – ausführlicher Einstieg über [`docs/dev/core/README.md`](./core/README.md) (automatisch synchronisiert durch `DocFrame`):
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="links" dir="docs/dev/core" recursive="false" -->
+[↦ | Review-Based Testing | ↤](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
+[↦ | RBT-Klassen | ↤](./core/DEV-GUIDE_1-1_RBT-Classes.md)  
+[↦ | EBT: Entwicklerübersicht | ↤](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Die EBT-Klasse | ↤](./core/DEV-GUIDE_2-1_EBT-Class.md)  
+[↦ | WorldState | ↤](./core/DEV-GUIDE_2-2_WorldState-Class.md)  
+[↦ | Arenen und IPC-Codecs | ↤](./core/DEV-GUIDE_2-3_Arenas.md)  
+[↦ | `Multiprocessors` | ↤](./core/DEV-GUIDE_2-4_Multiprocessors.md)  
+[↦ | `Linter` | ↤](./core/DEV-GUIDE_2-5_Linter.md)  
+<!-- /qb:frame -->
+
+---
+
+## Prozesse, Konventionen & Styleguide (`docs/dev/`)
+
+Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der Styleguide (automatisch synchronisiert durch `DocFrame`):
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="." recursive="false" -->
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
-| [Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) | RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abnahmen oder eigene automatisierte Reviewer nutzbar. Es führt das Target nicht aus und liefert keinen formalen Korrektheits- oder Sicherheitsnachweis. Die [Semantikreferenz](../core/GUIDE_Contract-Semantics.md) definiert die Grenzen; vollständige Beispiele stehen im [RBT-Nutzungshandbuch](../core/GUIDE_RBT-Usage-Pattern.md). |
-| [RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) | Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.protocols`. |
-| [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md). |
-| [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) | `EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung. |
-| [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) | `WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../core/GUIDE_Contract-Semantics.md). |
-| [Arenen und IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md) | Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen. |
-| [`Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md) | Diese Entwicklerreferenz beschreibt Multiprozess-Ausführung und die zugehörigen Schnittstellen. |
-| [`Linter`](./DEV-GUIDE_2-5_Linter.md) | Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integration. |
 | [DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) | Kurzanleitung für Agenten zum korrekten Ausfüllen des `CUBIE_DOC_FRAME_2`-Provenance-Headers und zum strukturierten Aufbau von Analysen, Hypothesen, Audits und TGD-Protokollen. |
+| [DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) | Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`CUBIE_DOC_FRAME_1` bis `CUBIE_DOC_FRAME_3`), Zonen, Attribute, Prüfregeln und Sync-Kommandos für Agenten. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
+| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Architektur-Leitlinie für Pakete unter `src/qb_cubie/services/`: Strikte vertikale Service-Isolation gegen den Core, Entkopplung geteilter Primitiven sowie Komposition an der Aufrufstelle am Beispiel von `DocEnsurance`, `DocFrame` und dem geplanten `Coverage`-Service. |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
 | [Styleguide](./Style-Guide.md) | Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes. |
 <!-- /qb:frame -->
@@ -100,10 +122,11 @@ Für die Qualitätssicherung, das Test-Guided Development (TGD) sowie den sauber
 
 ## Pflege dieses Routing-Dokuments
 
-Neue Entwickler-Dokumente unter `docs/dev/` oder `docs/dev/services/` werden automatisch in die obigen Tabellen aufgenommen, sobald sie über einen gültigen `CUBIE_DOC_FRAME_1`-Kopfrahmen mit kurzem Einführungstext vor dem ersten `---` verfügen. Anschließend lassen sich alle Rahmen und Index-Tabellen synchronisieren und verifizieren:
+Neue Entwickler-Dokumente unter `docs/dev/`, `docs/dev/core/` oder `docs/dev/services/` werden automatisch in die obigen Tabellen aufgenommen, sobald sie über einen gültigen `CUBIE_DOC_FRAME_1`-Kopfrahmen mit kurzem Einführungstext vor dem ersten `---` verfügen. Anschließend lassen sich alle Rahmen und Index-Tabellen synchronisieren und verifizieren:
 
 ```bash
 qb-cubie docframe update docs/dev/README.md
+qb-cubie docframe update docs/dev/core/README.md
 .venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
 
@@ -129,17 +152,11 @@ qb-cubie docframe update docs/dev/README.md
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
-[↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
-[↦ | RBT-Klassen | ↤](./DEV-GUIDE_1-1_RBT-Classes.md)  
-[↦ | EBT: Entwicklerübersicht | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
-[↦ | Die EBT-Klasse | ↤](./DEV-GUIDE_2-1_EBT-Class.md)  
-[↦ | WorldState | ↤](./DEV-GUIDE_2-2_WorldState-Class.md)  
-[↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
-[↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
-[↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
 [↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
+[↦ | DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten | ↤](./DEV-GUIDE_DocFrame-Conventions.md)  
 [↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
 [↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
+[↦ | DEV-GUIDE: Service-Architektur & strikte Service-Isolation | ↤](./DEV-GUIDE_Services.md)  
 [↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
 [↦ | Styleguide | ↤](./Style-Guide.md)  
 

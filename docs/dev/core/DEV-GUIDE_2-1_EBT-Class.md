@@ -3,15 +3,15 @@
 
 # Die EBT-Klasse
 
-![Cubie](../.assets/cubie-logo-written.png)
+![Cubie](../../.assets/cubie-logo-written.png)
 
-`EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung.
-
----
+`EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung.
 
 ---
 
-[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -45,7 +45,7 @@
 
 Die Traces werden nach Eingangsschritt gruppiert. Pro Schritt wertet `evaluate_step_logic(traces, self.post_quantor)` die Einzelerfüllungen `sat(t) = t.evaluation if t.post.expect else not t.evaluation` strikt nach `self.post_quantor` aus (`all(results)` bei `"all"`, `any(results)` bei `"exists"` – ohne historische $Q^+$/$Q^-$-Partitionierung und ohne Vacuous-True bei leerer Trace-Liste unter `"exists"`). Danach werden die Schritt-Ergebnisse gemäß `self.pre_quantor` (`all(successes)` bei `"all"`, `any(successes)` bei `"exists"`) verknüpft. `EBT.expect=False` negiert dieses Endergebnis. Alle Eingänge teilen dieselbe Zielmenge; eine Zuordnung von `pre[i]` zu `post[i]` entsteht nicht.
 
-Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt Outcomes und Traces zurück und liefert unabhängige historische Momentaufnahmen; siehe [Vertragssemantik](../core/GUIDE_Contract-Semantics.md#Wiederholte-Läufe-und-historische-Ergebnisse).
+Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt Outcomes und Traces zurück und liefert unabhängige historische Momentaufnahmen; siehe [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md#Wiederholte-Läufe-und-historische-Ergebnisse).
 
 ## Vergleiche und Diagnosen
 
@@ -63,20 +63,21 @@ Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt
 
 <div align="center">
 
-![Cubie](../.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Core-Dokumentation | ↤](../core/README.md)  
-[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
+[↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
 [↦ | RBT-Klassen | ↤](./DEV-GUIDE_1-1_RBT-Classes.md)  
 [↦ | EBT: Entwicklerübersicht | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
@@ -85,11 +86,6 @@ Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt
 [↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
 [↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
 [↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
-[↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
-[↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
-[↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
-[↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
-[↦ | Styleguide | ↤](./Style-Guide.md)  
 
 </div>
 <!-- /qb:frame -->

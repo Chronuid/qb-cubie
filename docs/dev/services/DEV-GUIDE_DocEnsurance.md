@@ -476,7 +476,7 @@ passed=True | sessions=1 | outputs=('21', '42')
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](../../core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | `DocEnsurance` | ↤](./DEV-GUIDE_DocEnsurance.md)  

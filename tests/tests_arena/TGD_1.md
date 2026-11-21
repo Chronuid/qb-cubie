@@ -9,18 +9,10 @@
 - **Synthesebasis:** `tests/tests_arena/GEMINI.md`, `tests/tests_arena/ANALYSIS.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/CI_PLATFORM_STATUS.md`, `docs/dev/Style-Guide.md`, `docs/dev/DEV-GUIDE_Write-down-the-bugs.md`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`, `tests/tests_arena/test_ebt_arena.py`, `tests/tests_arena/test_ebt_hydration_boundaries.py`, `tests/tests_arena/test_pyvenv_workspace_isolation.py`, `tests/tests_linter/test_linter.py`, `KNOWN_ISSUES.md`, `CHANGELOG.md`
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`, Ausgangs-Commit `6a6f9ac6`)
 - **Git-Log:** `git log -n 1`
-```text
-commit 6a6f9ac6213f374e24cc0f6796b8338326111e39 (HEAD -> main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Fri Nov 20 10:37:03 2026 +0100
-
-    Analyzed BUG-001
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## Kurzfassung

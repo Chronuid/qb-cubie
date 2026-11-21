@@ -50,19 +50,17 @@ ausführbare Tests nachgewiesen werden.
 
 ![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../../GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../../GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../../GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../../GUIDE_Example-Based-Testing.md)  
-[↦ | Linter | ↤](../../GUIDE_Linter.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../../GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Entwicklerübersicht & Internals | ↤](../../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../../dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | **Libvirt, QEMU/KVM und Python** | ↤](./Libvirt-Handbuch.md)  
 [↦ | Wizards-Handbuch | ↤](./Wizards-Handbuch.md)  

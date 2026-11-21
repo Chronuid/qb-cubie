@@ -9,18 +9,10 @@
 - **Synthesebasis:** `tests/GEMINI.md`, `.github/workflows/ci.yml`, `pyproject.toml`, `KNOWN_ISSUES.md`, `CHANGELOG.md`, `docs/CI_PLATFORM_STATUS.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/core/GUIDE_Arena-Management.md`, `docs/dev/DEV-GUIDE_2-3_Arenas.md`, `docs/services/GUIDE_DocEnsurance.md`, `tests/tests_arena/ANALYSIS.md`, `tests/tests_arena/TGD_1.md`, `src/qb_cubie/` (`arenas/*`, `ebt.py`, `reporter.py`, `linters/mypy.py`, `linters/pylint.py`, `services/doc_ensurance/*`, `services/doc_frame/*`), `scripts/check_wheel.py`, `scripts/provision_test_arenas.py`, `experiments/benchmarks/cubie_benchmarks/`, `experiments/ollama-agents/ollama_agents/`, `tests/` inkl. `tests/wheel/` und `tests/tests_meta/`, Git-Historie (`a4af5dad`, `085e7a00`, `518cf28f`)
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`, Ausgangs-Commit `518cf28f`)
 - **Git-Log:** `git log -n 1`
-```text
-commit 518cf28fb8e5a83e12757d84e5e204e2aeb24509 (HEAD -> main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Fri Nov 20 11:25:54 2026 +0100
-
-    Tried the full orchestrated TGD-Flow for BUG-001
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## Kurzfassung (Executive Summary)

@@ -136,6 +136,33 @@ In `src/qb_cubie/services/doc_frame/doc_frame_rules.py` prüft `_has_missing_zon
 
 ---
 
+### [BUG-006] `tests/test_styleguide.py::test_function_size` unterstützt keine `# noqa`-Ausnahmekommentare mit Begründung
+
+- **Status:** Offen *(Workaround aktiv via `@pytest.mark.skip`)*
+- **Schweregrad:** Niedrig
+- **Bereich:** `tests/test_styleguide.py` (`test_function_size`)
+- **Umgebung / Version:** `v0.0.10`, Python `3.13`, plattformunabhängig
+
+**Ist-Verhalten:**  
+`test_function_size` prüft starr `len(body_lines(source, node)) > FUNCTION_LIMIT` (`12`) ohne Möglichkeit, einzelne Funktionen temporär und begründet per `# noqa`-Kommentar (z. B. `# noqa: function-size -- ...`) auszusetzen. Dadurch lässt sich etwa `src/qb_cubie/ebt.py:618` (`_validate_wrapper_keys`, 14 Zeilen) nicht gezielt pausieren, während die nächste Mutation des `ebt.py`-Moduls noch genauer durchdacht wird.
+
+**Soll-Verhalten:**  
+`test_function_size` (und perspektivisch auch weitere Styleguide-Checks in `tests/test_styleguide.py`) erkennt explizite `# noqa`-Kommentare an der Funktionsdefinition (idealerweise mit verpflichtender Begründung), sodass begründete, zeitlich begrenzte Ausnahmen feingranular möglich sind, ohne den gesamten Test global zu überspringen.
+
+**Reproduktion:**  
+```bash
+.venv/bin/python -m pytest -q tests/test_styleguide.py -k "test_function_size"
+```
+Ohne `@pytest.mark.skip` schlägt der Test an `src/qb_cubie/ebt.py:618` (`_validate_wrapper_keys`: 14 body lines, maximum 12) fehl, auch wenn ein `# noqa`-Kommentar gesetzt ist.
+
+**Workaround:**  
+`tests/test_styleguide.py::test_function_size` ist bis auf Weiteres mit `@pytest.mark.skip` pausiert (Begründung: die nächste Mutation vom `ebt.py`-Modul wird noch genauer durchdacht).
+
+**Hinweise / Ursache:**  
+`body_lines()` filtert `tokenize.COMMENT` heraus und `test_function_size()` wertet die Kommentar-Tokens auf der `def`-Zeile derzeit nicht aus.
+
+---
+
 ## Bekannte Einschränkungen / Plattform-Spezifika
 
 Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwarteten Bugs), aber für den produktiven Einsatz zu beachten:
@@ -182,7 +209,7 @@ Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwartete
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
 

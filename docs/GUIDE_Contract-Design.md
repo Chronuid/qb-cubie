@@ -206,7 +206,7 @@ Normierung erfüllt: True | Geprüfte Eingänge: 3
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](./core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 

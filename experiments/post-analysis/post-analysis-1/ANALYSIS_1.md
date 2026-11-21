@@ -7,20 +7,10 @@
 - **Reasoning-Effort:** XHigh
 - **Analysedatum:** 17. November 2026, ~ 07:15 (CET)
 - **Synthesebasis:** `../../testguided-study`
-- **Stand**: qb-cubie (v0.0.7)
-- **Git-Log**: `git log -n 1`
-```text
-commit 7e08e2ac7a39586fe4ce9dfff209ee11810ea0ca (HEAD -> main, origin/main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Mon Nov 16 08:50:29 2026 +0100
-
-    Double-Check
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 # Post-Studien-Audit: Dimension B – Forschungsmethodik, Praktiken und Dynamiken in `../../testguided-study`

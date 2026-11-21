@@ -9,18 +9,10 @@
 - **Synthesebasis:** `tests/GEMINI.md`, `tests/ANALYSIS_CI_MATRIX.md`, `tests/TGD_CI_STAGE1.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/CI_PLATFORM_STATUS.md`, `docs/core/GUIDE_Arena-Management.md`, `docs/dev/DEV-GUIDE_2-3_Arenas.md`, `docs/dev/Style-Guide.md`, `src/qb_cubie/arenas/_relocation_win32.py`, `src/qb_cubie/arenas/_relocation.py`, `../src/qb_cubie/arenas/hydration.py`, `src/qb_cubie/arenas/_requirements.py`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/ebt.py`, `src/qb_cubie/reporter.py`, `src/qb_cubie/linters/mypy.py`, `src/qb_cubie/linters/pylint.py`, `scripts/provision_test_arenas.py`, `.github/workflows/ci.yml`, `KNOWN_ISSUES.md`, `CHANGELOG.md`
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`, Ausgangs-Commit `574282fe`)
 - **Git-Log:** `git log -n 1`
-```text
-commit 574282fe6a34192d54aa8ca7483723af72201b86 (HEAD -> main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Fri Nov 20 12:19:05 2026 +0100
-
-    TGD_CI_STAGE1
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## Kurzfassung

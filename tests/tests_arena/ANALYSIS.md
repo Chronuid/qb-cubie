@@ -9,18 +9,10 @@
 - **Synthesebasis:** `tests/tests_arena/GEMINI.md`, `KNOWN_ISSUES.md`, `GUTACHTEN.md` (§ 6.1, B1), `pyproject.toml`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`, `src/qb_cubie/arenas/phantom_hook.py`, `src/qb_cubie/arenas/tempfs.py`, `src/qb_cubie/arenas/_tempfs_runner.py`, `../../src/qb_cubie/arenas/hydration.py`, `src/qb_cubie/arenas/_relocation.py`, `src/qb_cubie/ebt.py`, `src/qb_cubie/protocols.py`, `src/qb_cubie/linter.py`, `tests/tests_arena/test_ebt_arena.py`, `tests/tests_arena/test_ebt_hydration_boundaries.py`, `tests/tests_arena/test_ebt_tempfs.py`, `tests/tests_arena/test_ebt_console_environment.py`, `tests/tests_arena/test_arena_requirements.py`, `tests/tests_arena/test_ebt_phantom_calls.py`, `tests/tests_arena/test_phantom_import_policy.py`, `tests/tests_arena/test_ebt_arena_mutation.py`, `tests/tests_arena/test_ebt_resource_limits.py`, `tests/tests_arena/resource_cases/runner.py`, `tests/tests_arena/test_security_arena_codec.py`, `tests/tests_arena/test_ipc_codecs.py`, `tests/tests_arena/test_random_findings.py`, `tests/tests_ebt/test_ebt_imports.py`, `tests/tests_ebt/test_ebt_ignores.py`, `tests/tests_ebt/test_ebt_directory_topology.py`, `tests/tests_ebt/test_ebt_fs_collisions.py`, `tests/tests_linter/test_linter.py`, `tests/tests_linter/test_mypy.py`, `tests/test_offline_core.py`, `tests/test_styleguide.py`, `tests/wheel/smoke_installed.py`, `docs/dev/README.md`, `docs/dev/Style-Guide.md`, `docs/dev/DEV-GUIDE_2-3_Arenas.md`, `docs/dev/DEV-GUIDE_Write-down-the-bugs.md`, `docs/core/GUIDE_Arena-Management.md`, `docs/core/GUIDE_Contract-Semantics.md`, `docs/GUIDE_Quality-Assurance.md`, Git-Historie (`bc11bff1` bis `c8beda64`)
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`)
 - **Git-Log:** `git log -n 1`
-```text
-commit c8beda64ea7104aa6f9e8165fb41552da170e4c9 (HEAD -> main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Fri Nov 20 10:04:31 2026 +0100
-
-    Added the QA-GUIDES as routing table to the docs/README.md
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## Kurzfassung (Executive Summary)

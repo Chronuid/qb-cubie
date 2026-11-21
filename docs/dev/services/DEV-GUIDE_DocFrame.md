@@ -273,7 +273,7 @@ GUIDE_ROUTER = FolderRouter(dir="docs", glob="GUIDE_*.md")
 SERVICE_ROUTER = FolderRouter(dir="docs/services", glob="GUIDE_*.md")
 CONTEXT_ROUTER = SiblingRouter(
     hubs=(
-        ("Entwicklerübersicht & Internals", "docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md"),
+        ("Entwicklerdokumentation", "docs/dev/README.md"),
         ("Hintergrund & Essays", "docs/misc/README.md"),
         ("Feature-Drafts: Virtualisierung", "docs/feature-drafts/virtualization/README.md"),
     )
@@ -537,7 +537,7 @@ print([r.rule_id for r in service.rules])
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](../../core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](../DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | `DocEnsurance` | ↤](./DEV-GUIDE_DocEnsurance.md)  

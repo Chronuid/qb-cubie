@@ -138,7 +138,7 @@ Datei-, Netzwerk- und Datenbankoperationen werden nicht zurückgerollt. Das
 Workerlimit gilt auch im Ersatzbackend. Fehler beim Aufräumen oder bei der
 Konfiguration lösen keine Wiederholung aus. Die genaue Fehlerklassifikation und
 den Vertrag für eigene Backends beschreibt das
-[Multiprocessing-Handbuch](../dev/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
+[Multiprocessing-Handbuch](../dev/core/DEV-GUIDE_2-4_Multiprocessors.md#fehlerherkunft-und-wiederholungssemantik).
 
 ## Erlaubte Alternativen und verbotene Ergebnisse
 
@@ -493,7 +493,7 @@ Eine erwartete Umgebungsänderung lässt sich über `post=WorldState(arena="test
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
-[↦ | Entwicklerübersicht & Internals | ↤](../dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 [↦ | Arena-Management | ↤](./GUIDE_Arena-Management.md)  

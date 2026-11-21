@@ -3,15 +3,15 @@
 
 # Arenen und IPC-Codecs
 
-![Cubie](../.assets/cubie-logo-written.png)
+![Cubie](../../.assets/cubie-logo-written.png)
 
-Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen.
-
----
+Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen.
 
 ---
 
-[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  
+---
+
+[README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -40,11 +40,11 @@ Eine gleichzeitig aktive Lebensphase benötigt eine eigene Arena-Instanz. `run()
 
 `PyVenv.setup()` legt einen gemeinsamen temporären Laufzeit-Root (`_root_path`) mit getrenntem `workspace_path` (`workspace/`, fachlicher Arbeitsordner für `CWD`, `pre.fs` und `post.fs`) und `virtual_path` (`.venv/`, geklonte virtuelle Umgebung) an. Pro `execute()`-Lauf verwaltet `_run_in_subprocess()` zusätzlich ein temporäres IPC-/Phantom-Verzeichnis (`ipc_*` mit `ipc_in<suffix>`, `ipc_out<suffix>` und `_cubie_phantom.py`) unterhalb von `_root_path`, das im Anschluss atomar abgeräumt wird. Das Target läuft mit dem Interpreter von `virtual_path`. `get_state()` liefert den sauberen Workspace als `fs` und die virtuelle Umgebung als `arena` zurück. Der Vergleich einer erwarteten Umgebung ist ein gefilterter Dateiabgleich, kein Nachweis identischer Laufzeitbedingungen.
 
-Vor der Hydrierung passt `_relocation.relocate_scripts()` (unter Delegation an `_relocation_win32.relocate_windows_launcher()` für verifizierte `uv`-PE-Ressourcen-Trampolines und `distlib`-ZIP-Wrapper) unterstützte Python-Einstiegsskripte an den Klon an. Nicht unterstützte Launcher sowie sonstige native Windows-`.exe`-Binaries ohne unterstützte Python-Trampoline-Struktur werden vor der Target-Ausführung mit `RuntimeError` abgelehnt. Der genaue Umfang und die Grenzen stehen im [Arena-Handbuch](../core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
+Vor der Hydrierung passt `_relocation.relocate_scripts()` (unter Delegation an `_relocation_win32.relocate_windows_launcher()` für verifizierte `uv`-PE-Ressourcen-Trampolines und `distlib`-ZIP-Wrapper) unterstützte Python-Einstiegsskripte an den Klon an. Nicht unterstützte Launcher sowie sonstige native Windows-`.exe`-Binaries ohne unterstützte Python-Trampoline-Struktur werden vor der Target-Ausführung mit `RuntimeError` abgelehnt. Der genaue Umfang und die Grenzen stehen im [Arena-Handbuch](../../core/GUIDE_Arena-Management.md#pyvenv-kopierte-virtuelle-umgebung).
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../core/GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
+Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../../core/GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
 
 ## IPCC und Codec-Auswahl
 
@@ -69,10 +69,10 @@ auf POSIX (über gleichzeitige `selectors`-Pipe-Überwachung und `SIGTERM`/`SIGK
 auf die Prozessgruppe) ebenso wie auf Windows (über zwei Reader-Threads und
 Win32-Job-Objects mit `taskkill`-Fallback). Ohne Limits bleibt das bisherige
 Ausführungsverhalten erhalten; PyVenv puffert dann weiterhin die gesamte Ausgabe.
-Siehe [Arena-Handbuch](../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
+Siehe [Arena-Handbuch](../../core/GUIDE_Arena-Management.md#laufzeit-und-ausgabe-begrenzen).
 Die `pre.fs`-Hydrierung begrenzt Kopierziele auf den fachlichen Workspace (absolute Pfade, ausbrechende `..`-Komponenten und entweichende Symlinks/Junctions werden mit `ValueError` abgelehnt). Für laufende Targets selbst werden Dateiziele nicht eingeschränkt; Rechte, Netzwerk und geerbte Variablen bleiben grundsätzlich verfügbar.
 
-Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.
+Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../../feature-drafts/virtualization/README.md). Deren geplante Eigenschaften sind keine Garantien des aktuellen Arena-Protokolls oder seiner Implementierungen.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -82,20 +82,21 @@ Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtu
 
 <div align="center">
 
-![Cubie](../.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
+[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Core-Dokumentation | ↤](../core/README.md)  
-[↦ | Hintergrund & Essays | ↤](../misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../README.md)  
+[↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
 [↦ | Review-Based Testing | ↤](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md)  
 [↦ | RBT-Klassen | ↤](./DEV-GUIDE_1-1_RBT-Classes.md)  
 [↦ | EBT: Entwicklerübersicht | ↤](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
@@ -104,11 +105,6 @@ Docker-/VM-Arenen existieren nur als [Feature-Entwürfe](../feature-drafts/virtu
 [↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
 [↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
 [↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
-[↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
-[↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
-[↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
-[↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
-[↦ | Styleguide | ↤](./Style-Guide.md)  
 
 </div>
 <!-- /qb:frame -->

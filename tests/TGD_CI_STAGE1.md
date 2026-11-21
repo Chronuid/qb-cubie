@@ -9,18 +9,10 @@
 - **Synthesebasis:** `tests/GEMINI.md`, `tests/ANALYSIS_CI_MATRIX.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/CI_PLATFORM_STATUS.md`, `docs/core/GUIDE_Arena-Management.md`, `docs/dev/DEV-GUIDE_2-3_Arenas.md`, `docs/dev/Style-Guide.md`, `src/qb_cubie/arenas/_process_win32.py`, `src/qb_cubie/arenas/_process.py`, `src/qb_cubie/arenas/tempfs.py`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/_relocation.py`, `src/qb_cubie/services/doc_frame/doc_frame.py`, `scripts/check_wheel.py`, `experiments/benchmarks/cubie_benchmarks/execution/_process.py`, `experiments/ollama-agents/ollama_agents/reviewer/tools.py`, `.github/workflows/ci.yml`, `KNOWN_ISSUES.md`, `CHANGELOG.md`
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`, Ausgangs-Commit `518cf28f`)
 - **Git-Log:** `git log -n 1`
-```text
-commit 518cf28fb8e5a83e12757d84e5e204e2aeb24509 (HEAD -> main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Fri Nov 20 11:25:54 2026 +0100
-
-    Tried the full orchestrated TGD-Flow for BUG-001
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## Kurzfassung

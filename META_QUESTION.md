@@ -194,7 +194,7 @@ Sollen wir als Nächstes die paarweise Zuordnung (`pre`/`post`-Kopplung) im `EBT
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](./docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
 

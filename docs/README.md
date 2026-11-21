@@ -19,7 +19,7 @@
 | [docs/core](core/README.md) | Verbindliche Core-Referenzen und Nutzungsmuster (`Contract-Semantics`, `EBT`, `RBT`, `Arena-Management`, `Linter`). |
 | `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
 | [docs/services](services/GUIDE_DocEnsurance.md) | Leitfäden zu den Services in `qb_cubie.services` (`DocEnsurance` sowie [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
-| [docs/dev](dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | Technische Entwicklerübersichten, [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md) für die Arbeit am Cubie-Code. |
+| [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
 | [docs/misc](misc/README.md) | Hintergrundtexte und optionale historische Entwicklungsunterlagen. Die Bereichsdokumentation ist ohne diese Unterlagen verständlich. |
 | [tests/README.md](../tests/README.md) | Leitfaden zur Testsuite, Marker-Profilen, `Makefile`-Zielen und Hypothesis-Profilen. |
 | [docs/feature-drafts](feature-drafts/virtualization/README.md) | Funktionsentwürfe und Prototypen; keine Zusage einer verfügbaren Produktfunktion. |
@@ -77,7 +77,7 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
 [↦ | Core-Dokumentation | ↤](./core/README.md)  
-[↦ | Entwicklerübersicht & Internals | ↤](./dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 

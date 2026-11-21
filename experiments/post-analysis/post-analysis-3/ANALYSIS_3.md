@@ -6,25 +6,13 @@
 - **Modell:** Gemini-4-Argon
 - **Reasoning-Effort:** High
 - **Analysedatum:** 17. November 2026, ~ 09:00 (CET)
-- **Synthesebasis:**
-  - `src/qb_cubie/` (39 Module, 7.196 LOC; insb. `services/doc_ensurance/`, `services/doc_frame/`, `cli.py`, `reporter.py`, `linter.py`, `ebt.py`, `arenas/`)
-  - `tests/` (75 Testmodule, 494 `test_*`-Funktionen, 470 `EBT`-Aufrufe; insb. `tests/tests_services/tests_doc_ensurance/` und `tests/tests_services/tests_doc_frame/`, `test_styleguide.py`, `test_lint.py`, `conftest.py`)
-  - `docs/` (`GUIDE_Quality-Assurance.md`, `services/GUIDE_DocEnsurance.md`, `services/GUIDE_DocFrame.md`, `dev/services/DEV-GUIDE_DocEnsurance.md`, `dev/services/DEV-GUIDE_DocFrame.md`, `dev/DEV-GUIDE_Next-Steps.md`, `GUTACHTEN.md`, `META_QUESTION.md`, `CHANGELOG.md`)
-  - Git-Commit-Historie von `qb-cubie` unter striktem Ausschluss von `experiments/` (insb. die 51 Commits im Service-Entwicklungsfenster `3ae8b33e` vom 13.11.2026 bis `7e08e2ac` vom 16.11.2026; Releases `v0.0.3` $\to$ `v0.0.7`)
+- **Synthesebasis:** 
 - **Stand:** qb-cubie (v0.0.7)
 - **Git-Log:** `git log -n 1`
-```text
-commit 7e08e2ac7a39586fe4ce9dfff209ee11810ea0ca (HEAD -> main, origin/main)
-Author: Chronuid <Dominickwirzba@gmail.com>
-Date:   Mon Nov 16 08:50:29 2026 +0100
-
-    Double-Check
-```
 
 ---
 
 ---
-
 <!-- /qb:frame -->
 
 ## 1. Untersuchungsrahmen, Empirische Grundgesamtheit und Dimensionalitäten
@@ -362,21 +350,21 @@ Dabei wurden **neun konkrete technische Befunde und Kantenfälle** identifiziert
 
 ![Cubie](../../../docs/.assets/cubie-small.png)
 
-[↦ | Arena-Management | ↤](../../../docs/GUIDE_Arena-Management.md)  
 [↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../../docs/GUIDE_Benchmarks.md)  
-[↦ | Verbindliche Vertragssemantik | ↤](../../../docs/GUIDE_Contract-Semantics.md)  
-[↦ | EBT-Nutzungsmuster | ↤](../../../docs/GUIDE_EBT-Usage-Pattern.md)  
-[↦ | Example-Based Testing | ↤](../../../docs/GUIDE_Example-Based-Testing.md)  
-[↦ | Linter | ↤](../../../docs/GUIDE_Linter.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../../docs/GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../docs/GUIDE_Quality-Assurance.md)  
-[↦ | RBT-Nutzungsmuster | ↤](../../../docs/GUIDE_RBT-Usage-Pattern.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../../docs/GUIDE_Quantifiers.md)  
 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../docs/services/GUIDE_DocFrame.md)  
 
-[↦ | Entwicklerübersicht & Internals | ↤](../../../docs/dev/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md)  
+[↦ | Core-Dokumentation | ↤](../../../docs/core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../../../docs/dev/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../../docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../../docs/feature-drafts/virtualization/README.md)  
+[↦ | Post-Hoc Audit 3 | ↤](./ANALYSIS_3.md)  
+[↦ | Post-Studien-Audit | ↤](./GEMINI.md)  
 
 </div>
 <!-- /qb:frame -->
