@@ -18,8 +18,8 @@ import pytest
 
 import qb_cubie
 from qb_cubie import EBT, TempFS, WorldState
-from qb_cubie.protocols import ReviewData
-from qb_cubie.rbt import RBT
+from qb_cubie.core.protocols import ReviewData
+from qb_cubie.core.rbt import RBT
 
 
 def test_imports_and_distribution():
@@ -41,7 +41,7 @@ def test_imports_and_distribution():
     for module in pkgutil.walk_packages(qb_cubie.__path__, "qb_cubie."):
         importlib.import_module(module.name)
     assert not (package.parent / "arenas/arena_envs").exists()
-    assert importlib.util.find_spec("qb_cubie.arenas.arena_envs") is None
+    assert importlib.util.find_spec("qb_cubie.core.arenas.arena_envs") is None
     assert not qb_cubie.PyVenv().env_path.resolve().is_relative_to(package.parent.resolve())
 
 
@@ -156,7 +156,7 @@ def test_installed_core_without_tk(tmp_path, feature, missing):
 
 
 def test_doc_ensurance_installed_service(tmp_path):
-    from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+    from qb_cubie.core.services import CUBIE_DOC_STYLE, DocEnsurance
 
     doc = tmp_path / "GUIDE.md"
     doc.write_text(

@@ -14,7 +14,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from qb_cubie.arenas.pyvenv import ArenaBuilder, default_arena_path
+from qb_cubie.core.arenas.pyvenv import ArenaBuilder, default_arena_path
 
 # Keep codec versions aligned with uv.lock. All bases support both codecs
 # without needing another provisioning step when a test switches codecs.

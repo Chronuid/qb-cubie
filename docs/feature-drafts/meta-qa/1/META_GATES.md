@@ -125,8 +125,8 @@ class CanonicalImportRule(CstRule):
             self.add_diagnostic(node, "META-IMPORT", f"Verwende 'qb_cubie' statt '{mod}'.")
 
 
-bad_test = "from src.qb_cubie.rbt import RBT\n"
-good_test = "from qb_cubie.rbt import RBT\n"
+bad_test = "from src.qb_cubie.core.rbt import RBT\n"
+good_test = "from qb_cubie.core.rbt import RBT\n"
 linter = CstLinter(rules=[CanonicalImportRule()])
 print("Bad:", [(d.rule_id, d.line) for d in linter.check(bad_test)])
 print("Good:", linter.check(good_test))

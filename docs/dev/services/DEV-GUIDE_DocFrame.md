@@ -5,14 +5,14 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
+Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
 
 ---
 
 > [!WARNING]
 >
 > **Entwicklungsstatus: Prototyp – Evaluation und Härtung ausstehend:**  
-> `qb_cubie.services.doc_frame` ist als **Prototyp** markiert und muss vor einer Stabilitätsfreigabe noch systematisch evaluiert (z. B. gegen heterogene Markdown-Dialekte, Edge-Cases im Scanner und größere Dokumentationsbäume) sowie gehärtet werden. Änderungen an DTOs, Presets und Regel-Semantik bleiben ausdrücklich vorbehalten.
+> `qb_cubie.core.services.doc_frame` ist als **Prototyp** markiert und muss vor einer Stabilitätsfreigabe noch systematisch evaluiert (z. B. gegen heterogene Markdown-Dialekte, Edge-Cases im Scanner und größere Dokumentationsbäume) sowie gehärtet werden. Änderungen an DTOs, Presets und Regel-Semantik bleiben ausdrücklich vorbehalten.
 
 ---
 
@@ -54,7 +54,7 @@ Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrato
 2. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
    Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` ohne Dateisystem-Schreibzugriffe zurück.
 3. **CLI-Einstiegspunkt (`src/qb_cubie/cli.py`, `[project.scripts].qb-cubie`):**
-   `qb-cubie docframe update [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe update` und `python -m qb_cubie.services.docframe update`) delegiert direkt an `DocFrame.update(target=..., excludes=...)`, formatiert den `DocFrameReport` wahlweise als Text oder JSON und mappt `STATE-GUARD`- sowie I/O-Fehler (`ValueError`, `TypeError`, `OSError`) auf Exit-Code `2`.
+   `qb-cubie docframe update [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe update` und `python -m qb_cubie.core.services.docframe update`) delegiert direkt an `DocFrame.update(target=..., excludes=...)`, formatiert den `DocFrameReport` wahlweise als Text oder JSON und mappt `STATE-GUARD`- sowie I/O-Fehler (`ValueError`, `TypeError`, `OSError`) auf Exit-Code `2`.
 
 ### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`_resolve_catalog_root`)
 
@@ -139,7 +139,7 @@ Jedes Dokument im Repository fungiert über seinen `zone="head"`-Rahmen als eige
 Das folgende ausführbare Beispiel demonstriert, wie `parse_frame_spans` einen `qb:frame`-Tag innerhalb eines Code-Fences ignoriert und wie `extract_doc_meta` Titel, Label, Kurzbeschreibung und Sortier-Attribute extrahiert:
 
 ```python
-from qb_cubie.services.doc_frame import extract_doc_meta, parse_frame_spans
+from qb_cubie.core.services.doc_frame import extract_doc_meta, parse_frame_spans
 
 fence = "```"
 raw_md = (
@@ -258,7 +258,7 @@ Wenn `DocFrame.run()` in Pass 2 eine Datei aktualisiert, müssen `head`-, `route
 Das folgende Beispiel zeigt in drei zusammengehörigen Schritten (`session=docframe_presets`), wie sich die Router-Bausteine, der gemeinsame Footer und die drei Presets in Python zusammensetzen und abfragen lassen:
 
 ```python session=docframe_presets
-from qb_cubie.services.doc_frame import (
+from qb_cubie.core.services.doc_frame import (
     CatalogRouter, CompactNav, FolderRouter, SiblingRouter,
 )
 
@@ -292,7 +292,7 @@ Quick-Nav: 3 | Hubs: 3
 Im zweiten Schritt bündeln wir die Router im gemeinsamen `<div align="center">`-Fuß (`STD_FOOTER_BLOCKS`) und konfigurieren den `CatalogRouter` (`AUTO_INDEX_ROUTER`):
 
 ```python session=docframe_presets
-from qb_cubie.services.doc_frame import AssetImage, CenterWrap, Divider
+from qb_cubie.core.services.doc_frame import AssetImage, CenterWrap, Divider
 
 STD_FOOTER_BLOCKS = (
     Divider(),
@@ -326,7 +326,7 @@ Footer-Blöcke: 3 | Index-Mode: table
 Im dritten Schritt fügen wir Kopf-, Router- und Fuß-Blöcke zu den drei `FramePattern`-Presets zusammen:
 
 ```python session=docframe_presets
-from qb_cubie.services.doc_frame import (
+from qb_cubie.core.services.doc_frame import (
     DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
 )
 
@@ -406,7 +406,7 @@ Um einen neuen dynamischen Baustein (z. B. eine Breadcrumb-Zeile, die den Katalo
 ```python
 from dataclasses import dataclass
 from pathlib import Path
-from qb_cubie.services.doc_frame import (
+from qb_cubie.core.services.doc_frame import (
     DocumentCatalog, FramePattern, FrameRenderContext, FrameSpan, extract_doc_meta,
 )
 
@@ -442,7 +442,7 @@ Möchte man in Tests oder Analyse-Skripten prüfen, welche Index-Tabelle `Catalo
 
 ```python
 from pathlib import Path
-from qb_cubie.services.doc_frame import (
+from qb_cubie.core.services.doc_frame import (
     CatalogRouter, DocumentCatalog, FrameRenderContext, extract_doc_meta, parse_frame_spans, sort_doc_metas,
 )
 
@@ -478,8 +478,8 @@ Soll `DocEnsurance` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-
 
 ```python
 from dataclasses import dataclass
-from qb_cubie.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
-from qb_cubie.services.doc_frame import DocumentCatalog, FramePattern, parse_frame_spans
+from qb_cubie.core.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
+from qb_cubie.core.services.doc_frame import DocumentCatalog, FramePattern, parse_frame_spans
 
 
 @dataclass(frozen=True)

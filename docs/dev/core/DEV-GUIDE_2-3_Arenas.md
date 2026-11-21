@@ -18,7 +18,7 @@ Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beid
 
 ## Arena-Protokoll und Lebenszyklus
 
-`qb_cubie.protocols.Arena` verlangt:
+`qb_cubie.core.protocols.Arena` verlangt:
 
 - `workspace_path`: Pfad des vorbereiteten Workspace, vorher gegebenenfalls `None`.
 - `setup(state)`: Erstellt die Umgebung und kopiert deklarierte Dateiquellen.
@@ -44,7 +44,7 @@ Vor der Hydrierung passt `_relocation.relocate_scripts()` (unter Delegation an `
 
 `_prepare_env()` übernimmt Host-Umgebungsvariablen und setzt unter anderem `PATH` und `VIRTUAL_ENV`. Das beeinflusst die Programmauswahl, entzieht aber keine Rechte. Die Import-Middleware ersetzt ausgewählte Module durch Phantom-Objekte; sie ist eine Anpassung der Importbedingungen und kein Schutz gegen nicht vertrauenswürdigen Code.
 
-Der `ArenaBuilder` aus `qb_cubie.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../../core/GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
+Der `ArenaBuilder` aus `qb_cubie.core.arenas.pyvenv` provisioniert Basen über `uv` mit dem aufrufenden Python-Interpreter (ohne `env_path` am `default_arena_path()`). `.build(codec=None)` installiert die registrierten Pakete sowie die Anforderungen des gewählten Codecs und liefert eine entsprechend konfigurierte `PyVenv`-Instanz. Bereits vollständig erfüllte Anforderungen verursachen keine Installation. Lokale Testbasen sind durch die Root-`.gitignore` ausgeschlossen; die Standard-Arena liegt außerhalb des Core-Pakets im Benutzer-Cache. Ein frischer Checkout benötigt vor pytest den im [Arena-Handbuch](../../core/GUIDE_Arena-Management.md#provisionierung-der-testbasen) dokumentierten Aufruf von `scripts/provision_test_arenas.py`; das erzeugt auch die externe `PyVenv()`-Standardbasis. Pytest selbst provisioniert keine gemeinsamen Basen.
 
 ## IPCC und Codec-Auswahl
 

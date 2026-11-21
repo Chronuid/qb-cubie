@@ -11,9 +11,9 @@ from qb_cubie import EBT, WorldState
 
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY_FILES = {
-    "tests/tests_multiprocessors/mp_hypothesis.py": 7,
-    "tests/tests_linter/tests_mypy.py": 3,
-    "tests/tests_linter/tests_linter.py": 4,
+    "tests/tests_core/tests_multiprocessors/mp_hypothesis.py": 7,
+    "tests/tests_core/tests_linters/tests_mypy.py": 3,
+    "tests/tests_core/tests_linters/tests_linter.py": 4,
 }
 
 

@@ -68,11 +68,11 @@ def _format_diagnostics(diagnostics: list[LinterDiagnostic]) -> str:
     [
         "import qb_cubie\n",
         "from qb_cubie import EBT, WorldState\n",
-        "from qb_cubie.rbt import RBT\n",
+        "from qb_cubie.core.rbt import RBT\n",
         "import src_helper\n",
         "from .src import helper\n",
         "from .src.qb_cubie import helper\n",
-        'example = "from src.qb_cubie.rbt import RBT"\n',
+        'example = "from src.qb_cubie.core.rbt import RBT"\n',
     ],
     ids=[
         "import-qb_cubie",
@@ -98,13 +98,13 @@ def test_canonical_import_rule_accepts_clean_probes(clean_source: str) -> None:
 @pytest.mark.parametrize(
     "bad_source, expected_line, expected_module",
     [
-        ("from src.qb_cubie.rbt import RBT\n", 1, "src.qb_cubie.rbt"),
+        ("from src.qb_cubie.core.rbt import RBT\n", 1, "src.qb_cubie.core.rbt"),
         ("from src.qb_cubie import EBT\n", 1, "src.qb_cubie"),
         ("from src import qb_cubie\n", 1, "src"),
         ("import src.qb_cubie\n", 1, "src.qb_cubie"),
         ("import src\n", 1, "src"),
-        ("import os, src.qb_cubie.ebt as ebt\n", 1, "src.qb_cubie.ebt"),
-        ("# Kommentar\nfrom src.qb_cubie.linter import CstLinter\n", 2, "src.qb_cubie.linter"),
+        ("import os, src.qb_cubie.core.ebt as ebt\n", 1, "src.qb_cubie.core.ebt"),
+        ("# Kommentar\nfrom src.qb_cubie.core.linter import CstLinter\n", 2, "src.qb_cubie.core.linter"),
     ],
     ids=[
         "from-src-submodule",

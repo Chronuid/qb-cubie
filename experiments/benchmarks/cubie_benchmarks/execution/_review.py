@@ -4,8 +4,8 @@ import json
 
 from cubie_benchmarks.adapters import fake
 from cubie_benchmarks.reporting._files import write_json
-from qb_cubie.protocols import ReviewData
-from qb_cubie.rbt import RBT
+from qb_cubie.core.protocols import ReviewData
+from qb_cubie.core.rbt import RBT
 
 
 def submit(context, submission=None):

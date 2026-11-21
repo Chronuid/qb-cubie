@@ -5,7 +5,7 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`).
+Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.core.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`).
 
 ---
 
@@ -121,7 +121,7 @@ Ein `<details>`-Ergebnisblock kann im erwarteten Konsolen-Output selbst HTML-Fra
 Das folgende ausführbare Beispiel demonstriert, wie `_MarkdownScanner` einen Markdown-String mit HTML-Kommentar, 4-Backtick-Block und `<details>`-Container in flache `MdBlock`-Objekte zerlegt:
 
 ```python
-from qb_cubie.services.doc_ensurance import _MarkdownScanner
+from qb_cubie.core.services.doc_ensurance import _MarkdownScanner
 
 fence = "```"
 raw_md = (
@@ -247,7 +247,7 @@ Das folgende Beispiel zeigt, wie `DocEnsurance` zwei separate `CstLinter`-Instan
 ```python
 import libcst as cst
 from qb_cubie import CstLinter, CstRule
-from qb_cubie.services import DocEnsurance, NoOutput
+from qb_cubie.core.services import DocEnsurance, NoOutput
 
 
 class RuleA(CstRule):
@@ -342,7 +342,7 @@ Um einen neuen Markdown-Blocktyp strukturell zu verlangen (z. B. eine Pflicht-Ü
 
 ```python
 from dataclasses import dataclass
-from qb_cubie.services import (
+from qb_cubie.core.services import (
     CodeSnippet, CollapsibleResult, DocRuleProtocol, ExamplePattern, Explanation, MdBlock,
 )
 
@@ -384,7 +384,7 @@ Reichen die generischen Prädikat-Wrapper (`ExplanationRule`, `CodeRule`, `Outpu
 
 ```python
 from dataclasses import dataclass
-from qb_cubie.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
+from qb_cubie.core.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
 
 
 @dataclass(frozen=True)
@@ -422,7 +422,7 @@ Möchte ein Projekt beispielsweise, dass *alle* Code-Blöcke einer Markdown-Date
 
 ```python
 from collections.abc import Sequence
-from qb_cubie.services import DocEnsurance, ExampleSession, ExtractedExample
+from qb_cubie.core.services import DocEnsurance, ExampleSession, ExtractedExample
 
 
 class FileGlobalScope:

@@ -5,7 +5,7 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Technische Entwicklerreferenzen für die Kernmodule von `qb-cubie`: Review-Based Testing (`1.x` – `qb_cubie.rbt`) sowie Example-Based Testing und Ausführungsinfrastruktur (`2.x` – `qb_cubie.ebt`, `WorldState`, Arenen, `Multiprocessors`, `Linter`).
+Technische Entwicklerreferenzen für die Kernmodule von `qb-cubie`: Review-Based Testing (`1.x` – `qb_cubie.core.rbt`) sowie Example-Based Testing und Ausführungsinfrastruktur (`2.x` – `qb_cubie.core.ebt`, `WorldState`, Arenen, `Multiprocessors`, `Linter`).
 
 ---
 
@@ -24,8 +24,8 @@ Technische Entwicklerreferenzen für die Kernmodule von `qb-cubie`: Review-Based
 
 | Thema / Subsystem | Lesereihenfolge |
 | :--- | :--- |
-| **1.x – Review-Based Testing (`qb_cubie.rbt`)** | [1.0 Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [1.1 RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) |
-| **2.x – Example-Based Testing (`qb_cubie.ebt`)** | [2.0 EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [2.1 Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) $\to$ [2.2 WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) |
+| **1.x – Review-Based Testing (`qb_cubie.core.rbt`)** | [1.0 Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [1.1 RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) |
+| **2.x – Example-Based Testing (`qb_cubie.core.ebt`)** | [2.0 EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [2.1 Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) $\to$ [2.2 WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) |
 | **2.x – Ausführung, Parallelisierung & Analyse** | [2.3 Arenen und IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md) $\to$ [2.4 `Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md) $\to$ [2.5 `Linter`](./DEV-GUIDE_2-5_Linter.md) |
 
 ---
@@ -38,7 +38,7 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/core/` abgelegten
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
 | [Review-Based Testing](./DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) | RBT orchestriert Beurteilungen anhand einer Prüfregel. Es ist für manuelle Abnahmen oder eigene automatisierte Reviewer nutzbar. Es führt das Target nicht aus und liefert keinen formalen Korrektheits- oder Sicherheitsnachweis. Die [Semantikreferenz](../../core/GUIDE_Contract-Semantics.md) definiert die Grenzen; vollständige Beispiele stehen im [RBT-Nutzungshandbuch](../../core/GUIDE_RBT-Usage-Pattern.md). |
-| [RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) | Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.protocols`. |
+| [RBT-Klassen](./DEV-GUIDE_1-1_RBT-Classes.md) | Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.core.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.core.protocols`. |
 | [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) | EBT orchestriert konkrete Ausführungen und Ergebnisvergleiche. Die Anordnung von Ausgangsdaten, Operation und Zielmustern erinnert an Hoare-Tripel, implementiert aber keine formale Programmverifikation. Maßgeblich ist die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md). |
 | [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md) | `EBT` orchestriert endliche Beispielausführungen. Die [Vertragssemantik](../../core/GUIDE_Contract-Semantics.md) definiert Felder, Match-Regeln und bekannte Fehler zentral. Die Struktur „Ausgangszustand – Operation – Zielmuster“ ist eine Analogie zu Hoare-Tripeln, keine implementierte Beweisführung. |
 | [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md) | `WorldState` ist eine veränderliche Dataclass, die konkrete Aufrufdaten oder erwartete Ergebnismuster beschreibt. Sie besitzt keine eigene Ausführungs- oder Beweislogik. Die Bedeutung der Felder hängt von ihrer Verwendung in `pre`, `post` oder einem erfassten Ergebnis ab. Die verbindlichen Regeln stehen in der [Semantikreferenz](../../core/GUIDE_Contract-Semantics.md). |

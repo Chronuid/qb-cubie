@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from qb_cubie import EBT, TempFS, WorldState
-from qb_cubie.reporter import PytestReporter
+from qb_cubie.core.reporter import PytestReporter
 
 
 @dataclass

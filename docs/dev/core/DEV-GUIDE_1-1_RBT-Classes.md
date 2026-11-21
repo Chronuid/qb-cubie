@@ -5,7 +5,7 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.protocols`.
+Die [RBT-Übersicht](DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) beschreibt Ablauf und Aussagegrenzen. Die folgenden Klassen gehören zu `qb_cubie.core.rbt`, die Daten- und Schnittstellenverträge zu `qb_cubie.core.protocols`.
 
 ---
 

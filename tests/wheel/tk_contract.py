@@ -32,8 +32,8 @@ def exercise(feature, missing):
         return
 
     from qb_cubie import EBT, TempFS, WorldState
-    from qb_cubie.protocols import ReviewData
-    from qb_cubie.rbt import HeadlessReviewer, HumanReviewer, RBT
+    from qb_cubie.core.protocols import ReviewData
+    from qb_cubie.core.rbt import HeadlessReviewer, HumanReviewer, RBT
 
     if feature == "imports":
         assert callable(EBT) and callable(HumanReviewer)

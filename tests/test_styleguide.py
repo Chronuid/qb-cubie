@@ -99,7 +99,7 @@ def test_body_counter_statements(body, expected):
 
 # ========== DOCUMENTATION =============================================================================================
 
-from qb_cubie.services import (
+from qb_cubie.core.services import (
     CUBIE_DOC_FRAME_1,
     CUBIE_DOC_FRAME_2,
     CUBIE_DOC_FRAME_3,

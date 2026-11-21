@@ -15,17 +15,17 @@
 # `protocols` & `WorldState`:
 #     Defines foundational protocols, execution states, and IPC serialization codecs.
 
-from . import ebt, multiprocessors, protocols, rbt, reporter
-from .arenas.tempfs import TempFS
-from .arenas.pyvenv import PyVenv
-from .arenas.codecs import CloudpickleCodec, MSGspecCodec, PickleCodec
-from .protocols import WorldState, DeviceResources, UNSPECIFIED, ExceptionExpectation
-from .reporter import JsonReporter, PytestReporter
-from ._execution import RemoteException
-from .linter import Linter, LinterDiagnostic, AstLinter, CstRule, CstLinter
-from .ebt import EBT
-from .linters.mypy import MyPy
-from .linters.pylint import Pylint
+from .core import ebt, multiprocessors, protocols, rbt, reporter
+from .core.arenas.tempfs import TempFS
+from .core.arenas.pyvenv import PyVenv
+from .core.arenas.codecs import CloudpickleCodec, MSGspecCodec, PickleCodec
+from .core.protocols import WorldState, DeviceResources, UNSPECIFIED, ExceptionExpectation
+from .core.reporter import JsonReporter, PytestReporter
+from .core._execution import RemoteException
+from .core.linter import Linter, LinterDiagnostic, AstLinter, CstRule, CstLinter
+from .core.ebt import EBT
+from .core.linters.mypy import MyPy
+from .core.linters.pylint import Pylint
 
 __all__ = [
     "WorldState",

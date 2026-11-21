@@ -27,12 +27,12 @@ Date:   Wed Nov 18 17:07:16 2026 +0100
 
 Stell dir vor, in deiner Wohnung gibt es zwei verschiedene Haustürschlüssel, die genau zum selben Zimmer führen – einmal durch den Flur und einmal über den Balkon. In Python passiert etwas Ähnliches, wenn ein Paket auf **zwei verschiedenen Wegen** importiert wird:
 
-1. Normalerweise hängt [`tests/conftest.py`](../../../../tests/conftest.py) den Ordner `src/` direkt an den Anfang von `sys.path`. Dadurch lautet der offizielle (*kanonische*) Name des Pakets schlicht `qb_cubie` – zum Beispiel `from qb_cubie.rbt import RBT`.
-2. Schreibt jemand stattdessen `from src.qb_cubie.rbt import RBT`, legt Python im internen Modulregister (`sys.modules`) **ein zweites, getrenntes Modul** unter dem Namen `src.qb_cubie.rbt` an.
+1. Normalerweise hängt [`tests/conftest.py`](../../../../tests/conftest.py) den Ordner `src/` direkt an den Anfang von `sys.path`. Dadurch lautet der offizielle (*kanonische*) Name des Pakets schlicht `qb_cubie` – zum Beispiel `from qb_cubie.core.rbt import RBT`.
+2. Schreibt jemand stattdessen `from src.qb_cubie.core.rbt import RBT`, legt Python im internen Modulregister (`sys.modules`) **ein zweites, getrenntes Modul** unter dem Namen `src.qb_cubie.core.rbt` an.
 
 Das führt zu tückischen Fehlern, dem sogenannten **gespaltenen Modul-Namensraum**:
 
-* Zwei scheinbar identische Klassen (`qb_cubie.rbt.RBT` und `src.qb_cubie.rbt.RBT`) sind für Python **unterschiedliche Objekte**.
+* Zwei scheinbar identische Klassen (`qb_cubie.core.rbt.RBT` und `src.qb_cubie.core.rbt.RBT`) sind für Python **unterschiedliche Objekte**.
 * Prüfungen mit `isinstance(...)` schlagen fehl, obwohl beide Seiten denselben Quelltext meinen.
 * Globale Zustände, Registries und Serialisierungen (z. B. mit `cloudpickle` in Arenen) geraten durcheinander.
 
@@ -48,15 +48,15 @@ Beim genauen Blick auf [`GEMINI.md`](./GEMINI.md) und Cubies eigene Linter-Imple
 
 Warum nutzen wir `CstLinter` und `CstRule` auf Basis von `libcst` statt einer einfachen Zeichenketten-Suche?
 
-* Eine Textsuche nach `"src.qb_cubie"` würde auch auf Kommentare, Markdown-Strings oder auf Test-Sonden (wie `"from src.qb_cubie.rbt import RBT"`) im Gate selbst anschlagen.
+* Eine Textsuche nach `"src.qb_cubie"` würde auch auf Kommentare, Markdown-Strings oder auf Test-Sonden (wie `"from src.qb_cubie.core.rbt import RBT"`) im Gate selbst anschlagen.
 * `CstRule` besucht hingegen gezielt echte Import-Knoten im Concrete Syntax Tree (CST) und liefert über den `PositionProvider` von `libcst` automatisch Datei, Zeile und Spalte zurück.
 
 ### 2. Beide Import-Formen prüfen (`Import` und `ImportFrom`)
 
 Das kurze Einstiegsbeispiel in `GEMINI.md` zeigte nur `visit_ImportFrom` und nutzte die verkürzte ID `"META-IMPORT"`. Die eigentliche Spezifikation verlangt jedoch ausdrücklich:
 
-* Besuch von **`Import`-Knoten** (`import src`, `import src.qb_cubie`, `import os, src.qb_cubie.ebt as ebt`) über `visit_Import` (hier iteriert die Regel über `node.names`, also alle `cst.ImportAlias`-Einträge).
-* Besuch von **`ImportFrom`-Knoten** (`from src.qb_cubie.rbt import RBT`, `from src import qb_cubie`) über `visit_ImportFrom`.
+* Besuch von **`Import`-Knoten** (`import src`, `import src.qb_cubie`, `import os, src.qb_cubie.core.ebt as ebt`) über `visit_Import` (hier iteriert die Regel über `node.names`, also alle `cst.ImportAlias`-Einträge).
+* Besuch von **`ImportFrom`-Knoten** (`from src.qb_cubie.core.rbt import RBT`, `from src import qb_cubie`) über `visit_ImportFrom`.
 * Einheitliche Diagnose-ID **`META-CANONICAL-IMPORT`**.
 
 ### 3. Saubere Modulgrenzen und relative Imports

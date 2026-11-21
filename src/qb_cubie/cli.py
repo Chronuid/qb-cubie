@@ -8,7 +8,7 @@ import json
 import sys
 from typing import Any
 
-from .services.doc_frame import DocFrame, DocFrameReport
+from .core.services.doc_frame import DocFrame, DocFrameReport
 
 
 def main(argv: Sequence[str] | None = None) -> int:

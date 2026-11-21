@@ -36,13 +36,13 @@ Für den *Google Gemma 4 Developer Agent Competition Paper Track* wurde das Proj
 
 
 
-## 2. Phase 1: Aufbau des neuen Feature-Zweigs `qb_cubie.services`
+## 2. Phase 1: Aufbau des neuen Feature-Zweigs `qb_cubie.core.services`
 
-Der nächste Entwicklungsschritt beginnt bewusst nicht mit manuellem Aufräumen, sondern mit dem neuen Feature-Zweig **`qb_cubie.services`**. Während die Kernmodule die Grundbausteine für Verträge, Arenen und AST/CST-Analysen liefern, stellt `services` allgemein wiederverwendbare, sofort einsatzbereite Prüf-Dienstleistungen bereit. Diese Services bieten allen Nutzern fertige Qualitäts-Garantien und liefern gleichzeitig das präzise Prüfwerkzeug für die anschließende Bereinigung des eigenen Repositorys.
+Der nächste Entwicklungsschritt beginnt bewusst nicht mit manuellem Aufräumen, sondern mit dem neuen Feature-Zweig **`qb_cubie.core.services`**. Während die Kernmodule die Grundbausteine für Verträge, Arenen und AST/CST-Analysen liefern, stellt `services` allgemein wiederverwendbare, sofort einsatzbereite Prüf-Dienstleistungen bereit. Diese Services bieten allen Nutzern fertige Qualitäts-Garantien und liefern gleichzeitig das präzise Prüfwerkzeug für die anschließende Bereinigung des eigenen Repositorys.
 
 ### 2.1 Verifikation von Dokumentations-Beispielen (`DocEnsurance`)
 
-Den Auftakt in `qb_cubie.services` bildet ein Service zur automatisierten Verifikation der Funktionalität von Code-Beispielen in Dokumentationen (wie `docs/GUIDE_*.md`):
+Den Auftakt in `qb_cubie.core.services` bildet ein Service zur automatisierten Verifikation der Funktionalität von Code-Beispielen in Dokumentationen (wie `docs/GUIDE_*.md`):
 
 * **Protokoll-Design:** Über erweiterbare Strukturen wie *ZUM BEISPIEL* `DocEnsurance(protocol: CodeExampleProtocol, arena: ...)` wird festgelegt, wie Code-Snippets, Vorbedingungen und erwartete Ergebnisse in der Dokumentation ausgezeichnet werden.
 

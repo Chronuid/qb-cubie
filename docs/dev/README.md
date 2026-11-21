@@ -26,7 +26,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | :--- | :--- | :--- |
 | **Core-Internals** (`docs/dev/core/`) | Architektur- und Klassenreferenzen für RBT (`1.x`) und EBT, `WorldState`, Arenen, `Multiprocessors`, `Linter` (`2.x`). | [Core-Internals Index](./core/README.md) |
 | **Prozesse & Konventionen** (`docs/dev/`) | Styleguide, `CUBIE_DOC_FRAME_*`-Konventionen, Agenten-Berichte, Bug-Dokumentation, Release-Ablauf und Next Steps. | [Übersicht unten](#prozesse-konventionen--styleguide-docsdev) |
-| **Services-Internals** (`docs/dev/services/`) | Technische Referenzen zu den wiederverwendbaren Services in `qb_cubie.services` (`DocEnsurance`, `DocFrame`). | [Übersicht unten](#services-internals-docsdevservices) |
+| **Services-Internals** (`docs/dev/services/`) | Technische Referenzen zu den wiederverwendbaren Services in `qb_cubie.core.services` (`DocEnsurance`, `DocFrame`). | [Übersicht unten](#services-internals-docsdevservices) |
 
 ---
 
@@ -35,9 +35,9 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | Ziel / Aufgabe | Empfohlener Einstieg |
 | :--- | :--- |
 | **Code schreiben, strukturieren & prüfen** | [Styleguide](./Style-Guide.md) und [Testsuite-Leitfaden](../../tests/README.md) |
-| **Review-Based Testing (`qb_cubie.rbt`) verstehen** | [Review-Based Testing](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./core/DEV-GUIDE_1-1_RBT-Classes.md) |
-| **Example-Based Testing (`qb_cubie.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
-| **Services (`qb_cubie.services`) entwickeln & erweitern** | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
+| **Review-Based Testing (`qb_cubie.core.rbt`) verstehen** | [Review-Based Testing](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./core/DEV-GUIDE_1-1_RBT-Classes.md) |
+| **Example-Based Testing (`qb_cubie.core.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
+| **Services (`qb_cubie.core.services`) entwickeln & erweitern** | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md) und [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) |
 | **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
 | **`CUBIE_DOC_FRAME_*`-Konventionen nachschlagen** | [`CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) |
@@ -74,7 +74,7 @@ Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der
 | [DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) | Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`CUBIE_DOC_FRAME_1` bis `CUBIE_DOC_FRAME_3`), Zonen, Attribute, Prüfregeln und Sync-Kommandos für Agenten. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
-| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Architektur-Leitlinie für Pakete unter `src/qb_cubie/services/`: Strikte vertikale Service-Isolation gegen den Core, Entkopplung geteilter Primitiven sowie Komposition an der Aufrufstelle am Beispiel von `DocEnsurance`, `DocFrame` und dem geplanten `Coverage`-Service. |
+| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
 | [Styleguide](./Style-Guide.md) | Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes. |
 <!-- /qb:frame -->
@@ -83,13 +83,13 @@ Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der
 
 ## Services-Internals (`docs/dev/services/`)
 
-Technische Entwicklerreferenzen zu den wiederverwendbaren Verifikations- und Dokumentations-Services in `qb_cubie.services` (automatisch synchronisiert durch `DocFrame`):
+Technische Entwicklerreferenzen zu den wiederverwendbaren Verifikations- und Dokumentations-Services in `qb_cubie.core.services` (automatisch synchronisiert durch `DocFrame`):
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="docs/dev/services" recursive="false" -->
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
-| [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) | Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`). |
-| [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) | Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`. |
+| [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) | Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.core.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`). |
+| [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) | Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`. |
 <!-- /qb:frame -->
 
 ---

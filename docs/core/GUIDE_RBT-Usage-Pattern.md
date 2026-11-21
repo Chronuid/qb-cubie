@@ -21,7 +21,7 @@ RBT delegiert eine sprachlich formulierte Prüfregel an einen Reviewer und über
 Das Standardbeispiel delegiert eine manuelle Prüfregel interaktiv an das Terminal:
 
 ```python
-from qb_cubie.rbt import HeadlessReviewer, RBT
+from qb_cubie.core.rbt import HeadlessReviewer, RBT
 
 
 def test_logging_review():
@@ -48,7 +48,7 @@ Target: auth_module.py | Reviewer: HeadlessReviewer
 ```
 </details>
 
-Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `qb_cubie.rbt` ausdrücklich injiziert werden.
+Dieser Test benötigt die benannte Datei als Prüfmaterial und eine Person, die sie selbst öffnet. Starte ihn mit `pytest -s`, damit der Standardreviewer `HeadlessReviewer()` Terminaleingaben lesen kann. Ohne vorgegebene Antwort fragt dieser synchron nach `y/n` und einem optionalen Bericht. Für eine GUI kann `HumanReviewer` aus `qb_cubie.core.rbt` ausdrücklich injiziert werden.
 
 `HumanReviewer` beginnt jeden Aufruf ohne Entscheidung und mit leerem Bericht.
 Schließen des Fensters ohne Pass-/Fail-Klick ergibt
@@ -65,8 +65,8 @@ Dieses vollständige Beispiel prüft eine bewusst eng begrenzte Dateiregel. Es z
 
 ```python
 from pathlib import Path
-from qb_cubie.protocols import ReviewData
-from qb_cubie.rbt import RBT
+from qb_cubie.core.protocols import ReviewData
+from qb_cubie.core.rbt import RBT
 
 
 class NonEmptyFileReviewer:

@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention), **statisch** (pluggable Check-Regeln & Linter) als auch **funktional** (echte Ausführung in einer `Arena`) absichert.
+Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte oder Exceptions im Code ändern, die Code-Beispiele in den Markdown-Guides aber unbemerkt auf dem alten Stand bleiben. **`DocEnsurance`** aus `qb_cubie.core.services` löst dieses Problem, indem es Markdown-Dokumente sowohl **strukturell** (Layout-Konvention), **statisch** (pluggable Check-Regeln & Linter) als auch **funktional** (echte Ausführung in einer `Arena`) absichert.
 
 ---
 
@@ -29,7 +29,7 @@ In der Praxis reicht ein einziger Aufruf in der Test-Suite (wie in `tests/test_s
 
 ```python
 import pytest
-from qb_cubie.services import CUBIE_DOC_RULES, CUBIE_DOC_STYLE, DocEnsurance
+from qb_cubie.core.services import CUBIE_DOC_RULES, CUBIE_DOC_STYLE, DocEnsurance
 
 
 @pytest.mark.slow
@@ -108,7 +108,7 @@ DocEnsurance(
 Das folgende Beispiel prüft einen mehrzeiligen In-Memory-Markdown-String mit einem verkürzten TTL-Timeout von `2.0` Sekunden und wertet den `DocReport` direkt ohne Reporter-Assertion aus:
 
 ```python
-from qb_cubie.services import DocEnsurance
+from qb_cubie.core.services import DocEnsurance
 
 sample_doc = (
     "Eine erklärende Einleitung mit mindestens zwanzig Zeichen.\n\n"
@@ -144,7 +144,7 @@ Reguläres Markdown außerhalb dieser unmittelbaren Nachbarschaft – wie Kapite
 Die vorkonfigurierte Standard-Konvention `CUBIE_DOC_STYLE` prüft genau dieses Dreier-Muster (Erklärung mit mindestens 20 Zeichen, `python`-Snippet und aufklappbares `<details>`-Ergebnis):
 
 ```python
-from qb_cubie.services import CUBIE_DOC_STYLE
+from qb_cubie.core.services import CUBIE_DOC_STYLE
 
 print(
     f"Pattern: {CUBIE_DOC_STYLE.name} | "
@@ -174,7 +174,7 @@ Das folgende Beispiel legt im aktuellen Workspace eine einzelne Markdown-Datei a
 
 ```python
 from pathlib import Path
-from qb_cubie.services import CUBIE_DOC_STYLE, DocEnsurance
+from qb_cubie.core.services import CUBIE_DOC_STYLE, DocEnsurance
 
 fence = "```"
 markdown_content = (
@@ -280,7 +280,7 @@ Genau wie bei `AstLinter` und `CstLinter` lassen sich in `DocEnsurance` beliebig
 
 ### 6.1 Eigene Checks für Erklärung, Code und Ausgabe einhängen
 
-Für eigene Konventionen stellt `qb_cubie.services` drei deklarative Regel-Bausteine bereit, die entweder über `rules=[...]` beim Start, über `.register_rule(...)` oder direkt am jeweiligen Pattern-Baustein (`Explanation(rules=...)`, `CodeSnippet(rules=...)`, `CollapsibleResult(rules=...)`) eingehängt werden können:
+Für eigene Konventionen stellt `qb_cubie.core.services` drei deklarative Regel-Bausteine bereit, die entweder über `rules=[...]` beim Start, über `.register_rule(...)` oder direkt am jeweiligen Pattern-Baustein (`Explanation(rules=...)`, `CodeSnippet(rules=...)`, `CollapsibleResult(rules=...)`) eingehängt werden können:
 
 * **`ExplanationRule(rule_id, message, check_fn, severity="error")`:** Prüft den extrahierten Erklärungstext mit einem Prädikat `Callable[[str], bool]`.
 * **`CodeRule(rule_id, message, check_fn, severity="error")`:** Prüft den Python-Quellcode des Snippets mit einem Prädikat `Callable[[str], bool]`.
@@ -289,7 +289,7 @@ Für eigene Konventionen stellt `qb_cubie.services` drei deklarative Regel-Baust
 Das folgende Beispiel definiert zuerst drei eigene Regeln (`ExplanationRule` als Warnung bei offenen `TODO`-Markern, `CodeRule` für die maximale Zeilenzahl und `OutputRule` für nicht-leere Ausgaben) sowie ein passendes Beispieldokument:
 
 ```python session=custom_rules
-from qb_cubie.services import CodeRule, DocEnsurance, ExplanationRule, OutputRule
+from qb_cubie.core.services import CodeRule, DocEnsurance, ExplanationRule, OutputRule
 
 fence = "```"
 doc_with_warnings = (
@@ -354,7 +354,7 @@ Standardmäßig sind in `DEFAULT_DOC_RULES` zwei Ausgaberegeln vorregistriert:
 Möchte ein Projekt fehlende Ausgaben in `<details>`-Blöcken stattdessen als harten Test-Abbruch behandeln, genügt es, `MissingOutputRule(severity="error")` in `rules=[...]` oder via `.register_rule(...)` zu übergeben. Über die identische `rule_id="DOC-OUT-MISSING"` wird die Standardregel automatisch überschrieben:
 
 ```python
-from qb_cubie.services import DocEnsurance, MissingOutputRule
+from qb_cubie.core.services import DocEnsurance, MissingOutputRule
 
 fence = "```"
 empty_output_doc = (
@@ -396,7 +396,7 @@ Das folgende Beispiel definiert zuerst eine eigene `CstRule` (`ForbidEvalRule`) 
 ```python session=cst_doc_lint
 import libcst as cst
 from qb_cubie import CstLinter, CstRule
-from qb_cubie.services import DocEnsurance, DocLinterRule
+from qb_cubie.core.services import DocEnsurance, DocLinterRule
 
 
 class ForbidEvalRule(CstRule):
@@ -457,7 +457,7 @@ Jeder Befund wird als unveränderliches `DocDiagnostic(file_path, rule_id, line,
 
 ## 8. Deep-Dive: Eigene Patterns und Protokolle entwickeln
 
-Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb basiert `DocEnsurance` auf einer vierstufigen Protokoll-Architektur aus `qb_cubie.services.doc_ensurance.protocols`:
+Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb basiert `DocEnsurance` auf einer vierstufigen Protokoll-Architektur aus `qb_cubie.core.services.doc_ensurance.protocols`:
 
 1. **`DocBlockProtocol` (Ebene 1 – Atomare Struktur-Bausteine):** Erkennt und extrahiert genau einen Markdown-Blocktyp (`MdBlock`) und definiert dessen `role`, `severity` und optionale Block-`rules`.
 2. **`DocRuleProtocol` (Ebene 2 – Inhaltliche Prüfregeln):** Prüft ein extrahiertes `ExtractedExample` samt `actual_output` und liefert eine Sequenz von `DocDiagnostic`-Einträgen zurück.
@@ -469,7 +469,7 @@ Nicht jedes Projekt möchte dasselbe Dokumentations-Layout verwenden. Deshalb ba
 Möchte ein Entwicklerteam beispielsweise auf Pflicht-Erklärungen und `<details>`-Tags verzichten und stattdessen direkt unter jedem `python`-Block einen einfachen `text`-Codeblock für den erwarteten Output verlangen, genügt eine neue `ExamplePattern`-Konfiguration:
 
 ```python
-from qb_cubie.services import CodeSnippet, DocEnsurance, ExamplePattern
+from qb_cubie.core.services import CodeSnippet, DocEnsurance, ExamplePattern
 
 minimal_pattern = ExamplePattern(
     name="minimal-fence-pattern",
@@ -505,7 +505,7 @@ Um eine völlig eigene Strukturregel zu definieren, implementiert man das `DocBl
 
 ```python session=custom_block
 from dataclasses import dataclass
-from qb_cubie.services import CodeSnippet, DocEnsurance, DocRuleProtocol, ExamplePattern, MdBlock
+from qb_cubie.core.services import CodeSnippet, DocEnsurance, DocRuleProtocol, ExamplePattern, MdBlock
 
 
 @dataclass(frozen=True)

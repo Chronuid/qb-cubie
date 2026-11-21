@@ -5,14 +5,14 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relative Navigationspfade über verschiedene Verzeichnistiefen, Provenance-Kopfblöcke und Bereichs-Indizes (`README.md`) innerhalb kürzester Zeit. **`DocFrame`** *(Prototyp – noch zu evaluieren und zu härten)* aus `qb_cubie.services` (bzw. dem Kurz-Alias `qb_cubie.services.docframe`) adressiert dieses Problem durch eine zweistufige Synchronisations- und Routing-Engine, während **`DocEnsurance`** über **`CUBIE_DOCFRAME_RULES`** prüft, ob nicht-exkludierte Markdown-Dokumente gültige, vollständige und aktuelle Rahmen besitzen.
+Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relative Navigationspfade über verschiedene Verzeichnistiefen, Provenance-Kopfblöcke und Bereichs-Indizes (`README.md`) innerhalb kürzester Zeit. **`DocFrame`** *(Prototyp – noch zu evaluieren und zu härten)* aus `qb_cubie.core.services` (bzw. dem Kurz-Alias `qb_cubie.core.services.docframe`) adressiert dieses Problem durch eine zweistufige Synchronisations- und Routing-Engine, während **`DocEnsurance`** über **`CUBIE_DOCFRAME_RULES`** prüft, ob nicht-exkludierte Markdown-Dokumente gültige, vollständige und aktuelle Rahmen besitzen.
 
 ---
 
 > [!WARNING]
 >
 > **Status: Prototyp – noch nicht evaluiert und gehärtet:**  
-> `DocFrame` (`qb_cubie.services.doc_frame` / `qb_cubie.services.docframe`, einschließlich `CUBIE_DOC_FRAME_1..3` und `CUBIE_DOCFRAME_RULES`) ist derzeit ein **experimenteller Prototyp**, der vor einer produktiven Stabilitätszusage noch systematisch evaluiert und gehärtet werden muss:
+> `DocFrame` (`qb_cubie.core.services.doc_frame` / `qb_cubie.core.services.docframe`, einschließlich `CUBIE_DOC_FRAME_1..3` und `CUBIE_DOCFRAME_RULES`) ist derzeit ein **experimenteller Prototyp**, der vor einer produktiven Stabilitätszusage noch systematisch evaluiert und gehärtet werden muss:
 > * **Unstabile Schnittstellen & Heuristiken:** Öffentliche Signaturen, Preset-Strukturen, Scanner-Heuristiken (`_catalog_scanner`) und Regelverhalten können sich in kommenden Releases noch ändern.
 > * **Vorläufige Absicherung:** Die bisherigen Unit- und Integrationstests belegen nur die geprüften Szenarien im eigenen Checkout; vor dem Einsatz auf fremden oder größeren Repositories sollten Backups angelegt und eigene Verifikationsläufe durchgeführt werden.
 
@@ -35,7 +35,7 @@ Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relat
 Im Alltag greifen zwei komplementäre Aufrufe ineinander: Während der Entwicklung bringt `DocFrame.update()` sämtliche Kopf-, Index- und Fußrahmen im Repository in einem einzigen Durchlauf auf den aktuellen Stand; in der Test-Suite (wie in `tests/test_styleguide.py`) überwacht `DocEnsurance` gemeinsam mit `CUBIE_DOCFRAME_RULES`, dass kein Dokument ohne gültigen oder aktuellen Rahmen eingecheckt wird:
 
 ```python
-from qb_cubie.services import (
+from qb_cubie.core.services import (
     CUBIE_DOC_FRAME_1,
     CUBIE_DOC_FRAME_2,
     CUBIE_DOC_FRAME_3,
@@ -110,12 +110,12 @@ DocFrame.scan_catalog(
 
 ### Aufruf über die Core-CLI (`qb-cubie`)
 
-Für die direkte Synchronisation aus der Kommandozeile steht `DocFrame.update()` über die Core-CLI `qb-cubie` (sowie `python -m qb_cubie`, `python -m qb_cubie.services.docframe` und `python -m qb_cubie.services.doc_frame`) bereit:
+Für die direkte Synchronisation aus der Kommandozeile steht `DocFrame.update()` über die Core-CLI `qb-cubie` (sowie `python -m qb_cubie`, `python -m qb_cubie.core.services.docframe` und `python -m qb_cubie.core.services.doc_frame`) bereit:
 
 ```bash
 qb-cubie docframe update
 qb-cubie docframe update docs/ --exclude experiments --exclude CHANGELOG.md --format json
-python -m qb_cubie.services.docframe update docs/services/GUIDE_DocFrame.md
+python -m qb_cubie.core.services.docframe update docs/services/GUIDE_DocFrame.md
 ```
 
 ### Wichtige Konfigurations-Details für die Praxis
@@ -125,7 +125,7 @@ python -m qb_cubie.services.docframe update docs/services/GUIDE_DocFrame.md
 * **Strikte Idempotenz & `DocFrameReport.updated_files`:**
   `DocFrame.update()` überschreibt eine Datei nur dann auf der Festplatte (`new_content != content`), wenn sich mindestens eine Rahmen-Zone geändert hat. Ein zweiter Lauf über ein bereits synchronisiertes Verzeichnis liefert `report.updated_files == ()` und führt keinen einzigen Schreibzugriff aus.
 * **Kurz-Alias für Imports (`docframe` vs. `doc_frame`):**
-  Alle Bausteine, Presets und Regeln sind direkt unter `qb_cubie.services`, `qb_cubie.services.doc_frame` sowie über das Kurz-Alias-Modul `qb_cubie.services.docframe` importierbar.
+  Alle Bausteine, Presets und Regeln sind direkt unter `qb_cubie.core.services`, `qb_cubie.core.services.doc_frame` sowie über das Kurz-Alias-Modul `qb_cubie.core.services.docframe` importierbar.
 * **Explizite `STATE-GUARD`s vor dem Lauf:**
   Nicht existierende Zielpfade (`FileNotFoundError`), leere Pfad-Strings oder Verzeichnisse ohne `.md`-Dateien (`ValueError`), falsche Parametertypen (`TypeError`) sowie unbekannte `frame_id`-Referenzen in Dokumenten (`ValueError`) werden sofort mit einer sprechenden `STATE-GUARD`-Meldung abgewiesen.
 
@@ -133,7 +133,7 @@ Das folgende Beispiel legt ein kleines Projektverzeichnis an, synchronisiert des
 
 ```python
 from pathlib import Path
-from qb_cubie.services import DocFrame
+from qb_cubie.core.services import DocFrame
 
 root = Path("mini_repo")
 (root / "docs/.assets").mkdir(parents=True, exist_ok=True)
@@ -185,7 +185,7 @@ Alle Katalog-Abfragen über `catalog.select(...)`, `FolderRouter`, `SiblingRoute
 Das folgende Beispiel zeigt, wie `parse_frame_spans` einen `qb:frame`-Kommentar innerhalb eines Code-Fences ignoriert und wie `extract_doc_meta` Titel, Label, Kurzbeschreibung und Sortier-Rang extrahiert:
 
 ```python
-from qb_cubie.services.docframe import extract_doc_meta, parse_frame_spans
+from qb_cubie.core.services.docframe import extract_doc_meta, parse_frame_spans
 
 fence = "```"
 raw_md = (
@@ -292,7 +292,7 @@ Im folgenden zweistufigen Praxis-Beispiel (`session=frame_standards`) legen wir 
 
 ```python session=frame_standards
 from pathlib import Path
-from qb_cubie.services import DocFrame
+from qb_cubie.core.services import DocFrame
 
 ws = Path("standards_demo")
 (ws / "docs/.assets").mkdir(parents=True, exist_ok=True)
@@ -327,7 +327,7 @@ Aktualisiert: ('docs/README.md', 'docs/Report.md')
 Im zweiten Schritt derselben Session prüfen wir den synchronisierten Provenance-Kopf in `docs/Report.md` sowie die automatisch generierte Index-Tabelle in `docs/README.md`:
 
 ```python session=frame_standards
-from qb_cubie.services.docframe import parse_frame_spans
+from qb_cubie.core.services.docframe import parse_frame_spans
 
 report_head = parse_frame_spans((ws / "docs/Report.md").read_text(encoding="utf-8"))[0][0]
 readme_router = parse_frame_spans((ws / "docs/README.md").read_text(encoding="utf-8"))[0][1]
@@ -385,7 +385,7 @@ Prüffrage A
 Genau wie im `qb-cubie`-Kern validiert `DocFrame` sämtliche Marker-Attribute und Konfigurationsparameter sofort über explizite `STATE-GUARD`s. Ungültige Zonen-Namen, fehlende `id`-Attribute, nicht-ganzzahlige `order`-Werte oder unzulässige `routable`-/ `recursive`-/ `mode`-Angaben lösen unmittelbar einen `ValueError` aus:
 
 ```python raises=ValueError
-from qb_cubie.services.docframe import extract_doc_meta
+from qb_cubie.core.services.docframe import extract_doc_meta
 
 invalid_md = '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" order="high" -->\n# Titel\n<!-- /qb:frame -->'
 extract_doc_meta("docs/GUIDE_Broken.md", invalid_md)
@@ -403,7 +403,7 @@ ValueError: STATE-GUARD: order attribute must be an integer; received 'high'.
 
 ## 6. Pluggable Rahmen-Prüfregeln (`CUBIE_DOCFRAME_RULES`) & `DocEnsurance`-Kopplung
 
-Damit Rahmen-Drifts und tote Routen genauso zuverlässig abgefangen werden wie kaputte Python-Beispiele, stellt `qb_cubie.services` das Regel-Tupel **`CUBIE_DOCFRAME_RULES`** bereit. Es lässt sich zusammen mit den `FramePattern`-Objekten direkt in `DocEnsurance` einhängen:
+Damit Rahmen-Drifts und tote Routen genauso zuverlässig abgefangen werden wie kaputte Python-Beispiele, stellt `qb_cubie.core.services` das Regel-Tupel **`CUBIE_DOCFRAME_RULES`** bereit. Es lässt sich zusammen mit den `FramePattern`-Objekten direkt in `DocEnsurance` einhängen:
 
 * **Orthogonale Ausführung in einem Durchlauf:** Übergibt man `pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)` und `rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES)`, trennt `DocEnsurance` automatisch das Code-Beispiel-Pattern (`CUBIE_DOC_STYLE`) von den Rahmen-Patterns (`FramePattern`), baut einmalig den `DocumentCatalog` auf und prüft sowohl alle Code-Snippets als auch alle Dokumentrahmen.
 * **Kaskadenfreie Abschirmung (`DocFrameOutdated`):** Damit ein einzelner Ursachenfehler niemals doppelt gemeldet wird, arbeitet `DocFrameOutdated` kaskadenfrei: Fehlt in einer Datei bereits eine Pflicht-Zone (`DOCFRAME-MISSING`) oder weist ein Span unvollständige Provenance-Daten (`DOCFRAME-PROVENANCE-INCOMPLETE`) bzw. einen toten Link (`DOCFRAME-BROKEN-ROUTE`) auf, wird für diesen Span keine zusätzliche `DOCFRAME-OUTDATED`-Diagnose emittiert.
@@ -413,7 +413,7 @@ Im ersten Schritt der Session `frame_verification` legen wir ein Dokument an, de
 
 ```python session=frame_verification
 from pathlib import Path
-from qb_cubie.services import (
+from qb_cubie.core.services import (
     CUBIE_DOC_FRAME_1, CUBIE_DOC_STYLE, CUBIE_DOCFRAME_RULES, DocEnsurance, DocFrame,
 )
 
@@ -485,7 +485,7 @@ Jeder Rahmen-Befund wird als unveränderliches `DocDiagnostic(file_path, rule_id
 
 ## 8. Deep-Dive: „Lego-Bausteine“, eigene `FramePattern`s und Dokument-Regeln entwickeln
 
-Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getrennte Schichten in `qb_cubie.services.doc_frame`:
+Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getrennte Schichten in `qb_cubie.core.services.doc_frame`:
 
 1. **Ebene 0 (`_catalog_scanner`):** Fence-sicherer Span-Scanner (`parse_frame_spans`), Metadaten-Extraktor (`extract_doc_meta`) und Katalog-Builder (`DocumentCatalog`).
 2. **Ebene 1 (`FrameBlockProtocol` in `frame_blocks`):** Zustandslose Struktur-Bausteine (`Divider`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`), dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) und geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`).
@@ -494,10 +494,10 @@ Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getr
 
 ### 8.1 Die mitgelieferten „Lego-Bausteine“ zu eigenen `FramePattern`s zusammensetzen
 
-Alle drei Cubie-Presets werden deklarativ aus den Bausteinen in `qb_cubie.services.docframe` zusammengesteckt. Im ersten Schritt der Session `docframe_presets` definieren wir die Kopf-Schnellnavigation (`CompactNav`) sowie die dynamischen `FolderRouter`- und `SiblingRouter`-Instanzen:
+Alle drei Cubie-Presets werden deklarativ aus den Bausteinen in `qb_cubie.core.services.docframe` zusammengesteckt. Im ersten Schritt der Session `docframe_presets` definieren wir die Kopf-Schnellnavigation (`CompactNav`) sowie die dynamischen `FolderRouter`- und `SiblingRouter`-Instanzen:
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import (
+from qb_cubie.core.services.docframe import (
     CatalogRouter, CompactNav, FolderRouter, SiblingRouter,
 )
 
@@ -532,7 +532,7 @@ Quick-Nav: 3 | Hubs: 3
 Im zweiten Schritt bündeln wir die Router in einem zentrierten `<div align="center">`-Container (`CenterWrap`) für den gemeinsamen Footer (`STD_FOOTER_BLOCKS`) und konfigurieren den `CatalogRouter`:
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import AssetImage, CenterWrap, Divider
+from qb_cubie.core.services.docframe import AssetImage, CenterWrap, Divider
 
 STD_FOOTER_BLOCKS = (
     Divider(),
@@ -567,7 +567,7 @@ Footer-Blöcke: 3 | Index-Mode: table
 Im dritten Schritt kombinieren wir die geschützten Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`) mit den Navigations-Blöcken zu `FramePattern`-Definitionen:
 
 ```python session=docframe_presets
-from qb_cubie.services.docframe import (
+from qb_cubie.core.services.docframe import (
     DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
 )
 
@@ -606,7 +606,7 @@ Um einen völlig eigenen Baustein zu ergänzen – etwa eine Breadcrumb-Zeile, d
 ```python
 from dataclasses import dataclass
 from pathlib import Path
-from qb_cubie.services.docframe import (
+from qb_cubie.core.services.docframe import (
     DocumentCatalog, FramePattern, FrameRenderContext, FrameSpan, compute_rel_link, extract_doc_meta,
 )
 
@@ -643,8 +643,8 @@ Möchte ein Team neben `CUBIE_DOCFRAME_RULES` eigene Rahmen-Konventionen in `Doc
 
 ```python
 from dataclasses import dataclass
-from qb_cubie.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
-from qb_cubie.services.docframe import DocumentCatalog, FramePattern, parse_frame_spans
+from qb_cubie.core.services import DocDiagnostic, DocEnsurance, ExtractedExample, validate_severity
+from qb_cubie.core.services.docframe import DocumentCatalog, FramePattern, parse_frame_spans
 
 
 @dataclass(frozen=True)

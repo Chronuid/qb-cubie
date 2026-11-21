@@ -38,7 +38,7 @@ def check_line(filename, line):
 def pytest_configure(config):
     try:
         from qb_cubie import EBT
-        from qb_cubie.protocols import RunTrace
+        from qb_cubie.core.protocols import RunTrace
     except ImportError:
         return
     original_run = EBT.run

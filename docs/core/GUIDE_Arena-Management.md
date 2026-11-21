@@ -62,11 +62,11 @@ Nach dem Kopieren passt `setup()` übliche Python-Einstiegsskripte an den Klon a
 
 Das ist eine begrenzte Unterstützung kopierter Umgebungen, keine allgemeine Relokation beliebiger Venvs. Aktivierungsskripte werden nicht für eine interaktive Shell angepasst; PyVenv setzt `PATH` und `VIRTUAL_ENV` selbst. Absolute Pfade in Paketdaten, nativen Bibliotheken oder Anwendungscode werden nicht umgeschrieben. Für nicht unterstützte Launcher eine passende Basis ohne diese Launcher provisionieren und das Modul über `sys.executable -m ...` aufrufen.
 
-Der `ArenaBuilder` wird über `from qb_cubie.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
+Der `ArenaBuilder` wird über `from qb_cubie.core.arenas.pyvenv import ArenaBuilder` importiert. `ArenaBuilder(path).with_packages([...]).build(codec=codec)` erzeugt beziehungsweise ergänzt eine Basis und liefert ein `PyVenv`-Objekt mit diesem Codec. Ohne Codec gilt `MSGspecCodec`. Der Builder installiert auch dessen Anforderungen. Er benötigt `uv` im `PATH` und verwendet den aufrufenden Python-Interpreter für neue Umgebungen. Provisionierung ist ein ausdrücklicher Vorbereitungsschritt und kann schreiben sowie Netzwerkzugriff benötigen.
 
 ```python
 from qb_cubie import CloudpickleCodec
-from qb_cubie.arenas.pyvenv import ArenaBuilder
+from qb_cubie.core.arenas.pyvenv import ArenaBuilder
 
 # Einmaliger Installationsschritt vor den Tests:
 arena = ArenaBuilder(".arenas/my_env").with_packages([
