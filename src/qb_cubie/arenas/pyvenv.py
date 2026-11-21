@@ -11,7 +11,7 @@ from typing import Any, List, Optional
 
 from .._execution import CapturedResult, RemoteException
 from ..protocols import IPCC, WorldState
-from ._hydration import hydrate_workspace
+from .hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 from ._requirements import _environment_python, _requirements_satisfied
 from ._relocation import relocate_scripts

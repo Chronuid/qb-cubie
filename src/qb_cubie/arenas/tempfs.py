@@ -14,7 +14,7 @@ from typing import Any
 import cloudpickle  # type: ignore[import-untyped]
 
 from ..protocols import WorldState
-from ._hydration import hydrate_workspace
+from .hydration import hydrate_workspace
 from ._process import run_process, validate_limits
 
 

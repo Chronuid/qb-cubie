@@ -29,6 +29,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | **Example-Based Testing (`qb_cubie.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./DEV-GUIDE_2-5_Linter.md) |
 | **Services (`qb_cubie.services`) entwickeln & erweitern** | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md) und [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) |
+| **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
 | **Releases vorbereiten & CI-Kompatibilität prüfen** | [Release-Vorbereitung](./DEV-GUIDE_Release-Preparation.md) und [CI Plattformstatus](../CI_PLATFORM_STATUS.md) |
 | **Nächste Entwicklungsschritte & Aufräum-Roadmap einsehen** | [Next Steps](./DEV-GUIDE_Next-Steps.md) |
 
@@ -49,6 +50,7 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/` abgelegten Entw
 | [Arenen und IPC-Codecs](./DEV-GUIDE_2-3_Arenas.md) | Arenen implementieren die Ausführungsschicht für konkrete EBT-Fälle. Die beiden vorhandenen Arenen sind Prozess- und Workspace-Abstraktionen ohne OS-Sicherheitsgrenze. Die [Vertragssemantik](../core/GUIDE_Contract-Semantics.md) und das [Arena-Nutzungshandbuch](../core/GUIDE_Arena-Management.md) beschreiben die verbindlichen Grenzen. |
 | [`Multiprocessors`](./DEV-GUIDE_2-4_Multiprocessors.md) | Diese Entwicklerreferenz beschreibt Multiprozess-Ausführung und die zugehörigen Schnittstellen. |
 | [`Linter`](./DEV-GUIDE_2-5_Linter.md) | Diese Entwicklerreferenz beschreibt Aufbau und Schnittstellen der Linter-Integration. |
+| [DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) | Kurzanleitung für Agenten zum korrekten Ausfüllen des `CUBIE_DOC_FRAME_2`-Provenance-Headers und zum strukturierten Aufbau von Analysen, Hypothesen, Audits und TGD-Protokollen. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
@@ -135,6 +137,7 @@ qb-cubie docframe update docs/dev/README.md
 [↦ | Arenen und IPC-Codecs | ↤](./DEV-GUIDE_2-3_Arenas.md)  
 [↦ | `Multiprocessors` | ↤](./DEV-GUIDE_2-4_Multiprocessors.md)  
 [↦ | `Linter` | ↤](./DEV-GUIDE_2-5_Linter.md)  
+[↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
 [↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
 [↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
 [↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  

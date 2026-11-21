@@ -8,13 +8,26 @@ from copy import deepcopy
 from multiprocessing.managers import BaseProxy
 from pathlib import Path
 from typing import Any, Callable, List, Union, Set, get_origin, get_args, Optional
-from .arenas._hydration import normalize_fs
+from .arenas.hydration import normalize_fs
 from .multiprocessors import PickleProcessor, LokyProcessor, MultiprocessManager
 from .multiprocessors import _validate_max_workers
-from .protocols import Arena, WorldState, EvaluationTrace, RunTrace, Reporter, Multiprocessor, UNSPECIFIED, ExceptionExpectation, Quantor, StateInput, evaluate_step_logic, validate_bool_expect
 from .reporter import PytestReporter
 from ._execution import CaptureTarget, CapturedResult, RemoteException, exception_details, qualified_name
 from ._files import same_contents
+from .protocols import (
+    Arena,
+    WorldState,
+    EvaluationTrace,
+    RunTrace,
+    Reporter,
+    Multiprocessor,
+    UNSPECIFIED,
+    ExceptionExpectation,
+    Quantor,
+    StateInput,
+    evaluate_step_logic,
+    validate_bool_expect
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -342,7 +355,12 @@ class EBT:
         )
 
     @staticmethod
-    def _execute_step(pre_state: WorldState, target: Any, active_arena: Optional[Arena], *, capture_exceptions: bool = False) -> WorldState:
+    def _execute_step(
+            pre_state: WorldState,
+            target: Any,
+            active_arena: Optional[Arena],
+            *, capture_exceptions: bool = False
+    ) -> WorldState:
         """Execute one target call and normalize its observed outcome."""
         __tracebackhide__ = True
         args = EBT._normalize_args(pre_state.args)
@@ -607,7 +625,9 @@ class EBT:
             )
         extra = set(wrapper) - {"quantor", "states"}
         if extra:
-            raise ValueError(f"STATE-GUARD: {field} wrapper has unexpected keys: {', '.join(sorted(map(str, extra)))}.")
+            raise ValueError(
+                f"STATE-GUARD: {field} wrapper has unexpected keys: {', '.join(sorted(map(str, extra)))}."
+            )
         missing = [key for key in ("quantor", "states") if key not in wrapper]
         if missing:
             raise ValueError(f"STATE-GUARD: {field} wrapper is missing required key(s): {', '.join(missing)}.")

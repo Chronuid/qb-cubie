@@ -225,7 +225,7 @@ Das vorliegende Audit vermisst den aktuellen Code- und Testbestand von `qb-cubie
 | [`test_ebt_hydration_boundaries.py#L26`](../tests/tests_arena/test_ebt_hydration_boundaries.py#L26), [`test_arena_requirements.py#L21`](../tests/tests_arena/test_arena_requirements.py#L21), [`test_exception_observations.py#L25`](../tests/tests_arena/test_exception_observations.py#L25) | `venv.EnvBuilder(with_pip=False, symlinks=True)` | Wirft ohne Admin-Rechte / Developer Mode `OSError: [WinError 1314]` | `symlinks=os.name != "nt"` (analog `test_pyvenv_workspace_isolation.py:342`) |
 | [`test_ebt_arena_mutation.py#L39`](../tests/tests_arena/test_ebt_arena_mutation.py#L39) | `Path(site.getsitepackages()[0])` | Liefert unter Windows oft das Venv-Root statt `Lib/site-packages` (Index 0 ist `prefix`, Index 1 `Lib\site-packages`) | `Path(sysconfig.get_path("purelib"))` |
 | [`tempfs.py#L107`](../src/qb_cubie/arenas/tempfs.py#L107), [`provision_test_arenas.py#L36`](../scripts/provision_test_arenas.py#L36) | `shutil.rmtree(path)` ohne `onexc` | Schreibgeschützte Dateien in Workspaces/Venvs lösen auf Windows `PermissionError` aus | Gemeinsames/sauberes `onexc=_remove_readonly`-Aufräumen |
-| [`_hydration.py#L28`](../src/qb_cubie/arenas/_hydration.py#L28) | `Path(str(value).rstrip("/"))` | Trailing Backslashes aus Windows-Pfadstrings werden nicht getrimmt | `.rstrip("/\\")` |
+| [`_hydration.py#L28`](../src/qb_cubie/arenas/hydration.py#L28) | `Path(str(value).rstrip("/"))` | Trailing Backslashes aus Windows-Pfadstrings werden nicht getrimmt | `.rstrip("/\\")` |
 | [`cubie_benchmarks/execution/_inputs.py#L196`](../experiments/benchmarks/cubie_benchmarks/execution/_inputs.py#L196) | `Path("/tmp/cubie-preflight-unused")` | Linux-Pfad-Literal im `check_runtime`-Preflight für Docker-SWEbench | Dokumentierte Docker-Grenze (läuft im Wheel-Check ohne `check_runtime`) |
 
 ---
@@ -257,7 +257,7 @@ Vermessung der betroffenen Produktionsmodule gemäß exakt [`tests/test_stylegui
 | [`doc_frame.py`](../src/qb_cubie/services/doc_frame/doc_frame.py) | `341` | `10` (`run` L202) | `write_text(..., newline="\n")` ist zeilenneutral. |
 | [`_process.py`](../src/qb_cubie/arenas/_process.py) | `179` | `11` (`_monitor_process` L70) | Win32 Job-Object + Reader-Thread-Logik **zwingend** in neues Hilfsmodul `arenas/_process_win32.py` auslagern. |
 | [`tempfs.py`](../src/qb_cubie/arenas/tempfs.py) | `160` | `12` (`get_state` L86) | `.resolve()` auf `mkdtemp()` + `_remove_readonly` leicht einbaubar. |
-| [`_hydration.py`](../src/qb_cubie/arenas/_hydration.py) | `151` | `12` (`_checked` L95) | `.rstrip("/\\")` in `_filesystem_mapping` (L28) zeilenneutral. |
+| [`_hydration.py`](../src/qb_cubie/arenas/hydration.py) | `151` | `12` (`_checked` L95) | `.rstrip("/\\")` in `_filesystem_mapping` (L28) zeilenneutral. |
 | [`pylint.py`](../src/qb_cubie/linters/pylint.py) | `107` | `8` (`_build_command` L39) | Genug Headroom für UTF-8-Option. |
 | [`_relocation.py`](../src/qb_cubie/arenas/_relocation.py) | `99` | `11` (`_shell_header` L82) | `.exe`-Relokation (`distlib` + `uv-trampoline`) in eigenes Hilfsmodul `arenas/_relocation_win32.py` auslagern. |
 | [`mypy.py`](../src/qb_cubie/linters/mypy.py) | `97` | `10` (`check` L31) | Genug Headroom für UTF-8-Option. |

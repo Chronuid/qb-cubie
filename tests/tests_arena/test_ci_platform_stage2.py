@@ -13,7 +13,7 @@ from pathlib import Path, PureWindowsPath
 import pytest
 
 from qb_cubie import EBT, PickleCodec, PyVenv, WorldState
-from qb_cubie.arenas import _hydration, _relocation, _requirements, pyvenv
+from qb_cubie.arenas import hydration, _relocation, _requirements, pyvenv
 from qb_cubie.arenas.pyvenv import ArenaBuilder
 from qb_cubie.reporter import PytestReporter
 
@@ -301,7 +301,7 @@ def test_reporter_summarize_fs_diffs_normalizes_backslashes():
 
 
 def test_hydration_normalize_fs_trims_trailing_backslashes():
-    mapping = _hydration.normalize_fs([r"folder\\"], "fs")
+    mapping = hydration.normalize_fs([r"folder\\"], "fs")
     assert mapping == {"folder": r"folder\\"}
 
 
