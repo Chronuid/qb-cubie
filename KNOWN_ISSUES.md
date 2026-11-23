@@ -28,6 +28,33 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 
 ## Offene Bugs
 
+### [BUG-007] `DocFrame.update()` überschreibt den Hinweis zur erkenntnistheoretischen Grenze
+
+- **Status:** Offen
+- **Schweregrad:** Hoch
+- **Bereich:** `src/qb_cubie/core/services/doc_frame/doc_frame.py` (`DocFrame.update`), `src/qb_cubie/core/services/doc_frame/doc_frame_rules.py`, `tests/test_styleguide.py`
+- **Umgebung / Version:** `v0.1.0` / Commit `fd36cca9`, Python `3.13`, Linux (plattformunabhängig)
+
+**Ist-Verhalten:**  
+Beim Ausführen von `DocFrame.update()` wird der Hinweis zur erkenntnistheoretischen Grenze (`> [!Note]` – Karl Poppers kritischer Rationalismus / Fallibilismus) im Kopfbereich (`zone="head"`) der Dokumente überschrieben bzw. entfernt.
+
+**Soll-Verhalten:**  
+Der Hinweis zur erkenntnistheoretischen Grenze darf durch `DocFrame.update()` niemals entfernt oder überschrieben werden. Er soll im Gegenteil als fester, verpflichtender Anker immer Bestandteil der Dokumentköpfe sein und durch die `DocFrame`-Regeln aktiv geprüft werden.
+
+**Reproduktion:**  
+1. Dokument mit vorhandenem `> [!Note]`-Hinweis zur erkenntnistheoretischen Grenze in `zone="head"` (z. B. `KNOWN_ISSUES.md` oder `docs/dev/DEV-GUIDE_Write-down-the-bugs.md`) prüfen.
+2. `DocFrame.update()` ausführen:
+```bash
+.venv/bin/python -c "from qb_cubie.core.services.doc_frame import DocFrame; DocFrame.update()"
+```
+3. `git diff` zeigt, dass der Hinweis zur erkenntnistheoretischen Grenze im Kopfbereich überschrieben wurde.
+
+**Hinweise / Ursache:**  
+- Der Hinweis zur erkenntnistheoretischen Grenze ist aktuell nicht als geschützter/verpflichtender Anker-Block in den `DocFrame`-Head-Templates verankert.
+- **Architektur-/Refactoring-Wunsch für den Fix:** Idealerweise sollte die Behebung mit einer saubereren Aufteilung der Test-Module einhergehen – je ein eigenes Test-Modul für `DocEnsurance` und ein eigenes Test-Modul für `DocFrame` (statt gemeinsamer Bündelung in `tests/test_styleguide.py`) – sowie einer zentralen Stelle zum Pflegen und Bearbeiten der Dokumentköpfe und -füße (`head`/`foot`).
+
+---
+
 ### [BUG-002] `PytestReporter` verliert Assertions unter optimiertem Python (`python -O`)
 
 - **Status:** Offen *(Gutachten-Befund B2, P1)*
