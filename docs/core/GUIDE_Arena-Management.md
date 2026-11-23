@@ -9,6 +9,15 @@ Arenen trennen die EBT-Orchestrierung von Aufbau und Ausführung einer Testumgeb
 
 ---
 
+> [!Note]  
+> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
+>
+> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
+>
+> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
+> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
+
 ---
 
 [README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](../services/GUIDE_DocEnsurance.md)  

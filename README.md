@@ -12,13 +12,13 @@ Reviewer können zusätzliche, ausdrücklich formulierte Kriterien beurteilen.
 ---
 
 > [!Note]  
-> **Dieses Projekt ist experimentell und in einer frühen Entwicklungs-Phase.**  
-> Erfolgreiche Tests dokumentieren beobachtete Konformität in den geprüften Fällen.  
-> Sie belegen weder allgemeine Korrektheit noch eine vollständige Testabdeckung.
+> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
-> ---
+> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
 >
-> **Cubie befindet sich derzeit unter aktiver Mutation und Überarbeitung und könnte daher Fehler, Unvollständigkeiten oder veraltete Angaben enthalten.**
+> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
+> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
 

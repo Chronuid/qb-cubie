@@ -10,7 +10,13 @@ Dieses Handbuch beschreibt den gezielten Einsatz von `expect=True` und `expect=F
 ---
 
 > [!Note]  
-> Dieses Handbuch zur Qualitätssicherung befindet sich derzeit unter aktiver Mutation und Überarbeitung und könnte daher Fehler, Unvollständigkeiten oder veraltete Angaben enthalten.
+> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
+>
+> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
+>
+> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
+> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
 
