@@ -2,9 +2,9 @@
 # Gutachten: Technische Bestandsaufnahme von qb-cubie 0.1.0
 
 **Dokument-Informationen & Herkunft:**
-- **Plattform / Umgebung:** ChatGPT-Webseite, Deep Research
-- **Modell:** Unbekannt; kostenlose Version, im Web-UI nicht ausgewiesen
-- **Reasoning-Effort:** Unbekannt; im Web-UI nicht ausgewiesen
+- **Plattform / Umgebung:** ChatGPT-Web (Deep Research)
+- **Modell:** unbekannt (kostenlose Version; ChatGPT-Web)
+- **Reasoning-Effort:** unbekannt (kostenlose Version)
 - **Analysedatum:** Nicht ausgewiesen im übermittelten Deep-Research-Bericht
 - **Synthesebasis:** `docs/misc/deep-research-report.md` (vom Nutzer bereitgestellter Deep-Research-Bericht)
 - **Transformation:** Dieser Bericht wurde von Codex in das neue `GUTACHTEN.md` mit `CUBIE_DOC_FRAME_2`-Rahmen und strukturierter Gutachtenform transformiert. Keine erneute technische Prüfung oder Aktualisierung der darin enthaltenen Befunde vorgenommen.
@@ -13,7 +13,6 @@
 ---
 
 **Hinweis zur Herkunft und Aussagekraft:** Dieses Gutachten gibt den Inhalt des über die ChatGPT-Webseite erzeugten Deep-Research-Berichts redaktionell geordnet wieder. Verweise wie `[73]` und `[70]` aus der Quelldatei wurden nicht übernommen, weil die zugehörige Quellenliste dort nicht enthalten ist. Technische Befunde, Versionsangaben und Bewertungen sind daher als Aussagen des Ausgangsberichts zu verstehen und wurden für diese Transformation nicht unabhängig verifiziert.
-
 <!-- /qb:frame -->
 
 ## Kurzfassung (Executive Summary)

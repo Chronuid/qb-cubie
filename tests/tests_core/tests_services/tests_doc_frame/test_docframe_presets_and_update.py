@@ -9,20 +9,15 @@ from qb_cubie.core.services import (
     CUBIE_DOC_FRAME_1,
     CUBIE_DOC_FRAME_2,
     CUBIE_DOC_FRAME_3,
+    EPISTEMIC_NOTICE_TEXT,
     DocFrame,
 )
 
-_CANONICAL_EPISTEMIC_NOTICE = (
+_EPISTEMIC_ANCHOR_MARKER = "erkenntnistheoretischen Grenzen"
+
+_LEGACY_EPISTEMIC_NOTICE_VARIANT = (
     "> [!Note]  \n"
-    "> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers "
-    "kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte "
-    "Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  \n"
-    ">\n"
-    "> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  \n"
-    ">\n"
-    "> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  \n"
-    "> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  \n"
-    "> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**"
+    "> Veraltete Formulierung zu unseren **erkenntnistheoretischen Grenzen** (Altbestand)."
 )
 
 _FRAME_1_DOC = (
@@ -44,7 +39,7 @@ _FRAME_1_FOUR_SEGMENT_DOC = (
     "![Cubie](../.assets/cubie-logo-written.png)\n\n"
     "Einführungstext für das viersegmentige Handbuch.\n\n---\n\n"
     "> [!WARNING]\n>\n> **Status: Prototyp:** Spezifischer Service-Disclaimer.\n\n---\n\n"
-    f"{_CANONICAL_EPISTEMIC_NOTICE}\n\n---\n\n"
+    f"{EPISTEMIC_NOTICE_TEXT}\n\n---\n\n"
     "[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](./GUIDE_DocEnsurance.md)  \n\n"
     "</div>\n<!-- /qb:frame -->\n\n"
     "Haupttext.\n\n"
@@ -56,7 +51,7 @@ _FRAME_1_LEGACY_3_SEGMENT_EPISTEMIC_DOC = (
     '<div align="center">\n\n# Bestands-Handbuch ohne eigenen Disclaimer\n\n'
     "![Cubie](./.assets/cubie-logo-written.png)\n\n"
     "Einführungstext ohne dokument-spezifischen Disclaimer.\n\n---\n\n"
-    f"{_CANONICAL_EPISTEMIC_NOTICE}\n\n---\n\n"
+    f"{_LEGACY_EPISTEMIC_NOTICE_VARIANT}\n\n---\n\n"
     "[README](../README.md)  \n\n"
     "</div>\n<!-- /qb:frame -->\n\n"
     "Haupttext.\n\n"
@@ -135,8 +130,8 @@ def _inspect_frame_1(path: Path) -> dict[str, Any]:
         "preserves_title": "# Mein Handbuch-Titel" in text,
         "preserves_intro": "Geschützter Einführungstext mit wichtigen Erklärungen." in text,
         "preserves_disclaimer": "> Geschützter Disclaimer-Hinweis für dieses Handbuch." in text,
-        "injects_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in text,
-        "epistemic_notice_count": text.count("erkenntnistheoretischen Grenzen"),
+        "injects_epistemic_notice": EPISTEMIC_NOTICE_TEXT in text,
+        "epistemic_notice_count": text.count(_EPISTEMIC_ANCHOR_MARKER),
         "preserves_body": "## Kapitel 1\n\nGeschützter Haupttext außerhalb der Rahmen." in text,
         "fixes_banner_and_alt": "![Cubie](.assets/cubie-banner.png)" in text,
         "fixes_footer_alt": "![Cubie](.assets/cubie-small.png)" in text,
@@ -172,7 +167,7 @@ def _inspect_frame_3(path: Path) -> dict[str, Any]:
         "removes_stale_row": "[Veraltet](./old.md)" not in text,
         "preserves_pre_text": "Manueller Einleitungstext vor dem Router-Block." in text,
         "preserves_manual_table": "| Externe Tabelle | Hinweis |\n| --- | --- |\n| Bleibt erhalten | 100% |" in text,
-        "injects_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in text,
+        "injects_epistemic_notice": EPISTEMIC_NOTICE_TEXT in text,
         "no_double_dividers_in_head": "---\n\n---" not in text.split("<!-- /qb:frame -->")[0],
     }
 
@@ -193,8 +188,8 @@ def _run_bug_007_epistemic_preservation_scenario(case_kind: str) -> dict[str, An
     updated = doc_path.read_text(encoding="utf-8")
     head_part = updated.split("<!-- /qb:frame -->")[0]
     return {
-        "has_canonical_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in head_part,
-        "epistemic_count_exactly_one": head_part.count("erkenntnistheoretischen Grenzen") == 1,
+        "has_canonical_epistemic_notice": EPISTEMIC_NOTICE_TEXT in head_part,
+        "epistemic_count_exactly_one": head_part.count(_EPISTEMIC_ANCHOR_MARKER) == 1,
         "no_double_dividers_in_head": "---\n\n---" not in head_part,
         "preserves_custom_disclaimer": (
             "**Status: Prototyp:** Spezifischer Service-Disclaimer." in head_part
@@ -211,11 +206,19 @@ def _inspect_central_presets_module() -> dict[str, Any]:
     notice_text = getattr(presets_mod, "EPISTEMIC_NOTICE_TEXT", "")
     notice_block = getattr(presets_mod, "EPISTEMIC_NOTICE", None)
     return {
-        "has_canonical_notice_text": notice_text == _CANONICAL_EPISTEMIC_NOTICE,
-        "has_notice_block": notice_block is not None and hasattr(notice_block, "render"),
+        "has_canonical_notice_text": (
+            isinstance(notice_text, str)
+            and bool(notice_text.strip())
+            and _EPISTEMIC_ANCHOR_MARKER in notice_text
+        ),
+        "has_notice_block": (
+            notice_block is not None
+            and hasattr(notice_block, "render")
+            and getattr(notice_block, "text", None) == notice_text
+        ),
         "exports_std_head_blocks": getattr(presets_mod, "STD_HEAD_BLOCKS", None) is CUBIE_DOC_FRAME_1.head,
         "exports_std_footer_blocks": getattr(presets_mod, "STD_FOOTER_BLOCKS", None) is CUBIE_DOC_FRAME_1.foot,
-        "reexported_in_services": getattr(services_mod, "EPISTEMIC_NOTICE_TEXT", None) == _CANONICAL_EPISTEMIC_NOTICE,
+        "reexported_in_services": getattr(services_mod, "EPISTEMIC_NOTICE_TEXT", None) is notice_text,
     }
 
 

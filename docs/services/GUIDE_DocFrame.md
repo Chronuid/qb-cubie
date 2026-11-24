@@ -241,7 +241,11 @@ In `qb-cubie` decken drei vordefinierte `FramePattern`-Presets (`DEFAULT_FRAME_P
 
 ### 4.1 Handbuch-Rahmen (`CUBIE_DOC_FRAME_1`)
 
-In regulären Guides steuert das optionale Attribut `banner="..."` das Kopfbild aus `docs/.assets/` (Standard: `"cubie-logo-written.png"`). Der `# H1-Titel`, der Einführungstext vor dem ersten `---` sowie ein optionaler Hinweisblock zwischen dem ersten und zweiten `---` bleiben bei jedem `DocFrame.update()`-Lauf vollständig geschützt, während Banner-Pfad, Schnellnavigation und Footer-Routen tiefenkorrekt aktualisiert werden:
+In regulären Guides steuert das optionale Attribut `banner="..."` das Kopfbild aus `docs/.assets/` (Standard: `"cubie-logo-written.png"`). Der `# H1-Titel`, der Einführungstext vor dem ersten `---` sowie ein optionaler dokument-spezifischer Hinweisblock (`DisclaimerSlot`) bleiben bei jedem `DocFrame.update()`-Lauf vollständig geschützt, während Banner-Pfad, der zentrale erkenntnistheoretische Hinweis (`EPISTEMIC_NOTICE`), Schnellnavigation und Footer-Routen tiefenkorrekt aktualisiert werden:
+
+> [!NOTE]
+> **Zentrale Pflege von `EPISTEMIC_NOTICE_TEXT` (Single Source of Truth):**  
+> Der Wortlaut des verpflichtenden erkenntnistheoretischen Hinweisblocks wird zentral an **einer einzigen Stelle** in `src/qb_cubie/core/services/doc_frame/presets.py` (`EPISTEMIC_NOTICE_TEXT`) gepflegt (re-exportiert unter `qb_cubie.core.services`). Änderungen dort werden über `DocFrame.update()` (bzw. `qb-cubie docframe update`) automatisch auf alle `CUBIE_DOC_FRAME_1`- und `CUBIE_DOC_FRAME_3`-Dokumente ausgerollt. Einzige technische Invariante: Der Erkennungsmarker `"erkenntnistheoretischen Grenzen"` muss im Text enthalten bleiben, damit `DisclaimerSlot` den Anker zuverlässig von dokument-spezifischen Disclaimern trennt.
 
 ```markdown
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->

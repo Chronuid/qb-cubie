@@ -61,7 +61,8 @@ Rahmen werden als HTML-Kommentar-Paare außerhalb von Code-Fences notiert (unabg
 
 ### `CUBIE_DOC_FRAME_1` (Standard-Dokumente)
 * **`head`:** H1-Titel (`# ...`), Banner und Kurzbeschreibung stehen **vor dem ersten `---`**. Der erste Textabsatz unter dem Banner wird automatisch als `summary` für `CatalogRouter`-Tabellen extrahiert.
-* **Optionaler Disclaimer:** Text zwischen dem 1. und 2. `---` bleibt bei Updates erhalten (sonst direkt `---` / `---`).
+* **Optionaler Disclaimer:** Dokument-spezifischer Text zwischen dem 1. und 2. `---` bleibt bei Updates über `DisclaimerSlot` erhalten.
+* **Verpflichtender erkenntnistheoretischer Hinweis (`EPISTEMIC_NOTICE_TEXT`):** Wird als fester `StaticBlock` (`EPISTEMIC_NOTICE`) aus `src/qb_cubie/core/services/doc_frame/presets.py` direkt vor der Quick-Nav eingeblendet. Um den Hinweistext zentral für das gesamte Repository zu ändern, genügt die Anpassung von `EPISTEMIC_NOTICE_TEXT` in `presets.py` (der Erkennungsmarker `"erkenntnistheoretischen Grenzen"` muss erhalten bleiben, damit `DisclaimerSlot` Altbestände sauber dedupliziert) gefolgt von `DocFrame.update(excludes=DOC_EXCLUDES)`.
 * **`foot`:** Wird vollständig von `DocFrame` gerendert (`<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->` … `<!-- /qb:frame -->`).
 
 ### `CUBIE_DOC_FRAME_2` (Agenten-Berichte & Audits)
