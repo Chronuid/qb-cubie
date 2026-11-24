@@ -5,6 +5,8 @@ Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert
 ## [Unreleased]
 
 ### Behoben
+- **`[BUG-003]` behoben (`CstLinter.check()` lehnt nicht existierende und ungeeignete `Path`-Ziele explizit ab):**
+  - `CstLinter.check()` in [`linter.py`](./src/qb_cubie/core/linter.py) validiert `Path`-Ziele über `_check_path()`: Nicht existierende Pfade (inkl. defekter Symlinks) lösen `FileNotFoundError` (`STATE-GUARD:`) aus, existierende Pfade außerhalb von Datei/Verzeichnis (z. B. FIFOs) lösen `ValueError` (`STATE-GUARD:`) aus; abgesichert durch Äquivalenzklassen- und Positiv-Kontroll-Verträge in [`test_linter_cst.py`](./tests/tests_core/tests_linters/test_linter_cst.py) und archiviert nach [`docs/misc/lake/SOLVED_ISSUES.md`](./docs/misc/lake/SOLVED_ISSUES.md).
 - **`[BUG-002]` behoben (`PytestReporter` erzwingt `AssertionError` auch unter `python -O` / `-OO`):**
   - `PytestReporter.report()` in [`reporter.py`](./src/qb_cubie/core/reporter.py) ersetzt die drei unter optimiertem Python (`-O` / `-OO`) entfallenden `assert`-Anweisungen für `EBT` (`RunTrace`), `RBT` (`ReviewData`) und Services (`ServiceReportProtocol`) durch explizite `raise AssertionError(...)`-Auslösungen über `PytestReporter._fail_if()`; abgesichert durch acht parametrisierte `python -O`/`-OO`-Subprozess-Verträge in [`test_rbt_reporter.py`](./tests/tests_core/test_rbt_reporter.py) und archiviert nach [`docs/misc/lake/SOLVED_ISSUES.md`](./docs/misc/lake/SOLVED_ISSUES.md).
 

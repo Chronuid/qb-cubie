@@ -35,6 +35,18 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 
 ## Archivierte Bug-Fixes
 
+### [BUG-003] `CstLinter.check()` gibt für nicht existierende Pfade stumm `[]` zurück
+
+- **Status:** Behoben *(Unreleased / nach `v0.1.0`)*
+- **Schweregrad:** Mittel
+- **Bereich:** `src/qb_cubie/core/linter.py` (`CstLinter.check`, `CstLinter._check_path`, `CstLinter._check_directory`), `tests/tests_core/tests_linters/test_linter_cst.py`
+
+**Ursache & Lösung:**  
+- **Explizite `Path`-Validierung mit `STATE-GUARD` (`linter.py`):** `CstLinter.check()` delegiert `Path`-Ziele an `CstLinter._check_path()`. Nicht existierende Pfade (inkl. defekter Symlinks) werden mit `FileNotFoundError("STATE-GUARD: Target path does not exist: ...")` abgewiesen; existierende, aber ungeeignete Pfade (weder Datei noch Verzeichnis, z. B. FIFO/Socket) werden mit `ValueError("STATE-GUARD: Target path is neither a file nor a directory: ...")` abgewiesen. Verzeichnis-Iterationen (inkl. leerer Verzeichnisse ohne `.py`-Dateien) wurden in `_check_directory()` ausgelagert.
+- **Äquivalenzklassen- & Invarianz-Verträge (`test_linter_cst.py`):** Abgesichert durch `EBT`-Verträge für fehlende Dateien, fehlende Verzeichnisse, defekte Symlinks (`FileNotFoundError`), ungeeignete `Path`-Ziele via `os.mkfifo` (`ValueError`) sowie Positiv-Kontrollen für reguläre Dateien, leere Verzeichnisse und `excludes`-Verzeichnisse.
+
+---
+
 ### [BUG-002] `PytestReporter` verliert Assertions unter optimiertem Python (`python -O`)
 
 - **Status:** Behoben *(Unreleased / nach `v0.1.0`)*

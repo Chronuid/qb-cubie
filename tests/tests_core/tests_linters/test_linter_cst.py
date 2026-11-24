@@ -1,8 +1,10 @@
+import os
+from pathlib import Path
+
 import libcst as cst
 import libcst.matchers as m
-from qb_cubie.core.linter import CstLinter, CstRule
-from qb_cubie.core.protocols import WorldState
-from qb_cubie.core.ebt import EBT
+import pytest
+from qb_cubie import EBT, CstLinter, CstRule, ExceptionExpectation, WorldState
 
 
 # --- 1. Definition of Custom Rules ---
@@ -92,4 +94,67 @@ def test_cstlinter_aggregation():
         target=CstLinter(rules=[ForbidEvalRule(), RequireReturnTypeRule()]).check,
         pre=WorldState(kwargs={"target": very_bad_code}),
         post=WorldState(returns=validate_aggregation)
+    ).run()
+
+
+# --- 3. Path Target Validation & Filesystem Equivalence Classes (BUG-003) ---
+
+
+@pytest.mark.parametrize("case", ["missing_file", "missing_dir", "broken_symlink"])
+def test_cstlinter_rejects_nonexistent_path(tmp_path: Path, case: str) -> None:
+    """Missing files, missing directories, and broken symlinks must raise FileNotFoundError."""
+    if case == "missing_file":
+        target = tmp_path / "nicht_vorhanden.py"
+    elif case == "missing_dir":
+        target = tmp_path / "nicht_vorhanden_dir"
+    else:
+        target = tmp_path / "broken_link.py"
+        target.symlink_to(tmp_path / "dangling_target.py")
+    EBT(
+        target=CstLinter(rules=[ForbidEvalRule()]).check,
+        pre=WorldState(kwargs={"target": target}),
+        post=WorldState(raises=ExceptionExpectation(FileNotFoundError, match=r"STATE-GUARD:")),
+    ).run()
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX mkfifo required")
+def test_cstlinter_rejects_unsuitable_path(tmp_path: Path) -> None:
+    """Existing Path targets that are neither file nor directory must raise ValueError."""
+    fifo_path = tmp_path / "named_pipe"
+    os.mkfifo(fifo_path)
+    EBT(
+        target=CstLinter(rules=[ForbidEvalRule()]).check,
+        pre=WorldState(kwargs={"target": fifo_path}),
+        post=WorldState(raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")),
+    ).run()
+
+
+def test_cstlinter_valid_path_targets(tmp_path: Path) -> None:
+    """Positive control: valid file, empty directory, and directory with excludes."""
+    clean_file = tmp_path / "clean.py"
+    clean_file.write_text("x: int = 1\n", encoding="utf-8")
+    empty_dir = tmp_path / "empty_dir"
+    empty_dir.mkdir()
+    pkg_dir = tmp_path / "pkg"
+    pkg_dir.mkdir()
+    (pkg_dir / "bad.py").write_text("eval('1')\n", encoding="utf-8")
+    excluded = pkg_dir / ".venv"
+    excluded.mkdir()
+    (excluded / "ignored.py").write_text("eval('2')\n", encoding="utf-8")
+
+    linter = CstLinter(rules=[ForbidEvalRule()], excludes=[".venv"])
+    EBT(
+        target=linter.check,
+        pre=WorldState(kwargs={"target": clean_file}),
+        post=WorldState(returns=[]),
+    ).run()
+    EBT(
+        target=linter.check,
+        pre=WorldState(kwargs={"target": empty_dir}),
+        post=WorldState(returns=[]),
+    ).run()
+    EBT(
+        target=linter.check,
+        pre=WorldState(kwargs={"target": pkg_dir}),
+        post=WorldState(returns=lambda diags: len(diags) == 1 and diags[0].rule_id == "CST001"),
     ).run()

@@ -217,16 +217,27 @@ class CstLinter:
 
     def check(self, target: Union[str, Path]) -> List[LinterDiagnostic]:
         """Executes CST rules on a file, in-memory string, or recursively on a directory."""
-        all_diagnostics = []
         if isinstance(target, str):
-            all_diagnostics.extend(self._analyze_source(target, "IN_MEMORY"))
-        elif target.is_file():
-            all_diagnostics.extend(self._analyze_source(target.read_text(encoding="utf-8"), str(target)))
-        elif target.is_dir():
-            for file_path in self._crawl_directory(target):
-                source = file_path.read_text(encoding="utf-8")
-                all_diagnostics.extend(self._analyze_source(source, str(file_path)))
-        return all_diagnostics
+            return self._analyze_source(target, "IN_MEMORY")
+        return self._check_path(target)
+
+    def _check_path(self, target: Path) -> List[LinterDiagnostic]:
+        """Validates a Path target and runs CST rules on a file or directory."""
+        if not target.exists():
+            raise FileNotFoundError(f"STATE-GUARD: Target path does not exist: {target}")
+        if target.is_file():
+            return self._analyze_source(target.read_text(encoding="utf-8"), str(target))
+        if target.is_dir():
+            return self._check_directory(target)
+        raise ValueError(f"STATE-GUARD: Target path is neither a file nor a directory: {target}")
+
+    def _check_directory(self, root: Path) -> List[LinterDiagnostic]:
+        """Runs CST rules across all non-excluded Python files in a directory."""
+        diagnostics: List[LinterDiagnostic] = []
+        for file_path in self._crawl_directory(root):
+            source = file_path.read_text(encoding="utf-8")
+            diagnostics.extend(self._analyze_source(source, str(file_path)))
+        return diagnostics
 
     def _crawl_directory(self, root: Path) -> List[Path]:
         """Recursively yields Python files while respecting the exclusion registry."""

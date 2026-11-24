@@ -27,34 +27,6 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 
 ## Offene Bugs
 
-### [BUG-003] `CstLinter.check()` gibt für nicht existierende Pfade stumm `[]` zurück
-
-- **Status:** Offen *(Gutachten-Befund B3, P2)*
-- **Schweregrad:** Mittel
-- **Bereich:** `src/qb_cubie/linter.py` (`CstLinter.check`)
-- **Umgebung / Version:** reproduziert ab `v0.0.3`, unverändert in `v0.0.9` (alle Plattformen)
-
-**Ist-Verhalten:**  
-Wird `CstLinter.check()` ein nicht existierendes `Path`-Objekt übergeben, greift weder `target.is_file()` noch `target.is_dir()`. Die Methode läuft ohne Fehler durch und liefert eine leere Diagnoseliste `[]`. Ein Tippfehler oder falsch konfigurierter Pfad ist damit nicht von einer erfolgreichen Prüfung ohne Befunde zu unterscheiden.
-
-**Soll-Verhalten:**  
-Nicht existierende oder ungeeignete `Path`-Ziele werden ausdrücklich mit einer Exception (z. B. `FileNotFoundError`) abgelehnt.
-
-**Reproduktion:**  
-```bash
-.venv/bin/python -c "from pathlib import Path; from qb_cubie import CstLinter; print(CstLinter([]).check(Path('/nicht/vorhanden.py')))"
-```
-Ausgabe: `[]`.
-
-**Workaround:**  
-Vor dem Aufruf von `CstLinter.check(path)` manuell `path.exists()` prüfen.
-
-**Hinweise / Ursache:**  
-Quelle: [`GUTACHTEN.md` (§ 6.3, B3)](./GUTACHTEN.md#63-b3-fehlende-linterziele-werden-als-leeres-ergebnis-zurückgegeben).  
-Empfohlene Korrektur: Ungültige Pfade in `CstLinter.check()` explizit ablehnen und optional bei Verzeichnisprüfungen zwischen „keine `.py`-Dateien gefunden“ und „Dateien ohne Befund geprüft“ unterscheiden.
-
----
-
 ### [BUG-004] `DocFrame.update()` aktualisiert keine verstreuten relativen Links außerhalb generierter Router-/Footer-Blöcke bei Doku-Umbauten
 
 - **Status:** Offen

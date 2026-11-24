@@ -24,7 +24,7 @@
 
 # Ziel
 
-Lösung von BUG-002 mittels voll-autonomen TGD-Flow.
+Lösung von BUG-003 mittels voll-autonomen TGD-Flow.
 
 
 ## Kontext
@@ -38,12 +38,12 @@ Lösung von BUG-002 mittels voll-autonomen TGD-Flow.
 @docs/GUIDE_TGD.md  
 
 @docs/dev/DEV-GUIDE_Agent-Reports.md  
-@AGENT_REPORT.md  
+@AGENT_REPORT-2.md  
 
 ## Auftrag
 
-Addressiere BUG-002 mit dem TGD-Flow.  
-Dokumentiere den Verlauf in @AGENT_REPORT.md
+Addressiere BUG-003 mit dem TGD-Flow.  
+Dokumentiere den Verlauf in @AGENT_REPORT-2.md
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
