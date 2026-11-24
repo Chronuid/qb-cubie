@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
-## [Unreleased]
+## [0.1.1] - 2026-11-24
 
 ### Behoben
 - **`[BUG-007]` behoben (Erkenntnistheoretischer Hinweis als verpflichtender `DocFrame`-Anker & SRP-Testaufteilung):**
