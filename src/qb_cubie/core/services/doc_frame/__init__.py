@@ -1,22 +1,8 @@
 """Prototype document frame synchronization service, routers, and rules (pending evaluation and hardening)."""
 
-from . import _catalog_scanner, doc_frame, doc_frame_rules, frame_blocks, protocols
+from . import _catalog_scanner, doc_frame, doc_frame_rules, frame_blocks, presets, protocols
 from ._catalog_scanner import build_catalog_from_sources, extract_doc_meta, parse_frame_spans
-from .doc_frame import (
-    AUTO_INDEX_ROUTER,
-    CONTEXT_ROUTER,
-    CUBIE_DOC_FRAME_1,
-    CUBIE_DOC_FRAME_2,
-    CUBIE_DOC_FRAME_3,
-    DEFAULT_FRAME_PATTERNS,
-    GUIDE_ROUTER,
-    HEADER_QUICK_NAV,
-    SERVICE_ROUTER,
-    STD_FOOTER_BLOCKS,
-    STD_HEAD_BLOCKS,
-    DocFrame,
-    FramePattern,
-)
+from .doc_frame import DocFrame
 from .doc_frame_rules import (
     CUBIE_DOCFRAME_RULES,
     DocFrameBrokenRoute,
@@ -42,9 +28,26 @@ from .frame_blocks import (
     ProvenanceBlock,
     RouteGroup,
     SiblingRouter,
+    StaticBlock,
     TitleSlot,
     compute_rel_link,
     resolve_banner_rel_path,
+)
+from .presets import (
+    AUTO_INDEX_ROUTER,
+    CONTEXT_ROUTER,
+    CUBIE_DOC_FRAME_1,
+    CUBIE_DOC_FRAME_2,
+    CUBIE_DOC_FRAME_3,
+    DEFAULT_FRAME_PATTERNS,
+    EPISTEMIC_NOTICE,
+    EPISTEMIC_NOTICE_TEXT,
+    GUIDE_ROUTER,
+    HEADER_QUICK_NAV,
+    SERVICE_ROUTER,
+    STD_FOOTER_BLOCKS,
+    STD_HEAD_BLOCKS,
+    FramePattern,
 )
 from .protocols import (
     VALID_CATALOG_MODES,
@@ -70,6 +73,8 @@ __all__ = [
     "CUBIE_DOC_FRAME_2",
     "CUBIE_DOC_FRAME_3",
     "DEFAULT_FRAME_PATTERNS",
+    "EPISTEMIC_NOTICE",
+    "EPISTEMIC_NOTICE_TEXT",
     "GUIDE_ROUTER",
     "HEADER_QUICK_NAV",
     "SERVICE_ROUTER",
@@ -107,6 +112,7 @@ __all__ = [
     "ProvenanceBlock",
     "RouteGroup",
     "SiblingRouter",
+    "StaticBlock",
     "TitleSlot",
     "_catalog_scanner",
     "build_catalog_from_sources",
@@ -116,6 +122,7 @@ __all__ = [
     "extract_doc_meta",
     "frame_blocks",
     "parse_frame_spans",
+    "presets",
     "protocols",
     "resolve_banner_rel_path",
     "sort_doc_metas",

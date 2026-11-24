@@ -18,26 +18,30 @@
 
 ---
 
-[README](../README.md) • [QA-Handbuch](./GUIDE_Quality-Assurance.md) • [DocEnsurance](./services/GUIDE_DocEnsurance.md)  
+[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
 
 # Ziel
 
-Erfassung der gegenwärtigen Lage und analyse der Gründe von BUG-007
+Addressierung von BUG-007 mittels Entwicklung der Test-Suite.
 
 
 ## Kontext
 
 @docs/GUIDE_Quality-Assurance.md  
+@docs/GUIDE_Contract-Design.md  
+@docs/GUIDE_Expect-Flags.md  
+@docs/GUIDE_Quantifiers.md  
 @docs/GUIDE_TGD.md  
-@docs/dev/DEV-GUIDE_Agent-Reports.md  
+
+@KNOWN_ISSUES.md  
+@ANALYSIS.md  
 
 ## Auftrag
 
-Analysiere die Gründe für BUG-007 in @KNOWN_ISSUES.md  
-Schreibe deinen Bericht nach dem CUBIE_DOC_FRAME_2 in @ANALYSIS.md  
+Addressiere BUG-007 und entwickel die Test-Suite.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

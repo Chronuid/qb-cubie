@@ -347,3 +347,38 @@ Nach der Green-Phase müssen folgende Dokumente synchronisiert und über `DocEns
 
 > [!NOTE]
 > **Schritt-1-Grenze eingehalten:** Gemäß [`tests/GEMINI.md`](./GEMINI.md) und [`../../GUIDE_Quality-Assurance.md` (§ 3)](../../GUIDE_Quality-Assurance.md#3-test-guided-development-tgd-in-f%C3%BCnf-schritten) wurden in diesem Analyseschritt **keine** Dateien in `../../../src`, `tests/**/*.py`, `docs/`, `scripts/`, `experiments/` oder `.github/` verändert. Erst nach Abstimmung der Entscheidungspunkte **`E1–E5`** startet Schritt 2 (Red-Phase & Test-Freeze).
+
+<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Cubie](../../.assets/cubie-small.png)
+
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
+
+[↦ | Dokumentations-Übersicht | ↤](../../README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../../dev/README.md)  
+[↦ | Core-Internals | ↤](../../dev/core/README.md)  
+[↦ | Hintergrund & Essays | ↤](../README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
+
+[↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
+[↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
+[↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
+[↦ | Archiv behobener Bugs (`SOLVED_ISSUES.md`) | ↤](./SOLVED_ISSUES.md)  
+
+</div>
+<!-- /qb:frame -->
+

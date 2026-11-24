@@ -75,11 +75,11 @@ Die Konfiguration liegt in [`pyproject.toml`](../pyproject.toml) (`--strict-mark
 - `arena` (`tests/tests_core/tests_arenas/`)
 - `multiprocess` (`tests/tests_core/tests_multiprocessors/`)
 - `linter` (`tests/tests_core/tests_linters/`, `tests/test_lint.py`)
-- `services` (`tests/tests_core/tests_services/`, inkl. `test_service_architecture_gate.py`)
+- `services` (`tests/tests_core/tests_services/`, inkl. `test_service_architecture_gate.py`, `test_doc_ensurance.py`, `test_doc_frame.py`)
 - `workflows` (`tests/tests_user_workflows/`)
 - `reviewer` (`test_headless_reviewer.py`, `test_human_reviewer_fresh_decision.py`, `test_rbt_reporter.py`, `test_rbt_demo.py`)
-- `meta` (`tests/tests_meta/test_gate_1.py`–`test_gate_3.py`, `tests/tests_core/tests_services/test_service_architecture_gate.py`, `test_lint.py`, `test_styleguide.py`, `test_default_collection_contract.py`, `test_offline_core.py`, `test_core_without_tk.py`)
-- `lint` (`test_lint.py`, `test_styleguide.py`)
+- `meta` (`tests/tests_meta/test_gate_1.py`–`test_gate_3.py`, `tests/tests_core/tests_services/test_service_architecture_gate.py`, `test_lint.py`, `test_styleguide.py`, `test_doc_ensurance.py`, `test_doc_frame.py`, `test_default_collection_contract.py`, `test_offline_core.py`, `test_core_without_tk.py`)
+- `lint` (`test_lint.py`, `test_styleguide.py`, `test_doc_ensurance.py`, `test_doc_frame.py`)
 - `hypothesis` (`tests/tests_core/tests_multiprocessors/test_mp_hypothesis.py`)
 - CLI-Tests liegen unter `tests/tests_cli/`
 

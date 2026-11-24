@@ -29,9 +29,8 @@ Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relat
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -43,7 +42,7 @@ Wenn ein Projekt wächst, veralten manuell gepflegte Kopf- und Fußzeilen, relat
 
 ## 1. Schnelleinstieg (Minimal-Setup für Synchronisation & Test-Suite)
 
-Im Alltag greifen zwei komplementäre Aufrufe ineinander: Während der Entwicklung bringt `DocFrame.update()` sämtliche Kopf-, Index- und Fußrahmen im Repository in einem einzigen Durchlauf auf den aktuellen Stand; in der Test-Suite (wie in `tests/test_styleguide.py`) überwacht `DocEnsurance` gemeinsam mit `CUBIE_DOCFRAME_RULES`, dass kein Dokument ohne gültigen oder aktuellen Rahmen eingecheckt wird:
+Im Alltag greifen zwei komplementäre Aufrufe ineinander: Während der Entwicklung bringt `DocFrame.update()` sämtliche Kopf-, Index- und Fußrahmen im Repository in einem einzigen Durchlauf auf den aktuellen Stand; in der Test-Suite (getrennt in `tests/test_doc_ensurance.py` und `tests/test_doc_frame.py`) überwacht `DocEnsurance` gemeinsam mit `CUBIE_DOCFRAME_RULES`, dass kein Dokument ohne gültigen oder aktuellen Rahmen eingecheckt wird:
 
 ```python
 from qb_cubie.core.services import (
@@ -502,9 +501,9 @@ Jeder Rahmen-Befund wird als unveränderliches Core-`Diagnostic(file_path, rule_
 Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getrennte Schichten in `qb_cubie.core.services.doc_frame`:
 
 1. **Ebene 0 (`_catalog_scanner`):** Fence-sicherer Span-Scanner (`parse_frame_spans`), Metadaten-Extraktor (`extract_doc_meta`) und Katalog-Builder (`DocumentCatalog`).
-2. **Ebene 1 (`FrameBlockProtocol` in `frame_blocks`):** Zustandslose Struktur-Bausteine (`Divider`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`), dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) und geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`).
+2. **Ebene 1 (`FrameBlockProtocol` in `frame_blocks`):** Zustandslose Struktur-Bausteine (`Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`), dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) und geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`).
 3. **Ebene 2 (`doc_frame_rules`):** Dokument-weite Prüfregeln über Core-`FileCheckProtocol` (`_DocFrameRuleBase` $\to$ `check_document`) für `DocEnsurance`.
-4. **Ebene 3 (`FramePattern` & `DocFrame` in `doc_frame`):** Zonen-Komposition (`head`, `router`, `foot`) und 2-Pass-Orchestrator.
+4. **Ebene 3 (`FramePattern`, Presets & `DocFrame` in `presets` & `doc_frame`):** Zentrale Kopf-/Fuß-Templates (`STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`), verpflichtender erkenntnistheoretischer Hinweis-Anker (`EPISTEMIC_NOTICE` / `EPISTEMIC_NOTICE_TEXT`) und 2-Pass-Orchestrator.
 
 ### 8.1 Die mitgelieferten „Lego-Bausteine“ zu eigenen `FramePattern`s zusammensetzen
 
@@ -578,17 +577,20 @@ Footer-Blöcke: 3 | Index-Mode: table
 ```
 </details>
 
-Im dritten Schritt kombinieren wir die geschützten Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`) mit den Navigations-Blöcken zu `FramePattern`-Definitionen:
+Im dritten Schritt kombinieren wir die geschützten Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`) sowie den festen erkenntnistheoretischen Hinweis-Anker (`EPISTEMIC_NOTICE`) mit den Navigations-Blöcken zu `FramePattern`-Definitionen:
 
 ```python session=docframe_presets
 from qb_cubie.core.services.docframe import (
-    DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
+    EPISTEMIC_NOTICE, DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
 )
 
 STD_HEAD_BLOCKS = (
     CenterWrap(
         tag="div",
-        blocks=(HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(), HEADER_QUICK_NAV),
+        blocks=(
+            HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(),
+            EPISTEMIC_NOTICE, Divider(), HEADER_QUICK_NAV,
+        ),
     ),
 )
 PROVENANCE_KEYS = ("Plattform / Umgebung", "Modell", "Reasoning-Effort")

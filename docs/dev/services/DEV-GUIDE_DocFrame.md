@@ -16,6 +16,16 @@ Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisation
 
 ---
 
+> [!Note]  
+> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
+>
+> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
+> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
+
+---
+
 [README](../../../README.md) • [QA-Handbuch](../../GUIDE_Quality-Assurance.md) • [DocEnsurance](../../services/GUIDE_DocEnsurance.md)  
 
 </div>
@@ -27,15 +37,16 @@ Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisation
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in fünf spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`):
+Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in sechs spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`):
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
 | **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog`, `FrameRenderContext`, `DocFrameReport`, `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
 | **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner & Pass-1-Metadaten-Extraktor (Ebene 0) | `_FrameSpanScanner`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
-| **`frame_blocks.py`** | Zustandslose Struktur-Bausteine, dynamische Router & geschützte Content-Slots (Ebene 1) | `Divider`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
+| **`frame_blocks.py`** | Zustandslose Struktur-Bausteine, dynamische Router & geschützte Content-Slots (Ebene 1) | `Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
+| **`presets.py`** | Zentrale Single Source of Truth für Kopf-/Fuß-Templates, Standard-Presets & den verpflichtenden erkenntnistheoretischen Anker (Ebene 2) | `FramePattern`, `EPISTEMIC_NOTICE_TEXT`, `EPISTEMIC_NOTICE`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
 | **`doc_frame_rules.py`** | Dokument-weite Diagnose-Regeln für `DocEnsurance` (Ebene 2) | `DocFrameMissing` (`DocFrameMissingRule`), `DocFrameOutdated` (`DocFrameOutdatedRule`), `DocFrameBrokenRoute` (`DocFrameBrokenRouteRule`), `DocFrameProvenanceIncomplete` (`DocFrameProvenanceRule`), `CUBIE_DOCFRAME_RULES` |
-| **`doc_frame.py`** | Rahmen-Muster, Standard-Presets & 2-Pass-Orchestrator (Ebene 3) | `FramePattern`, `DocFrame`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
+| **`doc_frame.py`** | 2-Pass-Orchestrator & Re-Export der Standard-Presets (Ebene 3) | `DocFrame` (sowie Re-Export von `FramePattern` und allen Presets aus `presets.py`) |
 
 ---
 
@@ -238,11 +249,11 @@ Damit `DocFrame.update()` Banner-Pfade, Alt-Texte, Provenance-Felder und Navigat
 1. **Zonen-Renderer für `DocFrame`:** Im `__post_init__` prüft `_validate_block_sequence`, dass `id` nicht leer ist und jede Zone ausschließlich `FrameBlockProtocol`-Instanzen enthält (`STATE-GUARD`). `render_zone(zone, ctx)` validiert den Zonennamen über `validate_zone`, rendert alle Blöcke der Zone und verbindet nicht-leere Ergebnisse mit `"\n\n"`.
 2. **`DocPatternProtocol`-Adapter für `DocEnsurance`:** Durch die Property `name -> str` (`return self.id`) und die No-op-Methode `scan(blocks, file_path) -> ([], [])` erfüllt jedes `FramePattern` strukturell das `DocPatternProtocol` aus `doc_ensurance` und kann direkt in `DocEnsurance(pattern=[CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, ...])` übergeben werden.
 
-In `doc_frame.py` sind daraus drei Standard-Presets (`DEFAULT_FRAME_PATTERNS`) vordefiniert:
+In `presets.py` (und re-exportiert über `doc_frame.py`) sind daraus drei Standard-Presets (`DEFAULT_FRAME_PATTERNS`) vordefiniert:
 
 | Preset | `head`-Komposition | `router`-Komposition | `foot`-Komposition |
 | :--- | :--- | :--- | :--- |
-| **`CUBIE_DOC_FRAME_1`** | `STD_HEAD_BLOCKS`: `CenterWrap(tag="div", blocks=(HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(), HEADER_QUICK_NAV))` | `()` | `STD_FOOTER_BLOCKS`: `Divider(), Divider(), CenterWrap(tag="div", blocks=(AssetImage(...), GUIDE_ROUTER, SERVICE_ROUTER, CONTEXT_ROUTER))` |
+| **`CUBIE_DOC_FRAME_1`** | `STD_HEAD_BLOCKS`: `CenterWrap(tag="div", blocks=(HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(), EPISTEMIC_NOTICE, Divider(), HEADER_QUICK_NAV))` | `()` | `STD_FOOTER_BLOCKS`: `Divider(), Divider(), CenterWrap(tag="div", blocks=(AssetImage(...), GUIDE_ROUTER, SERVICE_ROUTER, CONTEXT_ROUTER))` |
 | **`CUBIE_DOC_FRAME_2`** | `(TitleSlot(optional=True), ProvenanceBlock(required_keys=("Plattform / Umgebung", "Modell", "Reasoning-Effort")), Divider(), PromptSlot(optional=True))` | `()` | `STD_FOOTER_BLOCKS` |
 | **`CUBIE_DOC_FRAME_3`** | `STD_HEAD_BLOCKS` | `(AUTO_INDEX_ROUTER,)` (`CatalogRouter(default_mode="table", exclude=("README.md",), extract_summary=True)`) | `STD_FOOTER_BLOCKS` |
 
@@ -323,17 +334,20 @@ Footer-Blöcke: 3 | Index-Mode: table
 ```
 </details>
 
-Im dritten Schritt fügen wir Kopf-, Router- und Fuß-Blöcke zu den drei `FramePattern`-Presets zusammen:
+Im dritten Schritt fügen wir Kopf-, Router- und Fuß-Blöcke (inklusive `EPISTEMIC_NOTICE`) zu den drei `FramePattern`-Presets zusammen:
 
 ```python session=docframe_presets
 from qb_cubie.core.services.doc_frame import (
-    DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
+    EPISTEMIC_NOTICE, DisclaimerSlot, FramePattern, HeaderContentSlot, PromptSlot, ProvenanceBlock, TitleSlot,
 )
 
 STD_HEAD_BLOCKS = (
     CenterWrap(
         tag="div",
-        blocks=(HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(), HEADER_QUICK_NAV),
+        blocks=(
+            HeaderContentSlot(), Divider(), DisclaimerSlot(), Divider(),
+            EPISTEMIC_NOTICE, Divider(), HEADER_QUICK_NAV,
+        ),
     ),
 )
 PROVENANCE_KEYS = ("Plattform / Umgebung", "Modell", "Reasoning-Effort")

@@ -22,9 +22,8 @@ Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte od
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -36,7 +35,7 @@ Dokumentationen veralten oft genau dann, wenn sich Signaturen, Rückgabewerte od
 
 ## 1. Schnelleinstieg (Minimal-Setup in der Test-Suite)
 
-In der Praxis reicht ein einziger Aufruf in der Test-Suite (wie in `tests/test_styleguide.py`), um das gesamte Projekt abzusichern. Da `DocEnsurance` standardmäßig das Projekt-Root ab `pyproject.toml` scannt und den `PytestReporter` nutzt, werden neben `pattern` und `rules=CUBIE_DOC_RULES` nur noch Verzeichnisse oder Arbeitsdokumente in `excludes` angegeben, die nicht dem Doku-Standard unterliegen:
+In der Praxis reicht ein einziger Aufruf in der Test-Suite (wie in `tests/test_doc_ensurance.py`), um das gesamte Projekt abzusichern. Da `DocEnsurance` standardmäßig das Projekt-Root ab `pyproject.toml` scannt und den `PytestReporter` nutzt, werden neben `pattern` und `rules=CUBIE_DOC_RULES` nur noch Verzeichnisse oder Arbeitsdokumente in `excludes` angegeben, die nicht dem Doku-Standard unterliegen:
 
 ```python
 import pytest

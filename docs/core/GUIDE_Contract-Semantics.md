@@ -13,9 +13,8 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.1.0, abgegl
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---

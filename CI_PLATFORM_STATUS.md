@@ -3,7 +3,7 @@
 
 # CI Plattform- und Kompatibilitätsstatus
 
-![Cubie](docs/.assets/cubie-logo-written.png)
+![Cubie](./docs/.assets/cubie-logo-written.png)
 
 Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integration (GitHub Actions) von `qb-cubie` sowie den Status vorübergehend eingefrorener Plattform-Checks (`windows-2022`).
 
@@ -20,7 +20,7 @@ Dieses Dokument erfasst den aktuellen Plattformsupport in der Continuous Integra
 
 ---
 
-[README](README.md) • [QA-Handbuch](docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](docs/services/GUIDE_DocEnsurance.md)  
+[README](./README.md) • [QA-Handbuch](./docs/GUIDE_Quality-Assurance.md) • [DocEnsurance](./docs/services/GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->

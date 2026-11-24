@@ -13,9 +13,8 @@ Dieses Handbuch erklärt Test-Guided Development (TGD) für Einsteiger und Exper
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -91,7 +90,7 @@ In der Red-Phase wird **ausschließlich `tests/`** bearbeitet (`src/` und `docs/
 In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/`** repariert:
 * **Unantastbarkeit der Tests & Rückwärtstür (`GREEN_AUDIT`):** Während der Core-Reparatur gilt ein striktes Änderungsverbot auf `tests/**/*.py` (keine Edits, kein `skip`, kein Abschwächen von Assertions). Taucht unterwegs der begründete Verdacht auf, dass sich in der Red-Phase ein Denkfehler oder Widerspruch in einen Test eingeschlichen hat, wird der Test **nicht** heimlich umgeschrieben, sondern ein strukturierter Befundbericht (z. B. `tests/GREEN_AUDIT.md`) mit Zeilennummer, Reproduktionsbeleg und Klärungsvorschlag angelegt. Auf Basis dieses Befunds wird der kontrollierte Rücksprung in die **Phase Red** ausgelöst, um die Test-Suite sauber zu reparieren.
 * **Code-Härtung unter Stil-Gates:** Der Core wird innerhalb der harten Architektur-Grenzen (`MODULE_LIMIT = 777` Zeilen, `FUNCTION_LIMIT = 12` physische Body-Zeilen, einzeilige Docstrings, `0` Fehler in `ruff`, `pylint` und `mypy --warn-unreachable`) repariert, bis alle zuvor roten Tests auf **`PASSED`** springen.
-* **Phase Living-Documentation (`DocEnsurance` & `DocFrame`):** Sobald ein neuer `STATE-GUARD` oder eine geänderte API im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_styleguide.py::test_docs_code_examples`) und zeigt auf jedes Code-Beispiel in `docs/`, das noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen – und die Dokumentation steht im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereit.
+* **Phase Living-Documentation (`DocEnsurance` & `DocFrame`):** Sobald ein neuer `STATE-GUARD` oder eine geänderte API im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_doc_ensurance.py::test_docs_code_examples` und `tests/test_doc_frame.py::test_docs_frames`) und zeigt auf jedes Code-Beispiel oder jeden Dokumentrahmen in `docs/`, der noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen – und die Dokumentation steht im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereit.
 
 > [!TIP]
 > **Der gesamte TGD-Fluss benötigt eine starke Orchestrierung.**  

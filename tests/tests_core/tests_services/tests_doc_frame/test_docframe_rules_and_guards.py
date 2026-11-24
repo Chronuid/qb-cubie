@@ -78,10 +78,14 @@ def _inject_fault(root: Path, fault: str) -> None:
 
 
 def _inject_secondary_fault(root: Path, qa: Path, fault: str) -> None:
-    """Injects outdated, broken-route, provenance, or orthogonal code faults."""
+    """Injects outdated, broken-route, provenance, epistemic-notice, or orthogonal code faults."""
     if fault == "outdated_alt":
         old_img = "![Error while trying to load the image](.assets/cubie-small.png)"
         qa.write_text(qa.read_text(encoding="utf-8").replace("![Cubie](.assets/cubie-small.png)", old_img), encoding="utf-8")
+    elif fault == "missing_epistemic_notice":
+        text = qa.read_text(encoding="utf-8")
+        lines = [line for line in text.splitlines() if "erkenntnistheoretischen Grenzen" not in line]
+        qa.write_text("\n".join(lines) + "\n", encoding="utf-8")
     elif fault == "outdated_new_file":
         (root / "docs" / "GUIDE_Added.md").write_text(qa.read_text(encoding="utf-8"), encoding="utf-8")
     elif fault == "broken_banner":
@@ -197,6 +201,18 @@ def test_ebt_docframe_outdated_rule_on_stale_alt_text() -> None:
         pre=WorldState(args=("outdated_alt",)),
         post=WorldState(returns=expected),
         custom_id="docframe_rule_outdated_alt",
+    ).run()
+
+
+def test_ebt_docframe_rules_reject_missing_or_corrupted_epistemic_notice() -> None:
+    """Verifies BUG-007: CUBIE_DOCFRAME_RULES actively flag a document whose epistemic notice was removed or altered."""
+    expected = {"passed": False, "diagnostics": [("DOCFRAME-OUTDATED", "error", "GUIDE_Quality-Assurance.md")]}
+    EBT(
+        target=_run_docframe_check,
+        arena=TempFS(),
+        pre=WorldState(args=("missing_epistemic_notice",)),
+        post=WorldState(returns=expected),
+        custom_id="docframe_rule_epistemic_notice_enforced",
     ).run()
 
 

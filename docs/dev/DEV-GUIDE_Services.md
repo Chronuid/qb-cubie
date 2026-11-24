@@ -13,9 +13,8 @@ Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/serv
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -109,7 +108,7 @@ Domänenspezifische Typen (z. B. `FramePattern`, `EvidenceRecord`) verbleiben **
 | **Domänen-Grenze** | `DocEnsurance` erkannte `FramePattern` (`hasattr(..., "render_zone")`) und baute `DocumentCatalog` aus `doc_frame`. | `DocFrame` kapselt Rahmen/Kataloge vollständig und bedient `FileCheckProtocol` über `_DocFrameRuleBase`; `DocEnsurance` führt beliebige `FileCheckProtocol`-Regeln domänenneutral aus. |
 | **Service-Fassade** | `qb_cubie.core.services/__init__.py` lud alle Geschwister-Services eager beim Import. | PEP-562-Lazy-Fassade (`__getattr__`) in `qb_cubie.core.services/__init__.py` löst Submodule und Re-Exports bedarfsgerecht auf, ohne Geschwister-Services zu laden. |
 | **Neuer Service (`coverage`)** | — | `qb_cubie.core.services.coverage` nutzt nur Stdlib (`sys.monitoring`, `ast`, `json`) + Core (`CatalogExtractorProtocol`, `EvidenceCollectorProtocol`, `CoverageRuleProtocol`, `CoverageProfile`). |
-| **Service-Verknüpfung** | Direkter Cross-Import zwischen Services. | Komposition erfolgt im Composition Root (z. B. `tests/test_styleguide.py`) über Core-Protocols (`FileCheckProtocol`, `EvidenceCollectorProtocol`) oder dünne Adapter. |
+| **Service-Verknüpfung** | Direkter Cross-Import zwischen Services. | Komposition erfolgt im Composition Root (z. B. `tests/test_doc_ensurance.py` und `tests/test_doc_frame.py`) über Core-Protocols (`FileCheckProtocol`, `EvidenceCollectorProtocol`) oder dünne Adapter. |
 | **CLI & Presets** | Vermischte Zuständigkeiten. | Eigener Einstiegspunkt (`qb-cubie <service> ...`) und gekapseltes Default-Profil (z. B. `CUBIE_DOCFRAME_RULES`, `CUBIE_COVERAGE_PROFILE`). |
 
 ### Migrationsstatus (3-Stufen-Plan)

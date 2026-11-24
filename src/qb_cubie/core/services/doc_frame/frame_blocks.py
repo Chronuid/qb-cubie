@@ -21,6 +21,7 @@ from .protocols import (
 _HTML_WRAP_RE = re.compile(r"^</?(?:div|center)\b[^>]*>$", re.IGNORECASE)
 _IMG_BANNER_RE = re.compile(r"^!\[[^\]]*\]\(([^)]+)\)$")
 _PROV_BULLET_RE = re.compile(r"^-\s*\*\*([^*]+?):\*\*\s*(.*)$")
+_EPISTEMIC_MARKER: Final[str] = "erkenntnistheoretischen Grenzen"
 _ATTR_TO_PROV_KEY: Final[dict[str, str]] = {
     "env": "Plattform / Umgebung",
     "model": "Modell",
@@ -76,6 +77,16 @@ def _split_by_dividers(lines: list[str]) -> list[list[str]]:
     return segments
 
 
+def _dedupe_dividers(items: Sequence[str]) -> list[str]:
+    """Removes consecutive duplicate '---' divider blocks from a rendered block list."""
+    result: list[str] = []
+    for item in items:
+        if item == "---" and result and result[-1] == "---":
+            continue
+        result.append(item)
+    return result
+
+
 # ========== 1. STRUCTURAL & STATIC NAVIGATION BLOCKS ==================================================================
 @dataclass(frozen=True)
 class Divider:
@@ -85,6 +96,22 @@ class Divider:
         """Returns the horizontal rule string."""
         _ = ctx
         return "---"
+
+
+@dataclass(frozen=True)
+class StaticBlock:
+    """Renders an immutable static Markdown block such as the mandatory epistemic notice anchor."""
+
+    text: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.text, str) or not self.text.strip():
+            raise ValueError("STATE-GUARD: StaticBlock text must be a non-empty string.")
+
+    def render(self, ctx: FrameRenderContext) -> str:
+        """Returns the trimmed static Markdown text."""
+        _ = ctx
+        return self.text.strip()
 
 
 @dataclass(frozen=True)
@@ -120,7 +147,7 @@ class CenterWrap:
         """Renders non-empty child blocks joined by blank lines inside the HTML wrapper."""
         open_html = '<div align="center">' if self.tag == "div" else "<center>"
         close_html = f"</{self.tag}>"
-        rendered = [out for block in self.blocks if (out := block.render(ctx))]
+        rendered = _dedupe_dividers([out for block in self.blocks if (out := block.render(ctx))])
         body = "\n\n".join(rendered)
         return f"{open_html}\n\n{body}\n\n{close_html}" if body else f"{open_html}\n{close_html}"
 
@@ -329,12 +356,17 @@ class DisclaimerSlot:
     optional: bool = True
 
     def render(self, ctx: FrameRenderContext) -> str:
-        """Extracts and returns the trimmed disclaimer text between the first and second divider."""
+        """Extracts document-specific disclaimer segments while filtering out the fixed epistemic anchor."""
         inner_lines = _strip_outer_html_wrappers(ctx.span.inner_content.splitlines())
         segments = _split_by_dividers(inner_lines)
         if len(segments) < 3:
             return ""
-        return "\n".join(segments[1]).strip()
+        middle = [
+            text
+            for seg in segments[1:-1]
+            if (text := "\n".join(seg).strip()) and _EPISTEMIC_MARKER not in text
+        ]
+        return "\n\n---\n\n".join(middle)
 
 
 @dataclass(frozen=True)

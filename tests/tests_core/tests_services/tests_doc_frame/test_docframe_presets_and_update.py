@@ -1,5 +1,6 @@
-"""**Tries to** verify CUBIE_DOC_FRAME_1..3 presets, slot protection, and idempotence in DocFrame.update()."""
+"""**Tries to** verify CUBIE_DOC_FRAME_1..3 presets, slot protection, epistemic notice anchor, and idempotence in DocFrame.update()."""
 
+import importlib
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,19 @@ from qb_cubie.core.services import (
     CUBIE_DOC_FRAME_2,
     CUBIE_DOC_FRAME_3,
     DocFrame,
+)
+
+_CANONICAL_EPISTEMIC_NOTICE = (
+    "> [!Note]  \n"
+    "> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers "
+    "kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte "
+    "Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  \n"
+    ">\n"
+    "> **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  \n"
+    ">\n"
+    "> *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  \n"
+    "> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  \n"
+    "> **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**"
 )
 
 _FRAME_1_DOC = (
@@ -22,6 +36,31 @@ _FRAME_1_DOC = (
     '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->\n'
     '<center>\n![Error while trying to load the image](.assets/cubie-small.png)\n</center>\n'
     "<!-- /qb:frame -->\n"
+)
+
+_FRAME_1_FOUR_SEGMENT_DOC = (
+    '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->\n'
+    '<div align="center">\n\n# Service-Handbuch (Prototyp)\n\n'
+    "![Cubie](../.assets/cubie-logo-written.png)\n\n"
+    "Einführungstext für das viersegmentige Handbuch.\n\n---\n\n"
+    "> [!WARNING]\n>\n> **Status: Prototyp:** Spezifischer Service-Disclaimer.\n\n---\n\n"
+    f"{_CANONICAL_EPISTEMIC_NOTICE}\n\n---\n\n"
+    "[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](./GUIDE_DocEnsurance.md)  \n\n"
+    "</div>\n<!-- /qb:frame -->\n\n"
+    "Haupttext.\n\n"
+    '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->\n<!-- /qb:frame -->\n'
+)
+
+_FRAME_1_LEGACY_3_SEGMENT_EPISTEMIC_DOC = (
+    '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->\n'
+    '<div align="center">\n\n# Bestands-Handbuch ohne eigenen Disclaimer\n\n'
+    "![Cubie](./.assets/cubie-logo-written.png)\n\n"
+    "Einführungstext ohne dokument-spezifischen Disclaimer.\n\n---\n\n"
+    f"{_CANONICAL_EPISTEMIC_NOTICE}\n\n---\n\n"
+    "[README](../README.md)  \n\n"
+    "</div>\n<!-- /qb:frame -->\n\n"
+    "Haupttext.\n\n"
+    '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->\n<!-- /qb:frame -->\n'
 )
 
 _FRAME_2_DOC = (
@@ -90,12 +129,14 @@ def _run_preset_update_scenario(preset_kind: str) -> dict[str, Any]:
 
 
 def _inspect_frame_1(path: Path) -> dict[str, Any]:
-    """Extracts slot preservation and footer normalization flags from a CUBIE_DOC_FRAME_1 file."""
+    """Extracts slot preservation, epistemic notice presence, and footer normalization flags from a CUBIE_DOC_FRAME_1 file."""
     text = path.read_text(encoding="utf-8")
     return {
         "preserves_title": "# Mein Handbuch-Titel" in text,
         "preserves_intro": "Geschützter Einführungstext mit wichtigen Erklärungen." in text,
         "preserves_disclaimer": "> Geschützter Disclaimer-Hinweis für dieses Handbuch." in text,
+        "injects_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in text,
+        "epistemic_notice_count": text.count("erkenntnistheoretischen Grenzen"),
         "preserves_body": "## Kapitel 1\n\nGeschützter Haupttext außerhalb der Rahmen." in text,
         "fixes_banner_and_alt": "![Cubie](.assets/cubie-banner.png)" in text,
         "fixes_footer_alt": "![Cubie](.assets/cubie-small.png)" in text,
@@ -120,7 +161,7 @@ def _inspect_frame_2(path: Path) -> dict[str, Any]:
 
 
 def _inspect_frame_3(path: Path) -> dict[str, Any]:
-    """Extracts router regeneration and manual body preservation flags from a CUBIE_DOC_FRAME_3 file."""
+    """Extracts router regeneration, epistemic notice injection, and manual body preservation flags from a CUBIE_DOC_FRAME_3 file."""
     text = path.read_text(encoding="utf-8")
     expected_row = (
         "| [Clean-Code Pragmatismus](./Clean-Code-Pragmatism.md) "
@@ -131,6 +172,50 @@ def _inspect_frame_3(path: Path) -> dict[str, Any]:
         "removes_stale_row": "[Veraltet](./old.md)" not in text,
         "preserves_pre_text": "Manueller Einleitungstext vor dem Router-Block." in text,
         "preserves_manual_table": "| Externe Tabelle | Hinweis |\n| --- | --- |\n| Bleibt erhalten | 100% |" in text,
+        "injects_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in text,
+        "no_double_dividers_in_head": "---\n\n---" not in text.split("<!-- /qb:frame -->")[0],
+    }
+
+
+def _run_bug_007_epistemic_preservation_scenario(case_kind: str) -> dict[str, Any]:
+    """Executes DocFrame.update() on 4-segment, legacy 3-segment, and 2-segment headers to verify BUG-007 fix."""
+    root = Path.cwd()
+    _seed_presets_workspace(root)
+    target_map = {
+        "four_segment": (root / "docs" / "services" / "GUIDE_DocFrame.md", _FRAME_1_FOUR_SEGMENT_DOC),
+        "legacy_three_segment": (root / "docs" / "GUIDE_Legacy.md", _FRAME_1_LEGACY_3_SEGMENT_EPISTEMIC_DOC),
+        "bare_two_segment": (root / "docs" / "misc" / "Clean-Code-Pragmatism.md", _ESSAY_DOC),
+    }
+    doc_path, content = target_map[case_kind]
+    doc_path.write_text(content, encoding="utf-8")
+    DocFrame.update(target=root)
+    DocFrame.update(target=root)
+    updated = doc_path.read_text(encoding="utf-8")
+    head_part = updated.split("<!-- /qb:frame -->")[0]
+    return {
+        "has_canonical_epistemic_notice": _CANONICAL_EPISTEMIC_NOTICE in head_part,
+        "epistemic_count_exactly_one": head_part.count("erkenntnistheoretischen Grenzen") == 1,
+        "no_double_dividers_in_head": "---\n\n---" not in head_part,
+        "preserves_custom_disclaimer": (
+            "**Status: Prototyp:** Spezifischer Service-Disclaimer." in head_part
+            if case_kind == "four_segment"
+            else True
+        ),
+    }
+
+
+def _inspect_central_presets_module() -> dict[str, Any]:
+    """Verifies that a dedicated presets module exists and serves as Single Source of Truth for head/foot and epistemic notice."""
+    presets_mod = importlib.import_module("qb_cubie.core.services.doc_frame.presets")
+    services_mod = importlib.import_module("qb_cubie.core.services")
+    notice_text = getattr(presets_mod, "EPISTEMIC_NOTICE_TEXT", "")
+    notice_block = getattr(presets_mod, "EPISTEMIC_NOTICE", None)
+    return {
+        "has_canonical_notice_text": notice_text == _CANONICAL_EPISTEMIC_NOTICE,
+        "has_notice_block": notice_block is not None and hasattr(notice_block, "render"),
+        "exports_std_head_blocks": getattr(presets_mod, "STD_HEAD_BLOCKS", None) is CUBIE_DOC_FRAME_1.head,
+        "exports_std_footer_blocks": getattr(presets_mod, "STD_FOOTER_BLOCKS", None) is CUBIE_DOC_FRAME_1.foot,
+        "reexported_in_services": getattr(services_mod, "EPISTEMIC_NOTICE_TEXT", None) == _CANONICAL_EPISTEMIC_NOTICE,
     }
 
 
@@ -138,6 +223,8 @@ def _run_idempotence_scenario() -> dict[str, Any]:
     """Executes DocFrame.update() twice in succession and checks that the second pass changes nothing."""
     root = Path.cwd()
     _seed_presets_workspace(root)
+    (root / "docs" / "services" / "GUIDE_DocFrame.md").write_text(_FRAME_1_FOUR_SEGMENT_DOC, encoding="utf-8")
+    (root / "docs" / "GUIDE_Legacy.md").write_text(_FRAME_1_LEGACY_3_SEGMENT_EPISTEMIC_DOC, encoding="utf-8")
     first_report = DocFrame.update(target=root)
     snapshot = {p.as_posix(): p.read_text(encoding="utf-8") for p in sorted(root.rglob("*.md"))}
     second_report = DocFrame.update(target=root)
@@ -150,19 +237,27 @@ def _run_idempotence_scenario() -> dict[str, Any]:
 
 
 # ======================================================================================================================
-# 3. ÄQUIVALENZKLASSE: DIE DREI RAHMEN-PRESETS, SLOT-SCHUTZ & IDEMPOTENZ
+# 3. ÄQUIVALENZKLASSE: DIE DREI RAHMEN-PRESETS, SLOT-SCHUTZ, ERKENNTNISTHEORETISCHER ANKER & IDEMPOTENZ
 # ======================================================================================================================
 def test_ebt_cubie_doc_frame_1_updates_nav_and_preserves_slots() -> None:
-    """Verifies that CUBIE_DOC_FRAME_1 updates nav/footer and protects title, intro, disclaimer, and body."""
-    keys = (
-        "preserves_title", "preserves_intro", "preserves_disclaimer", "preserves_body",
-        "fixes_banner_and_alt", "fixes_footer_alt", "removes_error_alt", "uses_div_align_center",
-    )
+    """Verifies that CUBIE_DOC_FRAME_1 updates nav/footer, injects the epistemic notice, and protects title, intro, disclaimer, and body."""
+    expected = {
+        "preserves_title": True,
+        "preserves_intro": True,
+        "preserves_disclaimer": True,
+        "injects_epistemic_notice": True,
+        "epistemic_notice_count": 1,
+        "preserves_body": True,
+        "fixes_banner_and_alt": True,
+        "fixes_footer_alt": True,
+        "removes_error_alt": True,
+        "uses_div_align_center": True,
+    }
     EBT(
         target=_run_preset_update_scenario,
         arena=TempFS(),
         pre=WorldState(args=("frame_1",)),
-        post=WorldState(returns=dict.fromkeys(keys, True)),
+        post=WorldState(returns=expected),
         custom_id="docframe_preset_1_slot_protection",
     ).run()
 
@@ -183,14 +278,59 @@ def test_ebt_cubie_doc_frame_2_syncs_provenance_and_preserves_extra_slots() -> N
 
 
 def test_ebt_cubie_doc_frame_3_updates_router_and_protects_manual_content() -> None:
-    """Verifies that CUBIE_DOC_FRAME_3 rebuilds zone='router' tables without touching manual tables or prose."""
-    keys = ("rebuilds_router_table", "removes_stale_row", "preserves_pre_text", "preserves_manual_table")
+    """Verifies that CUBIE_DOC_FRAME_3 rebuilds zone='router' tables, injects the epistemic notice, and avoids double dividers."""
+    keys = (
+        "rebuilds_router_table",
+        "removes_stale_row",
+        "preserves_pre_text",
+        "preserves_manual_table",
+        "injects_epistemic_notice",
+        "no_double_dividers_in_head",
+    )
     EBT(
         target=_run_preset_update_scenario,
         arena=TempFS(),
         pre=WorldState(args=("frame_3",)),
         post=WorldState(returns=dict.fromkeys(keys, True)),
         custom_id="docframe_preset_3_router_update",
+    ).run()
+
+
+def test_ebt_bug_007_epistemic_notice_preserved_injected_and_deduplicated() -> None:
+    """Verifies BUG-007: DocFrame.update() never overwrites the epistemic notice in 4-segment headers and never duplicates it in 3-segment headers."""
+    expected = {
+        "has_canonical_epistemic_notice": True,
+        "epistemic_count_exactly_one": True,
+        "no_double_dividers_in_head": True,
+        "preserves_custom_disclaimer": True,
+    }
+    EBT(
+        target=_run_bug_007_epistemic_preservation_scenario,
+        arena=TempFS(),
+        pre=[
+            WorldState(args=("four_segment",)),
+            WorldState(args=("legacy_three_segment",)),
+            WorldState(args=("bare_two_segment",)),
+        ],
+        post=WorldState(returns=expected),
+        custom_id="docframe_bug_007_epistemic_notice_anchor",
+    ).run()
+
+
+def test_ebt_central_presets_module_serves_as_single_source_of_truth() -> None:
+    """Verifies that presets.py centralizes head/foot templates and the epistemic notice anchor."""
+    keys = (
+        "has_canonical_notice_text",
+        "has_notice_block",
+        "exports_std_head_blocks",
+        "exports_std_footer_blocks",
+        "reexported_in_services",
+    )
+    EBT(
+        target=_inspect_central_presets_module,
+        pre=WorldState(),
+        post=WorldState(returns=dict.fromkeys(keys, True)),
+        custom_id="docframe_central_presets_ssot",
     ).run()
 
 

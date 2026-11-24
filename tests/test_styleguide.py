@@ -97,49 +97,4 @@ def test_body_counter_statements(body, expected):
     source = f"def sample(flag=True):\n    {body}\n"
     assert len(body_lines(source, ast.parse(source).body[0])) == expected
 
-# ========== DOCUMENTATION =============================================================================================
-
-from qb_cubie.core.services import (
-    CUBIE_DOC_FRAME_1,
-    CUBIE_DOC_FRAME_2,
-    CUBIE_DOC_FRAME_3,
-    CUBIE_DOC_RULES,
-    CUBIE_DOC_STYLE,
-    CUBIE_DOCFRAME_RULES,
-    DocEnsurance,
-)
-
-
-DOC_EXCLUDES = (
-    ".pytest_cache",
-    "tests",
-    "experiments",  # Reason: I need to clean up the artifacts of the sprint in the core first.
-    "docs/feature-drafts",  # Reason: Feature Drafts
-    "GUTACHTEN.md",  # Reason: No Cubie-Rules apply to Inspectors.
-    "deep-research-report.md",  # Reason: Got the message.
-    "CHANGELOG.md",
-)
-
-
-def test_docs_code_examples() -> None:
-    """Verifies that all documentation code examples follow Cubie conventions."""
-    DocEnsurance(
-        pattern=CUBIE_DOC_STYLE,
-        rules=CUBIE_DOC_RULES,
-        excludes=DOC_EXCLUDES,
-    ).run()
-
-
-@pytest.mark.skip(reason="DocFrame rules are currently paused.")
-def test_docs_frames() -> None:
-    """Verifies that all documentation frames follow Cubie DocFrame conventions."""
-    DocEnsurance(
-        pattern=(
-            CUBIE_DOC_FRAME_1,
-            CUBIE_DOC_FRAME_2,
-            CUBIE_DOC_FRAME_3,
-        ),
-        rules=CUBIE_DOCFRAME_RULES,
-        excludes=DOC_EXCLUDES,
-    ).run()
 

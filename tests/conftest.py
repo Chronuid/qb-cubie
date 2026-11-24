@@ -25,6 +25,8 @@ DIR_MARKERS: dict[str, tuple[str, ...]] = {
 FILE_MARKERS: dict[str, tuple[str, ...]] = {
     "test_lint.py": ("meta", "linter", "lint", "slow"),
     "test_styleguide.py": ("meta", "lint"),
+    "test_doc_ensurance.py": ("meta", "lint", "services"),
+    "test_doc_frame.py": ("meta", "lint", "services"),
     "test_default_collection_contract.py": ("meta",),
     "test_offline_core.py": ("meta",),
     "test_core_without_tk.py": ("meta",),

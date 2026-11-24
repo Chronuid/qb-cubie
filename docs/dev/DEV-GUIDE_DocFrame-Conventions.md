@@ -13,9 +13,8 @@ Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`C
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -105,7 +104,7 @@ qb-cubie docframe update docs/dev/README.md
 ```
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_styleguide.py
+.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py
 ```
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->

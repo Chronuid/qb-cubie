@@ -7,7 +7,10 @@ Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert
 ### Neu
 - **Erkenntnisgrenzen-Hinweis & externe Bestandsaufnahme:** Verbindlicher Fallibilismus-Hinweis (`> [!Note]`, Karl Poppers kritischer Rationalismus) in den `head`-Rahmen der Dokumentation verteilt; [deep-research-report.md](./docs/misc/deep-research-report.md) (Bestandsaufnahme zu `v0.1.0`) ergänzt und [GUTACHTEN.md](./GUTACHTEN.md) aktualisiert.
 - **Separates Bug-Archiv & Sammelbecken (`docs/misc/lake/`):** [docs/misc/lake/SOLVED_ISSUES.md](./docs/misc/lake/SOLVED_ISSUES.md) als separates Archiv für behobene Bugs angelegt; lose/übergreifende Analysen und Rohdaten (`ANALYSIS_CI_MATRIX.md`, `ANALYSIS_COVERAGE_OPTIONS.md`, `CI-Data.md`) unter `docs/misc/lake/` gebündelt.
-- **`[BUG-007]` dokumentiert:** In [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) erfasst, dass `DocFrame.update()` den Fallibilismus-Hinweis im Kopfbereich (`zone="head"`) derzeit noch nicht als geschützten Anker bewahrt.
+- **`[BUG-007]` behoben (Erkenntnistheoretischer Hinweis als verpflichtender `DocFrame`-Anker & SRP-Testaufteilung):**
+  - Neues Modul [`presets.py`](./src/qb_cubie/core/services/doc_frame/presets.py) als zentrale Pflege-Stelle (Single Source of Truth) für `EPISTEMIC_NOTICE_TEXT`, `EPISTEMIC_NOTICE` (`StaticBlock`), `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, Router und `CUBIE_DOC_FRAME_1..3` eingeführt.
+  - `DisclaimerSlot.render()` in [`frame_blocks.py`](./src/qb_cubie/core/services/doc_frame/frame_blocks.py) bewahrt alle dokument-spezifischen Hinweis-Segmente (`segments[1:-1]`) neben dem erkenntnistheoretischen Anker ohne Datenverlust oder Dopplung; `CenterWrap.render()` dedupliziert konsekutive `---`-Trennlinien.
+  - Die Repository-weiten Dokumentations-Prüfungen wurden aus [`tests/test_styleguide.py`](./tests/test_styleguide.py) in zwei eigenständige Test-Module [`tests/test_doc_ensurance.py`](./tests/test_doc_ensurance.py) und [`tests/test_doc_frame.py`](./tests/test_doc_frame.py) aufgeteilt, das `DocFrame`-Gate wieder aktiviert und `[BUG-007]` nach [`docs/misc/lake/SOLVED_ISSUES.md`](./docs/misc/lake/SOLVED_ISSUES.md) archiviert.
 
 ### Geändert
 - **Dokumentation (Code-Beispiele, `session=<id>` & Terminal-Kommandos) überarbeitet:**

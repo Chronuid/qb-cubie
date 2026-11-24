@@ -86,7 +86,7 @@ Die Symptome von `BUG-007` entstehen nicht durch einen einzelnen Tippfehler, son
 
 In `src/qb_cubie/core/services/doc_frame/frame_blocks.py:325-338` ist `DisclaimerSlot` wie folgt implementiert:
 
-```python
+```text
 @dataclass(frozen=True)
 class DisclaimerSlot:
     """Preserves an optional document-specific disclaimer block between header dividers."""
@@ -112,7 +112,7 @@ class DisclaimerSlot:
 
 In `src/qb_cubie/core/services/doc_frame/doc_frame.py:125-130` lautet die Kopf-Komposition für `CUBIE_DOC_FRAME_1` und `CUBIE_DOC_FRAME_3`:
 
-```python
+```text
 STD_HEAD_BLOCKS: Final[tuple[FrameBlockProtocol, ...]] = (
     CenterWrap(
         tag="div",
@@ -131,7 +131,7 @@ STD_HEAD_BLOCKS: Final[tuple[FrameBlockProtocol, ...]] = (
 
 In `src/qb_cubie/core/services/doc_frame/doc_frame_rules.py:254-288` prüft `DocFrameOutdated`:
 
-```python
+```text
 expected = pat.render_zone(span.zone, ctx)
 if span.inner_content.strip() != expected.strip():
     msg = f"Frame zone '{span.zone}' ({span.frame_id}) is out of sync; run DocFrame.update()."

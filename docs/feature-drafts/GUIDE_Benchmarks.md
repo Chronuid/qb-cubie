@@ -7,26 +7,12 @@
 
 ---
 
-> ### ⚠️ WICHTIGER HINWEIS / DISCLAIMER: BESTANDTEIL DER `testguided-study`
-> 
-> 
-> DIESES DOKUMENT (`GUIDE_Benchmarks.md`) IST EIN EXPLIZITER BESTANDTEIL DER `testguided-study` UND KEIN BESTANDTEIL DES `qb-cubie` CORE.
-> 
-> 
-> * **Ungeprüfte „Threads of Validity“:** Sämtliche Dokumente, Konzepte und Spezifikationen aus der `testguided-study` weisen diverse **„Threads of Validity“** auf, die durch den Projektverantwortlichen noch abschließend geprüft, validiert und bereinigt werden müssen.
-> * **Versionshinweis & Kurzfassung:** Die ursprüngliche Vollfassung dieses Dokuments wurde in der aktuellen Dokumentation durch die nachfolgende Kurzfassung ersetzt. Die vollständige Originalfassung bleibt über die vergangenen Versionen in der Versionshistorie einsehbar (bzw. ist im Paket über `cubie-bench guide` hinterlegt).
-> 
-> 
-> 
->
-
 > [!Note]  
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
