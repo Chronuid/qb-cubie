@@ -202,9 +202,9 @@ In der Qualitätssicherung nennt man das eine **„einsame Negation“** (*Lonel
   1. **Stufe 1 — Laufzeit-`STATE-GUARD` bei `post="exists"`:** Wenn du `post=WorldState(returns=-1, expect=False)` ohne `"quantor": "all"` schreibst, stoppt Cubie dich sofort vor dem Start mit einem `ValueError("STATE-GUARD: ...")`.
   2. **Stufe 2 — Positives Anker-Ziel in `post={"quantor": "all", ...}` (+ statisches Meta-Gate 3):** Selbst wenn du `post={"quantor": "all", "states": WorldState(returns=-1, expect=False)}` schreibst, bleibt ein einzelnes Verbot ohne positives Ziel (`lonely`) blind gegenüber völlig falschen Rückgaben wie `None` ($\forall q \in \{q^-\} : \neg m(q, \text{None}) \equiv \top$). Erst wenn du mindestens ein positives Soll-Ziel wie `WorldState(returns=int)` (*„Muss eine ganze Zahl sein“*) in dieselbe `"all"`-Liste aufnimmst (`guarded`), fliegt das kaputte `None` sofort auf (`False`). In Cubies eigener Test-Suite spürt zusätzlich der statische Code-Wächter **Meta-Gate 3 (`META-EBT-LONELY-NEGATION`)** solche einsamen Negationen automatisch auf.
 
-Das folgende Beispiel stellt die „einsame Negation“ (`lonely`, trügerisch `True`) und den sauber verankerten Vertrag mit positivem Typ-Ziel (`guarded`, erkennt den `None`-Bug als `False`) unter `post={"quantor": "all", ...}` direkt gegenüber:
+Das folgende Beispiel vergleicht in zwei Schritten (`session=expect_vacuous`) die „einsame Negation“ (`lonely`, trügerisch `True`) mit dem sauber verankerten Vertrag (`guarded`, erkennt den `None`-Bug als `False`):
 
-```python
+```python session=expect_vacuous
 from qb_cubie import EBT, WorldState
 
 
@@ -219,6 +219,20 @@ lonely = EBT(
     reporter=None,
 ).run()
 
+print(f"Nur Verbot (Vacuous Pass): {lonely.evaluation}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+Nur Verbot (Vacuous Pass): True
+```
+</details>
+
+Im zweiten Schritt derselben Session ergänzen wir in `post` das positive Typ-Ziel `WorldState(returns=int)`, wodurch `broken_total` sofort als `False` auffliegt:
+
+```python session=expect_vacuous
 guarded = EBT(
     target=broken_total,
     pre=WorldState(args=100),
@@ -229,14 +243,14 @@ guarded = EBT(
     reporter=None,
 ).run()
 
-print(f"Nur Verbot (Vacuous Pass): {lonely.evaluation} | Mit Positiv-Ziel: {guarded.evaluation}")
+print(f"Mit Positiv-Ziel: {guarded.evaluation}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-Nur Verbot (Vacuous Pass): True | Mit Positiv-Ziel: False
+Mit Positiv-Ziel: False
 ```
 </details>
 

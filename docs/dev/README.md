@@ -127,7 +127,13 @@ Neue Entwickler-Dokumente unter `docs/dev/`, `docs/dev/core/` oder `docs/dev/ser
 
 ```bash
 qb-cubie docframe update docs/dev/README.md
+```
+
+```bash
 qb-cubie docframe update docs/dev/core/README.md
+```
+
+```bash
 .venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
 

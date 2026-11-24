@@ -115,6 +115,9 @@ Nachdem der Bericht angelegt wurde, lassen sich Kopf- und Fußrahmen über `DocF
 
 ```bash
 qb-cubie docframe update <pfad/zum/bericht.md>
+```
+
+```bash
 .venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
 

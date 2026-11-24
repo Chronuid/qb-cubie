@@ -65,9 +65,9 @@ OK
 
 ## Mehrere Eingänge, ein gemeinsames Muster
 
-Mehrere Eingänge in `pre` prüfen gemeinsam dasselbe erwartete Muster in `post`:
+Mehrere Eingänge in `pre` prüfen gemeinsam dasselbe erwartete Muster in `post` (hier im ersten Schritt der Session `ebt_normalize`):
 
-```python
+```python session=ebt_normalize
 from qb_cubie import EBT, WorldState
 
 
@@ -104,19 +104,12 @@ Jeder dieser drei Eingänge wird einmal ausgeführt. Ohne Arena laufen die Aufru
 
 ## Parallelität begrenzen
 
-Mit `multiprocessing=True` und `max_workers` wird die Anzahl paralleler Worker begrenzt:
+Mit `multiprocessing=True` und `max_workers` wird die Anzahl paralleler Worker für dieselbe `normalize`-Funktion aus Schritt 1 begrenzt:
 
-```python
-from qb_cubie import EBT, WorldState
-
-
-def normalize_parallel(text):
-    return text.strip().lower()
-
-
+```python session=ebt_normalize
 def test_normalize_parallel():
     EBT(
-        target=normalize_parallel,
+        target=normalize,
         pre=[WorldState(args=text) for text in [" TEXT ", "text", "TeXt"]],
         post=WorldState(returns=lambda value: value == "text"),
         multiprocessing=True,

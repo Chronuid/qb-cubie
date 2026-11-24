@@ -45,6 +45,9 @@ enthaltenen Abhängigkeiten genügen; Arena-Basen werden für diese Tests nicht 
 
 ```bash
 uv sync --locked --group dev
+```
+
+```bash
 .venv/bin/python -m pytest -q tests/test_styleguide.py tests/test_lint.py
 ```
 

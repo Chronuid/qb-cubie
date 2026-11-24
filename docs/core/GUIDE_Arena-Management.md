@@ -100,6 +100,9 @@ Nach `uv sync --locked --group dev` im Repository ausführen:
 
 ```bash
 .venv/bin/python scripts/provision_test_arenas.py
+```
+
+```bash
 .venv/bin/python -m pytest -q
 ```
 

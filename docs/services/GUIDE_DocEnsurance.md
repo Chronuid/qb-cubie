@@ -42,23 +42,19 @@ In der Praxis reicht ein einziger Aufruf in der Test-Suite (wie in `tests/test_s
 import pytest
 from qb_cubie.core.services import CUBIE_DOC_RULES, CUBIE_DOC_STYLE, DocEnsurance
 
-
-@pytest.mark.slow
-def test_docs_code_examples() -> None:
-    """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
-    DocEnsurance(
-        pattern=CUBIE_DOC_STYLE,
-        rules=CUBIE_DOC_RULES,
-        excludes=("experiments", "GUTACHTEN.md"),
-    ).run()
-
-# ----------------------------------------------------------------------------------------
-# Das hier ist nicht notwendig, sondern dient rein zur didaktischen Veranschaulichung:
 service = DocEnsurance(
     pattern=CUBIE_DOC_STYLE,
     rules=CUBIE_DOC_RULES,
     excludes=("experiments", "GUTACHTEN.md"),
 )
+
+
+@pytest.mark.slow
+def test_docs_code_examples() -> None:
+    """Verifies that all documentation code examples follow CUBIE_DOC_STYLE and execute cleanly."""
+    service.run()
+
+
 print(f"Pattern: {service.pattern.name} | Regeln: {[r.rule_id for r in service.rules]}")
 ```
 
@@ -378,11 +374,9 @@ empty_output_doc = (
     "</details>"
 )
 
-default_report = DocEnsurance(target=empty_output_doc, reporter=None).run()
-strict_service = DocEnsurance(target=empty_output_doc, reporter=None).register_rule(
-    MissingOutputRule(severity="error")
-)
-strict_report = strict_service.run()
+service = DocEnsurance(target=empty_output_doc, reporter=None)
+default_report = service.run()
+strict_report = service.register_rule(MissingOutputRule(severity="error")).run()
 
 print(
     f"Default: passed={default_report.passed} ({default_report.diagnostics[0].severity}) | "

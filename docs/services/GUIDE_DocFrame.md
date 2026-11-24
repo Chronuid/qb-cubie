@@ -47,35 +47,31 @@ Im Alltag greifen zwei komplementäre Aufrufe ineinander: Während der Entwicklu
 
 ```python
 from qb_cubie.core.services import (
-    CUBIE_DOC_FRAME_1,
-    CUBIE_DOC_FRAME_2,
-    CUBIE_DOC_FRAME_3,
-    CUBIE_DOC_RULES,
-    CUBIE_DOC_STYLE,
-    CUBIE_DOCFRAME_RULES,
-    DocEnsurance,
-    DocFrame,
+    CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3,
+    CUBIE_DOC_RULES, CUBIE_DOC_STYLE, CUBIE_DOCFRAME_RULES,
+    DocEnsurance, DocFrame,
+)
+
+FRAME_PATTERNS = (CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)
+EXCLUDES = (".pytest_cache", "tests", "experiments", "GUTACHTEN.md", "CHANGELOG.md")
+doc_ensurance = DocEnsurance(
+    pattern=(CUBIE_DOC_STYLE, *FRAME_PATTERNS),
+    rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES),
+    excludes=EXCLUDES,
 )
 
 
 def sync_repository_frames() -> None:
     """Synchronizes all head, router, and foot zones across the repository."""
-    DocFrame.update(
-        pattern=(CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3),
-        excludes=(".pytest_cache", "tests", "experiments", "GUTACHTEN.md", "CHANGELOG.md"),
-    )
+    DocFrame.update(pattern=FRAME_PATTERNS, excludes=EXCLUDES)
 
 
 def test_docs_and_frames() -> None:
     """Verifies code examples (CUBIE_DOC_RULES) and document frames (CUBIE_DOCFRAME_RULES)."""
-    DocEnsurance(
-        pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3),
-        rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES),
-        excludes=(".pytest_cache", "tests", "experiments", "GUTACHTEN.md", "CHANGELOG.md"),
-    ).run()
+    doc_ensurance.run()
 
 
-print(f"Presets: {len((CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3))} | Frame-Regeln: {[r.rule_id for r in CUBIE_DOCFRAME_RULES]}")
+print(f"Presets: {len(FRAME_PATTERNS)} | Frame-Regeln: {[r.rule_id for r in CUBIE_DOCFRAME_RULES]}")
 ```
 
 <details>
@@ -98,13 +94,15 @@ DocFrame(
     pattern: FramePattern | Sequence[FramePattern] | None = None,
     excludes: Sequence[str] | None = None,
 )
-
+```
+```text
 DocFrame.update(
     target: str | Path | None = None,
     pattern: FramePattern | Sequence[FramePattern] | None = None,
     excludes: Sequence[str] | None = None,
 ) -> DocFrameReport
-
+```
+```text
 DocFrame.scan_catalog(
     target: str | Path | None = None,
     excludes: Sequence[str] | None = None,
@@ -125,7 +123,13 @@ Für die direkte Synchronisation aus der Kommandozeile steht `DocFrame.update()`
 
 ```bash
 qb-cubie docframe update
+```
+
+```bash
 qb-cubie docframe update docs/ --exclude experiments --exclude CHANGELOG.md --format json
+```
+
+```bash
 python -m qb_cubie.core.services.docframe update docs/services/GUIDE_DocFrame.md
 ```
 
@@ -442,9 +446,10 @@ DocFrame.update(target=check_dir)
 target_doc = check_dir / "docs/GUIDE_Quality-Assurance.md"
 target_doc.write_text(target_doc.read_text(encoding="utf-8").replace("![Cubie]", "VERALTET"), encoding="utf-8")
 
-bad_report = DocEnsurance(
+verifier = DocEnsurance(
     target=target_doc, pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1), rules=CUBIE_DOCFRAME_RULES, reporter=None,
-).run()
+)
+bad_report = verifier.run()
 print(f"Vor Update: passed={bad_report.passed} | rules={[d.rule_id for d in bad_report.diagnostics]}")
 ```
 
@@ -456,13 +461,11 @@ Vor Update: passed=False | rules=['DOCFRAME-OUTDATED']
 ```
 </details>
 
-Im zweiten Schritt derselben Session synchronisieren wir die Datei über `DocFrame.update(target=target_doc)` (oder stufen `DocFrameOutdated(severity="warning")` ab) und prüfen, dass `DocEnsurance` nun mit `passed=True` besteht:
+Im zweiten Schritt derselben Session synchronisieren wir die Datei über `DocFrame.update(target=target_doc)` (oder stufen `DocFrameOutdated(severity="warning")` ab) und prüfen mit derselben `verifier`-Instanz, dass `DocEnsurance` nun mit `passed=True` besteht:
 
 ```python session=frame_verification
 DocFrame.update(target=target_doc)
-good_report = DocEnsurance(
-    target=target_doc, pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1), rules=CUBIE_DOCFRAME_RULES, reporter=None,
-).run()
+good_report = verifier.run()
 print(f"Nach Update: passed={good_report.passed} | diagnostics={len(good_report.diagnostics)}")
 ```
 

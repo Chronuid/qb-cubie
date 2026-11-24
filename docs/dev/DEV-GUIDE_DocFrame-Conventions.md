@@ -98,7 +98,13 @@ Nach dem Anlegen oder Ändern gerahmter Dokumente immer synchronisieren und gege
 
 ```bash
 qb-cubie docframe update <pfad/zur/datei.md>
+```
+
+```bash
 qb-cubie docframe update docs/dev/README.md
+```
+
+```bash
 .venv/bin/python -m pytest -q tests/test_styleguide.py
 ```
 

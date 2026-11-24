@@ -46,17 +46,27 @@ Zuerst den Zustand von Arbeitsverzeichnis, Branches und abweichenden Commits pr�
 
 ```bash
 git status
+```
+
+```bash
 git branch -vv
+```
+
+```bash
 git log --oneline --decorate --graph -n 20 main experimental
 ```
 
 Um einseitige Commits in beide Richtungen gezielt aufzulisten:
 
-```bash
-# Commits, die auf experimental liegen, aber noch nicht in main enthalten sind:
-git log --oneline experimental ^main
+Commits, die auf `experimental` liegen, aber noch nicht in `main` enthalten sind:
 
-# Commits, die auf main liegen, aber auf experimental fehlen:
+```bash
+git log --oneline experimental ^main
+```
+
+Commits, die auf `main` liegen, aber auf `experimental` fehlen:
+
+```bash
 git log --oneline main ^experimental
 ```
 
@@ -67,7 +77,13 @@ git log --oneline main ^experimental
 
   ```bash
   git switch main
+  ```
+
+  ```bash
   git pull --ff-only origin main
+  ```
+
+  ```bash
   git merge --no-ff experimental -m "Merge branch 'experimental' for vX.Y.Z"
   ```
 
@@ -76,8 +92,17 @@ git log --oneline main ^experimental
 
   ```bash
   uv lock
+  ```
+
+  ```bash
   uv sync --locked --group dev
+  ```
+
+  ```bash
   git add pyproject.toml uv.lock
+  ```
+
+  ```bash
   git commit
   ```
 
@@ -86,9 +111,19 @@ git log --oneline main ^experimental
 
   ```bash
   git switch experimental
+  ```
+
+  ```bash
   git merge --ff-only main
-  # Falls experimental bereits eigene neue Commits hat:
-  # git merge main
+  ```
+
+  Falls `experimental` bereits eigene neue Commits hat:
+
+  ```bash
+  git merge main
+  ```
+
+  ```bash
   git switch main
   ```
 
@@ -101,6 +136,9 @@ Weicht ein bereits existierender lokaler Tag (z. B. durch Re-Tagging) vom Remote
 
 ```bash
 git ls-remote --tags origin
+```
+
+```bash
 git fetch --tags --force
 ```
 
@@ -115,6 +153,9 @@ git fetch --tags --force
 
    ```bash
    uv lock
+   ```
+
+   ```bash
    uv sync --locked --group dev
    ```
 
@@ -164,6 +205,9 @@ Vor dem Release-Commit müssen die vollständige Testsuite (inklusive `slow`-Tes
 
 ```bash
 .venv/bin/python scripts/provision_test_arenas.py
+```
+
+```bash
 make test-all
 ```
 
@@ -175,7 +219,13 @@ make test-all
 
 ```bash
 rm -f dist/qb_cubie-*.whl dist/qb_cubie-*.tar.gz
+```
+
+```bash
 uv build --python .venv/bin/python
+```
+
+```bash
 .venv/bin/python scripts/check_wheel.py dist
 ```
 
@@ -191,7 +241,13 @@ Alle geänderten und neu hinzugekommenen Dateien (insbesondere neue Testdateien)
 
 ```bash
 git status -s
+```
+
+```bash
 git add -A
+```
+
+```bash
 git commit -m "chore(release): prepare vX.Y.Z"
 ```
 
@@ -226,7 +282,13 @@ Mit `--atomic` wird sichergestellt, dass `main` und `vX.Y.Z` auf dem Server nur 
 
    ```bash
    git switch experimental
+   ```
+
+   ```bash
    git merge --ff-only main
+   ```
+
+   ```bash
    git switch main
    ```
 
