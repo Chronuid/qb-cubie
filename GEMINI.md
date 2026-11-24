@@ -25,20 +25,19 @@
 
 # Ziel
 
-Verbesserung der Docs. Fokus auf Code-Beispiele und Terminal-Commands.
+Erfassung der gegenwärtigen Lage und analyse der Gründe von BUG-007
+
 
 ## Kontext
 
-Viele Code-Beispiele können noch eleganter gestaltet werden. Beispielsweise steht im @docs/services/GUIDE_DocEnsurance.md noch eine etwas redundate Form der Programmierung. Hier könnte man einfach eine Instanz definieren, ohne direkt .run auszuführen, um dann mit der Instanz .run auszuführen und die Infos zu printen.
-
-Zudem könnten wir bestimmt an vielen Stellen die session-id besser nutzen und veranschaulichen. 
-
-Außerdem sind einige beispielhafte Terminal-Commands ( wie in @docs/services/GUIDE_DocFrame.md ) noch in einem einzigen Block zusammengefasst, obwohl es mehrere Blöcke sein sollten. Vorallem in einer IDE wie PyCharm hat es enorme Vorteile, wenn man mehrere Terminal-Commands in mehreren MD-Blöcken führt, da man dadurch diese direkt mit einem Klick ausführen kann.
+@docs/GUIDE_Quality-Assurance.md  
+@docs/GUIDE_TGD.md  
+@docs/dev/DEV-GUIDE_Agent-Reports.md  
 
 ## Auftrag
 
-Gehe alle Docs iterativ durch, begutachte sie und (insofern sinnvoll) verbessere jeweils die genannten Details. 
-Dokumentiere die Änderungen abschließend als unreleased im @CHANGELOG.md
+Analysiere die Gründe für BUG-007 in @KNOWN_ISSUES.md  
+Schreibe deinen Bericht nach dem CUBIE_DOC_FRAME_2 in @ANALYSIS.md  
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
