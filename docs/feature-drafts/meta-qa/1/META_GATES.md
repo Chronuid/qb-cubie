@@ -267,7 +267,6 @@ Damit das tägliche Entwickeln mit `make test` (`not slow`) blitzschnell bleibt,
 
 ![Cubie](../../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../GUIDE_Quality-Assurance.md)  
@@ -277,10 +276,13 @@ Damit das tägliche Entwickeln mit `make test` (`not slow`) blitzschnell bleibt,
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../../../README.md)  
 [↦ | Core-Dokumentation | ↤](../../../core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../../../dev/README.md)  
+[↦ | Core-Internals | ↤](../../../dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../virtualization/README.md)  
+
 [↦ | Meta-Gate 3 | ↤](./GEMINI.md)  
 [↦ | Lehrstunde 1 | ↤](./META_GATES.md)  
 [↦ | Meta-Gate 1: Der Import-Kanonizitäts-Wächter | ↤](./META_GATE_1.md)  

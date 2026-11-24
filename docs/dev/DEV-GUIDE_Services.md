@@ -116,15 +116,15 @@ Domänenspezifische Typen (z. B. `FramePattern`, `EvidenceRecord`) verbleiben **
 
 1. **Core-Umhängung (umgesetzt):** Domänenneutrale Primitiven (`Diagnostic`, `DiagnosticProtocol`, `VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol`, `FileCheckProtocol`) sind nach `qb_cubie.core.protocols` promoviert; `DocEnsurance`, `DocFrame` und `PytestReporter` nutzen ausschließlich den Core, und alle Cross-Imports zwischen `doc_frame` und `doc_ensurance` sind entfernt.
 2. **Domänen- & Budget-Bereinigung (umgesetzt):** `FramePattern`-/`DocumentCatalog`-Sonderlogik wurde aus `DocEnsurance` entfernt (ersetzt durch generisches `_run_file_rules` auf `FileCheckProtocol`), die Quellenauflösung nach `_source_loader.py` ausgelagert ($\le 500$ Zeilen/Modul) und `qb_cubie.core.services/__init__.py` auf Lazy-Imports umgestellt.
-3. **Neubau ab Tag 1 isoliert (laufend / nächste Services):** Neue Services wie `qb_cubie.core.services.coverage` werden von Beginn an unter Meta-Gate 4 (`tests/tests_meta/test_gate_4.py`) isoliert aufgebaut.
+3. **Neubau ab Tag 1 isoliert (laufend / nächste Services):** Neue Services wie `qb_cubie.core.services.coverage` werden von Beginn an unter Meta-Gate 4 (`tests/tests_core/tests_services/test_service_architecture_gate.py`) isoliert aufgebaut.
 
 ---
 
 ## 5. Operations-Checkliste & Meta-Gate für Agenten
 
-Ein Service unter `src/qb_cubie/core/services/<name>/` gilt erst dann als **abgeschlossen**, wenn alle vier Prüfungen bestehen (automatisch durchgesetzt von `tests/tests_meta/test_gate_4.py`):
+Ein Service unter `src/qb_cubie/core/services/<name>/` gilt erst dann als **abgeschlossen**, wenn alle vier Prüfungen bestehen (automatisch durchgesetzt von `tests/tests_core/tests_services/test_service_architecture_gate.py`):
 
-1. **Meta-Gate Import- & Domänen-Grenze (`tests/tests_meta/test_gate_4.py`):** Statische CST-Prüfung bestätigt null Imports von `qb_cubie.core.services.*` (inkl. `TYPE_CHECKING`, `META-SERVICE-ISOLATION`), null verbotene I/O-Operationen in reinen Domain-Modulen (`META-SERVICE-PURE-DOMAIN-IO`) sowie null Domänen-Kopplung (`META-SERVICE-DOMAIN-COUPLING`).
+1. **Meta-Gate Import- & Domänen-Grenze (`tests/tests_core/tests_services/test_service_architecture_gate.py`):** Statische CST-Prüfung bestätigt null Imports von `qb_cubie.core.services.*` (inkl. `TYPE_CHECKING`, `META-SERVICE-ISOLATION`), null verbotene I/O-Operationen in reinen Domain-Modulen (`META-SERVICE-PURE-DOMAIN-IO`) sowie null Domänen-Kopplung (`META-SERVICE-DOMAIN-COUPLING`).
 2. **Isolations-Probe:** `python -c "import qb_cubie.core.services.<name>"` sowie alle Unit-Tests des Services laufen grün, wenn Geschwister-Services im Subprozess per `sys.meta_path` blockiert sind.
 3. **Schicht- & Budget-Audit:** Azyklischer interner Import-Graph (`models` $\to$ `protocols` $\to$ `engine/rules` $\to$ `adapters/cli`), Funktionen $\le 12$ Zeilen, Module $\le 500$ Zeilen, `__init__.py` ohne Seiteneffekte.
 4. **Statische & Dynamische Verifikation:** `MyPy`, `Pylint`, `AstLinter`/`CstLinter` und `pytest` laufen fehlerfrei; alle Vorbedingungen sind durch explizite `STATE-GUARD`s abgesichert.
@@ -140,7 +140,6 @@ Ein Service unter `src/qb_cubie/core/services/<name>/` gilt erst dann als **abge
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
@@ -150,9 +149,12 @@ Ein Service unter `src/qb_cubie/core/services/<name>/` gilt erst dann als **abge
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../README.md)  
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
+[↦ | Core-Internals | ↤](./core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+
 [↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
 [↦ | DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten | ↤](./DEV-GUIDE_DocFrame-Conventions.md)  
 [↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  

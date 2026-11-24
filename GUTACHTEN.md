@@ -6,7 +6,7 @@
 - **Modell:** Unbekannt; kostenlose Version, im Web-UI nicht ausgewiesen
 - **Reasoning-Effort:** Unbekannt; im Web-UI nicht ausgewiesen
 - **Analysedatum:** Nicht ausgewiesen im übermittelten Deep-Research-Bericht
-- **Synthesebasis:** `deep-research-report.md` (vom Nutzer bereitgestellter Deep-Research-Bericht)
+- **Synthesebasis:** `docs/misc/deep-research-report.md` (vom Nutzer bereitgestellter Deep-Research-Bericht)
 - **Transformation:** Dieser Bericht wurde von Codex in das neue `GUTACHTEN.md` mit `CUBIE_DOC_FRAME_2`-Rahmen und strukturierter Gutachtenform transformiert. Keine erneute technische Prüfung oder Aktualisierung der darin enthaltenen Befunde vorgenommen.
 - **Untersuchter Stand laut Quelle:** qb-cubie 0.1.0; dort genannte Veröffentlichung am 21.11.2026
 
@@ -89,9 +89,35 @@ Der Bericht bewertet qb-cubie 0.1.0 als substanziell dokumentiertes frühes Beta
 
 | Prüfschritt | Kommando | Ergebnis |
 | --- | --- | --- |
-| Quelldokumente und Konvention gelesen | Manuelle Sichtung von `deep-research-report.md`, `GUTACHTEN.md` und `docs/dev/DEV-GUIDE_Agent-Reports.md` | Inhalt und `CUBIE_DOC_FRAME_2`-Vorgaben als Grundlage verwendet |
+| Quelldokumente und Konvention gelesen | Manuelle Sichtung von `docs/misc/deep-research-report.md`, `GUTACHTEN.md` und `docs/dev/DEV-GUIDE_Agent-Reports.md` | Inhalt und `CUBIE_DOC_FRAME_2`-Vorgaben als Grundlage verwendet |
 | Technische Befunde reproduziert | Keine | Nicht Teil der beauftragten Transformation |
 | Quellenmarker des Deep-Research-Berichts aufgelöst | Keine Quellenliste in der Quelldatei vorhanden | Marker nicht übernommen; Quellenbasis als Einschränkung ausgewiesen |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
+
+---
+
+---
+
+<div align="center">
+
+![Cubie](./docs/.assets/cubie-small.png)
+
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./docs/GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](./docs/GUIDE_TGD.md)  
+
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
+
+[↦ | Dokumentations-Übersicht | ↤](./docs/README.md)  
+[↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
+[↦ | Core-Internals | ↤](./docs/dev/core/README.md)  
+[↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
+
+</div>
 <!-- /qb:frame -->

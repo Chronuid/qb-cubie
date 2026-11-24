@@ -17,8 +17,10 @@ ISOLATION_RULE_ID: Final[str] = "META-SERVICE-ISOLATION"
 PURE_IO_RULE_ID: Final[str] = "META-SERVICE-PURE-DOMAIN-IO"
 DOMAIN_COUPLING_RULE_ID: Final[str] = "META-SERVICE-DOMAIN-COUPLING"
 SERVICE_MODULE_LINE_LIMIT: Final[int] = 500
-PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[2]
+PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
 SERVICES_ROOT: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "core" / "services"
+
+pytestmark = [pytest.mark.meta, pytest.mark.services]
 SCAN_EXCLUDES: Final[list[str]] = [".arenas", ".venv", "__pycache__", ".git", ".pytest_cache"]
 SERVICE_PREFIXES: Final[tuple[str, ...]] = ("qb_cubie.core.services", "qb_cubie.services")
 PURE_DOMAIN_FILENAMES: Final[frozenset[str]] = frozenset({"models.py", "protocols.py", "engine.py", "rules.py"})

@@ -6,7 +6,7 @@
 - **Modell:** Gemini 4 Neon
 - **Reasoning-Effort:** High
 - **Analysedatum:** 21. November 2026, ~07:10 (CET)
-- **Synthesebasis:** `tests/GEMINI.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/dev/README.md`, `docs/dev/DEV-GUIDE_Agent-Reports.md`, `docs/dev/DEV-GUIDE_Next-Steps.md`, `META_QUESTION.md`, `pyproject.toml`, `tests/README.md`, `tests/conftest.py`, `tests/test_styleguide.py`, `tests/tests_meta/test_gate_1.py`–`test_gate_3.py`, `src/qb_cubie/` (`ebt.py`, `protocols.py`, `linter.py`, `reporter.py`, `__init__.py`, `arenas/_tempfs_runner.py`, `services/doc_frame/doc_frame_rules.py`), vollständiger AST-Scan über alle 41 Module unter `src/qb_cubie/` und 84 `test_*.py`-Dateien unter `tests/`, `pytest --collect-only` sowie `sys.monitoring`-Machbarkeits-Benchmark
+- **Synthesebasis:** `tests/GEMINI.md`, `../../GUIDE_Quality-Assurance.md`, `docs/dev/README.md`, `docs/dev/DEV-GUIDE_Agent-Reports.md`, `docs/dev/DEV-GUIDE_Next-Steps.md`, `META_QUESTION.md`, `pyproject.toml`, `tests/README.md`, `tests/conftest.py`, `tests/test_styleguide.py`, `tests/tests_meta/test_gate_1.py`–`test_gate_3.py`, `src/qb_cubie/` (`ebt.py`, `protocols.py`, `linter.py`, `reporter.py`, `__init__.py`, `arenas/_tempfs_runner.py`, `services/doc_frame/doc_frame_rules.py`), vollständiger AST-Scan über alle 41 Module unter `src/qb_cubie/` und 84 `test_*.py`-Dateien unter `tests/`, `pytest --collect-only` sowie `sys.monitoring`-Machbarkeits-Benchmark
 - **Stand:** qb-cubie (`v0.0.10`, Branch `main`, Commit `7b4a9833`)
 - **Git-Log:** `7b4a9833` ("Merge branch 'experimental' for v0.0.10")
 
@@ -29,15 +29,15 @@ Vorstufe für ein späteres Meta-Gate, das Existenz, Menge und Art der Tests je 
 
 ## Kurzfassung (Executive Summary)
 
-> **Scope:** Rein lesende Bestandsaufnahme von `src/qb_cubie/` und `tests/` sowie empirische Machbarkeitsprüfung (inkl. `sys.monitoring`-Benchmark); kein Produktions- oder Testcode wurde geändert.
+> **Scope:** Rein lesende Bestandsaufnahme von `../../../src/qb_cubie` und `tests/` sowie empirische Machbarkeitsprüfung (inkl. `sys.monitoring`-Benchmark); kein Produktions- oder Testcode wurde geändert.
 
 Die Analyse der realen Struktur von `qb-cubie` (`41` Quellcode-Module, `102` öffentliche Klassen, `28` öffentliche Top-Level-Funktionen, `115` öffentliche Methoden auf öffentlichen Klassen; `84` `test_*.py`-Dateien mit `603` AST-Testfunktionen, `554` `EBT(...)`-Aufrufstellen und `1872` gesammelten `pytest`-Items) liefert vier zentrale Befunde und eine klare Architektur-Empfehlung:
 
-1. **`[BLOCKER]` Rein statische Analyse scheitert als alleinige Objekt-Zuordnung:** **0 von 554** `EBT(target=...)`-Aufrufen im gesamten Repo übergeben eine direkt importierte Top-Level-Funktion aus `qb_cubie`. Stattdessen nutzen **70,4 %** (`390/554`) lokale Adapter- oder Probe-Funktionen (explizit empfohlen durch [`GUIDE_Quality-Assurance.md`](../docs/GUIDE_Quality-Assurance.md#L150-L152)), und **52,9 %** (`54/102`) der öffentlichen Klassen sowie **70,4 %** (`19/27`) der öffentlichen Funktionen erscheinen in `test_*.py` nicht einmal namentlich (z. B. gekapselt in Presets wie `CUBIE_DOCFRAME_RULES` oder `CUBIE_DOC_FRAME_1`–`3`). Statische CST/AST-Analyse ist dagegen hervorragend für **Objekt-Inventar** und **Test-Art-Klassifikation** (`raises`, `expect=False`, Quantoren, `arena`, `fs`, `@parametrize`, `RBT`).
-2. **`[BLOCKER]` Naives dynamisches Tracing leidet im `qb-cubie`-Selbsttest unter massiver Harness-Verschmutzung:** Ein realer `sys.monitoring`-Probe-Lauf auf [`test_linter_cst.py`](./tests_linter/test_linter_cst.py) zeigte, dass `test_cstlinter_clean_code` **61** `qb_cubie`-Callables ausführt — davon sind **54 (88,5 %)** reine `EBT`/`WorldState`/`PytestReporter`-Harness-Aufrufe und nur **5** das eigentliche Subject Under Test (`CstLinter`/`CstRule`). Für **externe Nutzer-Projekte** entfällt dieses Problem weitgehend (da `qb_cubie` außerhalb des Projekt-`src/` liegt); im Selbsttest lässt es sich durch ein **Target-Window-Gating** (`EBT._invoke_target`) sauber lösen.
+1. **`[BLOCKER]` Rein statische Analyse scheitert als alleinige Objekt-Zuordnung:** **0 von 554** `EBT(target=...)`-Aufrufen im gesamten Repo übergeben eine direkt importierte Top-Level-Funktion aus `qb_cubie`. Stattdessen nutzen **70,4 %** (`390/554`) lokale Adapter- oder Probe-Funktionen (explizit empfohlen durch [`GUIDE_Quality-Assurance.md`](../../GUIDE_Quality-Assurance.md#L150-L152)), und **52,9 %** (`54/102`) der öffentlichen Klassen sowie **70,4 %** (`19/27`) der öffentlichen Funktionen erscheinen in `test_*.py` nicht einmal namentlich (z. B. gekapselt in Presets wie `CUBIE_DOCFRAME_RULES` oder `CUBIE_DOC_FRAME_1`–`3`). Statische CST/AST-Analyse ist dagegen hervorragend für **Objekt-Inventar** und **Test-Art-Klassifikation** (`raises`, `expect=False`, Quantoren, `arena`, `fs`, `@parametrize`, `RBT`).
+2. **`[BLOCKER]` Naives dynamisches Tracing leidet im `qb-cubie`-Selbsttest unter massiver Harness-Verschmutzung:** Ein realer `sys.monitoring`-Probe-Lauf auf [`test_linter_cst.py`](./tests_linter/test_linter_cst.py) zeigte, dass `test_cstlinter_clean_code` **61** `qb_cubie`-Callables ausführt — davon sind **54 (88,5 %)** reine `EBT`/`WorldState`/`PytestReporter`-Harness-Aufrufe und nur **5** das eigentliche Subject Under Test (`CstLinter`/`CstRule`). Für **externe Nutzer-Projekte** entfällt dieses Problem weitgehend (da `qb_cubie` außerhalb des Projekt-`../../../src` liegt); im Selbsttest lässt es sich durch ein **Target-Window-Gating** (`EBT._invoke_target`) sauber lösen.
 3. **`[RISIKO]` Prozessgrenzen sind integraler Teil der Suite:** **206 von 554** `EBT`-Aufrufen nutzen eine `Arena` (`TempFS`: 143 Nennungen, `PyVenv`: 109 Nennungen), **27** laufen mit `multiprocessing=True`, **25** Testdateien nutzen `subprocess.*` und Parallel-Läufe nutzen `pytest-xdist`. Ein reiner In-Process-Tracer übersieht Code-Ausführungen innerhalb von `_tempfs_runner.py`, `PyVenv`-Kindprozessen und Worker-Pools, sofern keine schlanke **Subprocess-Bridge** (JSONL-Export per Env-Variable) eingebunden wird.
-4. **Empfohlene Zielarchitektur (Hybrid — 3 Schichten):** Die beste Lösung für sowohl `qb-cubie` selbst als auch einen späteren wiederverwendbaren Service (`qb_cubie.services` gemäß [`DEV-GUIDE_Next-Steps.md`](../docs/dev/DEV-GUIDE_Next-Steps.md#L51-L58)) ist eine **hybride Pipeline** aus:
-   - **Schicht 1 (Statisch, CST/AST, `< 1 s`):** Kanonisches Objekt-Inventar (`src/`) + semantischer Test-Art-Klassifikator (`tests/`) + Auslesen optionaler expliziter Tags (`meta:subject`).
+4. **Empfohlene Zielarchitektur (Hybrid — 3 Schichten):** Die beste Lösung für sowohl `qb-cubie` selbst als auch einen späteren wiederverwendbaren Service (`qb_cubie.services` gemäß [`DEV-GUIDE_Next-Steps.md`](../../dev/DEV-GUIDE_Next-Steps.md#L51-L58)) ist eine **hybride Pipeline** aus:
+   - **Schicht 1 (Statisch, CST/AST, `< 1 s`):** Kanonisches Objekt-Inventar (`../../../src`) + semantischer Test-Art-Klassifikator (`tests/`) + Auslesen optionaler expliziter Tags (`meta:subject`).
    - **Schicht 2 (Dynamisch, `pytest`-Plugin mit Python 3.13 `sys.monitoring` + `EBT`-Hook + Subprocess-Bridge):** Reale Per-Test-Ausführungsevidenz mit vernachlässigbarem Overhead (im Benchmark `0,05 s` für 22 Tests via `PY_START` + `DISABLE` + `restart_events()`), strikt getrennt in Evidenz-Zonen (`target_window`, `direct_test`, `subprocess`, `harness/transitive`).
    - **Schicht 3 (Manifest & Meta-Gate-Auswerter):** Deterministisches JSON-Manifest (`schema_version: 1`), auf dem das spätere Meta-Gate schnelle, nachvollziehbare Mengen-, Arten- und Drift-Regeln ohne erneuten Testlauf prüfen kann.
 
@@ -45,29 +45,29 @@ Die Analyse der realen Struktur von `qb-cubie` (`41` Quellcode-Module, `102` öf
 
 ## Teil 1: Empirische Vermessung von Quellcode und Test-Suite (`Ist`)
 
-### 1.1 Inventar der Quellcode-Objekte (`src/qb_cubie/`)
+### 1.1 Inventar der Quellcode-Objekte (`../../../src/qb_cubie`)
 
-Ein vollständiger AST-Scan über alle 41 Python-Module unter `src/qb_cubie/` zeigt die reale Größenordnung und Struktur der zu bewertenden Objekte:
+Ein vollständiger AST-Scan über alle 41 Python-Module unter `../../../src/qb_cubie` zeigt die reale Größenordnung und Struktur der zu bewertenden Objekte:
 
 | Objekt-Kategorie | Gesamt | Öffentlich (`name`) | Privat (`_name`) | Besonderheiten / Relevanz für Meta-Gate |
 | :--- | ---: | ---: | ---: | :--- |
-| **Python-Module (`.py`)** | 41 | — | — | Inkl. `__init__.py`, `__main__.py`, interne `_*.py`-Module (`_execution.py`, `_process.py`, `_relocation.py`, ...) |
+| **Python-Module (`.py`)** | 41 | — | — | Inkl. `../../../tests/__init__.py`, `__main__.py`, interne `_*.py`-Module (`_execution.py`, `_process.py`, `_relocation.py`, ...) |
 | **Klassen** | 121 | 102 | 19 | Darunter **13 `Protocol`s** (reine Schnittstellen) und **55 `dataclass`es** (oft DTOs/Reports/Regel-Specs) |
 | **Top-Level-Funktionen** | 129 | 28 | 101 | Namenskollision nur bei `main` (`cli.py` vs. `arenas/_tempfs_runner.py`); **0** Klassennamen-Kollisionen |
 | **Methoden (gesamt)** | 516 | — | — | Aufschlüsselung siehe unten |
 | ↳ Öffentliche Methoden auf öff. Klassen | 115 | 115 | — | Primäre öffentliche API-Oberfläche (inkl. 19 `@property`) |
-| ↳ Private Methoden auf öff. Klassen | 245 | — | 245 | Starker Anteil durch `FUNCTION_LIMIT = 12` in [`test_styleguide.py`](./test_styleguide.py#L9) |
+| ↳ Private Methoden auf öff. Klassen | 245 | — | 245 | Starker Anteil durch `FUNCTION_LIMIT = 12` in [`../../../tests/test_styleguide.py`](../../../tests/test_styleguide.py#L9) |
 | ↳ Dunder-Methoden auf öff. Klassen | 61 | — | — | `__init__`, `__post_init__`, `__repr__`, Context-Manager (`__enter__`/`__exit__`) |
 | ↳ Methoden in `Protocol`-Klassen | 31 | — | — | Nicht direkt ausführbar (`...`-Body); müssen im Meta-Gate ausgeschlossen werden |
 | ↳ Methoden auf privaten Klassen | 64 | — | 64 | Reine Implementierungsdetails (z. B. `_Snapshot`) |
 
-**Wichtige strukturelle Beobachtung (`[HINWEIS]`):** Durch die harte Stilgrenze `FUNCTION_LIMIT = 12` physische Body-Zeilen ([`test_styleguide.py#L9`](./test_styleguide.py#L9)) zerlegt `qb-cubie` Logik bewusst in viele kleine private Hilfsmethoden (**245** private Methoden + **101** private Funktionen = **346** private Callables gegenüber **143** öffentlichen Funktionen/Methoden). Ein Meta-Gate, das pauschal „direkte eigene Tests für jede Funktion“ erzwingt, würde private Zerlegungen bestrafen und gegen den eigenen Styleguide arbeiten. Das Analyse-Werkzeug muss daher **Sichtbarkeit** (`public` vs. `private`) und **Archetyp** (`callable`, `class`, `protocol`, `dataclass-dto`, `preset`) sauber unterscheiden.
+**Wichtige strukturelle Beobachtung (`[HINWEIS]`):** Durch die harte Stilgrenze `FUNCTION_LIMIT = 12` physische Body-Zeilen ([`test_styleguide.py#L9`](../../../tests/test_styleguide.py#L9)) zerlegt `qb-cubie` Logik bewusst in viele kleine private Hilfsmethoden (**245** private Methoden + **101** private Funktionen = **346** private Callables gegenüber **143** öffentlichen Funktionen/Methoden). Ein Meta-Gate, das pauschal „direkte eigene Tests für jede Funktion“ erzwingt, würde private Zerlegungen bestrafen und gegen den eigenen Styleguide arbeiten. Das Analyse-Werkzeug muss daher **Sichtbarkeit** (`public` vs. `private`) und **Archetyp** (`callable`, `class`, `protocol`, `dataclass-dto`, `preset`) sauber unterscheiden.
 
 ---
 
-### 1.2 Vermessung der Test-Suite (`tests/`)
+### 1.2 Vermessung der Test-Suite (`../../../tests`)
 
-Alle Zahlen beziehen sich auf `tests/` ohne `tests/fixtures/` und `tests/wheel/` (`84` `test_*.py`-Dateien + `16` Helper/`__init__`/`conftest`-Dateien):
+Alle Zahlen beziehen sich auf `../../../tests` ohne `tests/fixtures/` und `tests/wheel/` (`84` `test_*.py`-Dateien + `16` Helper/`__init__`/`conftest`-Dateien):
 
 | Subsystem (`tests/<ordner>`) | `test_*`-Funktionen (AST) | Mit direktem `EBT(...)` | `EBT` via File-Helper | Mit `RBT(...)` | Ohne `EBT`/`RBT` (Plain `pytest`) | `EBT(...)`-Aufrufstellen | `@parametrize` |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -75,11 +75,11 @@ Alle Zahlen beziehen sich auf `tests/` ohne `tests/fixtures/` und `tests/wheel/`
 | `tests_arena/` | 161 | 79 | 10 | 0 | 72 | 86 | 52 |
 | `tests_ebt/` | 187 | 184 | 0 | 0 | 3 | 194 | 68 |
 | `tests_linter/` | 39 | 32 | 6 | 0 | 1 | 33 | 11 |
-| `tests_meta/` | 12 | 6 | 0 | 0 | 6 | 6 | 7 |
+| `../../../tests/tests_meta` | 12 | 6 | 0 | 0 | 6 | 6 | 7 |
 | `tests_multiprocessors/` | 52 | 27 | 23 | 0 | 2 | 33 | 28 |
 | `tests_services/` | 96 | 93 | 0 | 0 | 3 | 156 | 3 |
-| `tests_user_workflows/` | 20 | 16 | 0 | 0 | 4 | 17 | 11 |
-| **Gesamt (`tests/`)** | **603** | **460** | **39** | **4** | **102** | **554** | **203** |
+| `../../../tests/tests_user_workflows` | 20 | 16 | 0 | 0 | 4 | 17 | 11 |
+| **Gesamt (`../../../tests`)** | **603** | **460** | **39** | **4** | **102** | **554** | **203** |
 
 *Hinweis: Einzelne Testfunktionen verwenden sowohl `EBT` als auch `RBT` (daher ist die Summe der Spalten leicht größer als 603). Zudem enthalten 219 der 460 EBT-Testfunktionen zusätzliche `assert`-Statements (meist zur Trace-/Report-Nachprüfung), 127 Testfunktionen nutzen `pytest.raises(...)` und 3 Funktionen nutzen Hypothesis (`@given`).*
 
@@ -110,11 +110,11 @@ Die syntaktische Klassifikation aller **554** `EBT(target=...)`-Ausdrücke in `t
 | Klassen-Attribut aus `qb_cubie` | **4** | **0,7 %** | `StateInspector.has_unpicklable_callables` |
 | **Direkter Top-Level-`qb_cubie`-Funktionsimport** | **0** | **0,0 %** | — |
 
-Zusätzlich ergab der Namens-Abgleich zwischen `src/qb_cubie/` und allen `test_*.py`-Dateien:
+Zusätzlich ergab der Namens-Abgleich zwischen `../../../src/qb_cubie` und allen `test_*.py`-Dateien:
 - **54 von 102 öffentlichen Klassen (52,9 %)** werden in keinem einzigen Test namentlich erwähnt (u. a. `DocFrameMissing`, `DocFrameOutdated`, `DocFrameBrokenRoute`, `DocFrameProvenanceIncomplete`, `AssetImage`, `CatalogRouter`, `CenterWrap`, `CompactNav`, `CaptureTarget`). Viele davon sind dennoch intensiv getestet — indirekt über Preset-Tupel wie `CUBIE_DOCFRAME_RULES` oder `CUBIE_DOC_FRAME_1`–`3` (z. B. in [`test_docframe_rules_and_guards.py#L54-L58`](./tests_services/tests_doc_frame/test_docframe_rules_and_guards.py#L54-L58)).
 - **19 von 27 eindeutigen öffentlichen Top-Level-Funktionen (70,4 %)** werden in `test_*.py` nicht namentlich referenziert (z. B. `validate_bool_expect`, `same_contents`, `hydrate_workspace`, `parse_frame_spans`, `exception_details`, `qualified_name`), obwohl sie transitiv durch `EBT`, `WorldState`, `TempFS` und `DocFrame` abgesichert sind.
 
-**Konsequenz:** Ein Analyse-Tool, das nur `EBT(target=...)` oder `import`-Namen statisch liest, produziert **> 50 % False Negatives** und widerspricht direkt dem eigenen Best-Practice-Muster *Stateless Adapters* ([`GUIDE_Quality-Assurance.md#L150-L152`](../docs/GUIDE_Quality-Assurance.md#L150-L152)).
+**Konsequenz:** Ein Analyse-Tool, das nur `EBT(target=...)` oder `import`-Namen statisch liest, produziert **> 50 % False Negatives** und widerspricht direkt dem eigenen Best-Practice-Muster *Stateless Adapters* ([`GUIDE_Quality-Assurance.md#L150-L152`](../../GUIDE_Quality-Assurance.md#L150-L152)).
 
 ---
 
@@ -122,7 +122,7 @@ Zusätzlich ergab der Namens-Abgleich zwischen `src/qb_cubie/` und allen `test_*
 
 Ein realer Testlauf mit Python 3.13 `sys.monitoring` (`PY_START`) auf [`tests/tests_linter/test_linter_cst.py`](./tests_linter/test_linter_cst.py) lieferte folgendes Messergebnis für `test_cstlinter_clean_code`:
 
-- **61** ausgeführte Callables in `src/qb_cubie/` insgesamt:
+- **61** ausgeführte Callables in `../../../src/qb_cubie` insgesamt:
   - **54 (88,5 %)** stammten aus `ebt.py`, `protocols.py` und `reporter.py` (reiner Test-Harness!).
   - **2 (3,3 %)** waren Harness-Nebenaufrufe (`arenas/hydration.py::normalize_fs`, `multiprocessors.py::_validate_max_workers`).
   - Nur **5 (8,2 %)** gehörten zum eigentlichen SUT (`CstLinter.__init__`, `CstLinter.check`, `CstLinter._analyze_source`, `CstRule.__init__`, `CstRule.reset`).
@@ -157,7 +157,7 @@ Im Repository gibt es fünf verschiedene sinnvolle Zähleinheiten, die sich um m
 **Empfehlung für das Datenmodell:** Das Analyse-Werkzeug sollte **immer Tupel aus mindestens zwei stabilen Zählgrößen** pro Objekt speichern:
 1. **`distinct_test_functions`** (eindeutige `file::test_fn` — immun gegen Parametrisierungs-Inflation und Hypothesis-Profile),
 2. **`executed_cases`** (ausgeführte `pytest`-Items bzw. `EBT`-Vertragsinstanzen — misst tatsächliche Beispielbreite), plus
-3. **`distinct_test_kinds`** (Anzahl *verschiedener* abgedeckter Test-Arten — entscheidende Qualitätsmetrik gemäß [`GUIDE_Quality-Assurance.md#L154-L158`](../docs/GUIDE_Quality-Assurance.md#L154-L158)).
+3. **`distinct_test_kinds`** (Anzahl *verschiedener* abgedeckter Test-Arten — entscheidende Qualitätsmetrik gemäß [`GUIDE_Quality-Assurance.md#L154-L158`](../../GUIDE_Quality-Assurance.md#L154-L158)).
 
 ---
 
@@ -165,7 +165,7 @@ Im Repository gibt es fünf verschiedene sinnvolle Zähleinheiten, die sich um m
 
 Damit das spätere Meta-Gate sinnvolle Regeln formulieren kann („Welche Arten von Tests liegen auf welchen Objekten?“), benötigt das Analysewerkzeug eine feste, maschinenlesbare Taxonomie entlang zweier Achsen.
 
-### 2.1 Objekt-Archetypen (`src/`)
+### 2.1 Objekt-Archetypen (`../../../src`)
 
 | Archetyp | Statische Erkennung (AST/CST) | Typische Meta-Gate-Erwartung (Ausblick) |
 | :--- | :--- | :--- |
@@ -177,7 +177,7 @@ Damit das spätere Meta-Gate sinnvolle Regeln formulieren kann („Welche Arten 
 | `private_helper` | `_`-Präfix (Funktion, Methode oder Klasse) | **Indirekte Abdeckung** über öffentliche Fassade ausreichend (kein Zwang zu Whitebox-Direkttests) |
 | `preset_constant` | Großgeschriebene Top-Level-Konstante (`CUBIE_DOC_RULES`, ...) | Erfasst als Einstiegspunkt / Alias auf enthaltene Objekte |
 
-### 2.2 Orthogonale Test-Art-Taxonomie (`tests/`)
+### 2.2 Orthogonale Test-Art-Taxonomie (`../../../tests`)
 
 Die „Art eines Tests“ ist in `qb-cubie` kein einzelner Enum-Wert, sondern ein **Multi-Label-Profil** aus drei orthogonalen Dimensionen (alle Signale sind heute bereits im Repo messbar):
 
@@ -215,8 +215,8 @@ Nachfolgend werden sechs technisch eigenständige Ansätze analysiert — von re
 
 ### Option A: Rein statische CST/AST-Analyse (`LibCST` / Erweiterung von `CstLinter`)
 
-- **Mechanismus:** Zwei CST/AST-Durchläufe ohne Code-Ausführung — (1) `src/`-Scanner baut das Objekt-Inventar; (2) `tests/`-Scanner (aufbauend auf den vorhandenen Mustern aus [`test_gate_1.py`](./tests_meta/test_gate_1.py), [`test_gate_2.py`](./tests_meta/test_gate_2.py) und [`test_gate_3.py`](./tests_meta/test_gate_3.py)) extrahiert Imports, `EBT(...)`-Parameter, lokale Adapter-Körper (1–2 Hops im selben Modul) und `pytest`-Dekoratoren.
-- **Was wird gut erfasst:** Vollständiges Objekt-Inventar (`src/`); nahezu 100 % aller **Test-Arten** (`raises`, `expect=False`, Quantoren, `arena`, `fs`, `multiprocessing`, `RBT`, `@parametrize`, `@given`, `tags`).
+- **Mechanismus:** Zwei CST/AST-Durchläufe ohne Code-Ausführung — (1) `../../../src`-Scanner baut das Objekt-Inventar; (2) `tests/`-Scanner (aufbauend auf den vorhandenen Mustern aus [`test_gate_1.py`](./tests_meta/test_gate_1.py), [`test_gate_2.py`](./tests_meta/test_gate_2.py) und [`test_gate_3.py`](./tests_meta/test_gate_3.py)) extrahiert Imports, `EBT(...)`-Parameter, lokale Adapter-Körper (1–2 Hops im selben Modul) und `pytest`-Dekoratoren.
+- **Was wird gut erfasst:** Vollständiges Objekt-Inventar (`../../../src`); nahezu 100 % aller **Test-Arten** (`raises`, `expect=False`, Quantoren, `arena`, `fs`, `multiprocessing`, `RBT`, `@parametrize`, `@given`, `tags`).
 - **Stärken:** Sehr schnell (`< 1 s` über das gesamte Repo), null Testlauf-Abhängigkeit, 100 % deterministisch, keine neuen Dependencies (`libcst 1.9.0` bereits installiert), nahtlos kompatibel mit `CstLinter` und der Wächter-Triade.
 - **Harte Grenzen (`[BLOCKER]`):**
   - Verpasst **54/102** öffentliche Klassen (Presets wie `CUBIE_DOCFRAME_RULES`) und **19/27** öffentliche Funktionen (indirekte Aufrufe).
@@ -242,8 +242,8 @@ Nachfolgend werden sechs technisch eigenständige Ansätze analysiert — von re
 
 ### Option C: Dynamisches Per-Test-Execution-Tracing via Python 3.13 `sys.monitoring` (PEP 669) + `pytest`-Plugin + Subprocess-Bridge
 
-- **Mechanismus:** Weil `qb-cubie` `requires-python = ">=3.13"` voraussetzt ([`pyproject.toml#L13`](../pyproject.toml#L13)), steht `sys.monitoring` (PEP 669) immer in der Standardbibliothek zur Verfügung. Ein leichtgewichtiges `pytest`-Plugin registriert eine `PY_START`-Callback-Funktion:
-  1. Bei jedem Betreten einer Funktion/Methode unter `src/` erfasst der Callback `(rel_file, co_qualname, co_firstlineno)` für das aktuell aktive `pytest`-Item und gibt **`sys.monitoring.DISABLE`** zurück — danach erzeugt genau dieses Code-Objekt im laufenden Test **null** weiteren Interpreter-Overhead!
+- **Mechanismus:** Weil `qb-cubie` `requires-python = ">=3.13"` voraussetzt ([`pyproject.toml#L13`](../../../pyproject.toml#L13)), steht `sys.monitoring` (PEP 669) immer in der Standardbibliothek zur Verfügung. Ein leichtgewichtiges `pytest`-Plugin registriert eine `PY_START`-Callback-Funktion:
+  1. Bei jedem Betreten einer Funktion/Methode unter `../../../src` erfasst der Callback `(rel_file, co_qualname, co_firstlineno)` für das aktuell aktive `pytest`-Item und gibt **`sys.monitoring.DISABLE`** zurück — danach erzeugt genau dieses Code-Objekt im laufenden Test **null** weiteren Interpreter-Overhead!
   2. In `pytest_runtest_setup` setzt `sys.monitoring.restart_events()` das Tracking sauber für den nächsten Test zurück.
   3. **Target-Window-Gating gegen Harness-Pollution:** Ein dünner Kontext-Stack (z. B. ein ContextVar/Flag um `EBT._invoke_target(...)`) markiert, ob ein Treffer *innerhalb* des `EBT`-Targets (`target_window`) oder außerhalb (`direct_test` / `harness`) erfolgte.
   4. **Subprocess-Bridge für `TempFS`/`PyVenv`/`multiprocessing`:** Ist eine Umgebungsvariable (z. B. `CUBIE_COVERAGE_TRACE_DIR`) gesetzt, aktiviert ein ~25-Zeilen-Bootstrap in `_tempfs_runner.py`, im `PyVenv`-Runner-Snippet und im Worker-Task denselben `PY_START`-Collector und schreibt die getroffenen Callables mit `run_id` / `nodeid` als JSONL in das Trace-Verzeichnis.
@@ -265,12 +265,12 @@ Nachfolgend werden sechs technisch eigenständige Ansätze analysiert — von re
 
 ### Option D: `coverage.py` (`dynamic_context = test_function`) + SQLite-`.coverage`-Auswertung
 
-- **Mechanismus:** Nutzt `coverage.py >= 7.x` (mit eigenem `sys.monitoring`-Core) in Kombination mit `dynamic_context = test_function` (oder `pytest-cov --cov-context=test`). `coverage.py` schreibt eine SQLite-Datenbank (`.coverage`), in der für jede ausgeführte Quellcode-Zeile (und optional jeden Branch) der exakte `pytest`-Testname hinterlegt ist. Ein nachgelagertes Analyse-Skript projiziert diese Zeilennummern auf die AST-Bereiche (`node.lineno..node.end_lineno`) aller Objekte in `src/`.
+- **Mechanismus:** Nutzt `coverage.py >= 7.x` (mit eigenem `sys.monitoring`-Core) in Kombination mit `dynamic_context = test_function` (oder `pytest-cov --cov-context=test`). `coverage.py` schreibt eine SQLite-Datenbank (`.coverage`), in der für jede ausgeführte Quellcode-Zeile (und optional jeden Branch) der exakte `pytest`-Testname hinterlegt ist. Ein nachgelagertes Analyse-Skript projiziert diese Zeilennummern auf die AST-Bereiche (`node.lineno..node.end_lineno`) aller Objekte in `../../../src`.
 - **Stärken:**
   - Bewährtes Standardwerkzeug mit ausgereiftem `coverage combine` für `pytest-xdist` und Subprozesse (`coverage.process_startup()`).
   - Liefert zusätzlich **Zeilen- und Branch-Abdeckung je Test und Objekt** (also nicht nur „betreten“, sondern auch *wie tief* eine Funktion abgedeckt wurde — wichtig für externe Projekte mit größeren Funktionen ohne `FUNCTION_LIMIT = 12`).
 - **Harte Grenzen (`[RISIKO]`):**
-  - Neue externe Abhängigkeit (`coverage` ist aktuell weder in `pyproject.toml` noch in `uv.lock` enthalten).
+  - Neue externe Abhängigkeit (`coverage` ist aktuell weder in `../../../pyproject.toml` noch in `uv.lock` enthalten).
   - **`PyVenv`-Blinder Fleck:** In [`PyVenv`](../src/qb_cubie/arenas/pyvenv.py) laufende Kindprozesse starten in einer isolierten virtuellen Umgebung, in der `coverage` nicht vorinstalliert ist (während Option C nur Stdlib `sys.monitoring` benötigt!).
   - **Kein Target-Window-Gating:** `coverage.py` kennt `EBT._invoke_target` nicht und vermischt Harness- und SUT-Zeilen im `qb-cubie`-Selbsttest vollständig.
   - Höherer Laufzeit-Overhead bei `branch = True` + `dynamic_context` über 1872 Tests (insbesondere bei den 162 `slow`-Tests).
@@ -358,12 +358,12 @@ flowchart TD
 
 ### 4.1 Baustein 1 — Statisches Objekt-Inventar & Test-Klassifikator (Schicht 1)
 
-- **`ObjectCatalog` (`src/`):** Extrahiert jedes Quellcode-Objekt mit stabiler Identität:
+- **`ObjectCatalog` (`../../../src`):** Extrahiert jedes Quellcode-Objekt mit stabiler Identität:
   - `fqn` (z. B. `qb_cubie.linter.CstLinter.check`),
   - `kind` (`public_function`, `public_method`, `public_class`, `dataclass_dto`, `protocol_interface`, `private_helper`, `preset_constant`),
-  - `file_path`, `lineno`, `end_lineno`, `body_lines` (wiederverwendbar aus [`test_styleguide.py#L57-L68`](./test_styleguide.py#L57-L68)),
+  - `file_path`, `lineno`, `end_lineno`, `body_lines` (wiederverwendbar aus [`test_styleguide.py#L57-L68`](../../../tests/test_styleguide.py#L57-L68)),
   - `parent_fqn` (Methoden → Klasse → Modul).
-- **`TestClassifier` (`tests/`):** Nutzt `LibCST` (konsistent mit `test_gate_1..3.py`) zur Erkennung von:
+- **`TestClassifier` (`../../../tests`):** Nutzt `LibCST` (konsistent mit `test_gate_1..3.py`) zur Erkennung von:
   - Test-Funktionen (`file::test_fn`), `@parametrize`, `@given`, `pytest.raises`, `RBT`, `DocEnsurance`, `CstLinter`/`AstLinter`,
   - statisch erkennbaren `EBT`-Merkmalen (`expect`, `raises`, `fs`, `arena`, `multiprocessing`, Quantoren, `tags`),
   - optionalen expliziten `meta:subject`- / `meta:coverage-exempt`-Deklarationen.
@@ -372,13 +372,13 @@ flowchart TD
 
 1. **`pytest`-Plugin (`sys.monitoring`):**
    - Nutzt einen freien `tool_id` (dynamische Suche unter `0..5`, damit keine Kollision mit Debuggern oder `coverage.py` entsteht!).
-   - Filtert früh per String-Prefix auf die konfigurierte Quellcode-Wurzel (`src/qb_cubie` bzw. Zielprojekt-`src/`).
+   - Filtert früh per String-Prefix auf die konfigurierte Quellcode-Wurzel (`../../../src/qb_cubie` bzw. Zielprojekt-`src/`).
    - Verwendet `PY_START` + `return sys.monitoring.DISABLE` und `restart_events()` je `pytest_runtest_setup`.
 2. **Saubere Harness-vs-SUT-Trennung über 3 Evidenz-Zonen:**
-   - **Zone 1 (`target_window`):** Aktiv, sobald ein `EBT`-Lauf `EBT._invoke_target(...)` betritt (bzw. bei Nicht-EBT-Tests direkt im Testfunktions-Body). Alle darin getroffenen `src/`-Callables gehören mit hoher Konfidenz zum **echten SUT** (löst 100 % der Stateless-Adapter und Presets auf!).
-   - **Zone 2 (`direct_setup`):** `src/`-Callables, die direkt aus `test_*` vor/nach `EBT.run()` aufgerufen werden (z. B. `CstLinter(...)`, `WorldState(...)`-`STATE-GUARD`s, `DocFrame.update(...)`).
+   - **Zone 1 (`target_window`):** Aktiv, sobald ein `EBT`-Lauf `EBT._invoke_target(...)` betritt (bzw. bei Nicht-EBT-Tests direkt im Testfunktions-Body). Alle darin getroffenen `../../../src`-Callables gehören mit hoher Konfidenz zum **echten SUT** (löst 100 % der Stateless-Adapter und Presets auf!).
+   - **Zone 2 (`direct_setup`):** `../../../src`-Callables, die direkt aus `test_*` vor/nach `EBT.run()` aufgerufen werden (z. B. `CstLinter(...)`, `WorldState(...)`-`STATE-GUARD`s, `DocFrame.update(...)`).
    - **Zone 3 (`harness_or_self`):** Callables in `ebt.py` / `protocols.py` / `reporter.py` / `arenas/` / `multiprocessors.py`, die *außerhalb* von `target_window` durch den `EBT`-Runner selbst laufen. **Attributions-Regel:**
-     - Für **externe Projekte** existiert Zone 3 gar nicht (weil `qb_cubie` außerhalb des Ziel-`src/` liegt).
+     - Für **externe Projekte** existiert Zone 3 gar nicht (weil `qb_cubie` außerhalb des Ziel-`../../../src` liegt).
      - Für **`qb-cubie` selbst** werden Treffer in Zone 3 nur dann als SUT-Coverage gewertet, wenn **(a)** der Test im zugehörigen Subsystem-Marker liegt (`ebt`, `arena`, `multiprocess`, `workflows`) **oder (b)** Zone 1 (`target_window`) **0** `qb_cubie`-Callables enthielt (klassisches Erkennungszeichen eines Dummy-Targets wie `target_normalize` / `lambda`!) **oder (c)** ein explizites `meta:subject` darauf zeigt.
 3. **`EBT`-Observer-Hook (minimal-invasiv):**
    - Hinweis auf Styleguide-Grenze (`[RISIKO]`): [`src/qb_cubie/ebt.py`](../src/qb_cubie/ebt.py) umfasst aktuell **771 von 777** erlaubten Zeilen! Eine direkte Erweiterung in `ebt.py` darf diese Grenze nicht reißen; der Observer-Hook sollte daher als eigenes kleines Modul (z. B. `src/qb_cubie/_telemetry.py`) angelegt und über max. 2–3 Zeilen in `ebt.py` angebunden werden.
@@ -448,7 +448,7 @@ Das Analyse-Werkzeug produziert ein deterministisches, menschen- und maschinenle
 
 | Phase | Inhalt | Lieferergebnis / Nutzen | Risiko |
 | :--- | :--- | :--- | :--- |
-| **Stufe 1: Statischer Scanner (MVP-Inventar)** | `ObjectCatalog` (`src/`) + `TestClassifier` (`tests/`) via `LibCST`/AST | Vollständige Liste aller Quellcode-Objekte + Test-Art-Profil aller 603 Testfunktionen (`< 1 s`) | Gering |
+| **Stufe 1: Statischer Scanner (MVP-Inventar)** | `ObjectCatalog` (`../../../src`) + `TestClassifier` (`tests/`) via `LibCST`/AST | Vollständige Liste aller Quellcode-Objekte + Test-Art-Profil aller 603 Testfunktionen (`< 1 s`) | Gering |
 | **Stufe 2: In-Process `sys.monitoring` + `EBT`-Hook** | `pytest`-Plugin (`--cubie-coverage-out`), `_telemetry.py`-Hook mit Target-Window-Gating, Manifest-Export | Reale Objekt-zu-Test-Matrix für alle In-Process-Tests + Lösung des Adapter-/Preset-/Harness-Problems | Gering–Mittel |
 | **Stufe 3: Subprocess-Bridge & `xdist`-Merge** | Opt-in `CUBIE_COVERAGE_TRACE_DIR` in `_tempfs_runner.py`, `PyVenv`, `MultiprocessManager` + JSONL-Merge | Schließt die blinden Flecken bei `206` Arena- und `27` MP-Tests sowie parallelen CI-Läufen | Mittel |
 | **Stufe 4: `meta:subject`-Support & Meta-Gate 4** | Konvention für explizite Overrides/Exemptions, Drift-Prüfung, Policy-Evaluator & CLI (`qb-cubie coverage ...`) | Produktives Meta-Gate (Wächter-Triade + Repo-Gate) & Basis für `qb_cubie.services` | Mittel |
@@ -458,7 +458,7 @@ Das Analyse-Werkzeug produziert ein deterministisches, menschen- und maschinenle
 Bevor mit dem Bau des Analyse-Werkzeugs (Stufe 1) begonnen wird, sollten fünf Design-Entscheidungen geklärt werden:
 
 - **`E1` — Primäre Objekt-Granularität:** Soll das Analyse-Werkzeug primär auf **öffentlichen Funktionen & Methoden** (`143` Objekte) + **öffentlichen Klassen** (`102`, aggregiert) berichten, während **private Helfer** (`346` Objekte) nur informativ / als indirekte Abdeckung geführt werden? *(Empfehlung: Ja — sonst entsteht Konflikt mit `FUNCTION_LIMIT = 12`.)*
-- **`E2` — Geltungsbereich (intern vs. wiederverwendbarer Service):** Soll das Werkzeug direkt als sauber gekapseltes Modul unter `src/qb_cubie/services/` (wiederverwendbar für Drittprojekte, vgl. [`DEV-GUIDE_Next-Steps.md`](../docs/dev/DEV-GUIDE_Next-Steps.md#L51-L58)) oder zunächst als internes Analyse-Skript unter `scripts/` / `tests/tests_meta/` entstehen?
+- **`E2` — Geltungsbereich (intern vs. wiederverwendbarer Service):** Soll das Werkzeug direkt als sauber gekapseltes Modul unter `src/qb_cubie/services/` (wiederverwendbar für Drittprojekte, vgl. [`DEV-GUIDE_Next-Steps.md`](../../dev/DEV-GUIDE_Next-Steps.md#L51-L58)) oder zunächst als internes Analyse-Skript unter `../../../scripts` / `tests/tests_meta/` entstehen?
 - **`E3` — Umgang mit `ebt.py`-Zeilenbudget (`771 / 777`):** Für den `EBT`-Observer-Hook und das Target-Window-Gating stehen in `ebt.py` nur noch **6 Zeilen** bis `MODULE_LIMIT = 777`. *(Empfehlung: Auslagerung der Hook-Infrastruktur in `src/qb_cubie/_telemetry.py`, damit `ebt.py` stabil unter dem Limit bleibt.)*
 - **`E4` — Einbeziehung von Nicht-EBT-Tests:** Soll das spätere Meta-Gate ausschließlich **EBT-Verträge** (`mech:ebt`) als vollwertige Abdeckung zählen (und `plain_pytest`-Tests separat als „Legacy / Nicht-EBT“ ausweisen), oder alle Ausführungs-Tests gleichberechtigt werten? *(Das Analyse-Werkzeug sollte in jedem Fall **beide** getrennt ausweisen!)*
 - **`E5` — Subprocess-Scope in Stufe 3:** Soll die Subprocess-Bridge alle drei Prozessgrenzen (`TempFS`, `PyVenv`, `MultiprocessManager`) abdecken, oder zunächst `TempFS` + `MultiprocessManager` (da `PyVenv` primär Paket-Isolation prüft)?
@@ -472,7 +472,7 @@ Bevor mit dem Bau des Analyse-Werkzeugs (Stufe 1) begonnen wird, sollten fünf D
 | Git-Stand & Branch | `git status -s && git branch --show-current && git log -n 1` | Branch `main`, `HEAD = 7b4a9833` (`v0.0.10`) |
 | Python & Paket-Inventar | `.venv/bin/python -c "import sys; print(sys.version, hasattr(sys, 'monitoring'))"` + `pip list` | Python `3.13.12`, `sys.monitoring = True`; `libcst 1.9.0`, `astroid 4.3.4`, `mypy 2.4.1`, `pytest 9.2.0`, `pytest-xdist 3.8.0`; kein `coverage` installiert |
 | `pytest`-Collection-Umfang | `.venv/bin/python -m pytest --collect-only -m "" -q` & default `-q` | **1872** gesamt (`0,66 s`), davon **1710** `fast` + **162** `slow` (`0,61 s`) |
-| AST-Vermessung `src/` & `tests/` | Read-only Python-AST-Skript über `src/qb_cubie/` und `tests/` | `41` Module, `121` Klassen (`102` öff.), `129` Top-Level-Fkt. (`28` öff.), `516` Methoden; `84` `test_*.py`, `603` Testfunktionen, `554` `EBT(...)`-Stellen (`0` direkte `qb_cubie`-Funktionsimporte, `390` lokale Adapter/Probes), `54/102` öff. Klassen ohne namentliche Referenz |
+| AST-Vermessung `../../../src` & `tests/` | Read-only Python-AST-Skript über `../../../src/qb_cubie` und `tests/` | `41` Module, `121` Klassen (`102` öff.), `129` Top-Level-Fkt. (`28` öff.), `516` Methoden; `84` `test_*.py`, `603` Testfunktionen, `554` `EBT(...)`-Stellen (`0` direkte `qb_cubie`-Funktionsimporte, `390` lokale Adapter/Probes), `54/102` öff. Klassen ohne namentliche Referenz |
 | `sys.monitoring`-Machbarkeit | Programmatischer `pytest`-Lauf (`test_linter_cst.py` + `test_ebt_quantors.py`, 22 Tests) mit `PY_START` + `DISABLE` + `restart_events()` | **22 passed** in `0,05 s`; `test_cstlinter_clean_code`: 61 Treffer (`54` Harness + `2` Nebenaufrufe + `5` SUT); `test_cstlinter_finds_eval`: +2 Fehlerpfad-Methoden präzise erkannt |
 | `DocFrame`-Synchronisation & -Prüfung | `.venv/bin/qb-cubie docframe update tests/ANALYSIS_COVERAGE_OPTIONS.md` + `DocEnsurance(..., pattern=(CUBIE_DOC_FRAME_2,), rules=(CUBIE_DOCFRAME_RULES,))` | Synchronisiert (`Updated 1 file(s)`) & **`passed: True`** (`0` Diagnostiken) |
 
@@ -484,25 +484,28 @@ Bevor mit dem Bau des Analyse-Werkzeugs (Stufe 1) begonnen wird, sollten fünf D
 
 <div align="center">
 
-![Cubie](../docs/.assets/cubie-small.png)
+![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../docs/GUIDE_Benchmarks.md)  
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../docs/GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../docs/GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](../docs/GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../docs/GUIDE_Quantifiers.md)  
-[↦ | Test-Guided Development (TGD) | ↤](../docs/GUIDE_TGD.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
+[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
+[↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
+[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
+[↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../docs/services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../docs/services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
-[↦ | Core-Dokumentation | ↤](../docs/core/README.md)  
-[↦ | Entwicklerdokumentation | ↤](../docs/dev/README.md)  
-[↦ | Hintergrund & Essays | ↤](../docs/misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](../docs/feature-drafts/virtualization/README.md)  
+[↦ | Dokumentations-Übersicht | ↤](../../README.md)  
+[↦ | Core-Dokumentation | ↤](../../core/README.md)  
+[↦ | Entwicklerdokumentation | ↤](../../dev/README.md)  
+[↦ | Core-Internals | ↤](../../dev/core/README.md)  
+[↦ | Hintergrund & Essays | ↤](../README.md)  
+[↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
+
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
 [↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
 [↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
+[↦ | Archiv behobener Bugs (`SOLVED_ISSUES.md`) | ↤](./SOLVED_ISSUES.md)  
 
 </div>
 <!-- /qb:frame -->

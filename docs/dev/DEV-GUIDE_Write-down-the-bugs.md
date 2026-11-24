@@ -32,13 +32,15 @@ Ein guter Eintrag sorgt dafür, dass **jede Person (und jeder Agent)** den Fehle
 
 ---
 
-## 2. Empfohlener Aufbau von `KNOWN_ISSUES.md`
+## 2. Empfohlener Aufbau von `KNOWN_ISSUES.md` & Bug-Archiv
 
-Halte die Datei übersichtlich mit klaren Hauptabschnitten:
+Halte [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) übersichtlich und auf **aktive** Einträge fokussiert:
 
 * `## Offene Bugs` – aktive, noch nicht behobene Fehler (neueste oder kritischste oben).
 * `## Bekannte Einschränkungen / Plattform-Spezifika` – z. B. OS-bedingte Besonderheiten (Windows/Linux), die vorerst bewusst bestehen.
-* `## Behoben (Archiv)` *(optional)* – kurzfristige Ablage für frisch gefixte Bugs mit Verweis auf Version/Commit, bevor sie im [`CHANGELOG.md`](../../CHANGELOG.md) aufgehen.
+
+**Separates Archiv (`SOLVED_ISSUES.md`):**  
+Behobene Bugs werden **nicht** dauerhaft in `KNOWN_ISSUES.md` gesammelt, sondern nach dem Fix in das separate Archiv [`docs/misc/lake/SOLVED_ISSUES.md`](../misc/lake/SOLVED_ISSUES.md) verschoben (inkl. Fix-Version/Commit und kurzer Lösungsbeschreibung). Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELOG.md`](../../CHANGELOG.md) aufgegangen ist, kann der Archiveintrag in `SOLVED_ISSUES.md` wieder bereinigt werden.
 
 ---
 
@@ -106,7 +108,7 @@ Schreibschutz vor dem Beenden der Arena manuell entfernen.
 2. **Reproduzierbarkeit schlägt Prosa:** Ein minimales Kommando, Code-Snippet oder ein fehlschlagender EBT-Fall ist wertvoller als eine lange Beschreibung.
 3. **Fakten vor Vermutungen:** Exakte Fehlermeldung, betroffene Datei/Version und (falls relevant) OS/Python-Version nennen. Vermutungen klar unter *Hinweise* trennen.
 4. **Sofort festhalten:** Lieber direkt beim Entdecken mit den wichtigsten Eckdaten eintragen, statt ihn später zu vergessen – Details lassen sich jederzeit ergänzen.
-5. **Beim Fix sauber schließen:** Status auf `Behoben in vX.Y.Z` (oder Commit-Hash) setzen, Eintrag ins Archiv verschieben bzw. entfernen und relevante Fixes im [`CHANGELOG.md`](../../CHANGELOG.md) vermerken.
+5. **Beim Fix sauber schließen:** Status auf `Behoben in vX.Y.Z` (oder Commit-Hash) setzen, den Eintrag aus [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) ins separate Archiv [`docs/misc/lake/SOLVED_ISSUES.md`](../misc/lake/SOLVED_ISSUES.md) verschieben und relevante Fixes im [`CHANGELOG.md`](../../CHANGELOG.md) vermerken (nach Release-Übernahme kann der Archiveintrag in `SOLVED_ISSUES.md` bereinigt werden).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -118,7 +120,6 @@ Schreibschutz vor dem Beenden der Arena manuell entfernen.
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
@@ -128,9 +129,12 @@ Schreibschutz vor dem Beenden der Arena manuell entfernen.
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../README.md)  
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
+[↦ | Core-Internals | ↤](./core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+
 [↦ | DEV-GUIDE: Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`) | ↤](./DEV-GUIDE_Agent-Reports.md)  
 [↦ | DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten | ↤](./DEV-GUIDE_DocFrame-Conventions.md)  
 [↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  

@@ -166,7 +166,7 @@ Eine besonders bemerkenswerte Entwicklung in der Git-Historie betrifft das erste
 ### 3.2 Epistemische Hygiene durch radikales Kürzen (`6cb7487e`, `c7d70722`, `30eda081`)
 
 Ein wiederkehrendes Muster in der Git-Historie ist das entschlossene Löschen umfangreicher, sprachlich polierter Dokumentationsabschnitte durch den Maintainer, sobald diese als empirisch noch nicht hinreichend belastbar eingestuft wurden:
-* **`6cb7487e` (14.11.2026, 22:42 Uhr):** Kürzung von `docs/GUIDE_Benchmarks.md` um **1.554 Zeilen** (von 1.578 auf 24 Zeilen; Commit-Message: *„Made the disclaimer more obvious and summarized the contents in order to reduce complexity and increase understandability.“*).
+* **`6cb7487e` (14.11.2026, 22:42 Uhr):** Kürzung von `../../../docs/feature-drafts/GUIDE_Benchmarks.md` um **1.554 Zeilen** (von 1.578 auf 24 Zeilen; Commit-Message: *„Made the disclaimer more obvious and summarized the contents in order to reduce complexity and increase understandability.“*).
 * **`c7d70722` (15.11.2026, 17:04 Uhr):** Kürzung von `docs/GUIDE_Quality-Assurance.md` um **225 Zeilen** (Entfernung des gesamten Kapitels 4 *„Praxis-Tutorials: Vom Einsteiger zum Experten“* sowie der ersten `normalize_tag`-Session; Commit-Message: *„Die Beispiele und Tutorials waren nicht gut genug und sollten ordentlich mit Versuchen und Experimenten untermauert werden, ehe man sowas öffentlich macht. Habe es daher rausgekürzt.“*).
 * **`30eda081` (16.11.2026, 01:50 Uhr):** Kürzung von `README.md` um **127 Zeilen** zur Fokussierung auf den gesicherten Core.
 
@@ -350,7 +350,6 @@ Dabei wurden **neun konkrete technische Befunde und Kantenfälle** identifiziert
 
 ![Cubie](../../../docs/.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../../docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../../docs/GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../docs/GUIDE_Quality-Assurance.md)  
@@ -360,10 +359,13 @@ Dabei wurden **neun konkrete technische Befunde und Kantenfälle** identifiziert
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../../../docs/README.md)  
 [↦ | Core-Dokumentation | ↤](../../../docs/core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../../../docs/dev/README.md)  
+[↦ | Core-Internals | ↤](../../../docs/dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../../docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../../docs/feature-drafts/virtualization/README.md)  
+
 [↦ | Post-Hoc Audit 3 | ↤](./ANALYSIS_3.md)  
 [↦ | Post-Studien-Audit | ↤](./GEMINI.md)  
 

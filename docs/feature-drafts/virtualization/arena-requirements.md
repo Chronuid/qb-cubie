@@ -65,7 +65,6 @@ Diese Arena dient der Bereitstellung vollwertiger oder leichtgewichtiger Betrieb
 
 ![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
@@ -75,9 +74,12 @@ Diese Arena dient der Bereitstellung vollwertiger oder leichtgewichtiger Betrieb
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../../README.md)  
 [↦ | Core-Dokumentation | ↤](../../core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../../dev/README.md)  
+[↦ | Core-Internals | ↤](../../dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
+
 [↦ | **Libvirt, QEMU/KVM und Python** | ↤](./Libvirt-Handbuch.md)  
 [↦ | Wizards-Handbuch | ↤](./Wizards-Handbuch.md)  
 [↦ | [Feature] Implementierung von `DockerArena` und `VmArena` für erweiterte OS- und FS-Isolation (Entwicklung bis auf Weiteres Eingefroren) | ↤](./arena-requirements.md)  

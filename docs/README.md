@@ -29,16 +29,16 @@
 | `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Test-Guided Development (TGD), Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
 | [docs/services](services/GUIDE_DocEnsurance.md) | Leitfäden zu den Services in `qb_cubie.core.services` (`DocEnsurance` sowie [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
 | [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
-| [docs/misc](misc/README.md) | Hintergrundtexte und optionale historische Entwicklungsunterlagen. Die Bereichsdokumentation ist ohne diese Unterlagen verständlich. |
+| [docs/misc](misc/README.md) | Hintergrundtexte, optionale historische Entwicklungsunterlagen sowie das Sammelbecken [`docs/misc/lake/`](misc/lake/SOLVED_ISSUES.md) (Analysen, CI-Daten, Archiv behobener Bugs). |
 | [tests/README.md](../tests/README.md) | Leitfaden zur Testsuite, Marker-Profilen, `Makefile`-Zielen und Hypothesis-Profilen. |
-| [docs/feature-drafts](feature-drafts/virtualization/README.md) | Funktionsentwürfe und Prototypen; keine Zusage einer verfügbaren Produktfunktion. |
+| `docs/feature-drafts` | Funktionsentwürfe und Prototypen ([Benchmarks](feature-drafts/GUIDE_Benchmarks.md), [Virtualisierung](feature-drafts/virtualization/README.md), `meta-qa/`); keine Zusage einer verfügbaren Produktfunktion. |
 
 Für die Bedeutung von Qualität und bestandenen Prüfungen gelten die
 [Qualitätsbegriffe](GUIDE_Quality-Assurance.md) und die
 [Vertragssemantik](core/GUIDE_Contract-Semantics.md).
 
 Der gesamte Benchmark-Bereich ist **experimentell und gehört nicht zum
-qb-cubie Core**. Der gemeinsame [Benchmark-Guide](GUIDE_Benchmarks.md) erklärt
+qb-cubie Core**. Der gemeinsame [Benchmark-Guide](feature-drafts/GUIDE_Benchmarks.md) erklärt
 Installation, eigene Agenten und Szenarien, Cubie-/Pytest-Vergleiche, SWE-bench,
 Datenverträge und Messbetrieb einschließlich Nachbewertung und CI. Ergebnisse und
 Grenzen der bisherigen lokalen Messungen stehen bei den
@@ -77,7 +77,6 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
@@ -87,8 +86,10 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](./README.md)  
 [↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
+[↦ | Core-Internals | ↤](./dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 

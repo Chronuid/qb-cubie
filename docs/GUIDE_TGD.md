@@ -83,7 +83,7 @@ Zwanzig fast identische Gutwetter-Tests erhöhen nur die Laufzeit, aber nicht di
 
 ### Schritt 4 *(Kern — Phase Red)*: Test-Suite isoliert schärfen, Red-Nachweis führen & Tests einfrieren
 In der Red-Phase wird **ausschließlich `tests/`** bearbeitet (`src/` und `docs/` bleiben unangetastet):
-1. **Altlasten ($Q_{\text{Ist}}$) und Meta-Gates bereinigen:** Bestehende Tests, die versehentlich altes Fehlverhalten voraussetzen, werden auf die saubere $Q_{\text{Soll}}$-Deklaration (z. B. `post={"quantor": "all", "states": [...]}`) migriert; statische Wächter (`test_gate_2.py`, `test_gate_3.py`, `test_gate_4.py`) werden nach der Wächter-Kalibrierungs-Triade (Clean-Probes, Fault-Probes, Repo-Scan) aktualisiert. Alle migrierten Bestands-Tests müssen bereits gegen den aktuellen Core **100 % grün (`PASSED`)** laufen.
+1. **Altlasten ($Q_{\text{Ist}}$) und Meta-Gates bereinigen:** Bestehende Tests, die versehentlich altes Fehlverhalten voraussetzen, werden auf die saubere $Q_{\text{Soll}}$-Deklaration (z. B. `post={"quantor": "all", "states": [...]}`) migriert; statische Wächter (`test_gate_2.py`, `test_gate_3.py`, `test_service_architecture_gate.py`) werden nach der Wächter-Kalibrierungs-Triade (Clean-Probes, Fault-Probes, Repo-Scan) aktualisiert. Alle migrierten Bestands-Tests müssen bereits gegen den aktuellen Core **100 % grün (`PASSED`)** laufen.
 2. **Gezielter Red-Nachweis für neue Verträge:** Die neuen Guard-, Invarianten- und Lebenszyklus-Tests werden hinzugefügt und müssen gegen den noch unreparierten Core deterministisch **rot fehlschlagen (`FAILED`)** – das beweist, dass die neuen Tests scharf geschaltet sind und keinen überlebenden Mutanten dulden.
 3. **Strikter Test-Freeze:** Sobald dieses exakte Differenzsignal (Bestand grün, neue Verträge kontrolliert rot) steht, wird die Test-Suite **eingefroren**.
 
@@ -118,7 +118,6 @@ In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/
 
 ![Cubie](.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./GUIDE_Quality-Assurance.md)  
@@ -128,8 +127,10 @@ In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](./README.md)  
 [↦ | Core-Dokumentation | ↤](./core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](./dev/README.md)  
+[↦ | Core-Internals | ↤](./dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](./misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./feature-drafts/virtualization/README.md)  
 

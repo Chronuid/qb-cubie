@@ -93,8 +93,10 @@ GUIDE_ROUTER: Final[FolderRouter] = FolderRouter(dir="docs", glob="GUIDE_*.md")
 SERVICE_ROUTER: Final[FolderRouter] = FolderRouter(dir="docs/services", glob="GUIDE_*.md")
 CONTEXT_ROUTER: Final[SiblingRouter] = SiblingRouter(
     hubs=(
+        ("Dokumentations-Übersicht", "docs/README.md"),
         ("Core-Dokumentation", "docs/core/README.md"),
         ("Entwicklerdokumentation", "docs/dev/README.md"),
+        ("Core-Internals", "docs/dev/core/README.md"),
         ("Hintergrund & Essays", "docs/misc/README.md"),
         ("Feature-Drafts: Virtualisierung", "docs/feature-drafts/virtualization/README.md"),
     )

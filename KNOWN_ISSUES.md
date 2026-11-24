@@ -6,7 +6,7 @@
 ![Cubie](./docs/.assets/cubie-logo-written.png)
 
 Zentrale Übersicht über offene Bugs und bekannte Einschränkungen in `qb-cubie`.  
-Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumentieren](./docs/dev/DEV-GUIDE_Write-down-the-bugs.md).
+Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumentieren](./docs/dev/DEV-GUIDE_Write-down-the-bugs.md); behobene Bugs werden im [Archiv behobener Bugs](./docs/misc/lake/SOLVED_ISSUES.md) bzw. im [CHANGELOG](./CHANGELOG.md) geführt.
 
 ---
 
@@ -204,26 +204,12 @@ Ohne `@pytest.mark.skip` schlägt der Test an `src/qb_cubie/ebt.py:618` (`_valid
 Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwarteten Bugs), aber für den produktiven Einsatz zu beachten:
 
 - **Keine OS-Sicherheitsgrenze in Core-Arenen:** `TempFS` und `PyVenv` laufen mit Benutzerrechten des Hosts und eignen sich nur für vertrauenswürdigen Code (siehe [Arena-Management](./docs/core/GUIDE_Arena-Management.md)).
-- **Plattformabdeckung & unterstützte Venv-Launcher (Linux & macOS Tier 1 aktiv, Windows-CI vorübergehend eingefroren):** Die vollständige Testsuite (`Wheel` + `Repository`) ist in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) für Linux (`ubuntu-24.04`) und macOS (`macos-15`) aktiviert und grün (`Python 3.13` & `3.14`), inkl. Multi-Platform-Mypy (`linux`/`darwin`/`win32`) und LF-invarianter Benchmark-Templates. Die Windows-CI (`windows-2022`) ist nach verbleibenden Windows-Befunden (dokumentiert in [`tests/CI-Data.md`](./tests/CI-Data.md) und [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)) vorübergehend aus der aktiven Matrix eingefroren. In `PyVenv` werden neben POSIX-Shebangs/-Trampolinen (inkl. CRLF) auch Windows-`python.exe`/`pythonw.exe`-Text-Shebangs, verifizierte `uv`-PE-Ressourcen-Trampolines und `distlib`/`pip`-Wrapper kontrolliert auf den Klon angepasst; beliebige sonstige native `.exe`-Binaries sowie unbekannte `#!`-Skripte bleiben bewusst mit `RuntimeError` ausgeschlossen. Intrinsische OS-Checks (`/proc`-Watchdog auf Linux, `SIGKILL`-Crash-Check auf POSIX, nativer `cowsay.exe`-Test auf Windows) laufen plattformbezogen (siehe [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md)).
+- **Plattformabdeckung & unterstützte Venv-Launcher (Linux & macOS Tier 1 aktiv, Windows-CI vorübergehend eingefroren):** Die vollständige Testsuite (`Wheel` + `Repository`) ist in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) für Linux (`ubuntu-24.04`) und macOS (`macos-15`) aktiviert und grün (`Python 3.13` & `3.14`), inkl. Multi-Platform-Mypy (`linux`/`darwin`/`win32`) und LF-invarianter Benchmark-Templates. Die Windows-CI (`windows-2022`) ist nach verbleibenden Windows-Befunden (dokumentiert in [`docs/misc/lake/CI-Data.md`](docs/misc/lake/CI-Data.md) und [CI_PLATFORM_STATUS.md](CI_PLATFORM_STATUS.md)) vorübergehend aus der aktiven Matrix eingefroren. In `PyVenv` werden neben POSIX-Shebangs/-Trampolinen (inkl. CRLF) auch Windows-`python.exe`/`pythonw.exe`-Text-Shebangs, verifizierte `uv`-PE-Ressourcen-Trampolines und `distlib`/`pip`-Wrapper kontrolliert auf den Klon angepasst; beliebige sonstige native `.exe`-Binaries sowie unbekannte `#!`-Skripte bleiben bewusst mit `RuntimeError` ausgeschlossen. Intrinsische OS-Checks (`/proc`-Watchdog auf Linux, `SIGKILL`-Crash-Check auf POSIX, nativer `cowsay.exe`-Test auf Windows) laufen plattformbezogen (siehe [CI_PLATFORM_STATUS.md](CI_PLATFORM_STATUS.md)).
 - **Prädikate und externe Daten:** Erwartungsobjekte müssen tief kopierbar sein. Funktionen behalten Referenzen auf Closures, globale Variablen und externe Ressourcen; deren Zustand wird nicht eingefroren. Historische Traces archivieren keine Dateiinhalte.
 - **PyVenv-Importhilfen (`decontams`):** `decontams` ersetzt nur ausdrücklich gewählte Module. Ohne installiertes `pytest` unterstützt eine begrenzte Importhilfe dessen Testdeklarationen; Laufzeitaufrufe benötigen die echte Bibliothek.
 - **Grafischer Reviewer (`tkinter`):** Nur der Start der GUI benötigt `tkinter` und eine grafische Umgebung. Paketimport, EBT und Headless-RBT funktionieren ohne Tk.
 - **Dateivergleich:** Inhalte werden bei jedem Vergleich blockweise neu gelesen (kein persistenter Vergleichscache); gleichzeitig laufende Schreibzugriffe ergeben jedoch keine atomare Momentaufnahme.
 - **Vertragssemantik & Reporter:** Mehrere Eingänge teilen dieselbe Zielmenge (korrelierte Ein-/Ausgabepaare benötigen getrennte Verträge). `JsonReporter` persistiert Ergebnisse, wirft aber selbst keine fachliche Assertion. Details stehen in der [Semantikreferenz](./docs/core/GUIDE_Contract-Semantics.md).
-
----
-
-## Behoben (Archiv)
-
-### [BUG-001] `PyVenv` verändert Testdaten durch eigene IPC-Dateien im Workspace
-
-- **Status:** Behoben *(nach v0.0.9 / TGD-Zyklus 1)*
-- **Schweregrad:** Hoch
-- **Bereich:** `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`
-- **Umgebung / Version:** reproduziert ab `v0.0.3` bis `v0.0.9`; behoben ab Entwicklungsstand nach `v0.0.9`
-
-**Lösung:**  
-`PyVenv` trennt den fachlichen Workspace (`_root_path/workspace/`), die geklonte Umgebung (`_root_path/.venv/`) sowie die temporäre IPC- und Phantom-Ablage (`TemporaryDirectory(prefix="ipc_", dir=self._root_path)`) strikt voneinander, startet Kindprozesse mit `python -P -c` unter Herausfiltern von `""`/`"."` aus `PYTHONPATH`, und die Codecs lösen `_cubie_phantom` sowie das IPC-Verzeichnis nach dem Transport-Import ab, bevor `os.getcwd()` an `sys.path[0]` eingehängt wird. Vollständige Dokumentation und Verifikationsverlauf unter [`tests/tests_arena/TGD_1.md`](./tests/tests_arena/TGD_1.md) sowie [`GUTACHTEN.md` (§ 6.1, B1)](./GUTACHTEN.md#61-b1-pyvenv-verändert-testdaten-durch-eigene-ipc-dateien).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -235,7 +221,6 @@ Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwartete
 
 ![Cubie](./docs/.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
@@ -245,8 +230,10 @@ Die folgenden Rahmenbedingungen sind dokumentiertes Verhalten (keine unerwartete
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](./docs/README.md)  
 [↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
+[↦ | Core-Internals | ↤](./docs/dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
 

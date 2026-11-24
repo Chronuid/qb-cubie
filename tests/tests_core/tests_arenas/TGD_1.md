@@ -6,7 +6,7 @@
 - **Modell:** Orchestrator (Neon)
 - **Reasoning-Effort:** High
 - **Durchführungsdatum:** 20. November 2026, ~ 11:20 (CET)
-- **Synthesebasis:** `tests/tests_arena/GEMINI.md`, `tests/tests_arena/ANALYSIS.md`, `docs/GUIDE_Quality-Assurance.md`, `docs/CI_PLATFORM_STATUS.md`, `docs/dev/Style-Guide.md`, `docs/dev/DEV-GUIDE_Write-down-the-bugs.md`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`, `tests/tests_arena/test_ebt_arena.py`, `tests/tests_arena/test_ebt_hydration_boundaries.py`, `tests/tests_arena/test_pyvenv_workspace_isolation.py`, `tests/tests_linter/test_linter.py`, `KNOWN_ISSUES.md`, `CHANGELOG.md`
+- **Synthesebasis:** `tests/tests_arena/GEMINI.md`, `tests/tests_arena/ANALYSIS.md`, `docs/GUIDE_Quality-Assurance.md`, `../../../CI_PLATFORM_STATUS.md`, `docs/dev/Style-Guide.md`, `docs/dev/DEV-GUIDE_Write-down-the-bugs.md`, `src/qb_cubie/arenas/pyvenv.py`, `src/qb_cubie/arenas/codecs.py`, `tests/tests_arena/test_ebt_arena.py`, `tests/tests_arena/test_ebt_hydration_boundaries.py`, `tests/tests_arena/test_pyvenv_workspace_isolation.py`, `tests/tests_linter/test_linter.py`, `KNOWN_ISSUES.md`, `CHANGELOG.md`
 - **Stand:** qb-cubie (`v0.0.9`, gemäß `pyproject.toml:7`, Ausgangs-Commit `6a6f9ac6`)
 - **Git-Log:** `git log -n 1`
 
@@ -27,7 +27,7 @@ Dieser Durchlauf setzt den fünfstufigen TGD-Prozess aus [`docs/GUIDE_Quality-As
 
 ## Schritt 1: Ausgangslage (`ANALYSIS.md`) & Architekturentscheidungen
 
-Ausgangspunkt war der bestätigte Befund `[BUG-001]` (Defektklassen **K1–K6** am Stand `6a6f9ac6`) sowie die drei in [`ANALYSIS.md`](./ANALYSIS.md#teil-5-vorschlag-f%C3%BCr-die-n%C3%A4chsten-tgd-schritte-entscheidungspunkte--red-phase-matrix) benannten offenen Design-Entscheidungen. Im Hinblick auf langfristige Wartbarkeit und eine spätere Reaktivierung der Windows-CI-Matrix ([`docs/CI_PLATFORM_STATUS.md`](../../docs/CI_PLATFORM_STATUS.md)) wurden folgende Architekturentscheidungen getroffen:
+Ausgangspunkt war der bestätigte Befund `[BUG-001]` (Defektklassen **K1–K6** am Stand `6a6f9ac6`) sowie die drei in [`ANALYSIS.md`](./ANALYSIS.md#teil-5-vorschlag-f%C3%BCr-die-n%C3%A4chsten-tgd-schritte-entscheidungspunkte--red-phase-matrix) benannten offenen Design-Entscheidungen. Im Hinblick auf langfristige Wartbarkeit und eine spätere Reaktivierung der Windows-CI-Matrix ([`../../../CI_PLATFORM_STATUS.md`](../../docs/CI_PLATFORM_STATUS.md)) wurden folgende Architekturentscheidungen getroffen:
 
 ### Entscheidung 1: Gemeinsamer temporärer Arena-Root (`_root_path`) mit getrennter Topologie
 
@@ -164,7 +164,7 @@ Anschließend wurden alle Testdateien unter `tests/**/*.py` für den gesamten Re
 
 ### Nächste Schritte zur Reaktivierung von `windows-2022` in `.github/workflows/ci.yml`
 
-Diese Reparatur hält alle neuen Pfade und Cleanup-Schritte (`_remove_readonly`, `shutil.copyfile`, `os.path.normcase(os.path.realpath(...))`, `python -P`, plattformneutrale Tests) Windows-kompatibel. Für das tatsächliche Wiederaktivieren des `windows-2022`-Runners verbleiben gemäß [`docs/CI_PLATFORM_STATUS.md`](../../docs/CI_PLATFORM_STATUS.md#4-roadmap-zur-reaktivierung-von-windows) noch folgende davon unabhängige Schritte:
+Diese Reparatur hält alle neuen Pfade und Cleanup-Schritte (`_remove_readonly`, `shutil.copyfile`, `os.path.normcase(os.path.realpath(...))`, `python -P`, plattformneutrale Tests) Windows-kompatibel. Für das tatsächliche Wiederaktivieren des `windows-2022`-Runners verbleiben gemäß [`../../../CI_PLATFORM_STATUS.md`](../../docs/CI_PLATFORM_STATUS.md#4-roadmap-zur-reaktivierung-von-windows) noch folgende davon unabhängige Schritte:
 1. `PATH`-Bereinigung in `PyVenv._activate_arena_env()` / Subprozess-Umgebung (sofern für Windows-System-DLLs in `System32` / `%SystemRoot%` unter restriktivem `PATH` erforderlich),
 2. Unterstützung bzw. sauber dokumentierte `sys.executable -m ...`-Nutzung anstelle nativer Windows-`.exe`-Launcher-Relokation in `_relocation.py` und
 3. POSIX-Prozessgruppen-/Job-Object-Behandlung für optionale `timeout`/`max_output_bytes`-Limits (`_process.py`).

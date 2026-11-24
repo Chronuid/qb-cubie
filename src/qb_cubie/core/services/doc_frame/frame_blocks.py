@@ -178,18 +178,20 @@ class SiblingRouter:
 
     def render(self, ctx: FrameRenderContext) -> str:
         """Combines active area hubs with context-dependent sibling routes for subfolder files."""
-        routes: list[tuple[str, str]] = []
+        hub_routes: list[tuple[str, str]] = []
+        sibling_routes: list[tuple[str, str]] = []
         seen: set[str] = set()
         parent_dir = Path(ctx.rel_path).parent.as_posix()
         expand_sub = parent_dir not in (".", "docs", "docs/services")
         if self.include_hubs:
-            self._append_hubs(ctx.catalog, routes, seen, skip_dir=parent_dir if expand_sub else None)
+            self._append_hubs(ctx.catalog, hub_routes, seen, skip_dir=parent_dir if expand_sub else None)
         if expand_sub:
             for entry in ctx.catalog.select(parent_dir, glob="*.md", exclude=self.exclude):
                 if entry.path not in seen:
-                    routes.append((entry.label, entry.path))
+                    sibling_routes.append((entry.label, entry.path))
                     seen.add(entry.path)
-        return _format_route_lines(routes, ctx)
+        sections = [s for s in (_format_route_lines(hub_routes, ctx), _format_route_lines(sibling_routes, ctx)) if s]
+        return "\n\n".join(sections)
 
     def _append_hubs(
         self, catalog: DocumentCatalog, routes: list[tuple[str, str]], seen: set[str], skip_dir: str | None = None

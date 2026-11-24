@@ -96,7 +96,6 @@ Wenn man Architektur nicht als Religion, sondern als Werkzeugkasten betrachtet, 
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
@@ -106,13 +105,17 @@ Wenn man Architektur nicht als Religion, sondern als Werkzeugkasten betrachtet, 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../README.md)  
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
+[↦ | Core-Internals | ↤](../dev/core/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
+
 [↦ | Clean-Code Pragmatismus | ↤](./Clean-Code-Pragmatism.md)  
 [↦ | Die Suchmaschine von Babel: eine Metapher | ↤](./Die-Suchmaschine-von-Babel.md)  
 [↦ | Erweitertes Property-Based Testing: konzeptionelle Einordnung | ↤](./Erweitertes-PBT.md)  
 [↦ | FP-OOP-Isomorphismus | ↤](./FP-OOP-Isomorphismus.md)  
+[↦ | Technische Bestandsaufnahme von **qb-cubie** 0.1.0 | ↤](./deep-research-report.md)  
 
 </div>
 <!-- /qb:frame -->

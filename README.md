@@ -80,7 +80,7 @@ Die Analysewerkzeuge LibCST, MyPy und Pylint sind über das Extra `linters` erh�
 
 ## Experimentelle Benchmarks außerhalb des Core
 
-Der [Benchmark-Guide](docs/GUIDE_Benchmarks.md) bündelt Schnellstart, eigene
+Der [Benchmark-Guide](docs/feature-drafts/GUIDE_Benchmarks.md) bündelt Schnellstart, eigene
 JSONL-Agenten und Szenarien, Ergebnisvergleich, SWE-bench und CI-Messbetrieb.
 Er beschreibt auch gespiegelte Developer-Aufgaben mit getrennten
 Cubie-/Pytest-Agenten und einem Cubie-freien Vergleichscontainer.
@@ -187,7 +187,7 @@ Die Python-Beispiele dieser README und der Dokumentation werden durch `DocEnsura
 
 Offene Bugs, dokumentierte Einschränkungen sowie plattformspezifische Hinweise (einschließlich des aktuellen Windows-CI-Status) werden zentral in [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md) gepflegt. Hinweise zum Erfassen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumentieren](./docs/dev/DEV-GUIDE_Write-down-the-bugs.md).
 
-Für den historischen Prüfstand siehe außerdem das [Gutachten](./GUTACHTEN.md) sowie [CI_PLATFORM_STATUS.md](./docs/CI_PLATFORM_STATUS.md).
+Für den historischen Prüfstand siehe außerdem das [Gutachten](./GUTACHTEN.md) sowie [CI_PLATFORM_STATUS.md](CI_PLATFORM_STATUS.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
@@ -199,7 +199,6 @@ Für den historischen Prüfstand siehe außerdem das [Gutachten](./GUTACHTEN.md)
 
 ![Cubie](./docs/.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](./docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
@@ -209,8 +208,10 @@ Für den historischen Prüfstand siehe außerdem das [Gutachten](./GUTACHTEN.md)
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](./docs/README.md)  
 [↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
+[↦ | Core-Internals | ↤](./docs/dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
 

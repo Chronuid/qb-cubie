@@ -96,7 +96,7 @@ Methodisch wurden sämtliche Aussagen in `ANALYSIS_3.md` mittels AST- und Zeilen
 
 ### Befund C-2: Fehlinterpretation von Lösch-Statistiken in `3ae8b33e`, `6cb7487e` und `30eda081`
 * **`3ae8b33e` ([ANALYSIS_3.md](file:///home/symphonie/PycharmProjects/cubie/experiments/post-analysis/post-analysis-3/ANALYSIS_3.md#L82)):** Behauptet „aus `src/qb_cubie/benchmarks` heraus (-13.237 Zeilen in 458 Dateien)“. Tatsächlich betraf der Auszug aus `src/qb_cubie/benchmarks/` **417 Dateien** mit **13.142 Zeilen** (`--no-renames`), und die Dateien wurden per `git mv` nach `experiments/` verschoben (+423 Dateien / +13.165 Zeilen), nicht gelöscht. Die Zahl `458` entspricht dagegen den übrigen nicht-`experiments/`-Pfaden des Commits.
-* **`6cb7487e` ([ANALYSIS_3.md](file:///home/symphonie/PycharmProjects/cubie/experiments/post-analysis/post-analysis-3/ANALYSIS_3.md#L181)):** Behauptet „Kürzung von `docs/GUIDE_Benchmarks.md` um 1.554 Zeilen (von **1.578 auf 24 Zeilen**)“. Tatsächlich fiel die Datei von **1.577 auf 47 Zeilen** (Netto-Kürzung **1.530 Zeilen**). `ANALYSIS_3.md` las die im Diff ausgewiesenen `24 insertions` fälschlich als resultierende Dateilänge und rekonstruierte daraus `1.554 + 24 = 1.578`.
+* **`6cb7487e` ([ANALYSIS_3.md](file:///home/symphonie/PycharmProjects/cubie/experiments/post-analysis/post-analysis-3/ANALYSIS_3.md#L181)):** Behauptet „Kürzung von `../../../docs/feature-drafts/GUIDE_Benchmarks.md` um 1.554 Zeilen (von **1.578 auf 24 Zeilen**)“. Tatsächlich fiel die Datei von **1.577 auf 47 Zeilen** (Netto-Kürzung **1.530 Zeilen**). `ANALYSIS_3.md` las die im Diff ausgewiesenen `24 insertions` fälschlich als resultierende Dateilänge und rekonstruierte daraus `1.554 + 24 = 1.578`.
 * **`30eda081` ([ANALYSIS_3.md](file:///home/symphonie/PycharmProjects/cubie/experiments/post-analysis/post-analysis-3/ANALYSIS_3.md#L183)):** Behauptet „Kürzung von `README.md` um **127 Zeilen**“. Tatsächlich waren `-127` die Löschungen über **alle 5 Dateien** des Commits (`+280 / -127`); `README.md` selbst wies `+12 / -120` Zeilen auf (von **324 auf 216 Zeilen**, Netto-Kürzung **108 Zeilen**).
 
 ---
@@ -143,7 +143,6 @@ Zur vollständigen Einordnung dokumentiert das Audit explizit, welche Teile von 
 
 ![Cubie](../../../docs/.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../../docs/GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../../docs/GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../../docs/GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../../docs/GUIDE_Quality-Assurance.md)  
@@ -153,10 +152,13 @@ Zur vollständigen Einordnung dokumentiert das Audit explizit, welche Teile von 
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../../docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../../docs/services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../../../docs/README.md)  
 [↦ | Core-Dokumentation | ↤](../../../docs/core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../../../docs/dev/README.md)  
+[↦ | Core-Internals | ↤](../../../docs/dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../../docs/misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../../docs/feature-drafts/virtualization/README.md)  
+
 [↦ | Post-Hoc Audit 4 | ↤](./ANALYSIS_4.md)  
 [↦ | Post-Studien-Audit | ↤](./GEMINI.md)  
 

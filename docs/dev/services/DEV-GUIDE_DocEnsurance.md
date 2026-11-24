@@ -479,7 +479,6 @@ passed=True | sessions=1 | outputs=('21', '42')
 
 ![Cubie](../../.assets/cubie-small.png)
 
-[↦ | Benchmarks: Einstieg, eigene Agenten und Messbetrieb (`GUIDE_Benchmarks.md`) | ↤](../../GUIDE_Benchmarks.md)  
 [↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../../GUIDE_Quality-Assurance.md)  
@@ -489,10 +488,13 @@ passed=True | sessions=1 | outputs=('21', '42')
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../../README.md)  
 [↦ | Core-Dokumentation | ↤](../../core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../README.md)  
+[↦ | Core-Internals | ↤](../core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../../feature-drafts/virtualization/README.md)  
+
 [↦ | `DocEnsurance` | ↤](./DEV-GUIDE_DocEnsurance.md)  
 [↦ | `DocFrame` (Prototyp) | ↤](./DEV-GUIDE_DocFrame.md)  
 
