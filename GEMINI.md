@@ -11,9 +11,8 @@
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -25,10 +24,12 @@
 
 # Ziel
 
-Addressierung von BUG-007 mittels Entwicklung der Test-Suite.
+Lösung von BUG-002 mittels voll-autonomen TGD-Flow.
 
 
 ## Kontext
+
+@KNOWN_ISSUES.md  
 
 @docs/GUIDE_Quality-Assurance.md  
 @docs/GUIDE_Contract-Design.md  
@@ -36,12 +37,13 @@ Addressierung von BUG-007 mittels Entwicklung der Test-Suite.
 @docs/GUIDE_Quantifiers.md  
 @docs/GUIDE_TGD.md  
 
-@KNOWN_ISSUES.md  
-@ANALYSIS.md  
+@docs/dev/DEV-GUIDE_Agent-Reports.md  
+@AGENT_REPORT.md  
 
 ## Auftrag
 
-Addressiere BUG-007 und entwickel die Test-Suite.
+Addressiere BUG-002 mit dem TGD-Flow.  
+Dokumentiere den Verlauf in @AGENT_REPORT.md
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

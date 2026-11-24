@@ -4,6 +4,10 @@ Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert
 
 ## [Unreleased]
 
+### Behoben
+- **`[BUG-002]` behoben (`PytestReporter` erzwingt `AssertionError` auch unter `python -O` / `-OO`):**
+  - `PytestReporter.report()` in [`reporter.py`](./src/qb_cubie/core/reporter.py) ersetzt die drei unter optimiertem Python (`-O` / `-OO`) entfallenden `assert`-Anweisungen für `EBT` (`RunTrace`), `RBT` (`ReviewData`) und Services (`ServiceReportProtocol`) durch explizite `raise AssertionError(...)`-Auslösungen über `PytestReporter._fail_if()`; abgesichert durch acht parametrisierte `python -O`/`-OO`-Subprozess-Verträge in [`test_rbt_reporter.py`](./tests/tests_core/test_rbt_reporter.py) und archiviert nach [`docs/misc/lake/SOLVED_ISSUES.md`](./docs/misc/lake/SOLVED_ISSUES.md).
+
 ### Neu
 - **Erkenntnisgrenzen-Hinweis & externe Bestandsaufnahme:** Verbindlicher Fallibilismus-Hinweis (`> [!Note]`, Karl Poppers kritischer Rationalismus) in den `head`-Rahmen der Dokumentation verteilt; [deep-research-report.md](./docs/misc/deep-research-report.md) (Bestandsaufnahme zu `v0.1.0`) ergänzt und [GUTACHTEN.md](./GUTACHTEN.md) aktualisiert.
 - **Separates Bug-Archiv & Sammelbecken (`docs/misc/lake/`):** [docs/misc/lake/SOLVED_ISSUES.md](./docs/misc/lake/SOLVED_ISSUES.md) als separates Archiv für behobene Bugs angelegt; lose/übergreifende Analysen und Rohdaten (`ANALYSIS_CI_MATRIX.md`, `ANALYSIS_COVERAGE_OPTIONS.md`, `CI-Data.md`) unter `docs/misc/lake/` gebündelt.

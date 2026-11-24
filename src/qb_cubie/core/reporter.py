@@ -45,16 +45,22 @@ class PytestReporter:
         """Evaluates the final run status and raises an assertion with formatted trace details on failure."""
         __tracebackhide__ = True
         if isinstance(trace, ReviewData):
-            assert trace.passed, self._generate_review_report(trace)
+            self._fail_if(not trace.passed, self._generate_review_report(trace))
             return
         if not isinstance(trace, RunTrace):
             self._emit_service_warnings(trace)
-            assert trace.passed, self._generate_service_report(trace)
+            self._fail_if(not trace.passed, self._generate_service_report(trace))
             return
         if trace.evaluation is False:
             ctx = ReportContext(verbosity=self.verbosity, max_diff_items=self.max_diff_items)
-            report_msg = self._generate_report(trace, ctx)
-            assert False, report_msg
+            raise AssertionError(self._generate_report(trace, ctx))
+
+    @staticmethod
+    def _fail_if(failed: bool, message: str) -> None:
+        """Raises an explicit AssertionError independent of Python optimization flags."""
+        __tracebackhide__ = True
+        if failed:
+            raise AssertionError(message)
 
     @staticmethod
     def _emit_service_warnings(result: ServiceReportProtocol) -> None:

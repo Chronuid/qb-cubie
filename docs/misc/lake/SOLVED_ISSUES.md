@@ -35,6 +35,18 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 
 ## Archivierte Bug-Fixes
 
+### [BUG-002] `PytestReporter` verliert Assertions unter optimiertem Python (`python -O`)
+
+- **Status:** Behoben *(Unreleased / nach `v0.1.0`)*
+- **Schweregrad:** Hoch
+- **Bereich:** `src/qb_cubie/core/reporter.py` (`PytestReporter.report`, `PytestReporter._fail_if`), `tests/tests_core/test_rbt_reporter.py`
+
+**Ursache & Lösung:**  
+- **Explizite `AssertionError`-Auslösung statt `assert`-Anweisungen (`reporter.py`):** `PytestReporter.report()` ersetzte die drei unter `python -O` / `-OO` (`__debug__ == False`) entfallenden `assert`-Statements für `ReviewData` (RBT), `ServiceReportProtocol` (`DocEnsurance` / Services) und `RunTrace` (EBT) durch explizite `raise AssertionError(...)`-Aufrufe (bzw. den `__tracebackhide__`-geschützten Helper `PytestReporter._fail_if()`).
+- **Subprozess-Regressionstests unter `python -O` & `-OO` (`test_rbt_reporter.py`):** Acht parametrisierte `EBT`-Verträge (`test_pytest_reporter_enforces_assertions_under_python_optimize`) prüfen EBT-Positive/Negative-Fehlschläge, RBT-Fehlschläge, Service-Fehlschläge sowie Positiv- und Warning-Durchläufe in einem echten `python -O`- bzw. `python -OO`-Kindprozess.
+
+---
+
 ### [BUG-007] `DocFrame.update()` überschreibt den Hinweis zur erkenntnistheoretischen Grenze
 
 - **Status:** Behoben *(Unreleased / nach `v0.1.0`)*
@@ -78,7 +90,6 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
 [↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
-[↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
 [↦ | Archiv behobener Bugs (`SOLVED_ISSUES.md`) | ↤](./SOLVED_ISSUES.md)  
 
 </div>

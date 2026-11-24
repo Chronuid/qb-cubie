@@ -33,7 +33,6 @@ Sie sind keine verbindlichen API-Verträge oder Nachweise implementierter Funkti
 | [Die Suchmaschine von Babel: eine Metapher](./Die-Suchmaschine-von-Babel.md) | **Status: konzeptioneller Essay.** Cubie enthält weder eine Suchmaschine für Programme noch einen Codegenerator. Den implementierten Vertrag beschreibt die [Semantikreferenz](../core/GUIDE_Contract-Semantics.md). |
 | [Erweitertes Property-Based Testing: konzeptionelle Einordnung](./Erweitertes-PBT.md) | **Status: konzeptioneller Vorschlag, keine implementierte Cubie-API.** Die frühere Bezeichnung „ePBT“ fasste unterschiedliche Qualitätssicherungsverfahren zusammen. Sie bezeichnet hier keinen etablierten Beweiskalkül und keine automatisch nachgewiesenen universellen Eigenschaften. Die vorhandene Cubie-Semantik steht in der [Vertragsreferenz](../core/GUIDE_Contract-Semantics.md). |
 | [FP-OOP-Isomorphismus](./FP-OOP-Isomorphismus.md) | Dieser Essay untersucht Beziehungen zwischen funktionaler und objektorientierter Programmierung. |
-| [Technische Bestandsaufnahme von **qb-cubie** 0.1.0](./deep-research-report.md) |  |
 <!-- /qb:frame -->
 
 Die hier verbliebenen Agenten-/Benchmark-Konzepte, Anforderungsentwürfe und
@@ -89,7 +88,6 @@ Dokumente ohne feste Bereichszuordnung (CI-Analysen, Konzeptstudien und das Arch
 [↦ | Die Suchmaschine von Babel: eine Metapher | ↤](./Die-Suchmaschine-von-Babel.md)  
 [↦ | Erweitertes Property-Based Testing: konzeptionelle Einordnung | ↤](./Erweitertes-PBT.md)  
 [↦ | FP-OOP-Isomorphismus | ↤](./FP-OOP-Isomorphismus.md)  
-[↦ | Technische Bestandsaufnahme von **qb-cubie** 0.1.0 | ↤](./deep-research-report.md)  
 
 </div>
 <!-- /qb:frame -->

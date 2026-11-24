@@ -14,9 +14,8 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
->
 > *Wenn du dein ganzes Leben lang nur weiße Schwäne gesehen hast …  
-> ...heißt das dann, dass es keine schwarzen Schwäne gibt?*  
+> ... heißt das dann, dass es keine schwarzen Schwäne gibt?*  
 > **Code, Tests und Dokumentation von Cubie befinden sich in aktiver Weiterentwicklung.**
 
 ---
@@ -27,34 +26,6 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 <!-- /qb:frame -->
 
 ## Offene Bugs
-
-### [BUG-002] `PytestReporter` verliert Assertions unter optimiertem Python (`python -O`)
-
-- **Status:** Offen *(Gutachten-Befund B2, P1)*
-- **Schweregrad:** Hoch
-- **Bereich:** `src/qb_cubie/reporter.py` (`PytestReporter.report`)
-- **Umgebung / Version:** reproduziert ab `v0.0.3`, unverändert in `v0.0.9` (alle Plattformen)
-
-**Ist-Verhalten:**  
-`PytestReporter.report()` verwendet normale `assert`-Anweisungen, um Fehlschläge von EBT, RBT und Services (z. B. `DocEnsurance`) durchzusetzen. Wird Python mit `-O` gestartet, entfallen diese `assert`-Anweisungen vollständig: `result.evaluation` ist zwar `False`, aber `.run()` wirft keine Exception und `python -O -m pytest` meldet einen fehlgeschlagenen Vertrag als `1 passed` (Exitcode `0`).
-
-**Soll-Verhalten:**  
-Negative EBT-, RBT- und Service-Ergebnisse lösen im `PytestReporter` unabhängig vom Python-Optimierungsmodus deterministisch eine `AssertionError`-Exception aus, sodass pytest mit einem Exitcode ≠ 0 abbricht.
-
-**Reproduktion:**  
-```bash
-.venv/bin/python -O -c "from qb_cubie import EBT, WorldState; r = EBT(target=lambda: 1, post=WorldState(returns=2)).run(); print(r.evaluation)"
-```
-Ausgabe: `False` ohne `AssertionError` (gleiches Verhalten bei abgelehntem `RBT` mit `HeadlessReviewer(answer=False)` und fehlgeschlagenem `DocEnsurance`).
-
-**Workaround:**  
-Tests nicht mit `python -O` / `PYTHONOPTIMIZE=1` ausführen oder zusätzlich `result.evaluation` explizit prüfen.
-
-**Hinweise / Ursache:**  
-Quelle: [`GUTACHTEN.md` (§ 6.2, B2)](./GUTACHTEN.md#62-b2-fehlerweitergabe-verschwindet-unter-optimiertem-python).  
-Empfohlene Korrektur: `assert ...` in `PytestReporter.report()` durch explizites `if not ...: raise AssertionError(...)` ersetzen und Regressionstests für EBT, RBT und Services in einem `python -O`-Kindprozess ergänzen.
-
----
 
 ### [BUG-003] `CstLinter.check()` gibt für nicht existierende Pfade stumm `[]` zurück
 
