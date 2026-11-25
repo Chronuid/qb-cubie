@@ -8,7 +8,7 @@ DOC_EXCLUDES = (
     "experiments",  # Reason: I need to clean up the artifacts of the sprint in the core first.
     "docs/feature-drafts",  # Reason: Feature Drafts
     "GUTACHTEN.md",  # Reason: No Cubie-Rules apply to Inspectors.
-    "deep-research-report.md",  # Reason: Got the message.
+    "docs/misc/lake",
     "CHANGELOG.md",
     "CI-Data.md",
 )
