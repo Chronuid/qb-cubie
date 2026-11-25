@@ -17,7 +17,7 @@
 
 ---
 
-[README](../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](./GUIDE_DocEnsurance.md)  
+[README](../../README.md) • [QA-Handbuch](../GUIDE_Quality-Assurance.md) • [DocEnsurance](./GUIDE_DocEnsurance.md)  
 
 </div>
 <!-- /qb:frame -->
@@ -66,17 +66,19 @@ Für einfache, klar umrissene Änderungen genügt der reine TGD-Kern (**Phase Re
 
 ![Cubie](../.assets/cubie-small.png)
 
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./GUIDE_Contract-Design.md)  
+[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](../GUIDE_Contract-Design.md)  
 [↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](../GUIDE_Expect-Flags.md)  
 [↦ | Qualitätssicherung mit Cubie | ↤](../GUIDE_Quality-Assurance.md)  
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
+[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
+[↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 
+[↦ | Dokumentations-Übersicht | ↤](../README.md)  
 [↦ | Core-Dokumentation | ↤](../core/README.md)  
 [↦ | Entwicklerdokumentation | ↤](../dev/README.md)  
+[↦ | Core-Internals | ↤](../dev/core/README.md)  
 [↦ | Hintergrund & Essays | ↤](../misc/README.md)  
 [↦ | Feature-Drafts: Virtualisierung | ↤](../feature-drafts/virtualization/README.md)  
 

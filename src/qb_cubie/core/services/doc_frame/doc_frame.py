@@ -1,13 +1,19 @@
-"""Prototype orchestrator for synchronizing Markdown document frames (pending evaluation and hardening)."""
+"""Orchestrator for synchronizing and verifying Markdown document frames via service_core."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
-from ...linter import DEFAULT_EXCLUDES
-from ._catalog_scanner import build_catalog_from_sources, parse_frame_spans
+from ...protocols import Reporter
+from ...reporter import PytestReporter
+from ...service_core.reporting import ServiceReport
+from ...service_core.rules import FileCheckRunner
+from ...service_core.workspace import atomic_write_text, load_sources, normalize_excludes
+from ._catalog_scanner import parse_frame_spans
+from .adapters import build_workspace_catalog, normalize_frame_patterns, resolve_target_path
+from .doc_frame_rules import CUBIE_DOCFRAME_RULES
 from .presets import (
     AUTO_INDEX_ROUTER,
     CONTEXT_ROUTER,
@@ -49,21 +55,25 @@ __all__ = [
     "FramePattern",
 ]
 
+_DEFAULT_CHECK_REPORTER: Final[PytestReporter] = PytestReporter()
+
 
 # ========== DOC-FRAME SERVICE =========================================================================================
 class DocFrame:
-    """Prototype orchestrator for synchronizing Markdown frames (pending evaluation and hardening)."""
+    """Orchestrator for synchronizing and verifying Markdown frames via service_core."""
 
     def __init__(
         self,
         target: str | Path | None = None,
         pattern: FramePattern | Sequence[FramePattern] | None = None,
         excludes: Sequence[str] | None = None,
+        reporter: Reporter[DocFrameReport] | None = None,
     ) -> None:
-        """Initializes the DocFrame service and validates target, pattern, and exclude parameters."""
-        self.target_path = self._resolve_target_path(target)
-        self.patterns = self._normalize_patterns(pattern)
-        self.excludes = self._normalize_excludes(excludes)
+        """Initializes the DocFrame service and validates target, pattern, excludes, and reporter."""
+        self.target_path = resolve_target_path(target)
+        self.patterns = normalize_frame_patterns(pattern)
+        self.excludes = normalize_excludes(excludes)
+        self.reporter = reporter
 
     @classmethod
     def scan_catalog(
@@ -80,29 +90,64 @@ class DocFrame:
         target: str | Path | None = None,
         pattern: FramePattern | Sequence[FramePattern] | None = None,
         excludes: Sequence[str] | None = None,
+        reporter: Reporter[DocFrameReport] | None = None,
     ) -> DocFrameReport:
         """Executes Pass 1 (Catalog) and Pass 2 (Frame Rendering) and writes updated files atomically."""
-        return cls(target=target, pattern=pattern, excludes=excludes).run()
+        return cls(target=target, pattern=pattern, excludes=excludes, reporter=reporter).run()
+
+    @classmethod
+    def check(
+        cls,
+        target: str | Path | None = None,
+        pattern: FramePattern | Sequence[FramePattern] | None = None,
+        rules: Sequence[Any] | None = None,
+        excludes: Sequence[str] | None = None,
+        reporter: Reporter[ServiceReport] | None = _DEFAULT_CHECK_REPORTER,
+    ) -> ServiceReport:
+        """Verifies Markdown document frames natively via FileCheckRunner without DocEnsurance."""
+        __tracebackhide__ = True
+        target_path = resolve_target_path(target)
+        patterns = normalize_frame_patterns(pattern)
+        norm_excludes = normalize_excludes(excludes)
+        catalog = build_workspace_catalog(target_path, norm_excludes)
+        check_rules = CUBIE_DOCFRAME_RULES if rules is None else rules
+        options = {
+            "catalog": catalog,
+            "patterns": patterns,
+            "target": target_path,
+            "excludes": tuple(norm_excludes),
+        }
+        return FileCheckRunner(
+            rules=check_rules,
+            target=target_path,
+            glob="*.md",
+            excludes=tuple(norm_excludes),
+            options=options,
+            service="doc_frame",
+            reporter=reporter,
+        ).run()
 
     def build_catalog(self) -> DocumentCatalog:
         """Scans all non-excluded Markdown files under the catalog root into a DocumentCatalog."""
-        catalog_root = self._resolve_catalog_root(self.target_path)
-        files = self._crawl_directory(catalog_root, self.excludes)
-        sources = [(str(p), p.read_text(encoding="utf-8")) for p in files]
-        return build_catalog_from_sources(catalog_root, sources)
+        return build_workspace_catalog(self.target_path, self.excludes)
 
     def run(self) -> DocFrameReport:
         """Synchronizes all qb:frame blocks in the target scope and returns a DocFrameReport."""
-        target_sources = self._load_path_sources(self.target_path, self.excludes)
+        target_sources = load_sources(
+            self.target_path, pattern="*.md", excludes=self.excludes, allow_in_memory=False
+        )
         catalog = self.build_catalog()
         updated: list[str] = []
-        for file_path_str, content in target_sources:
-            file_path = Path(file_path_str)
-            new_content = self._render_file_frames(file_path, content, catalog)
-            if new_content != content:
-                file_path.write_text(new_content, encoding="utf-8", newline="\n")
+        for source in target_sources:
+            file_path = Path(source.path)
+            new_content = self._render_file_frames(file_path, source.content, catalog)
+            if new_content != source.content:
+                atomic_write_text(file_path, new_content, encoding="utf-8", newline="\n")
                 updated.append(file_path.resolve().relative_to(catalog.root).as_posix())
-        return DocFrameReport(str(self.target_path), True, tuple(updated), catalog, ())
+        report = DocFrameReport(str(self.target_path), True, tuple(updated), catalog, ())
+        if self.reporter is not None:
+            self.reporter.report(report)
+        return report
 
     def _render_file_frames(self, file_path: Path, content: str, catalog: DocumentCatalog) -> str:
         """Re-renders all closed qb:frame spans in a single document while protecting outside text."""
@@ -121,113 +166,10 @@ class DocFrame:
     ) -> str:
         """Renders one FrameSpan using its matching FramePattern or raises a STATE-GUARD error."""
         if span.frame_id not in self.patterns:
-            raise ValueError(
-                f"STATE-GUARD: Unknown FramePattern id {span.frame_id!r} in {file_path}."
-            )
+            raise ValueError(f"STATE-GUARD: Unknown FramePattern id {span.frame_id!r} in {file_path}.")
         pattern = self.patterns[span.frame_id]
         ctx = FrameRenderContext(file_path.resolve(), rel_path, catalog, span)
         inner = pattern.render_zone(span.zone, ctx)
         lead_nl = "\n\n" if span.zone == "foot" else "\n"
         trail_nl = "\n" if full_text[span.start_idx : span.end_idx].endswith("\n") else ""
         return f"{span.open_tag}{lead_nl}{inner}\n{span.close_tag}{trail_nl}"
-
-    @classmethod
-    def _resolve_target_path(cls, target: Any) -> Path:
-        """Validates the target parameter and resolves it to an existing filesystem Path."""
-        if target is None:
-            return cls._default_project_dir()
-        path = cls._coerce_path_arg(target)
-        if not path.exists():
-            raise FileNotFoundError(f"STATE-GUARD: Documentation path not found: {path}")
-        return path.resolve()
-
-    @staticmethod
-    def _coerce_path_arg(target: Any) -> Path:
-        """Converts a string or Path target into a Path or raises a STATE-GUARD error."""
-        if isinstance(target, Path):
-            return target
-        if isinstance(target, str):
-            if not target.strip():
-                raise ValueError("STATE-GUARD: target path string must not be empty.")
-            return Path(target.strip())
-        raise TypeError(f"STATE-GUARD: target must be a Path, str, or None; received {type(target).__name__}.")
-
-    @staticmethod
-    def _normalize_patterns(
-        pattern: Any,
-    ) -> dict[str, FramePattern]:
-        """Normalizes a single FramePattern or sequence of FramePatterns into an ID-keyed dict."""
-        if pattern is None:
-            return {p.id: p for p in DEFAULT_FRAME_PATTERNS}
-        items = (pattern,) if isinstance(pattern, FramePattern) else pattern
-        if isinstance(items, (str, bytes)) or not isinstance(items, Sequence):
-            raise TypeError("STATE-GUARD: pattern must be a FramePattern or sequence of FramePatterns.")
-        if not items:
-            raise ValueError("STATE-GUARD: pattern sequence must not be empty.")
-        if not all(isinstance(item, FramePattern) for item in items):
-            raise TypeError("STATE-GUARD: All pattern items must be FramePattern instances.")
-        return {item.id: item for item in items}
-
-    @staticmethod
-    def _normalize_excludes(excludes: Any) -> set[str]:
-        """Validates user excludes and merges them with DEFAULT_EXCLUDES."""
-        if excludes is None:
-            return set(DEFAULT_EXCLUDES)
-        if isinstance(excludes, (str, bytes)) or not isinstance(excludes, Sequence):
-            raise TypeError("STATE-GUARD: excludes must be a sequence of strings or None.")
-        if not all(isinstance(e, str) for e in excludes):
-            raise TypeError("STATE-GUARD: All exclude entries must be strings.")
-        return set(DEFAULT_EXCLUDES) | set(excludes)
-
-    @staticmethod
-    def _default_project_dir() -> Path:
-        """Finds the nearest ancestor containing pyproject.toml or falls back to CWD."""
-        cwd = Path.cwd().resolve()
-        for directory in (cwd, *cwd.parents):
-            if (directory / "pyproject.toml").exists():
-                return directory
-        return cwd
-
-    @staticmethod
-    def _resolve_catalog_root(target: Path) -> Path:
-        """Determines the project root directory for catalog scanning given a file or directory target."""
-        start = target if target.is_dir() else target.parent
-        cwd = Path.cwd().resolve()
-        for directory in (start, *start.parents):
-            if (directory / "pyproject.toml").exists() or (directory / "docs" / ".assets").exists():
-                return directory
-            if directory == cwd:
-                break
-        return start
-
-    @classmethod
-    def _crawl_directory(cls, root: Path, excludes: set[str]) -> list[Path]:
-        """Recursively collects non-excluded Markdown files under root."""
-        resolved = root.resolve()
-        return [
-            p for p in sorted(resolved.rglob("*.md"))
-            if p.is_file() and not cls._is_excluded(p.relative_to(resolved), resolved.name, excludes)
-        ]
-
-    @staticmethod
-    def _is_excluded(rel_path: Path, root_name: str, excludes: set[str]) -> bool:
-        """Checks whether a path relative to root matches any configured exclusion."""
-        rel_posix = rel_path.as_posix()
-        for excl in excludes:
-            stripped = excl.strip("/")
-            if not stripped:
-                continue
-            norm = stripped.removeprefix(f"{root_name}/")
-            if rel_posix == norm or rel_posix.startswith(f"{norm}/") or ("/" not in stripped and norm in rel_path.parts):
-                return True
-        return False
-
-    @classmethod
-    def _load_path_sources(cls, target: Path, excludes: set[str]) -> list[tuple[str, str]]:
-        """Loads Markdown file contents for a single file or non-empty directory."""
-        if target.is_file():
-            return [(str(target), target.read_text(encoding="utf-8"))]
-        files = cls._crawl_directory(target, excludes)
-        if not files:
-            raise ValueError(f"STATE-GUARD: No Markdown files found in directory: {target}")
-        return [(str(p), p.read_text(encoding="utf-8")) for p in files]

@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 from typing import Final
 
+from ...service_core.guards import parse_bool_attr
+from ...service_core.workspace import WorkspaceView
 from .protocols import (
     DocMeta,
     DocumentCatalog,
@@ -37,12 +39,19 @@ def compute_rel_link(from_file: Path, target_rel: str, root: Path) -> str:
     return rel if rel.startswith(".") else f"./{rel}"
 
 
-def resolve_banner_rel_path(banner: str, root: Path) -> str:
+def resolve_banner_rel_path(
+    banner: str, root: Path, workspace: WorkspaceView | None = None
+) -> str:
     """Resolves a short banner filename or relative path against the repository asset directory."""
+    _ = root
     clean = banner.strip().lstrip("./")
     if "/" in clean:
         return clean
-    if (root / ".assets" / clean).exists() and not (root / "docs" / ".assets" / clean).exists():
+    if (
+        workspace is not None
+        and workspace.has_path(f".assets/{clean}")
+        and not workspace.has_path(f"docs/.assets/{clean}")
+    ):
         return f".assets/{clean}"
     return f"docs/.assets/{clean}"
 
@@ -234,7 +243,7 @@ class SiblingRouter:
     def _resolve_hub_target(catalog: DocumentCatalog, target: str) -> str | None:
         """Returns the hub path if present in the catalog or the first routable file in its folder."""
         norm = Path(target).as_posix().strip("/")
-        if catalog.get(norm) is not None or (catalog.root / norm).exists():
+        if catalog.get(norm) is not None or (catalog.workspace is not None and catalog.workspace.has_path(norm)):
             return norm
         folder_entries = catalog.select(Path(norm).parent.as_posix(), glob="*.md")
         return folder_entries[0].path if folder_entries else None
@@ -272,20 +281,13 @@ class CatalogRouter:
         raw = ctx.span.attrs.get("dir", self.dir).strip()
         if raw in ("", "."):
             return Path(ctx.rel_path).parent.as_posix()
-        if (ctx.catalog.root / raw).exists():
+        if ctx.catalog.workspace is not None and ctx.catalog.workspace.has_path(raw):
             return Path(raw).as_posix().strip("/")
         return (Path(ctx.rel_path).parent / raw).as_posix().strip("/")
 
     def _resolve_recursive(self, raw: str | None) -> bool:
         """Parses an optional boolean recursive attribute from the router frame tag."""
-        if raw is None or not raw.strip():
-            return self.recursive
-        low = raw.strip().lower()
-        if low in ("true", "1", "yes"):
-            return True
-        if low in ("false", "0", "no"):
-            return False
-        raise ValueError(f"STATE-GUARD: recursive must be 'true' or 'false'; received {raw!r}.")
+        return parse_bool_attr(raw, "recursive", default=self.recursive)
 
     def _render_table(self, entries: list[DocMeta], ctx: FrameRenderContext) -> str:
         """Formats catalog entries as a two-column Markdown index table."""
@@ -315,7 +317,9 @@ class HeaderContentSlot:
         title, existing_banner, body_lines = self._parse_header_parts(first_seg, ctx)
         banner_name = ctx.span.attrs.get("banner", "").strip() or existing_banner or self.default_banner
         banner_rel = compute_rel_link(
-            ctx.file_path, resolve_banner_rel_path(banner_name, ctx.catalog.root), ctx.catalog.root
+            ctx.file_path,
+            resolve_banner_rel_path(banner_name, ctx.catalog.root, ctx.catalog.workspace),
+            ctx.catalog.root,
         )
         parts = [f"# {title}", f"![{self.alt}]({banner_rel})"]
         intro = "\n".join(body_lines).strip()

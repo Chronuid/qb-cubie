@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
+from ...service_core.guards import parse_bool_attr, parse_int_attr
+from ...service_core.workspace import InMemoryWorkspaceView, WorkspaceView
 from .protocols import DocMeta, DocumentCatalog, FrameSpan, sort_doc_metas, validate_zone
 
 _OPEN_TAG_RE = re.compile(r"^<!--\s*qb:frame\b([^>]*)-->$")
@@ -34,14 +36,20 @@ def extract_doc_meta(rel_path: str, content: str) -> DocMeta:
     return DocMeta(norm_path, head.frame_id if head else None, title, label, summary, order, routable, category, attrs)
 
 
-def build_catalog_from_sources(root: Path, sources: list[tuple[str, str]]) -> DocumentCatalog:
+def build_catalog_from_sources(
+    root: Path,
+    sources: list[tuple[str, str]],
+    workspace: WorkspaceView | None = None,
+) -> DocumentCatalog:
     """Builds a sorted DocumentCatalog from resolved (file_path, content) pairs."""
     resolved_root = root.resolve()
     entries = [
         extract_doc_meta(Path(fp).resolve().relative_to(resolved_root).as_posix(), text)
         for fp, text in sources
     ]
-    return DocumentCatalog(root=resolved_root, entries=tuple(sort_doc_metas(entries)))
+    ordered = tuple(sort_doc_metas(entries))
+    ws = workspace if workspace is not None else InMemoryWorkspaceView(resolved_root, paths=tuple(e.path for e in ordered))
+    return DocumentCatalog(root=resolved_root, entries=ordered, workspace=ws)
 
 
 def _extract_h1_title(text: str, fallback_path: str) -> str:
@@ -86,24 +94,12 @@ def _is_ignorable_header_line(stripped: str) -> bool:
 
 def _parse_optional_order(raw_order: str | None) -> int | None:
     """Parses an optional integer order attribute or raises a ValueError STATE-GUARD."""
-    if raw_order is None or not raw_order.strip():
-        return None
-    try:
-        return int(raw_order.strip())
-    except ValueError as exc:
-        raise ValueError(f"STATE-GUARD: order attribute must be an integer; received {raw_order!r}.") from exc
+    return parse_int_attr(raw_order, "order", allow_none=True)
 
 
 def _parse_routable(raw_routable: str | None) -> bool:
     """Parses an optional boolean routable attribute from a head marker tag."""
-    if raw_routable is None or not raw_routable.strip():
-        return True
-    low = raw_routable.strip().lower()
-    if low in ("true", "1", "yes"):
-        return True
-    if low in ("false", "0", "no"):
-        return False
-    raise ValueError(f"STATE-GUARD: routable must be 'true' or 'false'; received {raw_routable!r}.")
+    return parse_bool_attr(raw_routable, "routable", default=True)
 
 
 def parse_tag_attrs(attr_str: str) -> dict[str, str]:

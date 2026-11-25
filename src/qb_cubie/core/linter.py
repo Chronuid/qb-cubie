@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Union, List, Optional, Protocol, Final
 import dataclasses
 
+from .service_core.workspace import crawl_files
+
 _CST_AVAILABLE = True
 try:
     import libcst as cst
@@ -240,12 +242,8 @@ class CstLinter:
         return diagnostics
 
     def _crawl_directory(self, root: Path) -> List[Path]:
-        """Recursively yields Python files while respecting the exclusion registry."""
-        py_files = []
-        for path in root.rglob("*.py"):
-            if not any(excluded in path.parts for excluded in self._excludes):
-                py_files.append(path)
-        return py_files
+        """Recursively yields Python files while respecting segment and subpath exclusions."""
+        return crawl_files(root, pattern="*.py", excludes=self._excludes)
 
     def _analyze_source(self, source_code: str, file_path: str) -> List["LinterDiagnostic"]:
         """Parses the source and runs all registered rules against the syntax tree."""

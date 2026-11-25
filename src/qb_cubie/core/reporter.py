@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 import posixpath
 import re
-import tempfile
 import types
 from typing import Dict, List
 
@@ -22,6 +21,8 @@ from .protocols import (
     evaluate_step_logic,
 )
 from ._execution import exception_details, qualified_name
+from .service_core.reporting import format_diagnostic_line, report_to_dict
+from .service_core.workspace import atomic_write_text
 
 # ========== PYTEST REPORTER ===========================================================================================
 
@@ -67,8 +68,10 @@ class PytestReporter:
         """Emits standard UserWarnings for non-fatal service diagnostics."""
         for d in result.diagnostics:
             if getattr(d, "severity", "error") == "warning":
+                base = f"[{d.rule_id}] {d.file_path}:{d.line}: {d.message}"
+                ctx = getattr(d, "context", None)
                 warnings.warn(
-                    f"[{d.rule_id}] {d.file_path}:{d.line}: {d.message}",
+                    f"{base} ({ctx})" if ctx else base,
                     category=UserWarning,
                     stacklevel=2,
                 )
@@ -87,7 +90,7 @@ class PytestReporter:
         """Formats error diagnostics for a failed service run (e.g. DocEnsurance)."""
         lines = [f"\n--- Service Report ({result.target}) ---"]
         lines.extend(
-            f"- [{d.rule_id}] {d.file_path}:{d.line}: {d.message}"
+            f"- {format_diagnostic_line(d)}"
             for d in result.diagnostics
             if getattr(d, "severity", "error") == "error"
         )
@@ -271,10 +274,15 @@ class JsonReporter:
     def __init__(self, path: str | os.PathLike):
         self.path = Path(path)
 
-    def report(self, trace: RunTrace, /) -> None:
-        if not isinstance(trace, RunTrace):
-            raise TypeError("JsonReporter requires a RunTrace.")
-        payload = json.dumps(self._document(trace), ensure_ascii=True, allow_nan=False, indent=2) + "\n"
+    def report(self, trace: RunTrace | ServiceReportProtocol, /) -> None:
+        """Persist a RunTrace or ServiceReportProtocol atomically as versioned UTF-8 JSON."""
+        if isinstance(trace, RunTrace):
+            document = self._document(trace)
+        elif isinstance(trace, ServiceReportProtocol):
+            document = report_to_dict(trace)
+        else:
+            raise TypeError("JsonReporter requires a RunTrace or ServiceReportProtocol.")
+        payload = json.dumps(document, ensure_ascii=True, allow_nan=False, indent=2) + "\n"
         self._write(payload)
 
     def _document(self, trace: RunTrace) -> dict:
@@ -287,18 +295,8 @@ class JsonReporter:
         }
 
     def _write(self, payload: str) -> None:
-        # Replace the destination only after serialization and a complete write.
-        temporary = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                mode="w", encoding="utf-8", dir=self.path.parent, prefix=f".{self.path.name}.", delete=False,
-            ) as stream:
-                temporary = Path(stream.name)
-                stream.write(payload)
-            os.replace(temporary, self.path)
-        finally:
-            if temporary is not None:
-                temporary.unlink(missing_ok=True)
+        """Atomically replace the destination file only after serialization completes."""
+        atomic_write_text(self.path, payload, encoding="utf-8", newline="\n")
 
     @classmethod
     def _trace(cls, trace: EvaluationTrace) -> dict:

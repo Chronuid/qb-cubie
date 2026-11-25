@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Final
 
-from ...protocols import Diagnostic
 from .frame_blocks import (
     AssetImage,
     CatalogRouter,
@@ -43,18 +42,6 @@ class FramePattern:
             raise ValueError("STATE-GUARD: FramePattern id must be a non-empty string.")
         for zone_name, seq in (("head", self.head), ("foot", self.foot), ("router", self.router)):
             _validate_block_sequence(zone_name, seq)
-
-    @property
-    def name(self) -> str:
-        """Returns the pattern identifier for compatibility with DocPatternProtocol."""
-        return self.id
-
-    def scan(
-        self, blocks: Sequence[Any], file_path: str
-    ) -> tuple[list[Any], list[Diagnostic]]:
-        """Satisfies DocPatternProtocol when FramePattern is passed in DocEnsurance(pattern=...)."""
-        _ = (blocks, file_path)
-        return [], []
 
     def render_zone(self, zone: str, ctx: FrameRenderContext) -> str:
         """Renders all configured blocks for the requested zone ('head', 'router', or 'foot')."""

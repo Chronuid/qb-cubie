@@ -280,9 +280,14 @@ class Diagnostic:
     line: int
     message: str
     severity: str = "error"
+    context: str | None = None
 
     def __post_init__(self) -> None:
         validate_severity(self.severity)
+        if self.context is not None and not isinstance(self.context, str):
+            raise TypeError(
+                f"STATE-GUARD: Diagnostic.context must be a str or None; received {type(self.context).__name__}."
+            )
 
 
 @runtime_checkable

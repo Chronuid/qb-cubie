@@ -5,15 +5,17 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import io
-import math
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Final
 
 from ...arenas.tempfs import TempFS
-from ...linter import DEFAULT_EXCLUDES, CstLinter, LinterDiagnostic
+from ...linter import CstLinter, LinterDiagnostic
 from ...protocols import Arena, DiagnosticProtocol, FileCheckProtocol, Reporter, WorldState
 from ...reporter import PytestReporter
+from ...service_core.guards import validate_positive_float
+from ...service_core.rules import RuleRegistry, WorkspaceCheckRuleProtocol, execute_file_checks
+from ...service_core.workspace import FileSource, find_project_root, normalize_excludes
 from ._markdown_scanner import _MarkdownScanner
 from ._source_loader import resolve_sources
 from .doc_patterns import (
@@ -60,7 +62,7 @@ __all__ = [
 ]
 
 _DEFAULT_REPORTER: Final[PytestReporter] = PytestReporter()
-_RuleEntry = DocRuleProtocol | FileCheckProtocol
+_RuleEntry = DocRuleProtocol | WorkspaceCheckRuleProtocol | FileCheckProtocol
 
 
 # ========== 1. ARENA SESSION WORKER (IPC-SAFE PRIMITIVES) =============================================================
@@ -121,25 +123,24 @@ class DocEnsurance:
         timeout: float | None = 10.0,
     ) -> None:
         """Initializes the documentation verification service with default project conventions."""
-        self.timeout = self._validate_timeout(timeout)
-        self.target: str | Path = target if target is not None else self._default_project_dir()
+        self.timeout = validate_positive_float(timeout, "timeout", allow_none=True)
+        self.target: str | Path = target if target is not None else find_project_root()
         self.pattern, self._extra_patterns = self._normalize_patterns(pattern)
         self.scope = scope or TaggedScope()
         self.arena = self._configure_arena(arena, self.timeout)
         self.reporter = reporter
         self.pre_state = pre_state or WorldState()
-        self.excludes = set(DEFAULT_EXCLUDES) | set(excludes or ())
+        self.excludes = set(normalize_excludes(excludes))
         self.rules: list[_RuleEntry] = self._build_rules(self.pattern, rules)
         self._reset_state()
 
     def register_rule(self, *rules: Any) -> DocEnsurance:
         """Registers or overrides one or more check rules without muting orthogonal linters."""
-        registry = self._index_existing_rules(self.rules)
-        for raw in self._flatten_rules(rules):
-            self._register_into(registry, self._coerce_rule(raw))
-        if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.values()):
-            registry.pop("DOC-OUT-MISSING", None)
-        self.rules = list(registry.values())
+        registry = RuleRegistry(self.rules, coerce=self._coerce_rule, merge=self._merge_doc_rule)
+        registry.register(*rules)
+        if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.rules):
+            registry.remove("DOC-OUT-MISSING")
+        self.rules = list(registry.rules)
         return self
 
     @classmethod
@@ -149,23 +150,11 @@ class DocEnsurance:
         """Merges default rules, pattern block rules, and user-provided rules without silent muting."""
         explicit_empty = custom is not None and len(custom) == 0
         defaults = (OutputMatchRule(severity="error"),) if explicit_empty else DEFAULT_DOC_RULES
-        registry: dict[str, _RuleEntry] = {r.rule_id: r for r in defaults}
-        for raw in (*cls._extract_pattern_rules(pattern), *cls._flatten_rules(custom or ())):
-            cls._register_into(registry, cls._coerce_rule(raw))
-        if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.values()):
-            registry.pop("DOC-OUT-MISSING", None)
-        return list(registry.values())
-
-    @classmethod
-    def _flatten_rules(cls, items: Sequence[Any]) -> list[Any]:
-        """Flattens nested rule tuples or lists while preserving scalar rule objects."""
-        flat: list[Any] = []
-        for item in items:
-            if isinstance(item, (list, tuple)):
-                flat.extend(cls._flatten_rules(item))
-            else:
-                flat.append(item)
-        return flat
+        registry = RuleRegistry(defaults, coerce=cls._coerce_rule, merge=cls._merge_doc_rule)
+        registry.register(*cls._extract_pattern_rules(pattern), *(custom or ()))
+        if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.rules):
+            registry.remove("DOC-OUT-MISSING")
+        return list(registry.rules)
 
     @staticmethod
     def _normalize_patterns(raw: Any) -> tuple[DocPatternProtocol, tuple[DocPatternProtocol, ...]]:
@@ -179,32 +168,11 @@ class DocEnsurance:
         return primary, tuple(items)
 
     @classmethod
-    def _index_existing_rules(cls, rules: Sequence[_RuleEntry]) -> dict[str, _RuleEntry]:
-        """Indexes existing rules into a mutable registry while preserving duplicate linter slots."""
-        registry: dict[str, _RuleEntry] = {}
-        for rule in rules:
-            key = cls._unique_rule_key(registry, rule.rule_id) if rule.rule_id in registry else rule.rule_id
-            registry[key] = rule
-        return registry
-
-    @classmethod
-    def _register_into(cls, registry: dict[str, _RuleEntry], rule: _RuleEntry) -> None:
-        """Registers a rule by rule_id while merging or preserving multiple linter instances."""
-        existing = registry.get(rule.rule_id)
-        if existing is not None and isinstance(rule, DocLinterRule) and isinstance(existing, DocLinterRule):
-            merged = cls._merge_linter_rules(existing, rule)
-            key = rule.rule_id if merged is not None else cls._unique_rule_key(registry, rule.rule_id)
-            registry[key] = merged if merged is not None else rule
-            return
-        registry[rule.rule_id] = rule
-
-    @staticmethod
-    def _unique_rule_key(registry: dict[str, _RuleEntry], rule_id: str) -> str:
-        """Finds a collision-free slot key when multiple linters share the same rule_id."""
-        idx = len(registry)
-        while f"{rule_id}#{idx}" in registry:
-            idx += 1
-        return f"{rule_id}#{idx}"
+    def _merge_doc_rule(cls, existing: _RuleEntry, incoming: _RuleEntry) -> _RuleEntry | None:
+        """Merge compatible CstLinter rules, coexist differing linters, or override regular rules."""
+        if isinstance(existing, DocLinterRule) and isinstance(incoming, DocLinterRule):
+            return cls._merge_linter_rules(existing, incoming)
+        return incoming
 
     @staticmethod
     def _merge_linter_rules(existing: DocLinterRule, incoming: DocLinterRule) -> DocLinterRule | None:
@@ -239,26 +207,15 @@ class DocEnsurance:
 
     @staticmethod
     def _coerce_rule(item: Any) -> _RuleEntry:
-        """Normalizes rule classes, Linter instances, FileCheckProtocol, and DocRuleProtocol objects."""
+        """Normalizes rule classes, Linter instances, WorkspaceCheckRuleProtocol, FileCheckProtocol, and DocRuleProtocol."""
         instance = item() if isinstance(item, type) else item
-        if isinstance(instance, (DocRuleProtocol, FileCheckProtocol)):
+        if isinstance(instance, (DocRuleProtocol, WorkspaceCheckRuleProtocol, FileCheckProtocol)):
             return instance
         if hasattr(instance, "check") and hasattr(instance, "name"):
             return DocLinterRule(linter=instance)
         raise TypeError(
             f"STATE-GUARD: Rule must implement DocRuleProtocol or Linter; received {type(instance).__name__}."
         )
-
-    @staticmethod
-    def _validate_timeout(timeout: float | None) -> float | None:
-        """Validates that the configured TTL timeout is a positive finite number or None."""
-        if timeout is None:
-            return None
-        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
-            raise TypeError("STATE-GUARD: timeout must be a positive finite number or None.")
-        if timeout <= 0 or math.isnan(timeout) or math.isinf(timeout):
-            raise ValueError("STATE-GUARD: timeout must be a positive finite number or None.")
-        return float(timeout)
 
     @staticmethod
     def _configure_arena(arena: Arena | None, timeout: float | None) -> Arena:
@@ -268,15 +225,6 @@ class DocEnsurance:
         if timeout is not None and getattr(arena, "timeout", None) is None:
             setattr(arena, "timeout", timeout)  # noqa: B010
         return arena
-
-    @staticmethod
-    def _default_project_dir() -> Path:
-        """Resolves the project root directory relative to CWD or pyproject.toml."""
-        cwd = Path.cwd().resolve()
-        for directory in (cwd, *cwd.parents):
-            if (directory / "pyproject.toml").exists():
-                return directory
-        return cwd
 
     # ---------- SERVICES ----------------------------------------------------------------------------------------------
     def run(self) -> DocReport:
@@ -309,23 +257,23 @@ class DocEnsurance:
         return all_examples
 
     def _run_file_rules(self) -> None:
-        """Executes registered FileCheckProtocol rules across loaded file sources."""
-        file_rules = [r for r in self.rules if isinstance(r, FileCheckProtocol)]
+        """Executes registered WorkspaceCheckRuleProtocol and FileCheckProtocol rules across file sources."""
+        file_rules: list[WorkspaceCheckRuleProtocol | FileCheckProtocol] = [
+            r for r in self.rules if isinstance(r, (WorkspaceCheckRuleProtocol, FileCheckProtocol))
+        ]
         if not file_rules or not self._sources or self._sources[0][0] == "IN_MEMORY":
             return
-        contexts = self._prepare_file_rule_contexts(file_rules)
-        for file_path, content in self._sources:
-            for rule in file_rules:
-                self._diagnostics.extend(rule.check_file(file_path, content, contexts[rule.context_key]))
-
-    def _prepare_file_rule_contexts(self, file_rules: Sequence[FileCheckProtocol]) -> dict[str, Any]:
-        """Builds each unique file-rule workspace context once per verification run."""
-        contexts: dict[str, Any] = {}
-        excludes = tuple(self.excludes)
-        for rule in file_rules:
-            if rule.context_key not in contexts:
-                contexts[rule.context_key] = rule.prepare_context(self.target, excludes, self._extra_patterns)
-        return contexts
+        file_sources = [FileSource(path=fp, rel_path=Path(fp).name, content=txt) for fp, txt in self._sources]
+        options = {
+            "target": self.target,
+            "excludes": tuple(self.excludes),
+            "patterns": self._extra_patterns,
+        }
+        self._diagnostics.extend(
+            execute_file_checks(
+                file_rules, file_sources, target=self.target, excludes=self.excludes, options=options
+            )
+        )
 
     def _partition_executable(
         self, examples: list[ExtractedExample], diags: list[DocDiagnostic]

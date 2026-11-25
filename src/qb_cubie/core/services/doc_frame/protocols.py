@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Final, Protocol, runtime_checkable
 
 from ...protocols import Diagnostic
+from ...service_core.guards import validate_choice
+from ...service_core.workspace import WorkspaceView
 
 VALID_ZONES: Final[tuple[str, ...]] = ("head", "router", "foot")
 VALID_WRAP_TAGS: Final[tuple[str, ...]] = ("div", "center")
@@ -17,29 +19,17 @@ VALID_CATALOG_MODES: Final[tuple[str, ...]] = ("table", "links")
 
 def validate_zone(zone: str) -> str:
     """Validates that a parsed frame zone identifier is supported."""
-    if not isinstance(zone, str) or zone not in VALID_ZONES:
-        raise ValueError(
-            f"STATE-GUARD: zone must be one of {VALID_ZONES}; received {zone!r}."
-        )
-    return zone
+    return validate_choice(zone, VALID_ZONES, "zone")
 
 
 def validate_wrap_tag(tag: str) -> str:
     """Validates that a CenterWrap HTML tag is supported."""
-    if not isinstance(tag, str) or tag not in VALID_WRAP_TAGS:
-        raise ValueError(
-            f"STATE-GUARD: tag must be one of {VALID_WRAP_TAGS}; received {tag!r}."
-        )
-    return tag
+    return validate_choice(tag, VALID_WRAP_TAGS, "tag")
 
 
 def validate_catalog_mode(mode: str) -> str:
     """Validates that a CatalogRouter rendering mode is supported."""
-    if not isinstance(mode, str) or mode not in VALID_CATALOG_MODES:
-        raise ValueError(
-            f"STATE-GUARD: mode must be one of {VALID_CATALOG_MODES}; received {mode!r}."
-        )
-    return mode
+    return validate_choice(mode, VALID_CATALOG_MODES, "mode")
 
 
 def sort_doc_metas(entries: Iterable[DocMeta]) -> list[DocMeta]:
@@ -95,6 +85,7 @@ class DocumentCatalog:
 
     root: Path
     entries: tuple[DocMeta, ...] = field(default_factory=tuple)
+    workspace: WorkspaceView | None = field(default=None, repr=False, compare=False)
 
     def get(self, rel_path: str) -> DocMeta | None:
         """Returns the DocMeta for a repository-relative POSIX path or None if absent."""
