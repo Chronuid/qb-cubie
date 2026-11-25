@@ -1,16 +1,12 @@
 """**Tries to** verify CUBIE_DOCFRAME_RULES in DocEnsurance, layer orthogonality, excludes, and STATE-GUARDs."""
 
 from pathlib import Path
-import re
 from typing import Any
 
 import pytest
 
 from qb_cubie import EBT, ExceptionExpectation, PytestReporter, TempFS, WorldState
 from qb_cubie.core.services import (
-    CUBIE_DOC_FRAME_1,
-    CUBIE_DOC_FRAME_2,
-    CUBIE_DOC_FRAME_3,
     CUBIE_DOC_RULES,
     CUBIE_DOC_STYLE,
     CUBIE_DOCFRAME_RULES,
@@ -51,10 +47,9 @@ def _run_docframe_check(fault: str = "clean") -> dict[str, Any]:
     root = Path.cwd()
     _seed_synced_tree(root)
     _inject_fault(root, fault)
-    patterns = [CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3]
     rules = (CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES)
     report = DocEnsurance(
-        target=root, pattern=patterns, rules=rules, excludes=("experiments", "GUTACHTEN.md"), reporter=None
+        target=root, pattern=CUBIE_DOC_STYLE, rules=rules, excludes=("experiments", "GUTACHTEN.md"), reporter=None
     ).run()
     return {
         "passed": report.passed,

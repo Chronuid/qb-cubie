@@ -16,20 +16,50 @@ from qb_cubie import EBT, CstLinter, CstRule, LinterDiagnostic, WorldState
 ISOLATION_RULE_ID: Final[str] = "META-SERVICE-ISOLATION"
 PURE_IO_RULE_ID: Final[str] = "META-SERVICE-PURE-DOMAIN-IO"
 DOMAIN_COUPLING_RULE_ID: Final[str] = "META-SERVICE-DOMAIN-COUPLING"
+CORE_NEUTRALITY_RULE_ID: Final[str] = "META-SERVICE-CORE-NEUTRALITY"
 SERVICE_MODULE_LINE_LIMIT: Final[int] = 500
 PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
 SERVICES_ROOT: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "core" / "services"
+SERVICE_CORE_ROOT: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "core" / "service_core"
+CYCLE_1_SERVICE_CORE_MODULES: Final[tuple[str, ...]] = (
+    "__init__.py",
+    "guards.py",
+    "workspace.py",
+    "rules.py",
+    "reporting.py",
+)
 
 pytestmark = [pytest.mark.meta, pytest.mark.services]
 SCAN_EXCLUDES: Final[list[str]] = [".arenas", ".venv", "__pycache__", ".git", ".pytest_cache"]
 SERVICE_PREFIXES: Final[tuple[str, ...]] = ("qb_cubie.core.services", "qb_cubie.services")
-PURE_DOMAIN_FILENAMES: Final[frozenset[str]] = frozenset({"models.py", "protocols.py", "engine.py", "rules.py"})
+IMPERATIVE_SHELL_FILENAMES: Final[frozenset[str]] = frozenset(
+    {"__init__.py", "__main__.py", "adapters.py", "cli.py", "_source_loader.py"}
+)
 FORBIDDEN_IO_CALLS: Final[frozenset[str]] = frozenset({"open", "print"})
 FORBIDDEN_IO_ATTR_CALLS: Final[frozenset[str]] = frozenset(
-    {"open", "read_text", "write_text", "read_bytes", "write_bytes"}
+    {
+        "open",
+        "read_text",
+        "write_text",
+        "read_bytes",
+        "write_bytes",
+        "exists",
+        "is_file",
+        "is_dir",
+        "rglob",
+        "glob",
+        "iterdir",
+        "mkdir",
+        "unlink",
+        "stat",
+        "cwd",
+    }
 )
 FORBIDDEN_DOC_FRAME_SYMBOLS: Final[frozenset[str]] = frozenset(
     {"DocFrame", "FramePattern", "DocumentCatalog", "render_zone"}
+)
+FORBIDDEN_SERVICE_DOMAIN_SYMBOLS: Final[frozenset[str]] = frozenset(
+    {"DocEnsurance", "DocFrame", "FramePattern", "DocumentCatalog", "ExamplePattern", "TaggedScope"}
 )
 
 
@@ -205,6 +235,82 @@ def build_pure_domain_io_linter() -> CstLinter:
     return CstLinter(rules=[PureDomainIoRule()], excludes=SCAN_EXCLUDES)
 
 
+def _is_services_module_path(module_path: str) -> bool:
+    """Return True if an absolute module path points into qb_cubie's services layer."""
+    return any(module_path == prefix or module_path.startswith(f"{prefix}.") for prefix in SERVICE_PREFIXES)
+
+
+def _core_depth_from_file(file_path: str, default_level: int = 2) -> int:
+    """Compute the relative-import dot count that reaches qb_cubie.core from service_core."""
+    if not file_path or file_path in {"<string>", "IN_MEMORY"}:
+        return default_level
+    try:
+        rel = Path(file_path).resolve().relative_to(SERVICE_CORE_ROOT.resolve())
+    except ValueError:
+        return default_level
+    return len(rel.parts) + 1
+
+
+class ServiceCoreNeutralityRule(CstRule):
+    """Detect reverse imports from core/service_core into core/services or domain-specific symbols."""
+
+    def __init__(self, *, default_core_level: int = 2) -> None:
+        super().__init__()
+        self.default_core_level = default_core_level
+
+    def _report_violation(self, node: cst.CSTNode, target: str) -> None:
+        """Record a META-SERVICE-CORE-NEUTRALITY diagnostic for reverse service coupling."""
+        self.add_diagnostic(
+            node=node,
+            rule_id=CORE_NEUTRALITY_RULE_ID,
+            message=(
+                f"service_core muss domänenneutral bleiben und darf '{target}' nicht referenzieren "
+                "(HYPOTHESIS.md H6: strikte Einbahnstraße services.* -> core.service_core)."
+            ),
+            node_name=target,
+        )
+
+    def visit_Import(self, node: cst.Import) -> None:
+        """Inspect direct 'import ...' statements for reverse imports into services."""
+        if not self._module:
+            return
+        for alias in node.names:
+            module_path = self._module.code_for_node(alias.name)
+            if _is_services_module_path(module_path):
+                self._report_violation(alias, module_path)
+
+    def visit_ImportFrom(self, node: cst.ImportFrom) -> None:
+        """Inspect absolute and relative 'from ... import ...' statements for service coupling."""
+        if not self._module:
+            return
+        module_path = self._module.code_for_node(node.module) if node.module is not None else ""
+        if node.relative:
+            core_level = _core_depth_from_file(self._current_file_path, self.default_core_level)
+            if len(node.relative) != core_level:
+                return
+            if module_path and module_path.split(".", 1)[0] == "services":
+                self._report_violation(node, f"{'.' * core_level}{module_path}")
+                return
+            if not module_path and "services" in _imported_names(node):
+                self._report_violation(node, f"{'.' * core_level}services")
+            return
+        if _is_services_module_path(module_path):
+            self._report_violation(node, module_path)
+            return
+        if module_path in {"qb_cubie.core", "qb_cubie"} and "services" in _imported_names(node):
+            self._report_violation(node, f"{module_path}.services")
+
+    def visit_Name(self, node: cst.Name) -> None:
+        """Flag direct symbol references to concrete service domain types in service_core."""
+        if node.value in FORBIDDEN_SERVICE_DOMAIN_SYMBOLS:
+            self._report_violation(node, node.value)
+
+
+def build_service_core_neutrality_linter(*, default_core_level: int = 2) -> CstLinter:
+    """Create the configured CstLinter instance for Meta-Gate 4 service_core neutrality checks."""
+    return CstLinter(rules=[ServiceCoreNeutralityRule(default_core_level=default_core_level)], excludes=SCAN_EXCLUDES)
+
+
 # ========== 1. WÄCHTER-KALIBRIERUNG: SERVICE-ISOLATION (CLEAN / FAULT / FILE PROBES) ==================================
 
 
@@ -321,7 +427,6 @@ def test_service_isolation_rule_detects_fault_probes(
         target=linter.check,
         pre=WorldState(args=(bad_source,)),
         post=WorldState(returns=has_expected_diagnostic),
-        reporter=None,
     ).run()
 
 
@@ -348,15 +453,17 @@ def test_service_isolation_rule_reports_file_path_on_disk(tmp_path: Path) -> Non
         "from pathlib import Path\ndef norm(p: str) -> str:\n    return Path(p).as_posix()\n",
         "from dataclasses import dataclass\n@dataclass(frozen=True)\nclass Item:\n    name: str\n",
         'hint = "Use print(result) or Path.read_text() in adapters."\n',
+        "def check(workspace, rel: str) -> bool:\n    return workspace.has_path(rel)\n",
     ],
     ids=[
         "pure-path-manipulation",
         "frozen-dataclass",
         "string-literal-mentioning-io",
+        "workspace-view-has-path-port",
     ],
 )
 def test_pure_domain_io_rule_accepts_clean_probes(clean_source: str) -> None:
-    """Clean probe: pure path logic, dataclasses, and strings yield zero diagnostics."""
+    """Clean probe: pure path logic, dataclasses, strings, and WorkspaceView port yield zero diagnostics."""
     linter = build_pure_domain_io_linter()
     EBT(
         target=linter.check,
@@ -376,6 +483,11 @@ def test_pure_domain_io_rule_accepts_clean_probes(clean_source: str) -> None:
         ("def save(p, text):\n    p.write_text(text)\n", 2, "write_text"),
         ("def debug(x):\n    print(x)\n", 2, "print"),
         ("import sys\nARGS = sys.argv[1:]\n", 2, "sys.argv"),
+        ("def probe(p):\n    return p.exists()\n", 2, "exists"),
+        ("def probe(p):\n    return p.is_file()\n", 2, "is_file"),
+        ("def probe(p):\n    return list(p.rglob('*.md'))\n", 2, "rglob"),
+        ("def make(p):\n    p.mkdir()\n", 2, "mkdir"),
+        ("from pathlib import Path\ndef here():\n    return Path.cwd()\n", 3, "cwd"),
     ],
     ids=[
         "import-subprocess",
@@ -385,6 +497,11 @@ def test_pure_domain_io_rule_accepts_clean_probes(clean_source: str) -> None:
         "path-write-text",
         "builtin-print",
         "sys-argv",
+        "path-exists",
+        "path-is-file",
+        "path-rglob",
+        "path-mkdir",
+        "path-cwd",
     ],
 )
 def test_pure_domain_io_rule_detects_fault_probes(
@@ -392,7 +509,7 @@ def test_pure_domain_io_rule_detects_fault_probes(
     expected_line: int,
     expected_symbol: str,
 ) -> None:
-    """Fault probe: forbidden I/O operations trigger META-SERVICE-PURE-DOMAIN-IO."""
+    """Fault probe: forbidden I/O and filesystem probes trigger META-SERVICE-PURE-DOMAIN-IO."""
     linter = build_pure_domain_io_linter()
 
     def has_expected_diagnostic(diagnostics: list[LinterDiagnostic]) -> bool:
@@ -409,8 +526,91 @@ def test_pure_domain_io_rule_detects_fault_probes(
         target=linter.check,
         pre=WorldState(args=(bad_source,)),
         post=WorldState(returns=has_expected_diagnostic),
-        reporter=None,
     ).run()
+
+
+# ========== 2b. WÄCHTER-KALIBRIERUNG: SERVICE-CORE NEUTRALITY (CLEAN / FAULT / FILE PROBES) ===========================
+
+
+@pytest.mark.parametrize(
+    "clean_source",
+    [
+        "from pathlib import Path\nfrom dataclasses import dataclass\n",
+        "from qb_cubie.core.protocols import Diagnostic, ServiceReportProtocol\n",
+        "from ..protocols import DiagnosticProtocol\nfrom .guards import validate_choice\n",
+        'doc = "Services like DocFrame or DocEnsurance consume core.service_core."\n',
+    ],
+    ids=[
+        "stdlib-only",
+        "core-protocols-absolute",
+        "core-relative-imports",
+        "string-literal-mentioning-services",
+    ],
+)
+def test_service_core_neutrality_rule_accepts_clean_probes(clean_source: str) -> None:
+    """Clean probe: stdlib, core, and string-only sources in service_core yield zero diagnostics."""
+    linter = build_service_core_neutrality_linter()
+    EBT(
+        target=linter.check,
+        pre=WorldState(args=(clean_source,)),
+        post=WorldState(returns=[]),
+    ).run()
+
+
+@pytest.mark.parametrize(
+    "bad_source, expected_line, expected_node",
+    [
+        ("from qb_cubie.core.services.doc_frame import DocFrame\n", 1, "qb_cubie.core.services.doc_frame"),
+        ("import qb_cubie.core.services.doc_ensurance\n", 1, "qb_cubie.core.services.doc_ensurance"),
+        ("from ..services.doc_frame import presets\n", 1, "..services.doc_frame"),
+        ("from .. import services\n", 1, "..services"),
+        ("from qb_cubie.core import services\n", 1, "qb_cubie.core.services"),
+        ("def check(x):\n    return isinstance(x, FramePattern)\n", 2, "FramePattern"),
+    ],
+    ids=[
+        "absolute-from-service",
+        "absolute-import-service",
+        "relative-from-services-submodule",
+        "relative-import-services",
+        "absolute-core-import-services",
+        "domain-symbol-reference",
+    ],
+)
+def test_service_core_neutrality_rule_detects_fault_probes(
+    bad_source: str,
+    expected_line: int,
+    expected_node: str,
+) -> None:
+    """Fault probe: reverse service imports and domain symbols trigger META-SERVICE-CORE-NEUTRALITY."""
+    linter = build_service_core_neutrality_linter()
+
+    def has_expected_diagnostic(diagnostics: list[LinterDiagnostic]) -> bool:
+        return any(
+            diag.rule_id == CORE_NEUTRALITY_RULE_ID
+            and diag.line == expected_line
+            and diag.node_name == expected_node
+            for diag in diagnostics
+        )
+
+    EBT(
+        target=linter.check,
+        pre=WorldState(args=(bad_source,)),
+        post=WorldState(returns=has_expected_diagnostic),
+    ).run()
+
+
+def test_service_core_neutrality_rule_reports_file_path_on_disk(tmp_path: Path) -> None:
+    """File probe: reverse service import on disk reports exact file path, rule_id, and line."""
+    bad_file = tmp_path / "broken_service_core_module.py"
+    bad_file.write_text(
+        "from pathlib import Path\nfrom ..services.doc_frame import presets\n",
+        encoding="utf-8",
+    )
+    diagnostics = build_service_core_neutrality_linter().check(bad_file)
+    assert len(diagnostics) == 1, _format_diagnostics(diagnostics)
+    assert diagnostics[0].file_path == str(bad_file)
+    assert diagnostics[0].rule_id == CORE_NEUTRALITY_RULE_ID
+    assert diagnostics[0].line == 2
 
 
 # ========== 3. REPOSITORY GATES: SERVICE-ISOLATION, PURE DOMAIN, BUDGET & CORE PROMOTION ==============================
@@ -427,15 +627,18 @@ def test_repository_services_have_no_cross_service_imports(service_name: str) ->
     )
 
 
+def _discover_pure_domain_files(service_dir: Path, service_name: str) -> list[Path]:
+    """Return all non-shell Python modules inside a service that must remain free of filesystem I/O."""
+    shell_names = IMPERATIVE_SHELL_FILENAMES | {f"{service_name}.py"}
+    return [path for path in sorted(service_dir.rglob("*.py")) if path.name not in shell_names]
+
+
 @pytest.mark.parametrize("service_name", _discover_service_packages())
 def test_repository_service_pure_domain_modules_have_no_io(service_name: str) -> None:
-    """Repository gate (Section 2 & 5.1): pure domain modules must not perform I/O."""
+    """Repository gate (Section 2 & 5.1): pure domain modules must not perform I/O or filesystem probes."""
     service_dir = SERVICES_ROOT / service_name
-    pure_files = [
-        path
-        for path in sorted(service_dir.rglob("*.py"))
-        if path.name in PURE_DOMAIN_FILENAMES or path.name.endswith("_rules.py")
-    ]
+    pure_files = _discover_pure_domain_files(service_dir, service_name)
+    assert pure_files, f"Expected pure domain modules in service '{service_name}'."
     linter = build_pure_domain_io_linter()
     diagnostics: list[LinterDiagnostic] = []
     for path in pure_files:
@@ -607,3 +810,117 @@ def test_doc_ensurance_has_no_doc_frame_domain_coupling() -> None:
         "DocFrame-specific domain coupling found in doc_ensurance "
         "(DEV-GUIDE_Services.md Section 4):\n" + "\n".join(hits)
     )
+
+
+# ========== 4. REPOSITORY GATES: SERVICE-CORE NEUTRALITY, ACYCLICITY, BUDGET & ISOLATION ==============================
+
+
+def _service_core_module_edges() -> dict[str, set[str]]:
+    """Build the directed internal import graph across non-facade modules of core/service_core."""
+    modules = {
+        path.stem: path
+        for path in sorted(SERVICE_CORE_ROOT.glob("*.py"))
+        if path.name not in {"__init__.py", "__main__.py"}
+    }
+    graph: dict[str, set[str]] = {name: set() for name in modules}
+    abs_prefix = "qb_cubie.core.service_core."
+    for mod_name, path in modules.items():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                if node.level == 1 and node.module:
+                    target = node.module.split(".", 1)[0]
+                    if target in modules and target != mod_name:
+                        graph[mod_name].add(target)
+                elif node.level == 0 and node.module and node.module.startswith(abs_prefix):
+                    target = node.module[len(abs_prefix) :].split(".", 1)[0]
+                    if target in modules and target != mod_name:
+                        graph[mod_name].add(target)
+    return graph
+
+
+def test_service_core_package_has_cycle_1_modules() -> None:
+    """Repository gate (HYPOTHESIS.md H6/E1): core/service_core provides all Cycle 1 modules."""
+    assert SERVICE_CORE_ROOT.is_dir(), f"Missing service_core package directory: {SERVICE_CORE_ROOT}"
+    missing = [name for name in CYCLE_1_SERVICE_CORE_MODULES if not (SERVICE_CORE_ROOT / name).is_file()]
+    assert not missing, f"Missing Cycle 1 modules in core/service_core/: {missing}"
+
+
+def test_service_core_has_no_reverse_service_imports() -> None:
+    """Repository gate (Mutant M8): core/service_core must never import or reference core/services."""
+    assert SERVICE_CORE_ROOT.is_dir(), f"Missing service_core package directory: {SERVICE_CORE_ROOT}"
+    py_files = sorted(SERVICE_CORE_ROOT.rglob("*.py"))
+    assert py_files, f"No Python modules found under {SERVICE_CORE_ROOT}."
+    diagnostics = build_service_core_neutrality_linter().check(SERVICE_CORE_ROOT)
+    assert diagnostics == [], (
+        "Reverse service imports or domain references found in core/service_core/:\n"
+        f"{_format_diagnostics(diagnostics)}"
+    )
+
+
+def test_service_core_internal_import_graph_is_acyclic() -> None:
+    """Layer audit (HYPOTHESIS.md H6): internal imports inside core/service_core must form a DAG."""
+    assert SERVICE_CORE_ROOT.is_dir(), f"Missing service_core package directory: {SERVICE_CORE_ROOT}"
+    graph = _service_core_module_edges()
+    assert graph, f"No internal modules found under {SERVICE_CORE_ROOT}."
+    cycle = _find_cycle(graph)
+    assert cycle is None, f"Cyclic internal import in core/service_core: {' -> '.join(cycle)}"
+
+
+def test_service_core_module_size_budget() -> None:
+    """Budget audit (HYPOTHESIS.md H6): every module in core/service_core must stay within 500 lines."""
+    assert SERVICE_CORE_ROOT.is_dir(), f"Missing service_core package directory: {SERVICE_CORE_ROOT}"
+    py_files = sorted(SERVICE_CORE_ROOT.rglob("*.py"))
+    assert py_files, f"No Python modules found under {SERVICE_CORE_ROOT}."
+    violations: list[str] = []
+    for path in py_files:
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        if line_count > SERVICE_MODULE_LINE_LIMIT:
+            rel = path.relative_to(PROJECT_ROOT).as_posix()
+            violations.append(
+                f"{rel}:1: {line_count} lines (maximum {SERVICE_MODULE_LINE_LIMIT} for service_core)"
+            )
+    assert not violations, "\n" + "\n".join(violations)
+
+
+def test_service_core_imports_in_isolation_with_services_blocked() -> None:
+    """Isolation probe: importing core.service_core and Cycle 1 submodules succeeds with services blocked."""
+    probe_script = (
+        "import importlib, sys\n"
+        "BLOCKED = ('qb_cubie.core.services', 'qb_cubie.services')\n"
+        "class _ServicesBlocker:\n"
+        "    def find_spec(self, fullname, path, target=None):\n"
+        "        for prefix in BLOCKED:\n"
+        "            if fullname == prefix or fullname.startswith(prefix + '.'):\n"
+        "                raise ModuleNotFoundError(f'Blocked services layer: {fullname}')\n"
+        "        return None\n"
+        "sys.meta_path.insert(0, _ServicesBlocker())\n"
+        "for mod in ('qb_cubie.core.service_core', 'qb_cubie.core.service_core.guards', "
+        "'qb_cubie.core.service_core.workspace', 'qb_cubie.core.service_core.rules', "
+        "'qb_cubie.core.service_core.reporting'):\n"
+        "    importlib.import_module(mod)\n"
+        "leaked = [m for m in sys.modules if any(m == b or m.startswith(b + '.') for b in BLOCKED)]\n"
+        "assert not leaked, f'Leaked service modules: {leaked}'\n"
+    )
+
+    def run_isolation_probe() -> int:
+        proc = subprocess.run(
+            [sys.executable, "-c", probe_script],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(
+                "core.service_core failed isolated import with services blocked:\n"
+                f"{proc.stdout}\n{proc.stderr}"
+            )
+        return proc.returncode
+
+    EBT(
+        target=run_isolation_probe,
+        post=WorldState(returns=0),
+        reporter=None,
+    ).run()
