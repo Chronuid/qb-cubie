@@ -92,11 +92,17 @@ In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/
 * **Code-Härtung unter Stil-Gates:** Der Core wird innerhalb der harten Architektur-Grenzen (`MODULE_LIMIT = 777` Zeilen, `FUNCTION_LIMIT = 12` physische Body-Zeilen, einzeilige Docstrings, `0` Fehler in `ruff`, `pylint` und `mypy --warn-unreachable`) repariert, bis alle zuvor roten Tests auf **`PASSED`** springen.
 * **Phase Living-Documentation (`DocEnsurance` & `DocFrame`):** Sobald ein neuer `STATE-GUARD` oder eine geänderte API im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_doc_ensurance.py::test_docs_code_examples` und `tests/test_doc_frame.py::test_docs_frames`) und zeigt auf jedes Code-Beispiel oder jeden Dokumentrahmen in `docs/`, der noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen – und die Dokumentation steht im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereit.
 
+---
+
 > [!TIP]
-> **Der gesamte TGD-Fluss benötigt eine starke Orchestrierung.**  
+> **Der gesamte TGD-Fluss durch orchestrierende Agenten benötigt eine starke Orchestrierung.**  
 > Gebe den Agenten daher nur einen Schritt auf einmal und orchestriere es selbst, wenn es wirklich eine hohe Qualität erfordert. Dann weißt du, dass alles richtig gemacht wird und kannst flexibel eingreifen.  
 >
-> Der Gesamt-Durchlauf durch orchestrierende Agenten sollte noch als experimentell verstanden werden.
+> **Der Gesamt-Durchlauf durch orchestrierende Agenten sollte noch als experimentell verstanden werden.**
+
+> [!TIP]
+> **Der gesamte TGD-Fluss durch voll-autonom agierende Agenten könnte funktionieren.**  
+> Ich habe die Details noch nicht genau geprüft, aber es schien ziemlich gut gelaufen zu sein.
 
 ---
 

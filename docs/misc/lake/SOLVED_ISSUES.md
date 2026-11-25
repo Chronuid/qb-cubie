@@ -102,6 +102,7 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
 [↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
+[↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
 [↦ | Archiv behobener Bugs (`SOLVED_ISSUES.md`) | ↤](./SOLVED_ISSUES.md)  
 
 </div>
