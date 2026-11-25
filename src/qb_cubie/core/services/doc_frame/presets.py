@@ -77,7 +77,7 @@ def _validate_block_sequence(zone_name: str, seq: Any) -> None:
 
 # ========== MANDATORY EPISTEMIC BOUNDARY NOTICE ANCHOR ================================================================
 EPISTEMIC_NOTICE_TEXT: Final[str] = (
-    "> [!Note]  \n"
+    "> [!NOTE]  \n"
     "> qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers "
     "kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte "
     "Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  \n"
