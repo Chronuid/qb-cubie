@@ -69,7 +69,6 @@ Die Metapher motiviert sorgfältige Spezifikation. Sie verspricht keine vollstä
 [↦ | Die Suchmaschine von Babel: eine Metapher | ↤](./Die-Suchmaschine-von-Babel.md)  
 [↦ | Erweitertes Property-Based Testing: konzeptionelle Einordnung | ↤](./Erweitertes-PBT.md)  
 [↦ | FP-OOP-Isomorphismus | ↤](./FP-OOP-Isomorphismus.md)  
-[↦ | Technische Bestandsaufnahme von **qb-cubie** 0.1.0 | ↤](./deep-research-report.md)  
 
 </div>
 <!-- /qb:frame -->
