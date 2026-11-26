@@ -125,10 +125,14 @@ DocFrame.scan_catalog(
 
 ### Aufruf über die Core-CLI (`qb-cubie`)
 
-Für die direkte Synchronisation aus der Kommandozeile steht `DocFrame.update()` über die Core-CLI `qb-cubie` (sowie `python -m qb_cubie`, `python -m qb_cubie.core.services.docframe` und `python -m qb_cubie.core.services.doc_frame`) bereit:
+Für Synchronisation **und** zerstörungsfreie Prüfung aus der Kommandozeile stehen `DocFrame.update()` und `DocFrame.check()` über die lazy geladene Core-CLI `qb-cubie` (sowie `python -m qb_cubie`, `python -m qb_cubie.core.services.docframe` und `python -m qb_cubie.core.services.doc_frame`) bereit — vollständig ohne Import von Geschwister-Services wie `doc_ensurance`:
 
 ```bash
 qb-cubie docframe update
+```
+
+```bash
+qb-cubie docframe check docs/ --exclude experiments --exclude CHANGELOG.md --format json
 ```
 
 ```bash
@@ -138,6 +142,9 @@ qb-cubie docframe update docs/ --exclude experiments --exclude CHANGELOG.md --fo
 ```bash
 python -m qb_cubie.core.services.docframe update docs/services/GUIDE_DocFrame.md
 ```
+
+* **Exit-Codes:** `0` (`EXIT_OK` — Synchronisation oder Prüfung erfolgreich), `1` (`EXIT_CHECK_FAILED` — `docframe check` meldet Fehler mit `passed=False`), `2` (`EXIT_ERROR` — `STATE-GUARD`- oder I/O-Fehler).
+* **Ausgabeformate:** `--format text` (Standard) liefert die Zusammenfassung bzw. formatierten Diagnosen; `--format json` erzeugt das stabile `schema_version: 1`-JSON (`"service": "doc_frame"`, bei `update` zusätzlich mit abwärtskompatiblen Feldern `updated_files` und `catalog_entries`).
 
 ### Wichtige Konfigurations-Details für die Praxis
 
@@ -407,7 +414,12 @@ Prüffrage A
 
 ### 5.2 Schutz gegen Tippfehler durch `STATE-GUARD`-Exceptions
 
-Genau wie im `qb-cubie`-Kern validiert `DocFrame` sämtliche Marker-Attribute und Konfigurationsparameter sofort über explizite `STATE-GUARD`s. Ungültige Zonen-Namen, fehlende `id`-Attribute, nicht-ganzzahlige `order`-Werte oder unzulässige `routable`-/ `recursive`-/ `mode`-Angaben lösen unmittelbar einen `ValueError` aus:
+Genau wie im `qb-cubie`-Kern validiert `DocFrame` sämtliche Marker-Attribute und Konfigurationsparameter sofort über explizite `STATE-GUARD`s (`service_core.guards` & `service_core.markdown.parse_kv_attrs(..., mode="quoted")`):
+* **Zwingend gequotete Attributwerte:** Alle Marker-Attribute müssen als `key="val"` oder `key='val'` notiert werden — ungequotete Werte (wie `order=10`) oder fehlerhafte Tokens werden **nicht** still verworfen, sondern lösen sofort einen `ValueError("STATE-GUARD: Malformed or unquoted attribute ...")` aus.
+* **Einzeilige Öffnungs-Tags:** Ein unvollständiges `<!-- qb:frame ...` ohne abschließendes `-->` auf derselben Zeile wird vom `DirectiveSpanScanner` als ungeschlossenes Tag erkannt und als `DOCFRAME-MISSING` gemeldet.
+* **Wertebereichs-Guards:** Ungültige Zonen-Namen, fehlende `id`-Attribute, nicht-ganzzahlige `order`-Werte oder unzulässige `routable`-/`recursive`-/`mode`-Angaben lösen unmittelbar einen `ValueError` aus.
+
+Das folgende Beispiel zeigt, wie ein nicht-ganzzahliges `order`-Attribut direkt beim Extrahieren der Metadaten über den `STATE-GUARD` abgewiesen wird:
 
 ```python raises=ValueError
 from qb_cubie.core.services.docframe import extract_doc_meta
@@ -510,10 +522,10 @@ Jeder Rahmen-Befund wird als unveränderliches Core-`Diagnostic(file_path, rule_
 
 Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getrennte Schichten in `qb_cubie.core.services.doc_frame`:
 
-1. **Ebene 0 (`_catalog_scanner`):** Fence-sicherer Span-Scanner (`parse_frame_spans`), Metadaten-Extraktor (`extract_doc_meta`) und Katalog-Builder (`DocumentCatalog` inkl. `WorkspaceView`-Port).
+1. **Ebene 0 (`_catalog_scanner` via `service_core.markdown`):** Fence-sicherer Span-Scanner (`parse_frame_spans` auf Basis von `DirectiveSpanScanner("frame")`), Metadaten-Extraktor (`extract_doc_meta`) und Katalog-Builder (`DocumentCatalog` inkl. `WorkspaceView`-Port).
 2. **Ebene 1 (`FrameBlockProtocol` in `frame_blocks`):** 100 % I/O-freie Struktur-Bausteine (`Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`), dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) und geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`).
 3. **Ebene 2 (`doc_frame_rules`):** Dokument-weite Prüfregeln nach `WorkspaceCheckRuleProtocol` (`_DocFrameRuleBase` mit `FileContextCache` und `depends_on`) für `DocFrame.check()` und `FileCheckRunner`.
-4. **Ebene 3 (`presets`, `adapters` & `doc_frame`):** Zentrale Kopf-/Fuß-Templates (`STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`), verpflichtender erkenntnistheoretischer Hinweis-Anker (`EPISTEMIC_NOTICE` / `EPISTEMIC_NOTICE_TEXT`), Imperative Shell (`adapters.py`) und 2-Pass-Orchestrator (`DocFrame`).
+4. **Ebene 3 (`presets`, `adapters`, `cli` & `doc_frame`):** Zentrale Kopf-/Fuß-Templates (`STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`), verpflichtender erkenntnistheoretischer Hinweis-Anker (`EPISTEMIC_NOTICE` / `EPISTEMIC_NOTICE_TEXT`), Imperative Shell (`adapters.py`), Lazy-CLI-Adapter (`cli.py` / `DocFrameCommand`) und 2-Pass-Orchestrator (`DocFrame` mit `apply_span_replacements`).
 
 ### 8.1 Die mitgelieferten „Lego-Bausteine“ zu eigenen `FramePattern`s zusammensetzen
 

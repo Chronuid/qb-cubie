@@ -140,7 +140,11 @@ qb-cubie docframe update docs/dev/README.md
 ```
 
 ```bash
-qb-cubie docframe update docs/dev/core/README.md
+qb-cubie docframe check docs/dev/
+```
+
+```bash
+qb-cubie docensurance check docs/dev/
 ```
 
 ```bash

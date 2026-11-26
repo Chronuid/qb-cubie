@@ -5,14 +5,14 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Wenn mehrere Services wie `DocEnsurance`, `DocFrame` und künftige Werkzeuge (`coverage`, `styleguide`) nebeneinander wachsen, entstehen ohne gemeinsames Fundament schnell doppelte Pfad-Crawler, inkonsistente `STATE-GUARD`s und versteckte Querkopplungen. **`qb_cubie.core.service_core`** bündelt alle domänenneutralen Bausteine für Eingabe-Guards (`guards`), Workspace-Discovery und atomares Schreiben (`workspace`), Multi-File-Regelausführung mit Parse-Cache (`rules`) sowie einheitliches Text- und JSON-Reporting (`reporting`) in einem streng isolierten, azyklischen Core-Paket.
+Wenn mehrere Services wie `DocEnsurance`, `DocFrame` und künftige Werkzeuge (`coverage`, `styleguide`) nebeneinander wachsen, entstehen ohne gemeinsames Fundament schnell doppelte Pfad-Crawler, inkonsistente `STATE-GUARD`s, kopierte Markdown-Parser und starre CLI-Verdrahtungen. **`qb_cubie.core.service_core`** bündelt die domänenneutralen Bausteine für Eingabe-Guards (`guards`), Workspace-Discovery und atomares Schreiben (`workspace`), Multi-File-Regelausführung mit Parse-Cache (`rules`), einheitliches Text- und JSON-Reporting (`reporting`), deklaratives Lazy-CLI-Dispatching (`cli_spec`) sowie eine optionale Markdown-Lexer-Subschicht (`markdown`) in einem streng isolierten, azyklischen Core-Paket.
 
 ---
 
 > [!NOTE]
 >
-> **Architektur-Status (Zyklus 1 abgeschlossen, Zyklus 2 geplant):**  
-> Dieses Handbuch beschreibt den produktiven **Zyklus 1** von `qb_cubie.core.service_core` (`guards`, `workspace`, `rules`, `reporting`), der durch `DocFrame`, `DocEnsurance`, `CstLinter`, `PytestReporter`, `JsonReporter` und Meta-Gate 4 abgesichert ist. Die optionalen Erweiterungen aus **Zyklus 2** (`markdown.py` als Markdown-Lexer-Subschicht und `cli_spec.py` als lazy CLI-Registry gemäß [`HYPOTHESIS.md`](./HYPOTHESIS.md)) sind noch nicht Teil des Pakets und folgen in einem separaten TGD-Zyklus.
+> **Architektur-Status (Zyklus 1 & Zyklus 2 abgeschlossen):**  
+> Dieses Handbuch beschreibt den vollständigen, produktiven Stand von `qb_cubie.core.service_core` über **Zyklus 1** (`guards`, `workspace`, `rules`, `reporting`) und **Zyklus 2** (`cli_spec`, optionale Subschicht `markdown`, Lazy-CLI in `src/qb_cubie/cli.py` für `docframe` & `docensurance` sowie kanonische `adapters.py`/`cli.py`-Shells), abgesichert durch Meta-Gate 4 (`test_service_architecture_gate.py`).
 
 ---
 
@@ -46,40 +46,53 @@ flowchart TD
     W["workspace.py<br/>Root, Excludes, Crawl, Atomic Write, WorkspaceView"]
     REP["reporting.py<br/>ServiceReport, Formatierung, JSON-Schema v1"]
     RUL["rules.py<br/>RuleRegistry, FileContextCache, FileCheckRunner"]
+    CLI["cli_spec.py<br/>CommandSpec, ServiceCommandProtocol, Flags, Exit-Codes"]
+    MD["markdown.py (optional)<br/>FenceTracker, parse_kv_attrs, DirectiveSpanScanner"]
 
     W --> G
     REP --> G
     RUL --> G
     RUL --> W
     RUL --> REP
+    CLI --> G
+    CLI --> REP
+    MD --> G
 
     DE["services.doc_ensurance"] --> RUL
+    DE --> MD
+    DE --> CLI
     DF["services.doc_frame"] --> RUL
+    DF --> MD
+    DF --> CLI
     NEXT["services.&lt;neu&gt; (z. B. coverage, styleguide)"] --> RUL
+    NEXT --> CLI
 ```
 
 ---
 
 ## 2. Modul-Übersicht & Import-Fassade (`qb_cubie.core.service_core`)
 
-Alle 32 öffentlichen Symbole von Zyklus 1 lassen sich entweder direkt über die Paketfassade `qb_cubie.core.service_core` oder gezielt aus den vier azyklischen Submodulen importieren — ohne jemals ein Geschwister-Paket aus `qb_cubie.core.services` zu laden:
+`qb_cubie.core.service_core` trennt bewusst zwischen der **domänenneutralen Paketfassade** (`__all__`: 32 Exporte aus `guards`, `workspace`, `rules`, `reporting`) und den **gezielt importierbaren Submodulen** `cli_spec.py` (13 Exporte für CLI-Adapter & Composition Root) sowie der **optionalen Dokument-Subschicht** `markdown.py` (11 Exporte ausschließlich für Markdown-Services). Dadurch lädt kein domänenneutrales Kernmodul und kein Nicht-Markdown-Service jemals `markdown.py` oder ein konkretes Paket aus `qb_cubie.core.services`:
 
-| Modul | Verantwortlichkeit | Zentrale Exporte |
-| :--- | :--- | :--- |
-| **`guards.py`** | Typ- und Werte-`STATE-GUARD`s sowie Attribut-Parser | `validate_choice`, `validate_non_empty_str`, `validate_positive_int`, `validate_positive_float`, `validate_str_sequence`, `parse_bool_attr`, `parse_int_attr` |
-| **`workspace.py`** | Projekt-Root, Excludes, deterministisches Crawling, `FileSource`, atomares Schreiben & reiner Lese-Port | `DEFAULT_EXCLUDES`, `FileSource`, `WorkspaceView`, `InMemoryWorkspaceView`, `FileSystemWorkspaceView`, `find_project_root`, `normalize_excludes`, `is_excluded`, `crawl_files`, `looks_like_path`, `load_sources`, `atomic_write_text` |
-| **`rules.py`** | Geordnete Regel-Registry, pro-Datei-Parse-Cache & generischer Multi-File-Prüf-Host | `RuleProtocol`, `FileContextCache`, `WorkspaceCheckRuleProtocol`, `RuleRegistry`, `execute_file_checks`, `FileCheckRunner` |
-| **`reporting.py`** | Einheitlicher `ServiceReport` & Text-/JSON-Serialisierung (`schema_version: 1`) | `SERVICE_REPORT_SCHEMA_VERSION`, `ServiceReport`, `diagnostic_context`, `diagnostic_to_dict`, `format_diagnostic_line`, `report_to_dict`, `format_service_report_text` |
+| Modul | Import-Pfad & Schicht | Verantwortlichkeit | Zentrale Exporte |
+| :--- | :--- | :--- | :--- |
+| **`guards.py`** | `service_core` *(Fassade)* | Typ- und Werte-`STATE-GUARD`s sowie Attribut-Parser | `validate_choice`, `validate_non_empty_str`, `validate_positive_int`, `validate_positive_float`, `validate_str_sequence`, `parse_bool_attr`, `parse_int_attr` |
+| **`workspace.py`** | `service_core` *(Fassade)* | Projekt-Root, Excludes, deterministisches Crawling, `FileSource`, atomares Schreiben & reiner Lese-Port | `DEFAULT_EXCLUDES`, `FileSource`, `WorkspaceView`, `InMemoryWorkspaceView`, `FileSystemWorkspaceView`, `find_project_root`, `normalize_excludes`, `is_excluded`, `crawl_files`, `looks_like_path`, `load_sources`, `atomic_write_text` |
+| **`rules.py`** | `service_core` *(Fassade)* | Geordnete Regel-Registry, pro-Datei-Parse-Cache & generischer Multi-File-Prüf-Host | `RuleProtocol`, `FileContextCache`, `WorkspaceCheckRuleProtocol`, `RuleRegistry`, `execute_file_checks`, `FileCheckRunner` |
+| **`reporting.py`** | `service_core` *(Fassade)* | Einheitlicher `ServiceReport` & Text-/JSON-Serialisierung (`schema_version: 1`) | `SERVICE_REPORT_SCHEMA_VERSION`, `ServiceReport`, `diagnostic_context`, `diagnostic_to_dict`, `format_diagnostic_line`, `report_to_dict`, `format_service_report_text` |
+| **`cli_spec.py`** | `service_core.cli_spec` *(CLI-Schicht)* | Lazy-CLI-Protokoll, Standard-Flags, Exit-Codes (`0`/`1`/`2`) & Ausgabe-Rendering | `EXIT_OK`, `EXIT_CHECK_FAILED`, `EXIT_ERROR`, `VALID_OUTPUT_FORMATS`, `CommandResult`, `CommandSpec`, `ServiceCommandProtocol`, `load_command`, `add_target_arg`, `add_exclude_arg`, `add_format_arg`, `add_standard_service_args`, `render_command_result` |
+| **`markdown.py`** | `service_core.markdown` *(optional)* | CommonMark-Fence-Tracking, strenge Attribut-Parser, `qb:<directive>`-Span-Scanner & In-Place-Rewriting | `VALID_KV_MODES`, `HTML_WRAP_RE`, `extract_fence_prefix`, `is_closing_fence`, `FenceTracker`, `parse_kv_attrs`, `DirectiveSpan`, `DirectiveSpanScanner`, `apply_span_replacements`, `is_horizontal_rule`, `compute_rel_link` |
 
-Das folgende Beispiel startet einen frischen Python-Subprozess für `qb_cubie.core.service_core` und bestätigt, dass alle 32 Exporte vollständig ohne Import eines konkreten Services aus `qb_cubie.core.services` geladen werden:
+Das folgende Beispiel startet einen frischen Python-Subprozess für `qb_cubie.core.service_core` samt `cli_spec` und bestätigt, dass weder konkrete Services aus `qb_cubie.core.services` noch die optionale Subschicht `service_core.markdown` mitgeladen werden:
 
 ```python
 import subprocess, sys
 
 probe = (
-    "import sys; from qb_cubie.core import service_core; "
+    "import sys; from qb_cubie.core import service_core; from qb_cubie.core.service_core import cli_spec; "
     "svcs = [m for m in sys.modules if m.startswith('qb_cubie.core.services')]; "
-    "print(f'Exporte: {len(service_core.__all__)} | Schema: v{service_core.SERVICE_REPORT_SCHEMA_VERSION} | Services geladen: {svcs}')"
+    "md_loaded = 'qb_cubie.core.service_core.markdown' in sys.modules; "
+    "print(f'Exporte: {len(service_core.__all__)} | cli_spec: {len(cli_spec.__all__)} | Services: {svcs} | markdown: {md_loaded}')"
 )
 print(subprocess.check_output([sys.executable, "-c", probe], text=True).strip())
 ```
@@ -88,7 +101,7 @@ print(subprocess.check_output([sys.executable, "-c", probe], text=True).strip())
 <summary>Ergebnis</summary>
 
 ```text
-Exporte: 32 | Schema: v1 | Services geladen: []
+Exporte: 32 | cli_spec: 13 | Services: [] | markdown: False
 ```
 </details>
 
@@ -421,22 +434,128 @@ JSON schema=1 | service=style_demo | ctx=head
 
 ---
 
-## 7. Bauplan: Einen neuen Service auf Basis des Service-Core aufbauen
+## 7. Optionale Markdown-Lexer-Subschicht (`markdown.py`)
+
+`qb_cubie.core.service_core.markdown` stellt 11 rein funktionale CommonMark- und Direktiven-Bausteine für dokumentorientierte Services (`DocEnsurance`, `DocFrame`, künftig z. B. `doc_toc` oder `doc_links`) bereit. Das Modul hängt ausschließlich von `guards.py` ab und wird von keinem domänenneutralen `service_core`-Modul importiert (abgesichert durch Meta-Gate 4).
+
+* **CommonMark-Fence-Tracking (`extract_fence_prefix`, `is_closing_fence`, `FenceTracker`):** Erkennt Backtick- und Tilde-Fences beliebiger Länge ($\ge 3$) und schließt sie erst bei identischem Zeichen und mindestens gleicher Länge (`len(close) >= len(open)`). Genutzt von `DocEnsurance._MarkdownScanner`, `CollapsibleResult` und `DirectiveSpanScanner`.
+* **Einheitliches Attribut-Parsing (`parse_kv_attrs`, `VALID_KV_MODES = ("quoted", "unquoted_whitelist")`):**
+  * **`mode="quoted"` (Standard für `<!-- qb:* -->`-Direktiven):** Parst Leerzeichen-getrennte `key="val"`- oder `key='val'`-Paare strikt ohne stummes Verwerfen — ungequotete Werte wie `order=10` oder ungültige Tokens werfen sofort `ValueError("STATE-GUARD: Malformed or unquoted attribute ...")`; optional schränkt `allowed_keys` die zulässigen Schlüssel ein.
+  * **`mode="unquoted_whitelist"` (für Code-Fence-Metadaten wie `python session=s1 raises=ValueError`):** Extrahiert ausschließlich explizit freigegebene `allowed_keys` (Pflicht, nicht leer).
+* **Generische `<!-- qb:<directive> ... -->`-Spans & In-Place-Rewriting (`DirectiveSpan`, `DirectiveSpanScanner`, `apply_span_replacements`):**
+  * `DirectiveSpanScanner(directive, *, validate_attrs=None).scan(content)` erkennt fence-sicher geschlossene `<!-- qb:<directive> ... -->` … `<!-- /qb:<directive> -->`-Blöcke mit exakten Zeilen- und Zeichen-Offsets (`DirectiveSpan`) und meldet unvollständige Öffnungs-Tags (ohne `-->` auf derselben Zeile) sowie ungeschlossene Tags über `unclosed: list[int]`.
+  * `apply_span_replacements(content, replacements)` validiert Indizes (kein `bool`, innerhalb der Grenzen, keine Überlappungen — sonst `STATE-GUARD`) und ersetzt Spans deterministisch in umgekehrter Reihenfolge.
+* **Thematische Trenner, Wrapper & Links (`is_horizontal_rule`, `HTML_WRAP_RE`, `compute_rel_link`):** `is_horizontal_rule` erkennt CommonMark-Trennlinien (`---`, `***`, `___`), sodass `DocEnsurance` sie als `MdBlock(kind="hr")` statt als Absatz parst; `compute_rel_link(from_file, target_rel, root)` berechnet POSIX-relative Links mit `./` oder `../`.
+
+Das folgende Beispiel scannt eine eigene `<!-- qb:note ... -->`-Direktive (inklusive geschütztem Beispiel innerhalb eines 4-Backtick-Codeblocks) über `DirectiveSpanScanner` und ersetzt den Inhalt deterministisch per `apply_span_replacements`:
+
+```python
+from qb_cubie.core.service_core.markdown import (
+    DirectiveSpanScanner, apply_span_replacements, is_horizontal_rule, parse_kv_attrs,
+)
+
+doc = (
+    '<!-- qb:note id="N1" level="info" -->\nAlt\n<!-- /qb:note -->\n'
+    "---\n````md\n<!-- qb:note id=\"IGNORED\" -->\n<!-- /qb:note -->\n````\n"
+)
+spans, unclosed = DirectiveSpanScanner("note").scan(doc)
+updated = apply_span_replacements(doc, [(spans[0].start_idx, spans[0].end_idx, "<!-- qb:note id=\"N1\" level=\"info\" -->\nNeu\n<!-- /qb:note -->\n")])
+tags = parse_kv_attrs("python session=s1 raises=ValueError", mode="unquoted_whitelist", allowed_keys=("session", "raises"))
+print(f"spans={len(spans)} | unclosed={unclosed} | hr={is_horizontal_rule('---')} | tags={tags} | ok={'Neu' in updated}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+spans=1 | unclosed=[] | hr=True | tags={'session': 's1', 'raises': 'ValueError'} | ok=True
+```
+</details>
+
+Im strikten `mode="quoted"`-Modus weist `parse_kv_attrs` ungequotete Werte (wie `order=10` in einer `qb:frame`-Direktive) sofort per `STATE-GUARD` ab, statt sie stillschweigend zu ignorieren:
+
+```python raises=ValueError
+from qb_cubie.core.service_core.markdown import parse_kv_attrs
+
+parse_kv_attrs('id="CUBIE_DOC_FRAME_1" order=10', mode="quoted")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+ValueError: STATE-GUARD: Malformed or unquoted attribute near 'order=10'.
+```
+</details>
+
+---
+
+## 8. Deklarative Lazy-CLI-Schicht (`cli_spec.py` & `qb_cubie/cli.py`)
+
+`qb_cubie.core.service_core.cli_spec` standardisiert alle Service-CLIs und entkoppelt das Composition Root `src/qb_cubie/cli.py` vollständig von konkreten Services (erzwungen durch Meta-Gate 4: `META-CLI-NO-EAGER-SERVICE-IMPORT`):
+
+* **Einheitliche Exit-Codes & Formate:**
+  * `EXIT_OK = 0`: Ausführung oder Prüfung erfolgreich (`passed=True`).
+  * `EXIT_CHECK_FAILED = 1`: Fachlicher Prüffehlschlag (`passed=False`, z. B. veralteter Rahmen oder fehlerhaftes Code-Beispiel).
+  * `EXIT_ERROR = 2`: Konfigurations-, `STATE-GUARD`- oder I/O-Fehler (`ValueError`, `TypeError`, `OSError`) bzw. unbekannter Befehl.
+  * `VALID_OUTPUT_FORMATS = ("text", "json")`.
+* **Protokoll & Lazy-Loader (`CommandSpec`, `ServiceCommandProtocol`, `CommandResult`, `load_command`):**
+  * `CommandSpec(name, help, loader)` referenziert einen Service-Adapter per `"module:attribute"`-String (z. B. `"qb_cubie.core.services.doc_frame.cli:COMMAND"`).
+  * `src/qb_cubie/cli.py` inspiziert das erste Positions-Argument vor `-h`/`--help` (`_select_command_spec`) und lädt via `load_command(spec)` **ausschließlich** den ausgewählten Service — Geschwister-Services werden niemals importiert.
+  * Jeder Service-Adapter in `services/<name>/cli.py` implementiert `ServiceCommandProtocol` (`name`, `help`, `register(subparser)`, `execute(args) -> CommandResult`).
+* **Standard-Argument-Builder & Renderer:** `add_target_arg`, `add_exclude_arg`, `add_format_arg` und das gebündelte `add_standard_service_args(parser)` registrieren konsistent `[target] [--exclude ...] [--format text|json]`; `render_command_result(result, fmt)` rendert wahlweise Menschenlesbaren Text (`result.text` oder `format_service_report_text`) oder `schema_version: 1`-JSON (`report_to_dict` + optionales `result.extra_json`).
+
+Über die zentrale CLI (`qb-cubie` bzw. `python -m qb_cubie`) stehen damit beide Produktiv-Services einheitlich zur Verfügung:
+
+```bash
+qb-cubie docframe update [target] [--exclude ...] [--format text|json]
+qb-cubie docframe check [target] [--exclude ...] [--format text|json]
+qb-cubie docensurance check [target] [--exclude ...] [--format text|json]
+```
+
+Das folgende Beispiel demonstriert `CommandSpec`, `CommandResult` und `render_command_result` direkt gegen `qb_cubie.core.service_core.cli_spec` — inklusive `schema_version: 1`-JSON-Ausgabe und `extra_json`-Erweiterung:
+
+```python
+import json
+from qb_cubie.core.service_core import ServiceReport
+from qb_cubie.core.service_core.cli_spec import (
+    EXIT_OK, CommandResult, CommandSpec, render_command_result,
+)
+
+spec = CommandSpec("demo", "Demo check command.", "qb_cubie.core.services.doc_frame.cli:COMMAND")
+report = ServiceReport(service="demo", target="docs/", passed=True, files_checked=2)
+result = CommandResult(exit_code=EXIT_OK, report=report, text="Demo OK (2 files)", extra_json=(("profile", "fast"),))
+payload = json.loads(render_command_result(result, "json"))
+print(f"spec={spec.name} | text={render_command_result(result, 'text')} | schema={payload['schema_version']} | profile={payload['profile']}")
+```
+
+<details>
+<summary>Ergebnis</summary>
+
+```text
+spec=demo | text=Demo OK (2 files) | schema=1 | profile=fast
+```
+</details>
+
+---
+
+## 9. Bauplan: Einen neuen Service auf Basis des Service-Core aufbauen
 
 Wer einen neuen Service unter `src/qb_cubie/core/services/<name>/` erstellt (z. B. `coverage` oder `styleguide`), folgt diesem kompakten Fünf-Schritte-Bauplan:
 
 1. **Paket nach Ports & Adapters anlegen** (siehe [`DEV-GUIDE_Services.md`](../dev/DEV-GUIDE_Services.md)):
-   * `models.py` / `protocols.py`: Unveränderliche `@dataclass(frozen=True)`-DTOs, Eingabe-Validierung mit `service_core.guards`.
-   * `rules.py` / `engine.py`: 100 % I/O-freie Domänenlogik; Dateisystem-Prüfungen ausschließlich über `WorkspaceView.has_path(...)`; Multi-File-Regeln nach `WorkspaceCheckRuleProtocol` mit `FileContextCache`.
-   * `adapters.py`: Imperative Shell mit `find_project_root`, `normalize_excludes`, `crawl_files`, `FileSystemWorkspaceView` und `atomic_write_text`.
+   * `models.py` / `protocols.py`: Unveränderliche `@dataclass(frozen=True)`-DTOs (Report mit `.service`-Property für `ServiceReportProtocol`), Eingabe-Validierung mit `service_core.guards`.
+   * `rules.py` / `engine.py`: 100 % I/O-freie Domänenlogik; Dateisystem-Prüfungen ausschließlich über `WorkspaceView.has_path(...)`; Multi-File-Regeln nach `WorkspaceCheckRuleProtocol` mit `FileContextCache`; `service_core.markdown` **nur** bei Dokument-Services importieren.
+   * `adapters.py`: Pflicht-Modul der Imperative Shell mit `find_project_root`, `normalize_excludes`, `crawl_files`, `FileSystemWorkspaceView` und `atomic_write_text`.
+   * `cli.py` & `__main__.py`: Pflicht-CLI-Adapter nach `ServiceCommandProtocol` (`COMMAND`, `add_standard_service_args`, Exit-Codes `EXIT_OK`/`EXIT_CHECK_FAILED`/`EXIT_ERROR`); anschließend genau einen deklarativen `CommandSpec`-Eintrag in `src/qb_cubie/cli.py` ergänzen (ohne statischen Import).
    * `<name>.py` / `__init__.py`: Schlanker Service-Orchestrator (`FileCheckRunner` für Prüfläufe, `reporter=PytestReporter()` als Default für Check-Läufe, `reporter=None` als Default für mutierende Läufe).
 2. **Kein Cross-Import, keine Dummy-Methoden:** Importiere ausschließlich Stdlib, zugelassene Drittpakete, `qb_cubie.core.*` und `qb_cubie.core.service_core.*` — niemals Geschwister-Services unter `qb_cubie.core.services.*`.
 3. **Einstiegspunkte nach Archetyp trennen:**
    * *Prüf-Service (Read-Only):* `<Service>.check(...) -> ServiceReport` über `FileCheckRunner` (Standard-Reporter: `PytestReporter()`).
    * *Sync-/Transform-Service (Read-Write):* `<Service>.update(...) -> ServiceReport` mit `atomic_write_text` (Standard-Reporter: `None`).
-4. **Komposition im Composition Root:** Kombiniere mehrere Services (wie `DocEnsurance` + `DocFrame`) erst in der Test-Suite (`tests/test_doc_ensurance.py`, `tests/test_doc_frame.py`) oder in der CLI.
+4. **Komposition im Composition Root & schlanke Fassade:** Kombiniere mehrere Services (wie `DocEnsurance` + `DocFrame`) erst in der Test-Suite (`tests/test_doc_ensurance.py`, `tests/test_doc_frame.py`) oder über `src/qb_cubie/cli.py`. In `src/qb_cubie/core/services/__init__.py` exportieren neue Services primär ihren Paketnamen und ihre Haupt-Service-Klasse statt dutzender interner Symbole.
 5. **Meta-Gate 4 & TGD-Verifikation bestehen:**
-   * `tests/tests_core/tests_services/test_service_architecture_gate.py` prüft automatisch `META-SERVICE-ISOLATION`, `META-SERVICE-PURE-DOMAIN-IO` (inkl. `.exists()`/`.rglob()`-Verbot in reinen Modulen), `META-SERVICE-CORE-NEUTRALITY`, Azyklizität, das 500-LOC-Modulbudget sowie isolierte Importierbarkeit im Subprozess.
+   * `tests/tests_core/tests_services/test_service_architecture_gate.py` prüft automatisch `META-SERVICE-ISOLATION`, `META-SERVICE-PURE-DOMAIN-IO` (inkl. `.exists()`/`.rglob()`-Verbot in allen Nicht-Shell-Modulen), `META-SERVICE-CORE-NEUTRALITY`, `META-CLI-NO-EAGER-SERVICE-IMPORT`, die Isolation der optionalen `markdown.py`-Subschicht, das kanonische `adapters.py`/`cli.py`-Layout (ohne Legacy-`_source_loader.py`), Azyklizität, das 500-LOC-Modulbudget sowie isolierte Importierbarkeit im Subprozess.
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

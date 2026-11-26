@@ -36,7 +36,9 @@ Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`C
 
 ## 2. Tag-Syntax & gemeinsame `head`-Attribute
 
-Rahmen werden als HTML-Kommentar-Paare außerhalb von Code-Fences notiert (unabgeschlossene Tags lösen `DOCFRAME-MISSING` aus):
+Rahmen werden als einzeilige HTML-Kommentar-Paare außerhalb von Code-Fences notiert (`service_core.markdown.DirectiveSpanScanner("frame")`):
+* **Strikte Anführungszeichen (`mode="quoted"`):** Alle Attributwerte müssen in doppelten oder einfachen Anführungszeichen stehen (`key="val"` / `key='val'`). Ungequotete Werte (wie `order=10`) oder fehlerhafte Tokens werden **nicht** ignoriert, sondern sofort per `ValueError("STATE-GUARD: ...")` abgewiesen.
+* **Geschlossene & einzeilige Tags:** Unabgeschlossene Rahmen (`<!-- /qb:frame -->` fehlt) sowie unvollständige Öffnungs-Tags ohne `-->` auf derselben Zeile lösen `DOCFRAME-MISSING` aus.
 
 ```markdown
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->
@@ -96,7 +98,7 @@ Die vier `WorkspaceCheckRuleProtocol`-Regeln werden nativ über `DocFrame.check(
 
 ## 5. Synchronisieren & Verifizieren
 
-Nach dem Anlegen oder Ändern gerahmter Dokumente immer synchronisieren und gegen Rahmen- sowie Doku-Regeln prüfen (Details: [Service-Core](../services/GUIDE_Service-Core.md), [DocFrame-Handbuch](../services/GUIDE_DocFrame.md), [DocFrame-Internals](./services/DEV-GUIDE_DocFrame.md)):
+Nach dem Anlegen oder Ändern gerahmter Dokumente immer synchronisieren und gegen Rahmen- sowie Doku-Regeln prüfen (Details: [Service-Core](../services/GUIDE_Service-Core.md), [DocFrame-Handbuch](../services/GUIDE_DocFrame.md), [DocFrame-Internals](./services/DEV-GUIDE_DocFrame.md); CLI-Exit-Codes: `0` = bestanden, `1` = Prüffehlschlag, `2` = `STATE-GUARD`/I/O-Fehler):
 
 ```bash
 qb-cubie docframe update <pfad/zur/datei.md>
@@ -104,6 +106,14 @@ qb-cubie docframe update <pfad/zur/datei.md>
 
 ```bash
 qb-cubie docframe update docs/dev/README.md
+```
+
+```bash
+qb-cubie docframe check <pfad/zur/datei.md> --format text
+```
+
+```bash
+qb-cubie docensurance check <pfad/zur/datei.md> --format text
 ```
 
 ```bash

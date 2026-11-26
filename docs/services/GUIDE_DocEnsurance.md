@@ -98,6 +98,26 @@ DocEnsurance(
 | **`rules`** | `DEFAULT_DOC_RULES` | Registriert zusätzliche oder überschreibende Check-Regeln (`DocRuleProtocol`, `WorkspaceCheckRuleProtocol`, `FileCheckProtocol`) und Linter (`CstLinter`, `AstLinter`, `Pylint`, `MyPy`) über `service_core.rules.RuleRegistry`. |
 | **`timeout`** | `10.0` (Keyword-only) | Maximale Laufzeit (TTL) in Sekunden pro Session auf POSIX-Systemen; verhindert Endlosschleifen oder blockierende `input()`-Aufrufe. `None` deaktiviert das Limit. |
 
+### Aufruf über die Core-CLI (`qb-cubie`)
+
+Für direkte Prüfungen in der Shell oder CI-Pipelines steht `DocEnsurance` über die lazy geladene Core-CLI `qb-cubie` (sowie `python -m qb_cubie docensurance check` und `python -m qb_cubie.core.services.doc_ensurance check`) bereit — ohne dabei Geschwister-Services wie `doc_frame` zu importieren:
+
+```bash
+qb-cubie docensurance check
+```
+
+```bash
+qb-cubie docensurance check docs/ --exclude experiments --exclude docs/feature-drafts --format json
+```
+
+```bash
+python -m qb_cubie.core.services.doc_ensurance check docs/services/GUIDE_DocEnsurance.md
+```
+
+* **Exit-Codes:** `0` (`EXIT_OK` — alle Beispiele bestanden), `1` (`EXIT_CHECK_FAILED` — mindestens eine Diagnose mit `severity="error"`), `2` (`EXIT_ERROR` — ungültiges Ziel, `STATE-GUARD`- oder I/O-Fehler).
+* **Ausgabeformate:** `--format text` (Standard) liefert die formatierte Diagnose-Zusammenfassung; `--format json` serialisiert den `DocReport` im stabilen `schema_version: 1`-Format (`"service": "doc_ensurance"`).
+* **Pfad-Auflösung im CLI:** Im Unterschied zur Python-API akzeptiert die CLI ausschließlich bestehende Datei- oder Ordnerpfade (`adapters.resolve_cli_target_path`), sodass Tippfehler im Zielpfad deterministisch mit Exit-Code `2` enden.
+
 ### Wichtige Konfigurations-Details für die Praxis
 
 * **Gezielte Einzel- und Ordnerprüfung (`target` & `excludes`):**
@@ -109,7 +129,7 @@ DocEnsurance(
 * **Einsatz von `PyVenv` als Arena:**
   Da `PyVenv` standardmäßig den `MSGspecCodec` nutzt (der im isolierten Venv das Modul `qb_cubie` importieren muss), empfiehlt sich für schlanke Test-Venvs ohne vorinstalliertes `qb-cubie` die Initialisierung mit dem `CloudpickleCodec` (`ArenaBuilder(path).build(codec=CloudpickleCodec())`).
 * **Programmatische Auswertung über `DocReport` (`reporter=None`):**
-  Für eigene Analysen oder gezielte EBT-Tests lässt sich der Reporter deaktivieren, um den zurückgegebenen `DocReport` (`target`, `passed`, `sessions`, `diagnostics`) direkt zu inspizieren.
+  Für eigene Analysen oder gezielte EBT-Tests lässt sich der Reporter deaktivieren, um den zurückgegebenen `DocReport` (`target`, `passed`, `sessions`, `diagnostics`, `service == "doc_ensurance"`) direkt zu inspizieren.
 
 Das folgende Beispiel prüft einen mehrzeiligen In-Memory-Markdown-String mit einem verkürzten TTL-Timeout von `2.0` Sekunden und wertet den `DocReport` direkt ohne Reporter-Assertion aus:
 
@@ -503,7 +523,7 @@ pattern=minimal-fence-pattern | passed=True | out=minimal-style-ok
 
 ### 8.2 Eigene Baustein-Protokolle (`DocBlockProtocol`) schreiben
 
-Der interne Markdown-Scanner zerlegt jedes Dokument in flache `MdBlock(kind, content, line, meta)`-Objekte mit den Grundtypen `"heading"`, `"paragraph"`, `"list"`, `"code"` und `"details"`.
+Der interne Markdown-Scanner (gestützt auf `qb_cubie.core.service_core.markdown`) zerlegt jedes Dokument in flache `MdBlock(kind, content, line, meta)`-Objekte mit den sechs Grundtypen `"heading"`, `"paragraph"`, `"list"`, `"code"`, `"details"` und `"hr"` (horizontale Trennlinien wie `---`, `***` oder `___`, damit Trenner niemals fälschlich als `Explanation`-Absatz gezählt werden).
 
 Um eine völlig eigene Strukturregel zu definieren, implementiert man das `DocBlockProtocol` (`role`, `severity`, `rules` sowie die Methoden `matches(block)` und `extract(block)`). Im ersten Schritt definieren wir den Baustein `HeadingRequirement`, der direkt über jedem Code-Beispiel eine `### Beispiel:`-Überschrift verlangt:
 

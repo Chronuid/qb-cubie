@@ -37,17 +37,18 @@ Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisation
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) und Meta-Gate 4 (`META-SERVICE-PURE-DOMAIN-IO`) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in sieben spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`) und delegiert domänenneutrale Infrastruktur (Guards, Workspace, `FileCheckRunner`, Reporting) vollständig an [`qb_cubie.core.service_core`](../../services/GUIDE_Service-Core.md):
+Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) und Meta-Gate 4 (`META-SERVICE-PURE-DOMAIN-IO`, kanonisches `adapters.py`/`cli.py`-Layout) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`) und delegiert domänenneutrale Infrastruktur (Guards, Workspace, `FileCheckRunner`, Reporting, `cli_spec`) sowie Markdown-Lexer-Primitiven (`service_core.markdown`) vollständig an [`qb_cubie.core.service_core`](../../services/GUIDE_Service-Core.md):
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
-| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren (via `service_core.guards.validate_choice`) und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog` (mit `workspace: WorkspaceView \| None`), `FrameRenderContext`, `DocFrameReport`, `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
-| **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner & Pass-1-Metadaten-Extraktor (Ebene 0, I/O-frei) | `_FrameSpanScanner`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
-| **`frame_blocks.py`** | 100 % I/O-freie Struktur-Bausteine, dynamische Router (via `WorkspaceView.has_path`) & geschützte Content-Slots (Ebene 1) | `Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
+| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren (via `service_core.guards.validate_choice`) und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog` (mit `workspace: WorkspaceView \| None`), `FrameRenderContext`, `DocFrameReport` (mit `.service == "doc_frame"`), `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
+| **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner (via `service_core.markdown.DirectiveSpanScanner("frame")`, `parse_kv_attrs`, `HTML_WRAP_RE`, `is_horizontal_rule`) & Pass-1-Metadaten-Extraktor (Ebene 0, I/O-frei) | `_FRAME_SCANNER`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
+| **`frame_blocks.py`** | 100 % I/O-freie Struktur-Bausteine (re-exportiert `compute_rel_link` und nutzt `HTML_WRAP_RE` aus `service_core.markdown`), dynamische Router (via `WorkspaceView.has_path`) & geschützte Content-Slots (Ebene 1) | `Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
 | **`presets.py`** | Zentrale Single Source of Truth für Kopf-/Fuß-Templates, Standard-Presets & den verpflichtenden erkenntnistheoretischen Anker (Ebene 2, I/O-frei) | `FramePattern`, `EPISTEMIC_NOTICE_TEXT`, `EPISTEMIC_NOTICE`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
 | **`doc_frame_rules.py`** | I/O-freie Dokument-Diagnose-Regeln nach `WorkspaceCheckRuleProtocol` mit `FileContextCache` & `depends_on` (Ebene 2) | `_DocFrameRuleBase`, `DocFrameMissing` (`DocFrameMissingRule`), `DocFrameOutdated` (`DocFrameOutdatedRule`), `DocFrameBrokenRoute` (`DocFrameBrokenRouteRule`), `DocFrameProvenanceIncomplete` (`DocFrameProvenanceRule`), `CUBIE_DOCFRAME_RULES` |
 | **`adapters.py`** | Imperative Shell für Dateisystem-Auflösung, Katalog-Crawling & `FileSystemWorkspaceView`-Injektion | `resolve_target_path`, `normalize_frame_patterns`, `resolve_catalog_root`, `build_workspace_catalog`, `prepare_docframe_workspace` |
-| **`doc_frame.py`** | 2-Pass-Orchestrator (`update`, `check`, `scan_catalog`) via `service_core` (`FileCheckRunner`, `atomic_write_text`) & Preset-Re-Export (Ebene 3) | `DocFrame` (sowie Re-Export von `FramePattern` und allen Presets aus `presets.py`) |
+| **`cli.py` & `__main__.py`** | Lazy CLI-Adapter nach `service_core.cli_spec.ServiceCommandProtocol` (`qb-cubie docframe update\|check`) | `DocFrameCommand`, `COMMAND`, Module-Entrypoint `python -m qb_cubie.core.services.doc_frame` |
+| **`doc_frame.py`** | 2-Pass-Orchestrator (`update`, `check`, `scan_catalog`) via `service_core` (`FileCheckRunner`, `atomic_write_text`, `apply_span_replacements`) & Preset-Re-Export (Ebene 3) | `DocFrame` (sowie Re-Export von `FramePattern` und allen Presets aus `presets.py`) |
 
 ---
 
@@ -68,8 +69,8 @@ Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrato
    Baut den `DocumentCatalog` einmalig auf und delegiert die vollständige Multi-File-Verifikation nativ an `service_core.rules.FileCheckRunner` (Standardregeln: `CUBIE_DOCFRAME_RULES`, `service="doc_frame"`). Läuft 100 % isoliert ohne Import von `doc_ensurance`.
 3. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
    Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` (inkl. `FileSystemWorkspaceView`) ohne Dateisystem-Schreibzugriffe zurück.
-4. **CLI-Einstiegspunkt (`src/qb_cubie/cli.py`, `[project.scripts].qb-cubie`):**
-   `qb-cubie docframe update [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe update` und `python -m qb_cubie.core.services.docframe update`) delegiert direkt an `DocFrame.update(target=..., excludes=...)`, formatiert den `DocFrameReport` wahlweise als Text oder JSON und mappt `STATE-GUARD`- sowie I/O-Fehler (`ValueError`, `TypeError`, `OSError`) auf Exit-Code `2`.
+4. **Lazy CLI-Einstiegspunkt (`src/qb_cubie/cli.py` + `doc_frame/cli.py`, `[project.scripts].qb-cubie`):**
+   `qb-cubie docframe update|check [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe ...`, `python -m qb_cubie.core.services.docframe ...` und `python -m qb_cubie.core.services.doc_frame ...`) wird lazy über `CommandSpec` geladen (ohne `doc_ensurance` zu importieren), delegiert über `DocFrameCommand` an `DocFrame.update(...)` bzw. `DocFrame.check(..., reporter=None)`, rendert Text oder `schema_version: 1`-JSON (`"service": "doc_frame"`, bei `update` zusätzlich mit abwärtskompatiblen Feldern `updated_files` und `catalog_entries`) und nutzt die einheitlichen Exit-Codes `0` (`EXIT_OK`), `1` (`EXIT_CHECK_FAILED` bei `passed=False`) und `2` (`EXIT_ERROR` bei `ValueError`, `TypeError`, `OSError`).
 
 ### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`adapters.resolve_catalog_root`)
 
@@ -127,18 +128,18 @@ Flankiert wird `protocols.py` durch drei strikte `STATE-GUARD`-Validatoren:
 
 In Pass 1 analysiert `_catalog_scanner.py` alle Markdown-Dateien des Projekts ohne externe Parser-Abhängigkeiten.
 
-### 2.1 Zeilenbasierte Span-Erkennung & Fence-Isolation (`_FrameSpanScanner`)
+### 2.1 Zeilenbasierte Span-Erkennung & Fence-Isolation (`service_core.markdown.DirectiveSpanScanner`)
 
-Ein Dokumentations-Handbuch (wie `GUIDE_DocFrame.md` oder dieser Dev-Guide) enthält in seinen Markdown-Codeblöcken häufig selbst Beispiel-Kommentare der Form `<!-- qb:frame id="..." -->`. Ein naiver Regex-lauf über den gesamten Datei-String würde diese Code-Beispiele fälschlicherweise als echte Rahmen-Zonen des Dokuments interpretieren.
+Ein Dokumentations-Handbuch (wie `GUIDE_DocFrame.md` oder dieser Dev-Guide) enthält in seinen Markdown-Codeblöcken häufig selbst Beispiel-Kommentare der Form `<!-- qb:frame id="..." -->`. Ein naiver Regex-Lauf über den gesamten Datei-String würde diese Code-Beispiele fälschlicherweise als echte Rahmen-Zonen des Dokuments interpretieren.
 
-`_FrameSpanScanner` (`parse_frame_spans(content) -> tuple[list[FrameSpan], list[int]]`) löst dies über einen zeilenbasierten Zustandsautomaten mit exakter Offset-Buchführung (`splitlines(keepends=True)`):
+`_catalog_scanner.py` delegiert das gesamte Scanning über `_FRAME_SCANNER = DirectiveSpanScanner("frame", validate_attrs=_validate_frame_attrs)` an `qb_cubie.core.service_core.markdown` und übersetzt die zurückgegebenen `DirectiveSpan`-Records in typisierte `FrameSpan`-DTOs (`parse_frame_spans(content) -> tuple[list[FrameSpan], list[int]]`):
 
-1. **Dynamisches Code-Fence-Tracking (`_update_fence`):**
-   Beginnt eine getrimmte Zeile außerhalb eines Fences mit mindestens drei Backticks (`` ``` ``) oder Tilden (`~~~`), speichert `self.fence` den exakten Fence-Präfix (z. B. ```` ```` ```` bei einem 4-Backtick-Block). Solange `self.fence` aktiv ist, gibt `_update_fence` `True` zurück und `_consume_line` ignoriert sämtliche `qb:frame`-Tags im Inneren. Erst eine Zeile, die aus mindestens genauso vielen identischen Fence-Zeichen ohne Folgezeichen besteht, schließt den Fence (`self.fence = None`).
-2. **Attribut-Extraktion & Sofort-Guards (`_open_span` & `parse_tag_attrs`):**
-   Trifft der Scanner außerhalb eines Fences auf `_OPEN_TAG_RE` (`^<!--\s*qb:frame\b([^>]*)-->$`), extrahiert `parse_tag_attrs` alle Schlüssel-Wert-Paare (`key="val"` oder `key='val'`) über `_ATTR_RE`. Fehlt ein nicht-leeres `id`-Attribut oder liegt `zone` (Default: `"head"`) außerhalb von `VALID_ZONES`, wirft `_open_span` sofort einen `ValueError("STATE-GUARD: ...")`.
-3. **Erkennung ungeschlossener Rahmen (`self.unclosed`):**
-   Wird ein neuer `qb:frame`-Block geöffnet, während `self.active_open` noch nicht durch `<!-- /qb:frame -->` (`_CLOSE_TAG_RE`) geschlossen wurde, oder endet die Datei bei offenem `self.active_open`, trägt der Scanner die 1-basierte Startzeile des ungeschlossenen Tags in `self.unclosed: list[int]` ein.
+1. **Dynamisches Code-Fence-Tracking (`FenceTracker`):**
+   Beginnt eine getrimmte Zeile außerhalb eines Fences mit mindestens drei Backticks (`` ``` ``) oder Tilden (`~~~`), merkt sich `FenceTracker` den exakten Fence-Präfix (z. B. ```` ```` ```` bei einem 4-Backtick-Block). Solange der Fence aktiv ist, ignoriert der Scanner sämtliche `qb:frame`-Tags im Inneren. Erst eine Zeile aus mindestens genauso vielen identischen Fence-Zeichen ohne Folgezeichen schließt den Fence.
+2. **Strikte Attribut-Extraktion & Sofort-Guards (`parse_kv_attrs(..., mode="quoted")` & `_validate_frame_attrs`):**
+   Trifft `DirectiveSpanScanner` außerhalb eines Fences auf einen einzeiligen Öffnungs-Tag (`^<!--\s*qb:frame(?=\s|-->)([^>]*)-->$`), parst `parse_kv_attrs(..., mode="quoted")` (auch re-exportiert als `parse_tag_attrs`) strikt Leerzeichen-getrennte `key="val"`- oder `key='val'`-Paare. Ungequotete Werte (z. B. `order=10`) oder syntaktisch defekte Tokens werfen sofort `ValueError("STATE-GUARD: Malformed or unquoted attribute ...")` statt still ignoriert zu werden. Anschließend prüft `_validate_frame_attrs`, dass `id` nicht leer ist und `zone` (Default: `"head"`) in `VALID_ZONES` liegt.
+3. **Erkennung unvollständiger & ungeschlossener Rahmen (`unclosed`):**
+   Ein unvollständiger Öffnungs-Tag (`<!-- qb:frame ...` ohne `-->` auf derselben Zeile), ein neu geöffneter `qb:frame`-Tag vor einem schließenden `<!-- /qb:frame -->` oder ein offener Tag am Dateiende tragen die 1-basierte Startzeile direkt in `unclosed: list[int]` ein.
 
 ### 2.2 Zero-Config-Metadaten-Extraktion (`extract_doc_meta`)
 
@@ -267,8 +268,8 @@ In `presets.py` (und re-exportiert über `doc_frame.py`) sind daraus drei Standa
 
 Wenn `DocFrame.run()` in Pass 2 eine Datei aktualisiert, müssen `head`-, `router`- und `foot`-Spans ersetzt werden, ohne den dazwischenliegenden Dokumentkörper zu verändern:
 
-* **In-Place-Ersetzung in umgekehrter Reihenfolge (`for span in reversed(spans)`):**
-  Da eine neu gerenderte `head`- oder `router`-Zone länger oder kürzer sein kann als der bisherige `inner_content`, würden sich bei einer Ersetzung von oben nach unten die Zeichen-Offsets (`start_idx`, `end_idx`) aller nachfolgenden Spans verschieben. Indem `_render_file_frames` rückwärts vom Dateiende zum Dateianfang (`foot` $\to$ `router` $\to$ `head`) über `reversed(spans)` iteriert und `result[:span.start_idx] + replacement + result[span.end_idx:]` schneidet, bleiben sämtliche vorangehenden Zeichen-Indizes exakt gültig.
+* **In-Place-Ersetzung in umgekehrter Reihenfolge (`service_core.markdown.apply_span_replacements`):**
+  Da eine neu gerenderte `head`- oder `router`-Zone länger oder kürzer sein kann als der bisherige `inner_content`, würden sich bei einer Ersetzung von oben nach unten die Zeichen-Offsets (`start_idx`, `end_idx`) aller nachfolgenden Spans verschieben. `_render_file_frames` sammelt alle `(span.start_idx, span.end_idx, rendered)`-Tupel und delegiert das Rückwärts-Slicing inklusive Grenzen- und Überlappungs-`STATE-GUARD`s an `service_core.markdown.apply_span_replacements(content, replacements)`.
 * **Zeilenumbruch-Invariante & Idempotenz (`_render_single_span`):**
   `_render_single_span` setzt vor den Zonen-Inhalt `lead_nl = "\n\n" if span.zone == "foot" else "\n"`, schließt mit `\n{span.close_tag}` ab und erhält einen etwaigen Zeilenumbruch hinter dem schließenden Tag (`trail_nl`). Da `parse_frame_spans` beim nächsten Lauf exakt diesen `inner_content` wieder ausliest und `inner_content.strip()` identisch gerendert wird, ist `DocFrame.update()` streng **idempotent**: Ein zweiter Lauf über ein bereits synchronisiertes Repository erzeugt `updated_files == ()` und führt keinen einzigen Schreibzugriff aus.
 

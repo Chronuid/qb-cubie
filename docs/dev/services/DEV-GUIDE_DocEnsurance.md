@@ -30,14 +30,15 @@ Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Doku
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Datei, $\le 12$ Codezeilen pro Funktionskörper) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_ensurance/` in sechs spezialisierte Module unterteilt:
+Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Datei, $\le 12$ Codezeilen pro Funktionskörper) und Meta-Gate 4 (`adapters.py`/`cli.py` als kanonische Shell-Module) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_ensurance/` in spezialisierte Module unterteilt und delegiert domänenneutrale Infrastruktur an [`qb_cubie.core.service_core`](../../services/GUIDE_Service-Core.md):
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
-| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Re-Exports promovierter Core-Primitiven (`VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol` aus `qb_cubie.core.protocols`) und Protokoll-Verträge | `MdBlock`, `ExtractedExample`, `ExampleSession`, `DocDiagnostic`, `SessionTrace`, `DocReport`, `DocBlockProtocol`, `DocRuleProtocol`, `DocPatternProtocol`, `DocScopeProtocol`, `ServiceReportProtocol` |
-| **`_markdown_scanner.py`** | Zustandslose Tokenisierungs-Engine (Ebene 0) | `_MarkdownScanner` (zeilenbasierter Zustandsautomat: Markdown-Text $\to$ `list[MdBlock]`) |
-| **`_source_loader.py`** | Imperative I/O-Shell, die Pfad-Heuristik, Verzeichnis-Crawling und Excludes an `qb_cubie.core.service_core.workspace` delegiert | `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
-| **`doc_patterns.py`** | Atomare Struktur-Matcher (Ebene 1), Basis-Regeln (Ebene 2), Anker-Scanner (Ebene 3) & Session-Scoping (Ebene 4) | `Explanation`, `CodeSnippet`, `CollapsibleResult`, `ExplanationRule`, `CodeRule`, `OutputRule`, `DocLinterRule`, `MissingOutputRule`, `OutputMatchRule`, `ExamplePattern`, `TaggedScope`, `CUBIE_DOC_STYLE`, `DEFAULT_DOC_RULES` |
+| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Re-Exports promovierter Core-Primitiven (`VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol` aus `qb_cubie.core.protocols`) und Protokoll-Verträge | `MdBlock`, `ExtractedExample`, `ExampleSession`, `DocDiagnostic`, `SessionTrace`, `DocReport` (mit `.service == "doc_ensurance"`), `DocBlockProtocol`, `DocRuleProtocol`, `DocPatternProtocol`, `DocScopeProtocol`, `ServiceReportProtocol` |
+| **`_markdown_scanner.py`** | Zustandslose Tokenisierungs-Engine (Ebene 0, gestützt auf `service_core.markdown`: `FenceTracker`, `extract_fence_prefix`, `is_closing_fence`, `is_horizontal_rule`) | `_MarkdownScanner` (zeilenbasierter Zustandsautomat: Markdown-Text $\to$ `list[MdBlock]` inkl. `kind="hr"`) |
+| **`adapters.py`** | Imperative I/O-Shell (ersetzt Legacy-`_source_loader.py`), die Pfad-Heuristik, CLI-Zielauflösung, Verzeichnis-Crawling und Excludes an `qb_cubie.core.service_core.workspace` delegiert | `resolve_cli_target_path`, `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
+| **`cli.py` & `__main__.py`** | Lazy CLI-Adapter nach `service_core.cli_spec.ServiceCommandProtocol` (`qb-cubie docensurance check`) | `DocEnsuranceCommand`, `COMMAND`, Module-Entrypoint `python -m qb_cubie.core.services.doc_ensurance` |
+| **`doc_patterns.py`** | Atomare Struktur-Matcher (Ebene 1, gestützt auf `service_core.markdown`: `parse_kv_attrs`, `extract_fence_prefix`, `is_closing_fence`), Basis-Regeln (Ebene 2), Anker-Scanner (Ebene 3) & Session-Scoping (Ebene 4) | `Explanation`, `CodeSnippet`, `CollapsibleResult`, `ExplanationRule`, `CodeRule`, `OutputRule`, `DocLinterRule`, `MissingOutputRule`, `OutputMatchRule`, `ExamplePattern`, `TaggedScope`, `CUBIE_DOC_STYLE`, `DEFAULT_DOC_RULES` |
 | **`doc_rules.py`** | Didaktische Standard-Prüfregeln (Ebene 2) | `NoOutput`, `HighComplexity`, `LargeOutput`, `RawTraceback`, `CUBIE_DOC_RULES` |
 | **`doc_ensurance.py`** | Stateful Orchestrator (Ebene 5, gestützt auf `service_core.{guards, workspace, rules}`) & IPC-sicherer Arena-Worker | `DocEnsurance`, `_execute_session_payload`, `_execute_single_step`, `_classify_step_exception` |
 
@@ -73,7 +74,7 @@ Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@datacla
 
 1. **`MdBlock(kind, content, line, meta="")`**
    Das atomare Ausgabe-Token des `_MarkdownScanner`.
-   * `kind`: Einer der fünf kanonischen Block-Typen `"heading"`, `"paragraph"`, `"list"`, `"code"` oder `"details"`.
+   * `kind`: Einer der sechs kanonischen Block-Typen `"heading"`, `"paragraph"`, `"list"`, `"code"`, `"details"` oder `"hr"` (CommonMark-Trennlinien wie `---`, `***`, `___`).
    * `content`: Der normalisierte Text- oder Code-Inhalt des Blocks.
    * `line`: 1-basierte Startzeile des Blocks im ursprünglichen Markdown-Dokument.
    * `meta`: Kontextabhängige Metadaten – bei `"code"` der Info-String hinter dem öffnenden Fence (z. B. `"python session=alpha raises=ValueError"`), bei `"details"` der bereinigte Text des `<summary>`-Tags.
@@ -92,20 +93,21 @@ Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@datacla
    Das universelle Diagnose-DTO für Strukturbrüche, Regelverstöße, Linter-Befunde und Laufzeitfehler. Ein `__post_init__`-Hook erzwingt über `validate_severity(self.severity)`, dass ausschließlich `"error"` oder `"warning"` (`VALID_SEVERITIES`) instanziiert werden können.
 
 5. **`SessionTrace(session_id, actual_outputs, passed)` & `DocReport(target, passed, sessions, diagnostics)`**
-   `SessionTrace` protokolliert die real beobachteten Ausgaben (`actual_outputs: tuple[str, ...]`) pro Schritt sowie den Booleschen Gesamtstatus einer Session. `DocReport` bündelt alle `SessionTrace`s und Diagnosen (`diagnostics: tuple[DiagnosticProtocol, ...]`, sodass sowohl `DocDiagnostic` als auch domänenneutrale Core-`Diagnostic`-Records aus `FileCheckProtocol`-Regeln einheitlich getragen werden) und implementiert das in `qb_cubie.core.protocols` definierte `ServiceReportProtocol`, über das `PytestReporter` beliebige Cubie-Services auswertet.
+   `SessionTrace` protokolliert die real beobachteten Ausgaben (`actual_outputs: tuple[str, ...]`) pro Schritt sowie den Booleschen Gesamtstatus einer Session. `DocReport` exponiert zusätzlich die Property `service -> "doc_ensurance"`, bündelt alle `SessionTrace`s und Diagnosen (`diagnostics: tuple[DiagnosticProtocol, ...]`, sodass sowohl `DocDiagnostic` als auch domänenneutrale Core-`Diagnostic`-Records aus `FileCheckProtocol`-Regeln einheitlich getragen werden) und implementiert das in `qb_cubie.core.protocols` definierte `ServiceReportProtocol`, über das `PytestReporter`, `JsonReporter` und `cli_spec.render_command_result` beliebige Cubie-Services auswerten.
 
 ---
 
 ## 2. Ebene 0: Der Markdown-Zustandsautomat (`_MarkdownScanner`)
 
-Anstatt schwere externe Markdown-AST-Bibliotheken einzubinden (die HTML-Blöcke, GitHub-Alerts oder verschachtelte Code-Fences oft unterschiedlich interpretieren), nutzt `DocEnsurance` in `_markdown_scanner.py` eine deterministische, zeilenbasierte State-Machine (`_MarkdownScanner`).
+Anstatt schwere externe Markdown-AST-Bibliotheken einzubinden (die HTML-Blöcke, GitHub-Alerts oder verschachtelte Code-Fences oft unterschiedlich interpretieren), nutzt `DocEnsurance` in `_markdown_scanner.py` eine deterministische, zeilenbasierte State-Machine (`_MarkdownScanner`), die ihre Lexer-Primitiven (`FenceTracker`, `extract_fence_prefix`, `is_closing_fence`, `is_horizontal_rule`) aus der optionalen Subschicht `qb_cubie.core.service_core.markdown` bezieht.
 
-### 2.1 Absatz-Klassifikation & Nachbarschafts-Schutz (`_consume_text_line`)
+### 2.1 Absatz-Klassifikation, Trennlinien & Nachbarschafts-Schutz (`_consume_text_line`)
 
-Für die strukturelle Prüfung (`DOC-PRE`) ist entscheidend, dass nur echter erklärender Fließtext als `MdBlock(kind="paragraph")` emittiert wird, während Aufzählungen, Tabellen oder Zitate niemals versehentlich als gültige `Explanation` durchgehen:
+Für die strukturelle Prüfung (`DOC-PRE`) ist entscheidend, dass nur echter erklärender Fließtext als `MdBlock(kind="paragraph")` emittiert wird, während Trennlinien, Aufzählungen, Tabellen oder Zitate niemals versehentlich als gültige `Explanation` durchgehen:
 
+* **Horizontale Trennlinien (`is_horizontal_rule` $\to$ `_emit_horizontal_rule`):** CommonMark-Trennlinien (`---`, `***`, `___` mit optionalem Whitespace) werden explizit über `service_core.markdown.is_horizontal_rule` erkannt, flushen offene Absätze, setzen `in_list` zurück und erzeugen `MdBlock(kind="hr", ...)` — sie werden also niemals fälschlich als `Explanation`-Absatz klassifiziert.
 * **Nicht-Absatz-Erkennung (`_NON_PARA_RE`):** Zeilen, die mit Aufzählungszeichen (`- `, `* `, `+ `), Nummerierungen (`1. `, `1) `), Blockquotes (`>`) oder Tabellen-Pipes (`|...|`) beginnen, werden als Nicht-Absatz markiert, flushen einen eventuell offenen Absatz-Puffer und werden als `MdBlock(kind="list", ...)` abgelegt.
-* **Mehrzeilige Listen-Fortsetzungen (`self.in_list`):** Befindet sich der Scanner in einer Liste (`in_list = True`) und ist die Folgezeile eingerückt (`line != line.lstrip(" \t")`), gilt sie weiterhin als Teil des Listenpunkts und nicht als neuer Paragraph. Erst eine Leerzeile, eine Überschrift (`#`), ein Code-Fence oder ein Spezialblock setzt `in_list` zurück.
+* **Mehrzeilige Listen-Fortsetzungen (`self.in_list`):** Befindet sich der Scanner in einer Liste (`in_list = True`) und ist die Folgezeile eingerückt (`line != line.lstrip(" \t")`), gilt sie weiterhin als Teil des Listenpunkts und nicht als neuer Paragraph. Erst eine Leerzeile, eine Trennlinie, eine Überschrift (`#`), ein Code-Fence oder ein Spezialblock setzt `in_list` zurück.
 * **GitHub-Alerts als valide Erklärungen (`_consume_alert`):** Während klassische Zitate (`> Text`) keine `Explanation` darstellen, werden GitHub-spezifische Hinweisblöcke (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`) über `_ALERT_RE` abgefangen. Ihr Textkörper wird von führenden `>`-Zeichen befreit und bewusst als `MdBlock(kind="paragraph")` emittiert, damit ein Warn- oder Hinweisblock unmittelbar vor einem Code-Beispiel als Erklärung dienen kann.
 * **Transparenz von HTML-Kommentaren (`_consume_html_comment`):** Ein- und mehrzeilige Kommentare (`<!-- ... -->`) flushen zwar den aktuellen Absatz, emittieren selbst aber **keinen** `MdBlock`. Ein unsichtbarer Kommentar zwischen Erklärung und Code-Block unterbricht somit nicht die direkte Block-Nachbarschaft.
 
@@ -113,7 +115,7 @@ Für die strukturelle Prüfung (`DOC-PRE`) ist entscheidend, dass nur echter erk
 
 Beim Einlesen eines Code-Blocks (` ``` ` oder `~~~`) löst der Scanner zwei klassische Dokumentations-Fallstricke:
 
-1. **Dynamische Fence-Länge (`_fence_prefix` & `_is_closing_fence`):**
+1. **Dynamische Fence-Länge (`service_core.markdown.extract_fence_prefix` & `is_closing_fence`):**
    Ein öffnender Fence wird erst durch eine Zeile geschlossen, die mindestens genauso viele identische Fence-Zeichen (` ``` ` vs. ```` ```` ```` bzw. `~~~`) enthält und danach keine weiteren Zeichen besitzt. Dadurch können Entwickler in Dokumentationen 4-Backtick-Blöcke (```` ````markdown ````) verwenden, um 3-Backtick-Python-Beispiele darzustellen, ohne dass diese inneren Blöcke jemals als ausführbare Anker geparst werden.
 2. **Schutz von Multiline-Strings bei eingerückten Fences (`_strip_fence_indent`):**
    Ist ein Code-Block im Markdown eingerückt (z. B. um 4 Leerzeichen unter einem Listenpunkt), würde ein pauschales `textwrap.dedent()` auf dem gesamten Code scheitern, sobald das Python-Snippet einen un-eingerückten Multiline-String (`'''zeile1\nzeile2'''`) enthält. Deshalb zieht `_strip_fence_indent` bei eingerückten Fences (`indent > 0`) zeilenweise maximal `indent` führende Leerzeichen ab und nutzt `textwrap.dedent` nur dann, wenn der öffnende Fence selbst auf Spalte 0 stand (`indent == 0`).
@@ -123,7 +125,7 @@ Beim Einlesen eines Code-Blocks (` ``` ` oder `~~~`) löst der Scanner zwei klas
 Ein `<details>`-Ergebnisblock kann im erwarteten Konsolen-Output selbst HTML-Fragmente wie `<summary>Inner</summary>` oder `</details>` enthalten (etwa wenn ein Beispiel HTML-Text auf `stdout` ausgibt).
 
 * **Fence-Tracking in `_find_details_end` und `_partition_details_lines`:**
-  Der Scanner verfolgt den Code-Fence-Zustand *innerhalb* des `<details>`-Blocks (`_step_details_fence`). Solange ein innerer Code-Fence aktiv ist (`is_fenced = True`), werden `<summary>`- und `</details>`-Tags komplett ignoriert.
+  Beide Methoden instanziieren `service_core.markdown.FenceTracker` und verfolgen den Code-Fence-Zustand *innerhalb* des `<details>`-Blocks (`fences.feed(line)`). Solange ein innerer Code-Fence aktiv ist (`is_fenced = True`), werden `<summary>`- und `</details>`-Tags komplett ignoriert.
 * **Schutz gegen ungeschlossene `<details>`-Blöcke:**
   Vergisst ein Autor das schließende `</details>`-Tag, sucht `_find_details_end` nur bis zum nächsten öffnenden `<details` (auf äußerer Ebene). Trifft es vorher auf kein `</details>`, gibt es `None` zurück, und `_consume_details` stuft die `<details>`-Zeile als normalen Absatz zurück. Dadurch schlägt zwar das fehlerhafte erste Beispiel sauber mit `DOC-POST` fehl, verschluckt aber niemals nachfolgende Code-Beispiele im selben Dokument.
 
@@ -181,9 +183,9 @@ Die drei mitgelieferten Standard-Bausteine in `doc_patterns.py` decken den `CUBI
 1. **`Explanation(min_chars=20, role="explanation", severity="error", rules=())`**
    Prüft `block.kind == "paragraph" and len(block.content.strip()) >= self.min_chars` und gibt den bereinigten Absatztext zurück.
 2. **`CodeSnippet(lang="python", role="target", severity="error", rules=())`**
-   Zerlegt `block.meta` über `re.split(r"[\s,]+", block.meta.strip())` und prüft, ob das erste Token exakt `self.lang` entspricht (sodass fremde Blöcke wie `python3`, `py` oder `bash` ignoriert werden). Über `CodeSnippet.parse_tags(meta)` werden die Schlüssel-Wert-Paare `session=<id>` und `raises=<Exc>` mittels `_TAG_RE = re.compile(r"\b(?P<key>session|raises)=(?P<val>[^\s,]+)")` extrahiert. Durch die Wortgrenze `\b` lösen Attribute wie `my_session=alpha` oder `no_raises=ValueError` keine Fehl-Extraktion aus.
+   Zerlegt `block.meta` über `re.split(r"[\s,]+", block.meta.strip())` und prüft, ob das erste Token exakt `self.lang` entspricht (sodass fremde Blöcke wie `python3`, `py` oder `bash` ignoriert werden). Über `CodeSnippet.parse_tags(meta)` delegiert die Tag-Extraktion an `service_core.markdown.parse_kv_attrs(meta, mode="unquoted_whitelist", allowed_keys=("session", "raises"))`. Durch die Wortgrenze `\b` lösen Attribute wie `my_session=alpha` oder `no_raises=ValueError` keine Fehl-Extraktion aus.
 3. **`CollapsibleResult(summary=None, role="result", severity="error", rules=())`**
-   Prüft `block.kind == "details"` sowie optional `self.summary in block.meta`. Beim Extrahieren (`extract`) entfernt `_is_wrapped_fence` genau dann die erste und letzte Zeile, wenn der gesamte Inhalt von einem einzigen passenden Code-Fence umschlossen ist (ohne dass derselbe Fence zwischendurch geschlossen und neu geöffnet wird). Dabei wird nur `strip("\r\n")` statt `.strip()` verwendet, damit signifikante führende Leerzeichen in mehrzeiligen Konsolenausgaben erhalten bleiben.
+   Prüft `block.kind == "details"` sowie optional `self.summary in block.meta`. Beim Extrahieren (`extract`) nutzt `_is_wrapped_fence` die gemeinsamen Funktionen `extract_fence_prefix` und `is_closing_fence` aus `service_core.markdown`, um genau dann die erste und letzte Zeile zu entfernen, wenn der gesamte Inhalt von einem einzigen passenden Code-Fence umschlossen ist (ohne dass derselbe Fence zwischendurch geschlossen und neu geöffnet wird). Dabei wird nur `strip("\r\n")` statt `.strip()` verwendet, damit signifikante führende Leerzeichen in mehrzeiligen Konsolenausgaben erhalten bleiben.
 
 ### 3.2 Der Anker-Scanner (`ExamplePattern` – Ebene 3)
 
@@ -291,13 +293,14 @@ Der Aufruf `service.run()` durchläuft analog zu `EBT` drei strikt getrennte Mak
 
 ### 5.1 Phase 1: `_arrange()` – Ziel-Auflösung, Ausschlüsse & asymmetrische Vorfilterung
 
-1. **Pfad-Heuristik (`_source_loader.py`: `resolve_sources` & `looks_like_path`):**
-   Wird `target` als `str` übergeben, entscheidet `looks_like_path(target)`, ob es sich um einen Dateisystempfad oder einen In-Memory-Markdown-String handelt:
+1. **Pfad-Heuristik & CLI-Zielauflösung (`adapters.py`: `resolve_sources`, `looks_like_path`, `resolve_cli_target_path`):**
+   Wird `target` programmatisch als `str` übergeben, entscheidet `looks_like_path(target)` (aus `service_core.workspace`), ob es sich um einen Dateisystempfad oder einen In-Memory-Markdown-String handelt:
    * Enthält der String Zeilenumbrüche (`\n`), beginnt er mit typischen Markdown-Präfixen (`#`, `` ` ``, `~`, `<`, `>`, `-`, `*`, `+`, `!`, `[`, `|`) oder enthält er Markdown-Links (`](`, `://`), wird er sofort als `("IN_MEMORY", target)` behandelt.
    * Existiert der Pfad im Dateisystem oder endet er auf `.md` / `.markdown`, gilt er als Dateipfad (sodass ein Tippfehler wie `"docs/missing_guide.md"` garantiert einen `FileNotFoundError`-`STATE-GUARD` wirft).
    * Einzeilige Strings ohne Leerzeichen gelten als Pfad, sobald sie Pfad- oder Dateizeichen (`/`, `\`, `.`, `_`, `-`) enthalten (z. B. `"docs_typo"` $\to$ `FileNotFoundError`, aber `"Hello"` $\to$ `IN_MEMORY`). Enthält der String Leerzeichen, gilt er nur dann als Pfad, wenn das erste Wort einen Pfadtrenner (`/` oder `\`) besitzt und der String nicht mit Satzzeichen (`.`, `!`, `?`) endet (sodass Fließtext wie `"Read/write operations in Python."` als `IN_MEMORY` erkannt wird).
+   * Im CLI-Einstiegspunkt (`cli.py`: `qb-cubie docensurance check [target] [--exclude ...] [--format text|json]`) erzwingt `adapters.resolve_cli_target_path(target)` stets einen existierenden Dateisystempfad (kein In-Memory-Fallback), sodass fehlerhafte Pfade sauber auf Exit-Code `2` (`EXIT_ERROR`) abgebildet werden.
 
-2. **Elternpfad- und Basename-sichere Excludes (`_source_loader.py`: `crawl_directory` & `is_excluded`):**
+2. **Elternpfad- und Basename-sichere Excludes (`adapters.py`: `crawl_directory` & `is_excluded`):**
    Beim rekursiven Scannen eines Verzeichnisses (`resolved.rglob("*.md")`) wird jeder Pfad zunächst via `path.relative_to(resolved)` relativ zum Scan-Root normalisiert:
    * Dadurch können Ordnernamen *oberhalb* des Scan-Roots (etwa wenn das Projekt selbst in einem Ordner `/tmp/experiments/subproject` liegt und `excludes=("experiments",)` aktiv ist) niemals zu Fehl-Ausschlüssen führen.
    * In `is_excluded` wird ein führendes `{root_name}/` über `stripped.removeprefix(f"{root_name}/")` abgetrennt, damit `DocEnsurance(target="docs", excludes=("docs/drafts",))` und `excludes=("drafts",)` identisch funktionieren.
