@@ -17,10 +17,12 @@ ISOLATION_RULE_ID: Final[str] = "META-SERVICE-ISOLATION"
 PURE_IO_RULE_ID: Final[str] = "META-SERVICE-PURE-DOMAIN-IO"
 DOMAIN_COUPLING_RULE_ID: Final[str] = "META-SERVICE-DOMAIN-COUPLING"
 CORE_NEUTRALITY_RULE_ID: Final[str] = "META-SERVICE-CORE-NEUTRALITY"
+CLI_LAZY_RULE_ID: Final[str] = "META-CLI-NO-EAGER-SERVICE-IMPORT"
 SERVICE_MODULE_LINE_LIMIT: Final[int] = 500
 PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
 SERVICES_ROOT: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "core" / "services"
 SERVICE_CORE_ROOT: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "core" / "service_core"
+CLI_ENTRY_FILE: Final[Path] = PROJECT_ROOT / "src" / "qb_cubie" / "cli.py"
 CYCLE_1_SERVICE_CORE_MODULES: Final[tuple[str, ...]] = (
     "__init__.py",
     "guards.py",
@@ -28,12 +30,16 @@ CYCLE_1_SERVICE_CORE_MODULES: Final[tuple[str, ...]] = (
     "rules.py",
     "reporting.py",
 )
+CYCLE_2_SERVICE_CORE_MODULES: Final[tuple[str, ...]] = (
+    "markdown.py",
+    "cli_spec.py",
+)
 
 pytestmark = [pytest.mark.meta, pytest.mark.services]
 SCAN_EXCLUDES: Final[list[str]] = [".arenas", ".venv", "__pycache__", ".git", ".pytest_cache"]
 SERVICE_PREFIXES: Final[tuple[str, ...]] = ("qb_cubie.core.services", "qb_cubie.services")
 IMPERATIVE_SHELL_FILENAMES: Final[frozenset[str]] = frozenset(
-    {"__init__.py", "__main__.py", "adapters.py", "cli.py", "_source_loader.py"}
+    {"__init__.py", "__main__.py", "adapters.py", "cli.py"}
 )
 FORBIDDEN_IO_CALLS: Final[frozenset[str]] = frozenset({"open", "print"})
 FORBIDDEN_IO_ATTR_CALLS: Final[frozenset[str]] = frozenset(
@@ -309,6 +315,55 @@ class ServiceCoreNeutralityRule(CstRule):
 def build_service_core_neutrality_linter(*, default_core_level: int = 2) -> CstLinter:
     """Create the configured CstLinter instance for Meta-Gate 4 service_core neutrality checks."""
     return CstLinter(rules=[ServiceCoreNeutralityRule(default_core_level=default_core_level)], excludes=SCAN_EXCLUDES)
+
+
+class CliNoEagerServiceImportRule(CstRule):
+    """Detect direct static imports of concrete service packages inside the CLI composition root."""
+
+    def _report_eager_import(self, node: cst.CSTNode, target: str) -> None:
+        """Record a META-CLI-NO-EAGER-SERVICE-IMPORT diagnostic for eager service imports in cli.py."""
+        self.add_diagnostic(
+            node=node,
+            rule_id=CLI_LAZY_RULE_ID,
+            message=(
+                f"Composition Root cli.py darf keinen Service '{target}' statisch importieren "
+                "(HYPOTHESIS.md H5: Lazy CLI-Registry über service_core.cli_spec)."
+            ),
+            node_name=target,
+        )
+
+    def visit_Import(self, node: cst.Import) -> None:
+        """Flag direct 'import qb_cubie.core.services...' statements inside cli.py."""
+        if not self._module:
+            return
+        for alias in node.names:
+            module_path = self._module.code_for_node(alias.name)
+            if _is_services_module_path(module_path):
+                self._report_eager_import(alias, module_path)
+
+    def visit_ImportFrom(self, node: cst.ImportFrom) -> None:
+        """Flag absolute or relative 'from ...services...' imports inside cli.py."""
+        if not self._module:
+            return
+        module_path = self._module.code_for_node(node.module) if node.module is not None else ""
+        if node.relative:
+            if module_path in {"core.services", "services"} or module_path.startswith(("core.services.", "services.")):
+                self._report_eager_import(node, f"{'.' * len(node.relative)}{module_path}")
+                return
+            if module_path in {"", "core"} and "services" in _imported_names(node):
+                suffix = f"{module_path}.services" if module_path else "services"
+                self._report_eager_import(node, f"{'.' * len(node.relative)}{suffix}")
+            return
+        if _is_services_module_path(module_path):
+            self._report_eager_import(node, module_path)
+            return
+        if module_path in {"qb_cubie.core", "qb_cubie"} and "services" in _imported_names(node):
+            self._report_eager_import(node, f"{module_path}.services")
+
+
+def build_cli_lazy_import_linter() -> CstLinter:
+    """Create the configured CstLinter instance for Meta-Gate 4 CLI lazy-loading checks."""
+    return CstLinter(rules=[CliNoEagerServiceImportRule()], excludes=SCAN_EXCLUDES)
 
 
 # ========== 1. WÄCHTER-KALIBRIERUNG: SERVICE-ISOLATION (CLEAN / FAULT / FILE PROBES) ==================================
@@ -924,3 +979,195 @@ def test_service_core_imports_in_isolation_with_services_blocked() -> None:
         post=WorldState(returns=0),
         reporter=None,
     ).run()
+
+
+# ========== 5. WÄCHTER-KALIBRIERUNG & REPO-GATES: ZYKLUS 2 (MARKDOWN, CLI-SPEC, LAZY CLI, LAYOUT) ====================
+
+
+@pytest.mark.parametrize(
+    "clean_source",
+    [
+        "import argparse\nfrom .core.service_core.cli_spec import CommandSpec, run_command_specs\n",
+        'SPECS = (("docframe", "help", "qb_cubie.core.services.doc_frame.cli:COMMAND"),)\n',
+        "from qb_cubie.core.service_core import reporting\n",
+    ],
+    ids=[
+        "cli-spec-relative-import",
+        "lazy-loader-string-literal",
+        "service-core-reporting-import",
+    ],
+)
+def test_cli_lazy_import_rule_accepts_clean_probes(clean_source: str) -> None:
+    """Clean probe: cli_spec imports and string-based lazy command specs yield zero diagnostics."""
+    linter = build_cli_lazy_import_linter()
+    EBT(
+        target=linter.check,
+        pre=WorldState(args=(clean_source,)),
+        post=WorldState(returns=[]),
+        reporter=None,
+    ).run()
+
+
+@pytest.mark.parametrize(
+    "bad_source, expected_line, expected_node",
+    [
+        ("from .core.services.doc_frame import DocFrame\n", 1, ".core.services.doc_frame"),
+        ("from .core.services import doc_ensurance\n", 1, ".core.services"),
+        ("from qb_cubie.core.services.doc_ensurance import DocEnsurance\n", 1, "qb_cubie.core.services.doc_ensurance"),
+        ("import qb_cubie.core.services.doc_frame\n", 1, "qb_cubie.core.services.doc_frame"),
+        ("from .core import services\n", 1, ".core.services"),
+    ],
+    ids=[
+        "relative-core-services-docframe",
+        "relative-core-services-package",
+        "absolute-core-services-docensurance",
+        "absolute-import-docframe",
+        "relative-core-import-services",
+    ],
+)
+def test_cli_lazy_import_rule_detects_fault_probes(
+    bad_source: str,
+    expected_line: int,
+    expected_node: str,
+) -> None:
+    """Fault probe: any static service import in cli.py triggers META-CLI-NO-EAGER-SERVICE-IMPORT."""
+    linter = build_cli_lazy_import_linter()
+
+    def has_expected_diagnostic(diagnostics: list[LinterDiagnostic]) -> bool:
+        return (
+            len(diagnostics) == 1
+            and diagnostics[0].rule_id == CLI_LAZY_RULE_ID
+            and diagnostics[0].line == expected_line
+            and diagnostics[0].node_name == expected_node
+        )
+
+    EBT(
+        target=linter.check,
+        pre=WorldState(args=(bad_source,)),
+        post=WorldState(returns=has_expected_diagnostic),
+    ).run()
+
+
+def test_cli_lazy_import_rule_reports_file_path_on_disk(tmp_path: Path) -> None:
+    """File probe: eager service import inside a CLI file on disk reports exact path, rule_id, and line."""
+    bad_cli = tmp_path / "broken_cli.py"
+    bad_cli.write_text("import sys\nfrom .core.services.doc_frame import DocFrame\n", encoding="utf-8")
+    diagnostics = build_cli_lazy_import_linter().check(bad_cli)
+    assert len(diagnostics) == 1, _format_diagnostics(diagnostics)
+    assert diagnostics[0].file_path == str(bad_cli)
+    assert diagnostics[0].rule_id == CLI_LAZY_RULE_ID
+    assert diagnostics[0].line == 2
+
+
+def test_cli_composition_root_has_no_eager_service_imports() -> None:
+    """Repository gate (Mutant M7 / H5): src/qb_cubie/cli.py must not statically import any service."""
+    diagnostics = build_cli_lazy_import_linter().check(CLI_ENTRY_FILE)
+    assert diagnostics == [], (
+        "Eager service imports found in src/qb_cubie/cli.py:\n"
+        f"{_format_diagnostics(diagnostics)}"
+    )
+
+
+def test_service_core_package_has_cycle_2_modules() -> None:
+    """Repository gate (HYPOTHESIS.md H4/H5/E1): core/service_core provides markdown.py and cli_spec.py."""
+    assert SERVICE_CORE_ROOT.is_dir(), f"Missing service_core package directory: {SERVICE_CORE_ROOT}"
+    missing = [name for name in CYCLE_2_SERVICE_CORE_MODULES if not (SERVICE_CORE_ROOT / name).is_file()]
+    assert not missing, f"Missing Cycle 2 modules in core/service_core/: {missing}"
+
+
+def test_service_core_cycle_2_imports_in_isolation_with_services_blocked() -> None:
+    """Isolation probe (H4/H5): importing service_core.markdown and cli_spec succeeds with services blocked."""
+    probe_script = (
+        "import importlib, sys\n"
+        "BLOCKED = ('qb_cubie.core.services', 'qb_cubie.services')\n"
+        "class _ServicesBlocker:\n"
+        "    def find_spec(self, fullname, path, target=None):\n"
+        "        for prefix in BLOCKED:\n"
+        "            if fullname == prefix or fullname.startswith(prefix + '.'):\n"
+        "                raise ModuleNotFoundError(f'Blocked services layer: {fullname}')\n"
+        "        return None\n"
+        "sys.meta_path.insert(0, _ServicesBlocker())\n"
+        "for mod in ('qb_cubie.core.service_core.markdown', 'qb_cubie.core.service_core.cli_spec'):\n"
+        "    importlib.import_module(mod)\n"
+        "leaked = [m for m in sys.modules if any(m == b or m.startswith(b + '.') for b in BLOCKED)]\n"
+        "assert not leaked, f'Leaked service modules: {leaked}'\n"
+    )
+
+    def run_isolation_probe() -> int:
+        proc = subprocess.run(
+            [sys.executable, "-c", probe_script],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(
+                "Cycle 2 service_core modules failed isolated import with services blocked:\n"
+                f"{proc.stdout}\n{proc.stderr}"
+            )
+        return proc.returncode
+
+    EBT(
+        target=run_isolation_probe,
+        post=WorldState(returns=0),
+        reporter=None,
+    ).run()
+
+
+def test_service_core_domain_neutral_modules_do_not_import_markdown() -> None:
+    """Isolation probe (H4(d)): domain-neutral service_core modules never load optional markdown.py."""
+    probe_script = (
+        "import importlib, sys\n"
+        "BLOCKED = 'qb_cubie.core.service_core.markdown'\n"
+        "class _MarkdownBlocker:\n"
+        "    def find_spec(self, fullname, path, target=None):\n"
+        "        if fullname == BLOCKED or fullname.startswith(BLOCKED + '.'):\n"
+        "            raise ModuleNotFoundError(f'Blocked optional markdown layer: {fullname}')\n"
+        "        return None\n"
+        "sys.meta_path.insert(0, _MarkdownBlocker())\n"
+        "for mod in (\n"
+        "    'qb_cubie.core.service_core',\n"
+        "    'qb_cubie.core.service_core.guards',\n"
+        "    'qb_cubie.core.service_core.workspace',\n"
+        "    'qb_cubie.core.service_core.rules',\n"
+        "    'qb_cubie.core.service_core.reporting',\n"
+        "    'qb_cubie.core.service_core.cli_spec',\n"
+        "):\n"
+        "    importlib.import_module(mod)\n"
+        "assert BLOCKED not in sys.modules, 'Optional markdown layer leaked into domain-neutral core!'\n"
+    )
+
+    def run_markdown_isolation_probe() -> int:
+        proc = subprocess.run(
+            [sys.executable, "-c", probe_script],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(
+                "Domain-neutral service_core modules failed with optional markdown.py blocked:\n"
+                f"{proc.stdout}\n{proc.stderr}"
+            )
+        return proc.returncode
+
+    EBT(
+        target=run_markdown_isolation_probe,
+        post=WorldState(returns=0),
+        reporter=None,
+    ).run()
+
+
+@pytest.mark.parametrize("service_name", _discover_service_packages())
+def test_repository_services_provide_canonical_adapters_and_cli(service_name: str) -> None:
+    """Layout audit (HYPOTHESIS.md E4 / DEV-GUIDE_Services.md §2): services provide adapters.py and cli.py."""
+    service_dir = SERVICES_ROOT / service_name
+    missing = [name for name in ("adapters.py", "cli.py") if not (service_dir / name).is_file()]
+    legacy = [name for name in ("_source_loader.py",) if (service_dir / name).is_file()]
+    assert not missing and not legacy, (
+        f"Service '{service_name}' shell layout mismatch: missing={missing}, legacy={legacy}"
+    )
