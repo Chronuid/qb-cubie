@@ -26,8 +26,9 @@
 | --- | --- |
 | [docs/core](core/README.md) | Verbindliche Core-Referenzen und Nutzungsmuster (`Contract-Semantics`, `EBT`, `RBT`, `Arena-Management`, `Linter`). |
 | `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Test-Guided Development (TGD), Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
+| [docs/tgd](tgd/README.md) | Universelle, modulare TGD-Knoten-Handbücher (Zustandsautomat mit 6 Einzelverträgen für Einsteiger, Experten und KI-Agenten). |
 | [docs/services](services/GUIDE_Service-Core.md) | Leitfäden zum gemeinsamen [Service-Core](services/GUIDE_Service-Core.md) (`qb_cubie.core.service_core`) sowie den Services in `qb_cubie.core.services` ([`DocEnsurance`](services/GUIDE_DocEnsurance.md) und [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
-| [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
+| [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [TGD-Workflow-Profil](dev/DEV-GUIDE_TGD-Workflow.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
 | [docs/misc](misc/README.md) | Hintergrundtexte, optionale historische Entwicklungsunterlagen sowie das Sammelbecken [`docs/misc/lake/`](misc/lake/SOLVED_ISSUES.md) (Analysen, CI-Daten, Archiv behobener Bugs). |
 | [tests/README.md](../tests/README.md) | Leitfaden zur Testsuite, Marker-Profilen, `Makefile`-Zielen und Hypothesis-Profilen. |
 | `docs/feature-drafts` | Funktionsentwürfe und Prototypen ([Benchmarks](feature-drafts/GUIDE_Benchmarks.md), [Virtualisierung](feature-drafts/virtualization/README.md), `meta-qa/`); keine Zusage einer verfügbaren Produktfunktion. |
@@ -65,6 +66,7 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 | [Erwartungssteuerung & Safety (`expect`-Flags)](GUIDE_Expect-Flags.md) | Einsatz von `expect=True` und `expect=False` auf `WorldState`- und `EBT`-Ebene, Kombination von Soll-Zielen und Negativ-Filtern unter `post={"quantor": "all", ...}`, `STATE-GUARD`-Regeln, Red-Phase-Gegenproben und Vermeidung von *Vacuous Pass*. |
 | [Fortgeschrittene Quantoren (`all` vs. `exists`)](GUIDE_Quantifiers.md) | Standard-Quantoren (`pre="all"`, `post="exists"`) und deren explizite Umkehrung: mehrere Bedingungen gleichzeitig mit `post` auf `"all"` erzwingen (UND) oder alternative Eingabe-Routen mit `pre` auf `"exists"` zulassen (ODER). |
 | [Test-Guided Development (TGD)](GUIDE_TGD.md) | TGD für Einsteiger und Experten: TDD mit kontrollierter Rückwärtstür (`GREEN_AUDIT`) im Sinne von Karl Poppers Fallibilismus, optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`), der Fünf-Schritte-Ablauf und Living Documentation. |
+| [TGD-Knoten-Handbücher (Zustandsautomat)](tgd/README.md) | Modulare, universelle Einzelverträge für alle sechs TGD-Knoten (`ANALYSIS`, `HYPOTHESIS`, `PHASE_RED`, `PHASE_GREEN`, `GREEN_AUDIT`, `LIVING_DOCS`) inklusive Zustandsgraph und gemeinsamer Prozess-Invarianten. |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

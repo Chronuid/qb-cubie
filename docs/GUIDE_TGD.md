@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Dieses Handbuch erklärt Test-Guided Development (TGD) für Einsteiger und Experten: Warum TGD im Kern TDD mit einer kontrollierten Rückwärtstür für fehlbare Tests ist (Karl Poppers Fallibilismus), wofür die optionalen Stützräder `ANALYSIS` und `HYPOTHESIS` dienen, wie der bewährte Fünf-Schritte-Ablauf funktioniert und warum Living Documentation jeden Zyklus abschließt.
+Dieses Handbuch erklärt Test-Guided Development (TGD) für Einsteiger und Experten: Warum TGD im Kern TDD mit einer kontrollierten Rückwärtstür für fehlbare Tests ist (Karl Poppers Fallibilismus), wofür die optionalen Stützräder `ANALYSIS` und `HYPOTHESIS` dienen, wie der bewährte Fünf-Schritte-Ablauf funktioniert und wo die operativen [TGD-Knoten-Handbücher (`docs/tgd/`)](tgd/README.md) für jeden Einzelschritt zu finden sind.
 
 ---
 
@@ -68,7 +68,7 @@ In der praktischen Arbeit am Cubie-Core (etwa bei der Härtung der Quantoren-Sem
 ### Schritt 1 *(optional / Stützräder)*: Baseline, Exploratives Audit & Meta-QA-Hypothesenbildung (`ANALYSIS` & `HYPOTHESIS`)
 Bevor eine einzige Zeile Code oder Test geändert wird, wird der Ist-Zustand ($Q_{\text{Ist}}$) gegen das gewünschte Architektur-Gesetz ($Q_{\text{Soll}}$) vermessen und in überprüfbare Hypothesen überführt:
 * **Einfach erklärt:** Erst Detektivarbeit leisten (`ANALYSIS`) und überprüfbare Vermutungen samt Prüfplan aufstellen (`HYPOTHESIS`), statt blind im Code herumzuprobieren.
-* **Für Experten:** Nutze diese Phase für die oben genannten Meta-QA-Prüffragen (Subsumtion, Tautologien, Vacuous Passes, Mutanten-Überleben) und halte die Ergebnisse als [`CUBIE_DOC_FRAME_2`-Bericht](dev/DEV-GUIDE_Agent-Reports.md) fest, damit die Phase Red auf einer belastbaren Grundlage startet.
+* **Für Experten:** Nutze diese Phase für die oben genannten Meta-QA-Prüffragen (Subsumtion, Tautologien, Vacuous Passes, Mutanten-Überleben) und halte die Ergebnisse strukturiert fest. Die verbindlichen Ein- und Austrittsbedingungen sowie Schreibgrenzen stehen in [`NODE_ANALYSIS`](tgd/NODE_ANALYSIS.md) und [`NODE_HYPOTHESIS`](tgd/NODE_HYPOTHESIS.md) (inkl. optionalem Modus *Post-Red-Kritik*).
 
 ### Schritt 2 *(Test-Handwerk)*: Schlanke, zustandsfreie Test-Adapter (`Stateless Adapters`)
 Wenn das zu prüfende Subsystem komplexe Report-Objekte mit vielen internen Feldern zurückgibt, sollte der Test nicht an irrelevanten Implementierungsdetails kleben.
@@ -81,16 +81,15 @@ Zwanzig fast identische Gutwetter-Tests erhöhen nur die Laufzeit, aber nicht di
 * **Lebenszyklus- & Mutations-Übergänge:** Wenn Objekte wiederverwendet werden (wie ein `EBT`-Fall über mehrere `.run()`-Aufrufe), prüfe den gesamten Zyklus: (1) zweiter Lauf *ohne* Neuzuweisung (Quantor bleibt erhalten), (2) In-Place-Listenmutation `case.post.append(...)` bzw. Attribut-Mutation `ws.expect = False`, und (3) Attribut-Neuzuweisung `case.post = [...]` ohne Wrapper (Quantor springt sauber auf den Standard `"exists"` bzw. `"all"` zurück).
 
 ### Schritt 4 *(Kern — Phase Red)*: Test-Suite isoliert schärfen, Red-Nachweis führen & Tests einfrieren
-In der Red-Phase wird **ausschließlich `tests/`** bearbeitet (`src/` und `docs/` bleiben unangetastet):
-1. **Altlasten ($Q_{\text{Ist}}$) und Meta-Gates bereinigen:** Bestehende Tests, die versehentlich altes Fehlverhalten voraussetzen, werden auf die saubere $Q_{\text{Soll}}$-Deklaration (z. B. `post={"quantor": "all", "states": [...]}`) migriert; statische Wächter (`test_gate_2.py`, `test_gate_3.py`, `test_service_architecture_gate.py`) werden nach der Wächter-Kalibrierungs-Triade (Clean-Probes, Fault-Probes, Repo-Scan) aktualisiert. Alle migrierten Bestands-Tests müssen bereits gegen den aktuellen Core **100 % grün (`PASSED`)** laufen.
-2. **Gezielter Red-Nachweis für neue Verträge:** Die neuen Guard-, Invarianten- und Lebenszyklus-Tests werden hinzugefügt und müssen gegen den noch unreparierten Core deterministisch **rot fehlschlagen (`FAILED`)** – das beweist, dass die neuen Tests scharf geschaltet sind und keinen überlebenden Mutanten dulden.
-3. **Strikter Test-Freeze:** Sobald dieses exakte Differenzsignal (Bestand grün, neue Verträge kontrolliert rot) steht, wird die Test-Suite **eingefroren**.
+In der Red-Phase wird ausschließlich die **Test-Suite** bearbeitet (Quellcode und Dokumentation bleiben unberührt): Bestehende Altlasten ($Q_{\text{Ist}}$) werden auf $Q_{\text{Soll}}$ migriert (Bestand 100 % grün), neue Verträge und Wächter gezielt gegen den noch unreparierten Code **rot** nachgewiesen (Differenzsignal) und anschließend als **Test-Freeze** eingefroren.
 
-### Schritt 5 *(Kern — Phase Green + Rückwärtstür & Phase Living-Documentation)*: Core reparieren & alle Schichten synchronisieren
-In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/`** repariert:
-* **Unantastbarkeit der Tests & Rückwärtstür (`GREEN_AUDIT`):** Während der Core-Reparatur gilt ein striktes Änderungsverbot auf `tests/**/*.py` (keine Edits, kein `skip`, kein Abschwächen von Assertions). Taucht unterwegs der begründete Verdacht auf, dass sich in der Red-Phase ein Denkfehler oder Widerspruch in einen Test eingeschlichen hat, wird der Test **nicht** heimlich umgeschrieben, sondern ein strukturierter Befundbericht (z. B. `tests/GREEN_AUDIT.md`) mit Zeilennummer, Reproduktionsbeleg und Klärungsvorschlag angelegt. Auf Basis dieses Befunds wird der kontrollierte Rücksprung in die **Phase Red** ausgelöst, um die Test-Suite sauber zu reparieren.
-* **Code-Härtung unter Stil-Gates:** Der Core wird innerhalb der harten Architektur-Grenzen (`MODULE_LIMIT = 777` Zeilen, `FUNCTION_LIMIT = 12` physische Body-Zeilen, einzeilige Docstrings, `0` Fehler in `ruff`, `pylint` und `mypy --warn-unreachable`) repariert, bis alle zuvor roten Tests auf **`PASSED`** springen.
-* **Phase Living-Documentation (`DocEnsurance` & `DocFrame`):** Sobald ein neuer `STATE-GUARD` oder eine geänderte API im Core scharf geschaltet ist, meldet sich automatisch die vierte orthogonale Schicht (`tests/test_doc_ensurance.py::test_docs_code_examples` und `tests/test_doc_frame.py::test_docs_frames`) und zeigt auf jedes Code-Beispiel oder jeden Dokumentrahmen in `docs/`, der noch veraltete Muster nutzt. Erst wenn auch die Handbücher aktualisiert sind und `pytest` über alle Schichten (`EBT`, `Meta-Gates`, `Linter`, `DocEnsurance` / `DocFrame`) komplett grün läuft, ist der TGD-Zyklus abgeschlossen – und die Dokumentation steht im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereit.
+👉 **Operativer Knoten-Vertrag (Pre-Flight, Fixture-Hygiene F1–F3, Wächter-Kalibrierung & Abnahme):** [`NODE_PHASE_RED`](tgd/NODE_PHASE_RED.md)
+
+### Schritt 5 *(Kern — Phase Green + Rückwärtstür & Phase Living-Documentation)*: Code reparieren & alle Schichten synchronisieren
+Nach dem Test-Freeze folgen die Implementierung und die abschließende Dokumentations-Synchronisation in klar getrennten Rollen:
+* **Phase Green (Implementierung unter Freeze):** Ausschließlich der Quellcode wird innerhalb der Architektur-, Linter- und Stil-Gates repariert, bis alle eingefrorenen Verträge grün laufen — ohne stilles Test-Hacking und ohne vorgezogene Dokumentations-Edits. Operative Details und Zwei-Stufen-Gate-Regeln stehen in [`NODE_PHASE_GREEN`](tgd/NODE_PHASE_GREEN.md).
+* **Kontrollierte Rückwärtstür (`GREEN_AUDIT`):** Deckt die Implementierung einen echten, reproduzierbaren Widerspruch in einem Test auf, wird der Test nicht heimlich geändert, sondern über ein strukturiertes Audit-Protokoll an den eigenständigen Rücksprung-Knoten [`NODE_GREEN_AUDIT`](tgd/NODE_GREEN_AUDIT.md) übergeben (unabhängige Prüfung mit klarem Ausgang `RESOLVED` oder `REFUTED`).
+* **Phase Living-Documentation:** Zum Abschluss synchronisiert [`NODE_LIVING_DOCS`](tgd/NODE_LIVING_DOCS.md) Handbücher, ausführbare Beispiele und Dokumentrahmen strikt nach dem Prinzip *Code als Wahrheitsquelle* (`0` Änderungen an Quellcode und Tests), sodass die Dokumentation im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereitsteht.
 
 ---
 
@@ -106,12 +105,15 @@ In der Green-Phase wird zunächst **ausschließlich der Produktionscode in `src/
 
 ---
 
-## 4. Kurzreferenz: Minimaler Kern vs. voller Ablauf mit Stützrädern
+## 4. Kurzreferenz: Minimaler Kern, voller Ablauf & Knoten-Handbücher
 
 | Einsatzfall | Empfohlene Phasen | Ziel |
 | :--- | :--- | :--- |
 | **Kleine, klar umrissene Änderung** | `Phase Red` $\to$ `Phase Green` (+ `GREEN_AUDIT`-Tür bei Testfehlern) $\to$ `Phase Living-Documentation` | Schneller, sauberer TDD-Zyklus mit ehrlicher Fehlerkultur für Tests und aktueller Doku. |
 | **Komplexe Architektur-Änderung oder KI-Agenten-Einsatz** | `ANALYSIS` *(Stützrad)* $\to$ `HYPOTHESIS` *(Stützrad)* $\to$ `Phase Red` (Adapter, Äquivalenzklassen, Freeze) $\to$ `Phase Green` (+ `GREEN_AUDIT`-Tür) $\to$ `Phase Living-Documentation` | Erstes Verständnis absichern, Denkfehler vor dem Testbau abfangen und alle Prüfschichten verlässlich synchron halten. |
+
+* **Operative Knoten-Handbücher (universell, für Menschen & KI-Agenten):** [TGD-Knoten-Handbücher (`docs/tgd/`)](tgd/README.md) mit dem vollständigen Zustandsautomaten und den sechs Einzelverträgen ([`ANALYSIS`](tgd/NODE_ANALYSIS.md), [`HYPOTHESIS`](tgd/NODE_HYPOTHESIS.md), [`PHASE_RED`](tgd/NODE_PHASE_RED.md), [`PHASE_GREEN`](tgd/NODE_PHASE_GREEN.md), [`GREEN_AUDIT`](tgd/NODE_GREEN_AUDIT.md), [`LIVING_DOCS`](tgd/NODE_LIVING_DOCS.md)).
+* **Konkretes `qb-cubie`-Projekt-Profil (Kommandos, Tickets, Gates & `PM1`–`PM8`):** [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](dev/DEV-GUIDE_TGD-Workflow.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

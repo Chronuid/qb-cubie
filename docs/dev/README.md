@@ -49,6 +49,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | **Example-Based Testing (`qb_cubie.core.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
 | **Services (`qb_cubie.core.services`) & `service_core` entwickeln & erweitern** | [Service-Architektur & Isolation](./DEV-GUIDE_Services.md) $\to$ [Service-Core-Handbuch](../services/GUIDE_Service-Core.md), [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md), [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) und [Archiv behobener Bugs](../misc/lake/SOLVED_ISSUES.md) |
+| **TGD-Zyklen in `qb-cubie` steuern & abnehmen** | [TGD-Workflow-Profil für `qb-cubie`](./DEV-GUIDE_TGD-Workflow.md) und [TGD-Knoten-Handbücher (`docs/tgd/`)](../tgd/README.md) |
 | **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
 | **`CUBIE_DOC_FRAME_*`-Konventionen nachschlagen** | [`CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) |
 | **Releases vorbereiten & CI-Kompatibilität prüfen** | [Release-Vorbereitung](./DEV-GUIDE_Release-Preparation.md) und [CI Plattformstatus](../../CI_PLATFORM_STATUS.md) |
@@ -85,6 +86,7 @@ Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
 | [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/services/` und den gemeinsamen Service-Core (`src/qb_cubie/core/service_core/`): Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
+| [DEV-GUIDE: TGD-Workflow-Profil für `qb-cubie`](./DEV-GUIDE_TGD-Workflow.md) | Technisches Projekt-Profil zur Anwendung der universellen TGD-Knoten-Handbücher (`docs/tgd/`) im `qb-cubie`-Repository: Knoten-Kommando-Matrix, Advisory-Check für pausierte Stil-Gates, 5-Block-Minimal-Ticket, 3-Zustands-Artefakt-Lebenszyklus und Prozess-Mutanten-Mapping (`PM1`–`PM8`). |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
 | [Styleguide](./Style-Guide.md) | Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes. |
 <!-- /qb:frame -->
@@ -106,12 +108,13 @@ Technische Entwicklerreferenzen zu den wiederverwendbaren Verifikations- und Dok
 
 ## QA-Handbücher
 
-Für die Qualitätssicherung, das Test-Guided Development (TGD) sowie den sauberen Aufbau deklarativer Verträge gelten diese fünf QA-Handbücher aus `docs/`:
+Für die Qualitätssicherung, das Test-Guided Development (TGD) sowie den sauberen Aufbau deklarativer Verträge gelten diese QA-Handbücher aus `docs/` und `docs/tgd/`:
 
 | Handbuch | Fokus & Inhalt |
 | :--- | :--- |
 | [Qualitätssicherung mit Cubie](../GUIDE_Quality-Assurance.md) | Leitfaden zu deklarativen Verträgen, orthogonalen Prüfschichten, TGD-Überblick und $Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$. |
 | [Test-Guided Development (TGD)](../GUIDE_TGD.md) | TGD für Einsteiger und Experten: TDD mit kontrollierter Rückwärtstür (`GREEN_AUDIT`) nach Karl Poppers Fallibilismus, optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`), Fünf-Schritte-Ablauf und Living Documentation. |
+| [TGD-Knoten-Handbücher (Zustandsautomat)](../tgd/README.md) | Universelle, projektübergreifende Knoten-Verträge für alle sechs TGD-Knoten (`ANALYSIS`, `HYPOTHESIS`, `PHASE_RED`, `PHASE_GREEN`, `GREEN_AUDIT`, `LIVING_DOCS`). |
 | [Vertragsaufbau: Eindeutigkeit & Kopplung](../GUIDE_Contract-Design.md) | Paarweise Verträge, `@pytest.mark.parametrize` und Vermeidung von Unterspezifikation durch gemischte `pre`/`post`-Listen. |
 | [Erwartungssteuerung & Safety (`expect`-Flags)](../GUIDE_Expect-Flags.md) | Einsatz von `expect=True`/`expect=False` auf `WorldState`- und `EBT`-Ebene, Red-Phase-Gegenproben und Schutz vor *Vacuous Passes*. |
 | [Fortgeschrittene Quantoren (`all` vs. `exists`)](../GUIDE_Quantifiers.md) | Umschalten der Standard-Quantoren (`pre="all"`, `post="exists"`) für UND-Checklisten in `post` und ODER-Routen in `pre`. |
@@ -182,6 +185,7 @@ qb-cubie docensurance check docs/dev/
 [↦ | DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes | ↤](./DEV-GUIDE_Next-Steps.md)  
 [↦ | DEV-GUIDE: Release-Vorbereitung und sauberer Release | ↤](./DEV-GUIDE_Release-Preparation.md)  
 [↦ | DEV-GUIDE: Service-Architektur & strikte Service-Isolation | ↤](./DEV-GUIDE_Services.md)  
+[↦ | DEV-GUIDE: TGD-Workflow-Profil für `qb-cubie` | ↤](./DEV-GUIDE_TGD-Workflow.md)  
 [↦ | DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`) | ↤](./DEV-GUIDE_Write-down-the-bugs.md)  
 [↦ | Styleguide | ↤](./Style-Guide.md)  
 
