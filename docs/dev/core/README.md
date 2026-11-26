@@ -65,7 +65,7 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/core/` abgelegten
 | :--- | :--- |
 | Entwicklerdokumentation (Prozesse, Styleguide, Services) | [`docs/dev/README.md`](../README.md) |
 | Öffentliche Core-Handbücher & Vertragssemantik | [`docs/core/README.md`](../../core/README.md) |
-| Services-Internals (`DocEnsurance`, `DocFrame`) | [`DocEnsurance`](../services/DEV-GUIDE_DocEnsurance.md) • [`DocFrame`](../services/DEV-GUIDE_DocFrame.md) |
+| Service-Core & Services-Internals (`service_core`, `DocEnsurance`, `DocFrame`) | [`Service-Core`](../../services/GUIDE_Service-Core.md) • [`DocEnsurance`](../services/DEV-GUIDE_DocEnsurance.md) • [`DocFrame`](../services/DEV-GUIDE_DocFrame.md) |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->
 
@@ -83,6 +83,7 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/dev/core/` abgelegten
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 

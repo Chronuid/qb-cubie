@@ -79,6 +79,7 @@ Leere Zustandslisten werden als Konfigurationsfehler abgelehnt. Jeder Lauf setzt
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 

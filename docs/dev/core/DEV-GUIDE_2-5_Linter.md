@@ -70,7 +70,7 @@ Im Gegensatz zur AST-Ebene analysiert die CST-Ebene (Concrete Syntax Tree) den P
 
 ### 3.1 `CstLinter` (Der Crawler und Parser)
 Diese Klasse implementiert ebenfalls das `Linter`-Protokoll, operiert aber nativ im Python-Speicher.
-* **Integrierter Directory Crawler:** Da Syntaxbäume nur auf Dateiebene funktionieren, bringt der `CstLinter` einen eigenen rekursiven Crawler (`_crawl_directory`) mit. Dieser löst Ordner-Targets in einzelne Python-Dateien auf, filtert diese rigoros gegen die `_excludes`-Registry und übergibt sie an den Parser.
+* **Integrierter Directory Crawler (`service_core.workspace.crawl_files`):** Da Syntaxbäume nur auf Dateiebene funktionieren, delegiert `CstLinter._crawl_directory` an das zentrale `crawl_files(root, pattern="*.py", excludes=self._excludes)` aus `qb_cubie.core.service_core.workspace`. Dadurch werden Ordner-Targets deterministisch sortiert in einzelne Python-Dateien aufgelöst und sowohl Segment- als auch relative Teilpfad-Excludes (z. B. `"docs/drafts"`) einheitlich ausgewertet.
 * **SyntaxError-Grace-Fallback:** Enthält unstrukturierter In-Memory-String-Code (z. B. von LLM-Agenten) fatale Syntaxfehler, stürzt der Linter nicht ab. Er fängt den `cst.ParserSyntaxError` ab und konvertiert ihn on-the-fly in ein valides `LinterDiagnostic`-Objekt der Regel `E999`.
 
 ### 3.2 `CstRule` (Der zustandsbehaftete Visitor)
@@ -106,6 +106,7 @@ Diagnosen gelten für den konfigurierten Analyseumfang und die Fähigkeiten des 
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 

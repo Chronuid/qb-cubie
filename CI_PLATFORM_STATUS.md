@@ -110,6 +110,7 @@ Stufe 3 schließt die echten Matrix-Befunde aus CI-Run `44735125009` (Commit `98
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./docs/GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](./docs/GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./docs/services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
 

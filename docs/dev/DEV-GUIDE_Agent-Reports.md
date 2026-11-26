@@ -136,6 +136,7 @@ qb-cubie docframe update <pfad/zum/bericht.md>
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 

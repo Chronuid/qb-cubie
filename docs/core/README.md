@@ -39,6 +39,7 @@ Zentraler Einstiegspunkt für die verbindlichen Core-Referenzen und Nutzungsmust
 | **Review-Based Tests (`RBT`) mit eigenen Reviewern nutzen** | [RBT-Nutzungsmuster](./GUIDE_RBT-Usage-Pattern.md) |
 | **Isolierte Workspaces (`TempFS`) & virtuelle Umgebungen (`PyVenv`) steuern** | [Arena-Management](./GUIDE_Arena-Management.md) |
 | **Statische Code-Analyse (CST, MyPy, Pylint) einbinden** | [Linter](./GUIDE_Linter.md) |
+| **Gemeinsames Fundament für eigene Services (`qb_cubie.core.service_core`) nutzen** | [Service-Core](../services/GUIDE_Service-Core.md) |
 
 ---
 
@@ -72,6 +73,7 @@ Die folgende Übersicht umfasst sämtliche direkt in `docs/core/` abgelegten Han
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 

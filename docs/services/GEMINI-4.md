@@ -59,6 +59,7 @@ Die beiden Services DocEnsurance und DocFrame sind historisch gewachsen. Die Top
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 

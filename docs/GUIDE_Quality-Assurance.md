@@ -40,7 +40,7 @@ Damit dieses Sicherheitsnetz im Alltag trägt, verfolgt Cubie zwei Grundprinzipi
 | **1. Dynamisches Verhalten** | `EBT` + `WorldState` | Liefert die Operation für repräsentative Eingaben und Kantenfälle das erwartete Ergebnis oder die geforderte Schutz-Exception? | Logikfehler, kaputte Invarianten, fehlende `STATE-GUARD`s |
 | **2. Umgebungs-Isolation** | `TempFS` / `PyVenv` | Arbeitet der Code sauber ohne versteckte Abhängigkeiten vom Host-Dateisystem, `os.chdir()` oder globalen Variablen? | Zustand-Leaks zwischen Läufen, fehlende Paket-Abhängigkeiten |
 | **3. Statische Struktur** | `AstLinter` / `CstLinter` / `MyPy` / `Pylint` | Hält der Quellcode Typverträge, Stilgesetze und strukturelle Leitplanken (z. B. Funktionsgrößen) ein? | Typbrüche, verbotene Aufrufe, aufgeblähte Funktionen |
-| **4. Lebende Dokumentation** | `DocEnsurance` + `CUBIE_DOC_RULES` | Laufen alle Code-Beispiele in den Markdown-Guides tatsächlich durch und stimmen ihre dokumentierten Ausgaben? | Veraltete Signaturen in Tutorials, stille Doku-Abweichungen |
+| **4. Lebende Dokumentation** | `DocEnsurance` + `DocFrame.check()` | Laufen alle Code-Beispiele in den Markdown-Guides tatsächlich durch, stimmen ihre Ausgaben und sind alle Dokumentrahmen synchron? | Veraltete Signaturen in Tutorials, tote Links, Rahmen-Drift |
 | **5. Semantisches Urteil** | `RBT` (`HeadlessReviewer`, `HumanReviewer`) | Erfüllt das Artefakt qualitative, fachliche oder gestalterische Kriterien, die sich nicht rein syntaktisch prüfen lassen? | Unverständliche Fehlermeldungen, unklare API-Ergonomie |
 
 ### Grundkurs: So funktioniert ein EBT-Vertrag
@@ -195,6 +195,7 @@ Zum Abschluss einige persönliche Leitlinien, die sich in der täglichen Arbeit 
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 

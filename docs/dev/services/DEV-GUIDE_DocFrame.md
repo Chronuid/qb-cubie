@@ -5,7 +5,7 @@
 
 ![Cubie](../../.assets/cubie-logo-written.png)
 
-Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`.
+Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es setzt auf dem gemeinsamen `qb_cubie.core.service_core` auf und kombiniert **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog` mit reinem `WorkspaceView`-Port), **tiefen- und kontextsensitives Rendering** (Pass 2: I/O-freie `FrameBlockProtocol`-Bausteine, geschützte Content-Slots, dynamische Router und atomares `atomic_write_text`) sowie **eigenständige Rahmen-Verifikation** über `DocFrame.check()` (`FileCheckRunner` + `CUBIE_DOCFRAME_RULES`).
 
 ---
 
@@ -37,41 +37,45 @@ Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisation
 
 ## Paket-Topologie & Architektur-Überblick
 
-Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in sechs spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`):
+Um die Schranken des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Modul, $\le 12$ Codezeilen pro Funktionskörper, einzeilige Docstrings) und Meta-Gate 4 (`META-SERVICE-PURE-DOMAIN-IO`) strikt einzuhalten und gleichzeitig eine offene Erweiterbarkeit nach dem **Open-Closed-Prinzip** zu gewährleisten, ist `src/qb_cubie/core/services/doc_frame/` in sieben spezialisierte Module unterteilt (ergänzt durch das Kurz-Alias-Modul `src/qb_cubie/core/services/docframe.py`) und delegiert domänenneutrale Infrastruktur (Guards, Workspace, `FileCheckRunner`, Reporting) vollständig an [`qb_cubie.core.service_core`](../../services/GUIDE_Service-Core.md):
 
 | Modul | Architektonische Rolle | Kern-Komponenten |
 | :--- | :--- | :--- |
-| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog`, `FrameRenderContext`, `DocFrameReport`, `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
-| **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner & Pass-1-Metadaten-Extraktor (Ebene 0) | `_FrameSpanScanner`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
-| **`frame_blocks.py`** | Zustandslose Struktur-Bausteine, dynamische Router & geschützte Content-Slots (Ebene 1) | `Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
-| **`presets.py`** | Zentrale Single Source of Truth für Kopf-/Fuß-Templates, Standard-Presets & den verpflichtenden erkenntnistheoretischen Anker (Ebene 2) | `FramePattern`, `EPISTEMIC_NOTICE_TEXT`, `EPISTEMIC_NOTICE`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
-| **`doc_frame_rules.py`** | Dokument-weite Diagnose-Regeln für `DocEnsurance` (Ebene 2) | `DocFrameMissing` (`DocFrameMissingRule`), `DocFrameOutdated` (`DocFrameOutdatedRule`), `DocFrameBrokenRoute` (`DocFrameBrokenRouteRule`), `DocFrameProvenanceIncomplete` (`DocFrameProvenanceRule`), `CUBIE_DOCFRAME_RULES` |
-| **`doc_frame.py`** | 2-Pass-Orchestrator & Re-Export der Standard-Presets (Ebene 3) | `DocFrame` (sowie Re-Export von `FramePattern` und allen Presets aus `presets.py`) |
+| **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Sortier-Invariante, Guard-Validatoren (via `service_core.guards.validate_choice`) und Protokoll-Vertrag | `DocMeta`, `FrameSpan`, `DocumentCatalog` (mit `workspace: WorkspaceView \| None`), `FrameRenderContext`, `DocFrameReport`, `FrameBlockProtocol`, `sort_doc_metas`, `validate_zone`, `validate_wrap_tag`, `validate_catalog_mode`, `VALID_ZONES`, `VALID_WRAP_TAGS`, `VALID_CATALOG_MODES` |
+| **`_catalog_scanner.py`** | Fence-sicherer Kommentar-Scanner & Pass-1-Metadaten-Extraktor (Ebene 0, I/O-frei) | `_FrameSpanScanner`, `parse_frame_spans`, `parse_tag_attrs`, `extract_doc_meta`, `build_catalog_from_sources` |
+| **`frame_blocks.py`** | 100 % I/O-freie Struktur-Bausteine, dynamische Router (via `WorkspaceView.has_path`) & geschützte Content-Slots (Ebene 1) | `Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`, `FolderRouter`, `SiblingRouter`, `CatalogRouter` (`CatalogTable`), `HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`, `compute_rel_link`, `resolve_banner_rel_path` |
+| **`presets.py`** | Zentrale Single Source of Truth für Kopf-/Fuß-Templates, Standard-Presets & den verpflichtenden erkenntnistheoretischen Anker (Ebene 2, I/O-frei) | `FramePattern`, `EPISTEMIC_NOTICE_TEXT`, `EPISTEMIC_NOTICE`, `CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`, `DEFAULT_FRAME_PATTERNS`, `STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`, `HEADER_QUICK_NAV`, `GUIDE_ROUTER`, `SERVICE_ROUTER`, `CONTEXT_ROUTER`, `AUTO_INDEX_ROUTER` |
+| **`doc_frame_rules.py`** | I/O-freie Dokument-Diagnose-Regeln nach `WorkspaceCheckRuleProtocol` mit `FileContextCache` & `depends_on` (Ebene 2) | `_DocFrameRuleBase`, `DocFrameMissing` (`DocFrameMissingRule`), `DocFrameOutdated` (`DocFrameOutdatedRule`), `DocFrameBrokenRoute` (`DocFrameBrokenRouteRule`), `DocFrameProvenanceIncomplete` (`DocFrameProvenanceRule`), `CUBIE_DOCFRAME_RULES` |
+| **`adapters.py`** | Imperative Shell für Dateisystem-Auflösung, Katalog-Crawling & `FileSystemWorkspaceView`-Injektion | `resolve_target_path`, `normalize_frame_patterns`, `resolve_catalog_root`, `build_workspace_catalog`, `prepare_docframe_workspace` |
+| **`doc_frame.py`** | 2-Pass-Orchestrator (`update`, `check`, `scan_catalog`) via `service_core` (`FileCheckRunner`, `atomic_write_text`) & Preset-Re-Export (Ebene 3) | `DocFrame` (sowie Re-Export von `FramePattern` und allen Presets aus `presets.py`) |
 
 ---
 
 ## Konstruktor-API, Klassenmethoden & Konfiguration (Quick-Lookup)
 
-Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrator (`DocFrame(...).run()`) als auch über zwei ergonomische Klassenmethoden (`DocFrame.update(...)` und `DocFrame.scan_catalog(...)`). Der Konstruktor sichert alle Eingaben sofort über explizite `STATE-GUARD`s ab:
+Die Klasse `DocFrame` fungiert sowohl als zustandsbehafteter Service-Orchestrator (`DocFrame(...).run()`) als auch über drei ergonomische Klassenmethoden (`DocFrame.update(...)`, `DocFrame.check(...)` und `DocFrame.scan_catalog(...)`). Der Konstruktor delegiert Validierungen direkt an `adapters.py` und `service_core`:
 
-* **`target`** (`str | Path | None`, Default: `None`): Bestimmt den zu synchronisierenden Ziel-Scope (`_resolve_target_path` & `_coerce_path_arg`). `None` löst über `_default_project_dir()` automatisch das Projekt-Root anhand der nächstgelegenen `pyproject.toml` (Fallback: `Path.cwd()`) auf. Akzeptiert existierende Datei- oder Verzeichnispfade; leere Strings (`ValueError`), falsche Typen (`TypeError`) oder nicht existierende Pfade (`FileNotFoundError`) werden sofort abgewiesen.
-* **`pattern`** (`FramePattern | Sequence[FramePattern] | None`, Default: `None`): Ein einzelnes `FramePattern` oder eine nicht-leere Sequenz von `FramePattern`-Objekten, die in `_normalize_patterns` zu einem ID-indizierten Dictionary `dict[str, FramePattern]` normalisiert werden. `None` registriert automatisch `DEFAULT_FRAME_PATTERNS` (`CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`).
-* **`excludes`** (`Sequence[str] | None`, Default: `None`): Optionale Sequenz zusätzlicher Datei-, Ordner- oder Teilpfad-Ausschlüsse, die in `_normalize_excludes` mit `DEFAULT_EXCLUDES` (`.venv`, `.git`, `__pycache__`, `.pytest_cache` etc.) vereinigt werden.
+* **`target`** (`str | Path | None`, Default: `None`): Bestimmt den zu synchronisierenden oder zu prüfenden Ziel-Scope (`adapters.resolve_target_path`). `None` löst über `service_core.workspace.find_project_root()` automatisch das Projekt-Root anhand der nächstgelegenen `pyproject.toml` (Fallback: `Path.cwd()`) auf. Akzeptiert existierende Datei- oder Verzeichnispfade; leere Strings (`ValueError`), falsche Typen (`TypeError`) oder nicht existierende Pfade (`FileNotFoundError`) werden sofort abgewiesen.
+* **`pattern`** (`FramePattern | Sequence[FramePattern] | None`, Default: `None`): Ein einzelnes `FramePattern` oder eine nicht-leere Sequenz/Mapping von `FramePattern`-Objekten, die in `adapters.normalize_frame_patterns` zu einem ID-indizierten Dictionary `dict[str, FramePattern]` normalisiert werden. `None` registriert automatisch `DEFAULT_FRAME_PATTERNS` (`CUBIE_DOC_FRAME_1`, `CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`).
+* **`excludes`** (`Sequence[str] | None`, Default: `None`): Optionale Sequenz zusätzlicher Datei-, Ordner- oder Teilpfad-Ausschlüsse, die über `service_core.workspace.normalize_excludes` strikt validiert (`excludes="str"` $\to$ `TypeError("STATE-GUARD")`) und mit `DEFAULT_EXCLUDES` vereinigt werden.
+* **`reporter`** (`Reporter[DocFrameReport] | None` bei `DocFrame`/`update`, Default: `None`; `Reporter[ServiceReport] | None` bei `check`, Default: `PytestReporter()`): Pluggable Reporter (`PytestReporter`, `JsonReporter` oder `None`).
 
-### Einstiegspunkte für Synchronisation und Analyse
+### Einstiegspunkte für Synchronisation, Prüfung und Analyse
 
-1. **`DocFrame.update(target=None, pattern=None, excludes=None) -> DocFrameReport`:**
-   Führt Pass 1 (`build_catalog`) und Pass 2 (`_render_file_frames`) aus, schreibt nur real geänderte Dateien (`new_content != content`) atomar zurück und gibt den `DocFrameReport` inklusive `updated_files` und `catalog` zurück.
-2. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
-   Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` ohne Dateisystem-Schreibzugriffe zurück.
-3. **CLI-Einstiegspunkt (`src/qb_cubie/cli.py`, `[project.scripts].qb-cubie`):**
+1. **`DocFrame.update(target=None, pattern=None, excludes=None, reporter=None) -> DocFrameReport`:**
+   Führt Pass 1 (`build_catalog`) und Pass 2 (`_render_file_frames`) aus, schreibt nur real geänderte Dateien (`new_content != content`) atomar über `service_core.workspace.atomic_write_text` zurück, benachrichtigt optional `reporter` und gibt den `DocFrameReport` inklusive `updated_files` und `catalog` zurück.
+2. **`DocFrame.check(target=None, pattern=None, rules=None, excludes=None, reporter=PytestReporter()) -> ServiceReport`:**
+   Baut den `DocumentCatalog` einmalig auf und delegiert die vollständige Multi-File-Verifikation nativ an `service_core.rules.FileCheckRunner` (Standardregeln: `CUBIE_DOCFRAME_RULES`, `service="doc_frame"`). Läuft 100 % isoliert ohne Import von `doc_ensurance`.
+3. **`DocFrame.scan_catalog(target=None, excludes=None) -> DocumentCatalog`:**
+   Führt ausschließlich Pass 1 (`build_catalog`) aus und liefert den unveränderlichen `DocumentCatalog` (inkl. `FileSystemWorkspaceView`) ohne Dateisystem-Schreibzugriffe zurück.
+4. **CLI-Einstiegspunkt (`src/qb_cubie/cli.py`, `[project.scripts].qb-cubie`):**
    `qb-cubie docframe update [target] [--exclude ...] [--format text|json]` (sowie `python -m qb_cubie docframe update` und `python -m qb_cubie.core.services.docframe update`) delegiert direkt an `DocFrame.update(target=..., excludes=...)`, formatiert den `DocFrameReport` wahlweise als Text oder JSON und mappt `STATE-GUARD`- sowie I/O-Fehler (`ValueError`, `TypeError`, `OSError`) auf Exit-Code `2`.
 
-### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`_resolve_catalog_root`)
+### Architektur-Invariante: Katalog-Root vs. Ziel-Scope (`adapters.resolve_catalog_root`)
 
 Wird `DocFrame` gezielt auf eine einzelne Datei oder einen Unterordner angesetzt (z. B. `DocFrame.update(target="docs/services/GUIDE_DocFrame.md")`), trennt der Orchestrator strikt zwischen **Schreib-Scope** und **Katalog-Scope**:
-* `_load_path_sources(self.target_path, self.excludes)` lädt für Pass 2 ausschließlich die im `target` angeforderten Markdown-Dateien.
-* `build_catalog()` ermittelt hingegen über `_resolve_catalog_root(self.target_path)` das übergeordnete Repository-Root, indem es vom Zielpfad bis maximal `Path.cwd()` nach oben wandert, bis es `pyproject.toml` oder `docs/.assets` findet. Dadurch steht den dynamischen Routern (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) selbst bei Einzeldatei-Updates immer der vollständige Projekt-Katalog zur Verfügung.
+* `service_core.workspace.load_sources(self.target_path, pattern="*.md", excludes=self.excludes, allow_in_memory=False)` lädt für Pass 2 ausschließlich die im `target` angeforderten Markdown-Dateien.
+* `build_catalog()` ermittelt hingegen über `adapters.resolve_catalog_root(self.target_path)` (`find_project_root(..., markers=("pyproject.toml", "docs/.assets"), stop_at_cwd=True)`) das übergeordnete Repository-Root und injiziert `FileSystemWorkspaceView(catalog_root)` in den `DocumentCatalog`. Dadurch steht den dynamischen Routern (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) selbst bei Einzeldatei-Updates immer der vollständige Projekt-Katalog zur Verfügung.
 
 ---
 
@@ -96,14 +100,14 @@ Sämtliche Datenstrukturen in `protocols.py` sind als unveränderliche `@datacla
    * `start_idx` & `end_idx`: 0-basierte Zeichen-Offsets im Original-String für exaktes In-Place-Slicing während Pass 2.
    * `open_tag`, `inner_content`, `close_tag`: Der exakte öffnende Kommentar-Tag, der unmodifizierte Innenbereich zwischen den Tags sowie der schließende Kommentar-Tag.
 
-3. **`DocumentCatalog(root, entries=())`**
-   Der unveränderliche Pass-1-Katalog aller gefundenen Markdown-Dokumente unterhalb von `root: Path`:
+3. **`DocumentCatalog(root, entries=(), workspace=None)`**
+   Der unveränderliche Pass-1-Katalog aller gefundenen Markdown-Dokumente unterhalb von `root: Path` samt optionalem, I/O-freiem **`workspace: WorkspaceView | None`**-Read-Port (`FileSystemWorkspaceView` aus `adapters.py` oder `InMemoryWorkspaceView` in Tests):
    * `get(rel_path) -> DocMeta | None`: Sucht einen Eintrag anhand seines normalisierten POSIX-Pfads.
    * `by_path(rel_path) -> DocMeta`: Wie `get()`, wirft jedoch bei fehlendem Dokument einen expliziten `KeyError("STATE-GUARD: Document not found in catalog: ...")`.
    * `select(directory=".", glob="*.md", exclude=(), *, recursive=False, include_unroutable=False) -> list[DocMeta]`: Filtert Einträge nach Zielordner (`_matches_dir`), Dateinamen-Glob (`fnmatch.fnmatch`), Dateinamen- oder Pfad-Excludes sowie `routable`-Status und gibt sie deterministisch sortiert über `sort_doc_metas` zurück.
 
 4. **`FrameRenderContext(file_path, rel_path, catalog, span)` & `DocFrameReport(target, passed, updated_files=(), catalog=None, diagnostics=())`**
-   `FrameRenderContext` bündelt während Pass 2 den absoluten Dateipfad (`file_path`), den Katalog-relativen POSIX-Pfad (`rel_path`), den `DocumentCatalog` und den aktuell zu rendernden `FrameSpan`. `DocFrameReport` fasst die Pfade aller real aktualisierten Dateien (`updated_files`), den Katalog und etwaige Diagnosen zusammen.
+   `FrameRenderContext` bündelt während Pass 2 den absoluten Dateipfad (`file_path`), den Katalog-relativen POSIX-Pfad (`rel_path`), den `DocumentCatalog` und den aktuell zu rendernden `FrameSpan`. `DocFrameReport` erfüllt `ServiceReportProtocol`, lässt sich direkt an `PytestReporter` oder `JsonReporter` übergeben und fasst die Pfade aller real aktualisierten Dateien (`updated_files`), den Katalog und etwaige Diagnosen zusammen.
 
 ### 1.2 Dreistufige Sortier-Invariante (`sort_doc_metas`) & Guard-Validatoren
 
@@ -144,8 +148,8 @@ Jedes Dokument im Repository fungiert über seinen `zone="head"`-Rahmen als eige
 * **Router-Label:** Nutzt `attrs.get("label", "").strip()` falls angegeben, andernfalls direkt den extrahierten `title`.
 * **Kurzbeschreibung vor dem ersten Divider (`_extract_header_summary`):**
   `_slice_before_divider` schneidet alle Zeilen des `head.inner_content` vor der ersten horizontalen Linie (`---`) aus. Anschließend überspringt `_is_ignorable_header_line` führende Leerzeilen, HTML-Wrapper (`<div...>`, `</div>`, `<center>`, `</center>` via `_HTML_WRAP_RE`), Überschriften (`#`) und Banner-Bilder (`![...](...)`). Die Zeilen des ersten echten Textabsatzes werden mit `" ".join(para_lines)` verbunden; die nächste Leer- oder Wrapper-Zeile beendet die Extraktion sofort, sodass zweite Absätze oder Disclaimer niemals in die Kurzbeschreibung der Index-Tabellen bluten.
-* **Typ-sichere `order`- und `routable`-Parser (`_parse_optional_order` & `_parse_routable`):**
-  Konvertiert `order="..."` in ein `int` (oder wirft `ValueError("STATE-GUARD: order attribute must be an integer...")`) und prüft `routable="..."` gegen `("true", "1", "yes")` bzw. `("false", "0", "no")`. Zusätzlich erzwingt `bool(content.strip())`, dass leere 0-Byte-Dateien immer als `routable=False` eingestuft werden.
+* **Typ-sichere `order`- und `routable`-Parser (`service_core.guards`):**
+  Delegiert an `parse_int_attr(raw, "order")` (wirft `ValueError("STATE-GUARD: order must be an integer...")`) und `parse_bool_attr(raw, "routable", default=True)` (`("true", "1", "yes")` vs. `("false", "0", "no")`). Zusätzlich erzwingt `bool(content.strip())`, dass leere 0-Byte-Dateien immer als `routable=False` eingestuft werden.
 
 Das folgende ausführbare Beispiel demonstriert, wie `parse_frame_spans` einen `qb:frame`-Tag innerhalb eines Code-Fences ignoriert und wie `extract_doc_meta` Titel, Label, Kurzbeschreibung und Sortier-Attribute extrahiert:
 
@@ -195,8 +199,8 @@ Damit ein einziges `FramePattern` für Dokumente auf beliebiger Verzeichnistiefe
 
 * **`compute_rel_link(from_file, target_rel, root) -> str`:**
   Löst `target_rel` gegen `root.resolve()` auf, berechnet `os.path.relpath(target_abs, start=from_file.resolve().parent)` mit POSIX-Schrägstrichen und stellt sicher, dass der Pfad immer explizit mit `./` oder `../` beginnt.
-* **`resolve_banner_rel_path(banner, root) -> str`:**
-  Enthält `banner` bereits einen Pfadtrenner (`/`), bleibt der relative Pfad erhalten. Wird nur ein Dateiname wie `"cubie-logo-written.png"` übergeben, prüft die Funktion, ob `(root / ".assets" / clean)` existiert (ohne dass `docs/.assets/<clean>` vorliegt), und liefert standardmäßig `"docs/.assets/<clean>"`.
+* **`resolve_banner_rel_path(banner, root, workspace=None) -> str`:**
+  Enthält `banner` bereits einen Pfadtrenner (`/`), bleibt der relative Pfad erhalten. Wird nur ein Dateiname wie `"cubie-logo-written.png"` übergeben, prüft die Funktion I/O-frei über den injizierten `WorkspaceView`-Port (`workspace.has_path(f".assets/{clean}")` ohne `docs/.assets/<clean>`) und liefert standardmäßig `"docs/.assets/<clean>"`.
 
 Darauf bauen fünf statische Struktur- und Navigations-Bausteine auf:
 1. **`Divider()`:** Rendert `"---"`.
@@ -214,13 +218,13 @@ Anstatt Routen manuell in Python-Tupeln zu pflegen, fragen die drei Router-Baust
 2. **`SiblingRouter(hubs=(), include_hubs=True, exclude=("README.md",))`:**
    Verhindert, dass der globale Footer bei wachsender Zahl von Unterordner-Dokumenten überläuft, und bietet gleichzeitig volle Tiefen-Navigation innerhalb von Unterordnern:
    * Ermittelt den Elternordner des aktuellen Dokuments (`parent_dir = Path(ctx.rel_path).parent.as_posix()`) und prüft `expand_sub = parent_dir not in (".", "docs", "docs/services")`.
-   * **In Haupt- und Service-Guides (`expand_sub is False`):** Rendert nur die konfigurierten Bereichs-Hubs (`self.hubs`). Dabei löst `_resolve_hub_target(catalog, target)` jeden Hub robust auf: Existiert die Zieldatei im Katalog oder auf der Festplatte, wird sie direkt verlinkt; andernfalls fällt der Hub automatisch auf das erste routbare Markdown-Dokument im selben Ordner zurück.
+   * **In Haupt- und Service-Guides (`expand_sub is False`):** Rendert nur die konfigurierten Bereichs-Hubs (`self.hubs`). Dabei löst `_resolve_hub_target(catalog, target)` jeden Hub I/O-frei auf: Existiert die Zieldatei im Katalog oder über `catalog.workspace.has_path(norm)`, wird sie direkt verlinkt; andernfalls fällt der Hub automatisch auf das erste routbare Markdown-Dokument im selben Ordner zurück.
    * **Innerhalb eines Unterordners (`expand_sub is True`, z. B. `docs/dev` oder `docs/dev/services`):** Übergibt `skip_dir=parent_dir` an `_append_hubs` (sodass der Sammel-Hub des eigenen Ordners ausgeblendet wird) und klappt stattdessen alle routbaren Geschwister-Dokumente aus `parent_dir` (exklusive `README.md`) direkt im Footer auf. Ein `seen: set[str]` verhindert doppelte Pfad-Einträge.
 3. **`CatalogRouter(default_mode="table", exclude=("README.md",), extract_summary=True, dir=".", recursive=False)` (Alias `CatalogTable`):**
    Wird in `CUBIE_DOC_FRAME_3`-Index-Dokumenten innerhalb von `zone="router"` eingesetzt und wertet die Attribute des `<!-- qb:frame ... -->`-Tags dynamisch aus:
    * `mode`: Überschreibt `self.default_mode` per Tag-Attribut (`mode="table"` oder `mode="links"`, abgesichert durch `validate_catalog_mode`).
-   * `dir`: `_resolve_dir(ctx)` löst `""` oder `"."` auf den Elternordner der aktuellen Datei auf; existiert `ctx.catalog.root / raw`, wird der Pfad ab Repository-Root interpretiert, andernfalls relativ zum Elternordner der aktuellen Datei.
-   * `recursive` & `glob`: `_resolve_recursive` parst `recursive="true|false"` (mit `STATE-GUARD` bei ungültigen Werten); `glob` steuert das Dateimuster (Default: `"*.md"`).
+   * `dir`: `_resolve_dir(ctx)` löst `""` oder `"."` auf den Elternordner der aktuellen Datei auf; ist `raw` im `catalog.workspace` vorhanden (`workspace.has_path(raw)`), wird der Pfad ab Repository-Root interpretiert, andernfalls relativ zum Elternordner der aktuellen Datei.
+   * `recursive` & `glob`: `_resolve_recursive` delegiert an `service_core.guards.parse_bool_attr` (mit `STATE-GUARD` bei ungültigen Werten); `glob` steuert das Dateimuster (Default: `"*.md"`).
    * **Selbst-Ausschluss:** Das aufrufende Index-Dokument selbst wird über `if e.path != ctx.rel_path` immer ausgefiltert. Im Modus `"table"` erzeugt `_render_table` eine zweispaltige Markdown-Tabelle (`| Dokument | Inhalt und Geltung |`), im Modus `"links"` eine `[↦ | ... | ↤]`-Routenliste.
 
 ### 3.3 Geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`)
@@ -244,11 +248,12 @@ Damit `DocFrame.update()` Banner-Pfade, Alt-Texte, Provenance-Felder und Navigat
 
 ## 4. Rahmen-Muster (`FramePattern`), Standard-Presets & Orchestrierung (`doc_frame.py`)
 
-### 4.1 `FramePattern` als Dual-Protokoll-Adapter & die drei Standard-Presets
+### 4.1 `FramePattern` als reiner Zonen-Renderer & die drei Standard-Presets
 
-`FramePattern(id, head=(), foot=(), router=())` definiert die Block-Komposition für die drei Zonen `"head"`, `"router"` und `"foot"` und erfüllt dabei eine architektonische Doppelrolle:
-1. **Zonen-Renderer für `DocFrame`:** Im `__post_init__` prüft `_validate_block_sequence`, dass `id` nicht leer ist und jede Zone ausschließlich `FrameBlockProtocol`-Instanzen enthält (`STATE-GUARD`). `render_zone(zone, ctx)` validiert den Zonennamen über `validate_zone`, rendert alle Blöcke der Zone und verbindet nicht-leere Ergebnisse mit `"\n\n"`.
-2. **`DocPatternProtocol`-Adapter für `DocEnsurance`:** Durch die Property `name -> str` (`return self.id`) und die No-op-Methode `scan(blocks, file_path) -> ([], [])` erfüllt jedes `FramePattern` strukturell das `DocPatternProtocol` aus `doc_ensurance` und kann direkt in `DocEnsurance(pattern=[CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, ...])` übergeben werden.
+`FramePattern(id, head=(), foot=(), router=())` definiert die Block-Komposition für die drei Zonen `"head"`, `"router"` und `"foot"` ohne jegliche Fremd-Protokoll-Adapter oder Dummy-Methoden:
+* Im `__post_init__` prüft `_validate_block_sequence`, dass `id` nicht leer ist und jede Zone ausschließlich `FrameBlockProtocol`-Instanzen enthält (`STATE-GUARD`).
+* `render_zone(zone, ctx)` validiert den Zonennamen über `validate_zone`, rendert alle Blöcke der Zone und verbindet nicht-leere Ergebnisse mit `"\n\n"`.
+* Die früheren Dummy-Methoden `name` und `scan()` für `DocPatternProtocol` wurden im Zuge des Service-Core-Umbaus ersatzlos entfernt, da `DocFrame.check()` nun nativ über `FileCheckRunner` läuft.
 
 In `presets.py` (und re-exportiert über `doc_frame.py`) sind daraus drei Standard-Presets (`DEFAULT_FRAME_PATTERNS`) vordefiniert:
 
@@ -375,13 +380,15 @@ Presets: CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3
 
 ---
 
-## 5. Diagnose-Regeln (`CUBIE_DOCFRAME_RULES`) & entkoppelte `FileCheckProtocol`-Integration (`doc_frame_rules.py`)
+## 5. Diagnose-Regeln (`CUBIE_DOCFRAME_RULES`) & `WorkspaceCheckRuleProtocol`-Integration (`doc_frame_rules.py`)
 
-Damit veraltete oder unvollständige Rahmen im CI-Lauf zuverlässig auffallen, ohne `DocEnsurance`-Code-Prüfungen (`DOC-PRE`, `DOC-POST`, `DOC-OUT`, `DOC-HIGH-COMPLEXITY`) stummzuschalten, stellt `doc_frame_rules.py` vier orthogonale Dokument-Prüfregeln bereit (`CUBIE_DOCFRAME_RULES: Final[tuple[FileCheckProtocol, ...]]`).
+Damit veraltete oder unvollständige Rahmen im CI-Lauf zuverlässig und vollständig entkoppelt von `DocEnsurance` auffallen, stellt `doc_frame_rules.py` vier I/O-freie Dokument-Prüfregeln bereit (`CUBIE_DOCFRAME_RULES: Final[tuple[WorkspaceCheckRuleProtocol, ...]]`).
 
-### 5.1 Die vier Rahmen-Prüfregeln und ihre kaskadenfreie Abschirmung
+### 5.1 Die vier Rahmen-Prüfregeln, `FileContextCache` & kaskadenfreie Abschirmung
 
-Jede Regel in `CUBIE_DOCFRAME_RULES` erbt von `_DocFrameRuleBase`, implementiert das domänenneutrale Core-`FileCheckProtocol` (`context_key = "doc_frame"`, `prepare_context`, `check_file` $\to$ `check_document`) sowie `check(example, actual_output)` als No-op `[]`, und emittiert ausschließlich Core-`Diagnostic`-Records aus `qb_cubie.core.protocols` (null Cross-Imports zu `doc_ensurance`). Alle vier Regeln prüfen vorab über `_validate_known_patterns`, ob jede im Dokument referenzierte `frame_id` in `patterns` registriert ist (andernfalls `ValueError("STATE-GUARD: Unknown FramePattern id ...")`):
+Jede Regel in `CUBIE_DOCFRAME_RULES` erbt von `_DocFrameRuleBase`, implementiert das domänenneutrale **`WorkspaceCheckRuleProtocol`** (`context_key = "doc_frame"`, `depends_on`, `prepare_workspace`, `check_file(source, workspace_ctx, file_cache)`) ohne Dummy-`check()`-Methoden und emittiert ausschließlich Core-`Diagnostic`-Records aus `qb_cubie.core.protocols` (null Cross-Imports zu `doc_ensurance`, null direkte Filesystem-Aufrufe):
+* **Einmaliges Parsing pro Datei (`FileContextCache`):** `_DocFrameRuleBase.check_file` speichert `_parse_and_validate_spans(source.path, source.content, patterns)` unter `"doc_frame:parsed_spans"` im per-Datei-`FileContextCache`. Alle vier Regeln teilen sich somit genau **einen** `parse_frame_spans`-Aufruf je Datei (inkl. `_validate_known_patterns`-`STATE-GUARD`).
+* **Span-Level-Caching:** `_cached_incomplete_provenance` und `_cached_broken_route` cachen Span-Befunde ebenfalls im `FileContextCache`, damit `DocFrameOutdated` bereits geprüfte Spans ohne Doppelarbeit wiederverwendet.
 
 1. **`DocFrameMissing` (`DOCFRAME-MISSING`, Default: `"error"`, Alias: `DocFrameMissingRule`):**
    Prüft über `_has_missing_zones(spans, unclosed, patterns)` drei strukturelle Grundbedingungen:
@@ -390,29 +397,27 @@ Jede Regel in `CUBIE_DOCFRAME_RULES` erbt von `_DocFrameRuleBase`, implementiert
    * Referenziert ein Span ein `FramePattern` mit nicht-leerer `pat.router`-Sequenz (wie `CUBIE_DOC_FRAME_3`), ohne dass im Dokument ein Span mit `zone="router"` existiert, feuert `DOCFRAME-MISSING` auf `span.start_line`.
 
 2. **`DocFrameProvenanceIncomplete` (`DOCFRAME-PROVENANCE-INCOMPLETE`, Default: `"error"`, Alias: `DocFrameProvenanceRule`):**
-   Überspringt Dateien mit ungeschlossenen Tags (`if unclosed: return []`). Prüft über `_find_incomplete_provenance(span, pattern)` jeden `zone="head"`-Span, dessen `FramePattern` einen `ProvenanceBlock` enthält: Bleibt nach dem Zusammenführen der bestehenden `- **Key:** Value`-Zeilen und der Marker-Attribute (`env`, `model`, `effort`) mindestens ein Schlüssel aus `prov.required_keys` leer, emittiert die Regel `DOCFRAME-PROVENANCE-INCOMPLETE` auf `span.start_line`.
+   Überspringt Dateien mit ungeschlossenen Tags (`if unclosed: return []`). Prüft über `_cached_incomplete_provenance(span, pattern, file_cache)` jeden `zone="head"`-Span, dessen `FramePattern` einen `ProvenanceBlock` enthält: Bleibt nach dem Zusammenführen der bestehenden `- **Key:** Value`-Zeilen und der Marker-Attribute (`env`, `model`, `effort`) mindestens ein Schlüssel aus `prov.required_keys` leer, emittiert die Regel `DOCFRAME-PROVENANCE-INCOMPLETE` auf `span.start_line`.
 
 3. **`DocFrameBrokenRoute` (`DOCFRAME-BROKEN-ROUTE`, Default: `"error"`, Alias: `DocFrameBrokenRouteRule`):**
-   Überspringt Dateien mit ungeschlossenen Tags und prüft für jeden Span über `_find_broken_route_in_span(path_obj, span, catalog.root)` zwei Arten von Ziel-Referenzen auf physische Existenz im Dateisystem:
-   * Besitzt der Span ein `banner="..."`-Attribut, muss `catalog.root / resolve_banner_rel_path(banner, catalog.root)` existieren.
-   * Für jeden im `span.inner_content` gefundenen Markdown-Link oder Bild-Verweis (`_LINK_TARGET_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")`) werden Anker (`#...`) und Query-Parameter (`?...`) abgetrennt; externe URLs (`http://`, `https://`, `mailto:`) werden übersprungen. Existiert `(file_path.resolve().parent / clean).resolve()` nicht auf der Festplatte, meldet die Regel `DOCFRAME-BROKEN-ROUTE` auf `span.start_line`.
+   Überspringt Dateien mit ungeschlossenen Tags und prüft für jeden Span I/O-frei über `_cached_broken_route(path_obj, span, catalog, file_cache)` gegen `catalog.workspace.has_path(...)` zwei Arten von Ziel-Referenzen:
+   * Besitzt der Span ein `banner="..."`-Attribut, muss `resolve_banner_rel_path(banner, catalog.root, catalog.workspace)` im `WorkspaceView` vorhanden sein.
+   * Für jeden im `span.inner_content` gefundenen Markdown-Link oder Bild-Verweis (`_LINK_TARGET_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")`) werden Anker (`#...`) und Query-Parameter (`?...`) abgetrennt; externe URLs (`http://`, `https://`, `mailto:`) werden übersprungen. Fehlt `(file_path.resolve().parent / clean).resolve()` im `WorkspaceView`, meldet die Regel `DOCFRAME-BROKEN-ROUTE` auf `span.start_line`.
 
 4. **`DocFrameOutdated` (`DOCFRAME-OUTDATED`, Default: `"error"`, Alias: `DocFrameOutdatedRule`):**
-   Berechnet im Dry-Run über `pat.render_zone(span.zone, ctx)` den Soll-Zustand jeder Zone und vergleicht `span.inner_content.strip() != expected.strip()`.
-   * **Kaskadenfreie Abschirmung:** Damit ein einzelner Ursachenfehler niemals doppelt gemeldet wird, bricht `DocFrameOutdated` sofort ab (`return []`), wenn `_has_missing_zones` zutrifft, und überspringt in `_check_spans_sync` gezielt jeden Span, für den `_find_incomplete_provenance` oder `_find_broken_route_in_span` bereits einen Befund liefert.
+   Deklariert `depends_on = ("DOCFRAME-MISSING",)` und berechnet im Dry-Run über `pat.render_zone(span.zone, ctx)` den Soll-Zustand jeder Zone (`span.inner_content.strip() != expected.strip()`).
+   * **Kaskadenfreie Abschirmung:** Auf Dateiebene überspringt `FileCheckRunner` `DocFrameOutdated` automatisch bei `DOCFRAME-MISSING`-Fehlern (zusätzlich abgesichert durch `_has_missing_zones` bei isoliertem Aufruf); auf Span-Ebene überspringt `_check_spans_sync` jeden Span mit gecachtem Provenance- oder Broken-Route-Befund.
 
-### 5.2 Entkoppelte Integration in `DocEnsurance` (`FileCheckProtocol` & `_run_file_rules`)
+### 5.2 Native Ausführung über `DocFrame.check()` (`FileCheckRunner`) & Kompatibilitätsbrücke
 
-`DocEnsurance` kennt weder `DocFrame` noch `FramePattern` oder `DocumentCatalog`. Die orthogonale Ausführung beider Services in einem Durchlauf läuft ausschließlich über Core-Protokolle:
-* **Pattern-Normalisierung (`DocEnsurance._normalize_patterns`):** Übergibt der Aufrufer `pattern=(CUBIE_DOC_STYLE, CUBIE_DOC_FRAME_1, CUBIE_DOC_FRAME_2, CUBIE_DOC_FRAME_3)`, validiert `_normalize_patterns` alle Elemente gegen `DocPatternProtocol`, wählt das primäre Anker-Pattern (`hasattr(p, "anchor")`) und hält alle Muster neutral in `self._extra_patterns` bereit.
-* **Rekursives Regel-Flattening (`DocEnsurance._flatten_rules`):** Erlaubt die direkte Übergabe verschachtelter Regel-Tupel wie `rules=(CUBIE_DOC_RULES, CUBIE_DOCFRAME_RULES)`.
-* **Einmaliger Kontext-Aufbau via `FileCheckProtocol` (`_run_file_rules`):** Zu Beginn von `_scan_all_sources()` sammelt `DocEnsurance` alle registrierten `FileCheckProtocol`-Regeln. Sofern Dateisystem-Quellen vorliegen (`self._sources[0][0] != "IN_MEMORY"`), ruft `_prepare_file_rule_contexts` pro eindeutigem `context_key` (`"doc_frame"`) einmalig `rule.prepare_context(target, excludes, self._extra_patterns)` auf — darin baut `_prepare_docframe_context` einmalig den `DocumentCatalog` sowie die `FramePattern`-Map — und führt anschließend `rule.check_file(file_path, content, context)` über alle geladenen `(file_path, content)`-Paare aus.
+* **Primärer Ausführungspfad (`DocFrame.check()`):** `DocFrame.check()` baut über `adapters.build_workspace_catalog` einmalig den `DocumentCatalog` (inkl. `FileSystemWorkspaceView`) auf und übergibt `rules`, `options={"catalog": catalog, "patterns": patterns, ...}` und `reporter` direkt an `qb_cubie.core.service_core.FileCheckRunner`. Weder `DocEnsurance` noch `_MarkdownScanner` oder `TempFS` werden dabei geladen oder ausgeführt.
+* **Kompatibilitätsbrücke in `DocEnsurance`:** Da `DocEnsurance._run_file_rules()` intern `service_core.rules.execute_file_checks()` nutzt, können `WorkspaceCheckRuleProtocol`- und Legacy-`FileCheckProtocol`-Regeln bei Bedarf weiterhin auch über `DocEnsurance` ausgeführt werden — ohne dass `DocEnsurance` irgendwelche `DocFrame`-Typen kennt.
 
 ---
 
 ## 6. Entwickler-Rezepte: Eigene Erweiterungen bauen (DI-Guide)
 
-Dank der strikten Protokoll-Trennung (`FrameBlockProtocol`, `FramePattern`, Core-`FileCheckProtocol`) lassen sich eigene Rahmen-Bausteine, Router-Konfigurationen und Dokument-Prüfregeln ohne Änderung am `doc_frame`-Kern implementieren und per Dependency Injection übergeben.
+Dank der strikten Protokoll-Trennung (`FrameBlockProtocol`, `FramePattern`, `WorkspaceView`, `WorkspaceCheckRuleProtocol`) lassen sich eigene Rahmen-Bausteine, Router-Konfigurationen und Dokument-Prüfregeln ohne Änderung am `doc_frame`-Kern implementieren und per Dependency Injection übergeben.
 
 ### 6.1 Eigenen Rahmen-Baustein (`FrameBlockProtocol`) implementieren
 
@@ -487,47 +492,47 @@ print(CatalogRouter().render(ctx))
 ```
 </details>
 
-### 6.3 Eigene Datei-Prüfregel (`FileCheckProtocol`) mit State-Guard implementieren
+### 6.3 Eigene Datei-Prüfregel (`WorkspaceCheckRuleProtocol`) mit `FileContextCache` & State-Guard implementieren
 
-Soll `DocEnsurance` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-Konvention durchsetzen (z. B. dass jeder `CUBIE_DOC_FRAME_1`-Header zwingend ein explizites `banner="..."`-Attribut im Kommentar-Tag deklarieren muss), implementiert man das domänenneutrale Core-`FileCheckProtocol` (`context_key`, `prepare_context`, `check_file`) und emittiert Core-`Diagnostic`-Records:
+Soll `DocFrame.check()` neben `CUBIE_DOCFRAME_RULES` eine projektspezifische Rahmen-Konvention durchsetzen (z. B. dass jeder `CUBIE_DOC_FRAME_1`-Header zwingend ein explizites `banner="..."`-Attribut im Kommentar-Tag deklarieren muss), implementiert man das domänenneutrale **`WorkspaceCheckRuleProtocol`** aus `qb_cubie.core.service_core` und emittiert Core-`Diagnostic`-Records:
 
 ```python
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
-from qb_cubie.core.protocols import Diagnostic, FileCheckProtocol, validate_severity
-from qb_cubie.core.services import DocEnsurance
-from qb_cubie.core.services.doc_frame import parse_frame_spans
+from qb_cubie.core.protocols import Diagnostic, validate_severity
+from qb_cubie.core.service_core import FileContextCache, FileSource, RuleRegistry, WorkspaceCheckRuleProtocol
+from qb_cubie.core.services.doc_frame import CUBIE_DOCFRAME_RULES, parse_frame_spans
 
 @dataclass(frozen=True)
 class RequireExplicitBannerRule:
     rule_id: str = "DOCFRAME-EXPLICIT-BANNER"
     severity: str = "warning"
     context_key: str = "explicit-banner"
+    depends_on: tuple[str, ...] = ("DOCFRAME-MISSING",)
 
     def __post_init__(self) -> None:
         validate_severity(self.severity)
 
-    def prepare_context(self, target: str | Path, excludes: Sequence[str], patterns: Sequence[Any]) -> None:
+    def prepare_workspace(self, sources: Sequence[FileSource], options: Mapping[str, Any]) -> None:
         return None
 
-    def check_file(self, file_path: str, content: str, context: None) -> list[Diagnostic]:
-        spans, _ = parse_frame_spans(content)
+    def check_file(self, source: FileSource, workspace_ctx: Any, file_cache: FileContextCache) -> list[Diagnostic]:
+        spans, _ = file_cache.get_or_compute("banner:spans", lambda: parse_frame_spans(source.content))
         return [
-            Diagnostic(file_path, self.rule_id, s.start_line, "Missing explicit banner attribute.", self.severity)
+            Diagnostic(source.path, self.rule_id, s.start_line, "Missing explicit banner attribute.", self.severity)
             for s in spans if s.zone == "head" and s.frame_id == "CUBIE_DOC_FRAME_1" and not s.attrs.get("banner")
         ]
 
-service = DocEnsurance(rules=[RequireExplicitBannerRule], reporter=None)
-print(f"FileCheck={isinstance(RequireExplicitBannerRule(), FileCheckProtocol)} | {[r.rule_id for r in service.rules]}")
+reg = RuleRegistry((CUBIE_DOCFRAME_RULES, RequireExplicitBannerRule))
+print(f"WorkspaceRule={isinstance(RequireExplicitBannerRule(), WorkspaceCheckRuleProtocol)} | {[r.rule_id for r in reg.rules]}")
 ```
 
 <details>
 <summary>Ergebnis</summary>
 
 ```text
-FileCheck=True | ['DOC-OUT-MISSING', 'DOC-OUT', 'DOCFRAME-EXPLICIT-BANNER']
+WorkspaceRule=True | ['DOCFRAME-MISSING', 'DOCFRAME-OUTDATED', 'DOCFRAME-BROKEN-ROUTE', 'DOCFRAME-PROVENANCE-INCOMPLETE', 'DOCFRAME-EXPLICIT-BANNER']
 ```
 </details>
 
@@ -547,6 +552,7 @@ FileCheck=True | ['DOC-OUT-MISSING', 'DOC-OUT', 'DOCFRAME-EXPLICIT-BANNER']
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 

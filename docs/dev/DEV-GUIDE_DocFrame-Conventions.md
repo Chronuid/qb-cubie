@@ -81,20 +81,22 @@ Rahmen werden als HTML-Kommentar-Paare außerhalb von Code-Fences notiert (unabg
 
 ---
 
-## 4. Prüfregeln (`CUBIE_DOCFRAME_RULES`)
+## 4. Prüfregeln (`CUBIE_DOCFRAME_RULES` via `DocFrame.check()`)
+
+Die vier `WorkspaceCheckRuleProtocol`-Regeln werden nativ über `DocFrame.check()` (`qb_cubie.core.service_core.FileCheckRunner` mit `FileContextCache` und `depends_on=("DOCFRAME-MISSING",)` auf `DocFrameOutdated`) ohne `DocEnsurance`-Kopplung ausgewertet:
 
 | Regel-ID | Auslöser |
 | :--- | :--- |
 | `DOCFRAME-MISSING` | Ungeschlossener `qb:frame`-Tag, fehlende `head`-/`foot`-Zone oder fehlende `router`-Zone bei `FRAME_3` |
 | `DOCFRAME-PROVENANCE-INCOMPLETE` | Pflichtfeld (`Plattform / Umgebung`, `Modell`, `Reasoning-Effort`) in `FRAME_2` fehlt oder ist leer |
-| `DOCFRAME-BROKEN-ROUTE` | Banner-Asset oder relativer Markdown-Link innerhalb eines Rahmens existiert nicht auf der Festplatte |
+| `DOCFRAME-BROKEN-ROUTE` | Banner-Asset oder relativer Markdown-Link innerhalb eines Rahmens fehlt im `WorkspaceView` |
 | `DOCFRAME-OUTDATED` | Gespeicherter Rahmen-Inhalt weicht vom aktuellen `DocumentCatalog`/Renderer ab |
 
 ---
 
 ## 5. Synchronisieren & Verifizieren
 
-Nach dem Anlegen oder Ändern gerahmter Dokumente immer synchronisieren und gegen den Styleguide prüfen (Details: [DocFrame-Handbuch](../services/GUIDE_DocFrame.md), [DocFrame-Internals](./services/DEV-GUIDE_DocFrame.md)):
+Nach dem Anlegen oder Ändern gerahmter Dokumente immer synchronisieren und gegen Rahmen- sowie Doku-Regeln prüfen (Details: [Service-Core](../services/GUIDE_Service-Core.md), [DocFrame-Handbuch](../services/GUIDE_DocFrame.md), [DocFrame-Internals](./services/DEV-GUIDE_DocFrame.md)):
 
 ```bash
 qb-cubie docframe update <pfad/zur/datei.md>
@@ -124,6 +126,7 @@ qb-cubie docframe update docs/dev/README.md
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 

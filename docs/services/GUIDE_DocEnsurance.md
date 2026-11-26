@@ -92,10 +92,10 @@ DocEnsurance(
 | **`pattern`** | `CUBIE_DOC_STYLE` | Legt das strukturelle Muster um jeden Code-Anker fest (`Explanation` $\to$ `CodeSnippet` $\to$ `CollapsibleResult`). |
 | **`scope`** | `TaggedScope()` | Steuert die Arena-Gruppierung: `TaggedScope()` gruppiert Snippets mit identischem `session=<id>` pro Datei und isoliert ungetaggte Snippets jeweils in einer eigenen Arena. |
 | **`arena`** | `TempFS(timeout=10.0)` | Ausführungs-Umgebung für jede Session (`TempFS` oder `PyVenv`). Nach jeder Session wird der Workspace vollständig abgeräumt (`teardown`). |
-| **`reporter`** | `PytestReporter()` | Konsumiert den erzeugten `DocReport`. `PytestReporter()` gibt für Diagnosen mit `severity="warning"` eine `UserWarning` aus und löst nur bei `severity="error"` einen `AssertionError` aus; `reporter=None` gibt still den `DocReport` zurück. |
+| **`reporter`** | `PytestReporter()` | Konsumiert den erzeugten `DocReport`. `PytestReporter()` gibt für Diagnosen mit `severity="warning"` eine `UserWarning` aus und löst bei `severity="error"` einen `AssertionError` (inkl. `session_id`/Kontext) aus; `JsonReporter(path)` persistiert den `DocReport` atomar als JSON (`schema_version: 1`); `reporter=None` gibt ihn still zurück. |
 | **`pre_state`** | `WorldState()` | Hydratisiert vor jeder Session definierte Dateien oder Ordner in den Arena-Workspace (z. B. `WorldState(fs={"config.ini": "ReadMe.md"})`). |
-| **`excludes`** | `DEFAULT_EXCLUDES` | Ergänzt die Standard-Ausschlüsse (`.venv`, `__pycache__`, `.git`) um Ordnernamen (`"experiments"`), Dateinamen (`"GUTACHTEN.md"`) oder relative Teilpfade (`"docs/drafts"`). |
-| **`rules`** | `DEFAULT_DOC_RULES` | Registriert zusätzliche oder überschreibende Check-Regeln (`DocRuleProtocol`) und Linter (`CstLinter`, `AstLinter`, `Pylint`, `MyPy`) für Erklärung, Code und Ausgabe. |
+| **`excludes`** | `DEFAULT_EXCLUDES` | Ergänzt die Standard-Ausschlüsse (`.venv`, `__pycache__`, `.git`) um Ordnernamen (`"experiments"`), Dateinamen (`"GUTACHTEN.md"`) oder relative Teilpfade (`"docs/drafts"`). Validiert über `service_core.workspace.normalize_excludes` (bloße Strings wie `excludes="tests"` werfen sofort `TypeError("STATE-GUARD: ...")`). |
+| **`rules`** | `DEFAULT_DOC_RULES` | Registriert zusätzliche oder überschreibende Check-Regeln (`DocRuleProtocol`, `WorkspaceCheckRuleProtocol`, `FileCheckProtocol`) und Linter (`CstLinter`, `AstLinter`, `Pylint`, `MyPy`) über `service_core.rules.RuleRegistry`. |
 | **`timeout`** | `10.0` (Keyword-only) | Maximale Laufzeit (TTL) in Sekunden pro Session auf POSIX-Systemen; verhindert Endlosschleifen oder blockierende `input()`-Aufrufe. `None` deaktiviert das Limit. |
 
 ### Wichtige Konfigurations-Details für die Praxis
@@ -172,7 +172,7 @@ Pattern: cubie-doc-style | Pre-Regeln: 1 | Post-Regeln: 1
 `DocEnsurance` ist so vorkonfiguriert, dass es ohne Boilerplate-Pfade sofort das gesamte Projekt absichert, sich bei Bedarf aber auch gezielt auf einzelne Dateien oder Strings richten lässt:
 
 * **`target=None` (Standard):** Durchsucht standardmäßig das gesamte Projektverzeichnis rekursiv nach `*.md`-Dateien (unter automatischer Beachtung von `DEFAULT_EXCLUDES` wie `.venv`, `.git` und `__pycache__`).
-* **`excludes=(...)`:** Schließt zusätzliche Ordner, Dateien oder relative Teilpfade (wie `"experiments"`, `"docs/drafts"` oder `"GUTACHTEN.md"`) relativ zum Zielverzeichnis vom Scan aus.
+* **`excludes=(...)`:** Schließt zusätzliche Ordner, Dateien oder relative Teilpfade (wie `"experiments"`, `"docs/drafts"` oder `"GUTACHTEN.md"`) relativ zum Zielverzeichnis vom Scan aus. Über `qb_cubie.core.service_core.workspace.normalize_excludes` wird eine bloße Zeichenkette (`excludes="tests"`) sofort mit `TypeError("STATE-GUARD: ...")` abgewiesen (siehe [Service-Core-Handbuch](./GUIDE_Service-Core.md)).
 * **`target=Path(...)` oder `str`:** Akzeptiert wahlweise ein spezifisches Unterverzeichnis, eine einzelne `.md`-Datei oder einen mehrzeiligen In-Memory-Markdown-String. Nicht existierende Datei- oder Ordnerpfade werden sofort durch einen `FileNotFoundError`-`STATE-GUARD` abgefangen.
 * **`reporter=PytestReporter()` (Standard):** Emittiert bei Warnungen (`severity="warning"`) eine `UserWarning` und löst bei Fehlern (`severity="error"`) direkt einen formatierten `AssertionError` für `pytest` aus. Mit `reporter=None` lässt sich das `DocReport`-Ergebnis programmatisch auswerten.
 
@@ -587,6 +587,7 @@ Neben dem Pattern lassen sich über `scope` und `arena` auch die Ausführungsbed
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 

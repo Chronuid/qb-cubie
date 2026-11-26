@@ -47,7 +47,7 @@ Zentraler Einstiegspunkt für die interne Entwicklerdokumentation von `qb-cubie`
 | **Code schreiben, strukturieren & prüfen** | [Styleguide](./Style-Guide.md) und [Testsuite-Leitfaden](../../tests/README.md) |
 | **Review-Based Testing (`qb_cubie.core.rbt`) verstehen** | [Review-Based Testing](./core/DEV-GUIDE_1-0_REVIEW-BASED-TESTING.md) $\to$ [RBT-Klassen](./core/DEV-GUIDE_1-1_RBT-Classes.md) |
 | **Example-Based Testing (`qb_cubie.core.ebt`) & Kernmodule verstehen** | [EBT: Entwicklerübersicht](./core/DEV-GUIDE_2-0_EXAMPLE-BASED-TESTING.md) $\to$ [Die EBT-Klasse](./core/DEV-GUIDE_2-1_EBT-Class.md), [WorldState](./core/DEV-GUIDE_2-2_WorldState-Class.md), [Arenen & IPC-Codecs](./core/DEV-GUIDE_2-3_Arenas.md), [`Multiprocessors`](./core/DEV-GUIDE_2-4_Multiprocessors.md), [`Linter`](./core/DEV-GUIDE_2-5_Linter.md) |
-| **Services (`qb_cubie.core.services`) entwickeln & erweitern** | [Service-Architektur & Isolation](./DEV-GUIDE_Services.md) $\to$ [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
+| **Services (`qb_cubie.core.services`) & `service_core` entwickeln & erweitern** | [Service-Architektur & Isolation](./DEV-GUIDE_Services.md) $\to$ [Service-Core-Handbuch](../services/GUIDE_Service-Core.md), [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) und [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) |
 | **Bugs reproduzierbar erfassen & prüfen** | [Bugs dokumentieren](./DEV-GUIDE_Write-down-the-bugs.md), [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md) und [Archiv behobener Bugs](../misc/lake/SOLVED_ISSUES.md) |
 | **Agenten-Berichte, Analysen & Audits verfassen** | [Berichte, Analysen & Audits (`CUBIE_DOC_FRAME_2`)](./DEV-GUIDE_Agent-Reports.md) |
 | **`CUBIE_DOC_FRAME_*`-Konventionen nachschlagen** | [`CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) |
@@ -84,7 +84,7 @@ Direkt in `docs/dev/` abgelegte Prozess-Leitfäden, Agenten-Konventionen und der
 | [DEV-GUIDE: `CUBIE_DOC_FRAME_*`-Konventionen für Agenten](./DEV-GUIDE_DocFrame-Conventions.md) | Kompakte Kurzreferenz aller aktuellen `CUBIE_DOC_FRAME_*`-Rahmenkonventionen (`CUBIE_DOC_FRAME_1` bis `CUBIE_DOC_FRAME_3`), Zonen, Attribute, Prüfregeln und Sync-Kommandos für Agenten. |
 | [DEV-GUIDE: Next Steps – `services`-Zweig, Sprint-Aufarbeitung und Audit-Fixes](./DEV-GUIDE_Next-Steps.md) |  |
 | [DEV-GUIDE: Release-Vorbereitung und sauberer Release](./DEV-GUIDE_Release-Preparation.md) | Dieser Leitfaden beschreibt den verbindlichen Ablauf vom Branch-Abgleich bis zum automatisierten GitHub- und PyPI-Release von `qb-cubie`. |
-| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/services/`: Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
+| [DEV-GUIDE: Service-Architektur & strikte Service-Isolation](./DEV-GUIDE_Services.md) | Verbindliche Architektur-Spezifikation für Pakete unter `src/qb_cubie/core/services/` und den gemeinsamen Service-Core (`src/qb_cubie/core/service_core/`): Clean-Architecture-Abhängigkeitsregel, Bounded Contexts, Functional Core / Imperative Shell sowie Komposition an der Aufrufstelle. |
 | [DEV-GUIDE: Bugs dokumentieren (`KNOWN_ISSUES.md`)](./DEV-GUIDE_Write-down-the-bugs.md) | Kurzanleitung zum einheitlichen, reproduzierbaren Erfassen und Pflegen von Bugs in [`KNOWN_ISSUES.md`](../../KNOWN_ISSUES.md). |
 | [Styleguide](./Style-Guide.md) | Dieser Styleguide beschreibt Konventionen für die Entwicklung und Strukturierung des Cubie-Codes. |
 <!-- /qb:frame -->
@@ -99,7 +99,7 @@ Technische Entwicklerreferenzen zu den wiederverwendbaren Verifikations- und Dok
 | Dokument | Inhalt und Geltung |
 | :--- | :--- |
 | [`DocEnsurance`](./services/DEV-GUIDE_DocEnsurance.md) | Das `doc_ensurance`-Paket bildet die Verifikations-Engine für ausführbare Dokumentation innerhalb von `qb_cubie.core.services`. Es überträgt das formallogische Hoare-Tripel $\{P\}\ S\ \{Q\}$ aus der `EBT`-Architektur auf Markdown-Dokumente und sichert Code-Beispiele dreistufig ab: **strukturell** (Nachbarschafts-Muster rund um Code-Anker), **statisch-didaktisch** (Pluggable Check-Regeln & Linter-Adapter) und **funktional** (isolierte oder zustandsgeteilte Ausführung in einer `Arena`). |
-| [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) | Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es kombiniert eine **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog`) mit **tiefen- und kontextsensitivem Rendering** (Pass 2: zustandslose `FrameBlockProtocol`-Bausteine, geschützte Content-Slots und dynamische Router) sowie **orthogonalen Dokument-Prüfregeln** (`CUBIE_DOCFRAME_RULES`) für `DocEnsurance`. |
+| [`DocFrame` (Prototyp)](./services/DEV-GUIDE_DocFrame.md) | Das `doc_frame`-Paket bildet den **Prototyp** einer zweistufigen Synchronisations-, Routing- und Verifikations-Engine für Markdown-Dokumentrahmen innerhalb von `qb_cubie.core.services` (noch zu evaluieren und zu härten). Es setzt auf dem gemeinsamen `qb_cubie.core.service_core` auf und kombiniert **Zero-Config-Katalogisierung** (Pass 1: Fence-sicherer Span-Scanner & Metadaten-Extraktion in einen unveränderlichen `DocumentCatalog` mit reinem `WorkspaceView`-Port), **tiefen- und kontextsensitives Rendering** (Pass 2: I/O-freie `FrameBlockProtocol`-Bausteine, geschützte Content-Slots, dynamische Router und atomares `atomic_write_text`) sowie **eigenständige Rahmen-Verifikation** über `DocFrame.check()` (`FileCheckRunner` + `CUBIE_DOCFRAME_RULES`). |
 <!-- /qb:frame -->
 
 ---
@@ -163,6 +163,7 @@ qb-cubie docframe update docs/dev/core/README.md
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 

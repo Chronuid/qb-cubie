@@ -24,7 +24,7 @@
 
 # Ziel
 
-Erstellung eines neuen Handbuchs für den neuen Service-Core und Aktualisierung der Dokumentationen.
+Erstellung eines Handbuchs für den neuen Service-Core und Integration der Neuerungen in allen relevanten Dokumentationen.
 
 ## Kontext
 
@@ -36,6 +36,7 @@ Die beiden Services DocEnsurance und DocFrame waren historisch gewachsen. Die To
 @docs/services/ANALYSIS.md  
 @docs/services/HYPOTHESIS.md  
 @docs/GUIDE_TGD.md  
+@docs/dev/DEV-GUIDE_DocFrame-Conventions.md
 
 ---
 
@@ -59,6 +60,7 @@ Die beiden Services DocEnsurance und DocFrame waren historisch gewachsen. Die To
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./GUIDE_DocFrame.md)  
 

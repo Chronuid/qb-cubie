@@ -36,10 +36,10 @@ Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Datei, $\
 | :--- | :--- | :--- |
 | **`protocols.py`** | Unveränderliche Daten-Container (DTOs), Re-Exports promovierter Core-Primitiven (`VALID_SEVERITIES`, `validate_severity`, `ServiceReportProtocol` aus `qb_cubie.core.protocols`) und Protokoll-Verträge | `MdBlock`, `ExtractedExample`, `ExampleSession`, `DocDiagnostic`, `SessionTrace`, `DocReport`, `DocBlockProtocol`, `DocRuleProtocol`, `DocPatternProtocol`, `DocScopeProtocol`, `ServiceReportProtocol` |
 | **`_markdown_scanner.py`** | Zustandslose Tokenisierungs-Engine (Ebene 0) | `_MarkdownScanner` (zeilenbasierter Zustandsautomat: Markdown-Text $\to$ `list[MdBlock]`) |
-| **`_source_loader.py`** | Imperative I/O-Shell für Pfad-Heuristik, Verzeichnis-Crawling und Excludes | `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
+| **`_source_loader.py`** | Imperative I/O-Shell, die Pfad-Heuristik, Verzeichnis-Crawling und Excludes an `qb_cubie.core.service_core.workspace` delegiert | `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
 | **`doc_patterns.py`** | Atomare Struktur-Matcher (Ebene 1), Basis-Regeln (Ebene 2), Anker-Scanner (Ebene 3) & Session-Scoping (Ebene 4) | `Explanation`, `CodeSnippet`, `CollapsibleResult`, `ExplanationRule`, `CodeRule`, `OutputRule`, `DocLinterRule`, `MissingOutputRule`, `OutputMatchRule`, `ExamplePattern`, `TaggedScope`, `CUBIE_DOC_STYLE`, `DEFAULT_DOC_RULES` |
 | **`doc_rules.py`** | Didaktische Standard-Prüfregeln (Ebene 2) | `NoOutput`, `HighComplexity`, `LargeOutput`, `RawTraceback`, `CUBIE_DOC_RULES` |
-| **`doc_ensurance.py`** | Stateful Orchestrator (Ebene 5) & IPC-sicherer Arena-Worker | `DocEnsurance`, `_execute_session_payload`, `_execute_single_step`, `_classify_step_exception` |
+| **`doc_ensurance.py`** | Stateful Orchestrator (Ebene 5, gestützt auf `service_core.{guards, workspace, rules}`) & IPC-sicherer Arena-Worker | `DocEnsurance`, `_execute_session_payload`, `_execute_single_step`, `_classify_step_exception` |
 
 ---
 
@@ -237,19 +237,19 @@ class DocRuleProtocol(Protocol):
   * `LargeOutput` (`DOC-LARGE-OUTPUT`, Default: `max_lines=25`, `"warning"`): Warnt vor unleserlichen Konsolen-Dumps.
   * `RawTraceback` (`DOC-RAW-TRACEBACK`, Default: `"warning"`): Erkennt `"Traceback (most recent call last):"` im Ergebnisblock und empfiehlt `raises=<Exception>`.
 
-### 4.2 Regel-Normalisierung (`_coerce_rule`) und Registry-Logik (`_build_rules`)
+### 4.2 Regel-Normalisierung (`_coerce_rule`) und Registry-Logik (`RuleRegistry`)
 
-`DocEnsurance` führt Regeln aus drei Quellen in einer geordneten Registry (`dict[str, DocRuleProtocol]`) zusammen:
+`DocEnsurance` delegiert die Regel-Verwaltung an **`qb_cubie.core.service_core.rules.RuleRegistry`** (mit eigener `coerce`-Funktion und `CstLinter`-`merge`-Hook) und führt Regeln aus drei Quellen zusammen:
 1. **`DEFAULT_DOC_RULES`** (`DOC-OUT-MISSING` + `DOC-OUT`). Übergibt der Nutzer explizit eine leere Sequenz `rules=()`, wird `DOC-OUT-MISSING` abgewählt und nur `OutputMatchRule` (`DOC-OUT`) als Minimal-Default behalten.
 2. **Block-gebundene Regeln (`_extract_pattern_rules`):** Alle in `pattern.pre`, `pattern.anchor` und `pattern.post` hinterlegten `.rules`.
 3. **Explizite Service-Regeln:** Über `DocEnsurance(rules=...)` oder `service.register_rule(*rules)` übergebene Einträge.
 
 Dabei gelten drei zentrale Invarianten:
-* **0-Arg-Klassen-, `FileCheckProtocol`- & Linter-Coercion (`_coerce_rule`):** Wird eine Klasse übergeben (`isinstance(item, type)`), instanziiert `_coerce_rule` diese parameterlos (`item()`). Erfüllt das Objekt danach `DocRuleProtocol` oder das Core-`FileCheckProtocol`, wird es direkt genutzt; besitzt es `.check` und `.name` (das `Linter`-Protokoll), wird es automatisch in `DocLinterRule(linter=instance)` gewrappt. Alles andere löst sofort einen `TypeError("STATE-GUARD: Rule must implement DocRuleProtocol or Linter...")` aus.
-* **Deterministischer Override & `DOC-NO-OUTPUT`-Vorrang:** Regeln mit identischer `rule_id` überschreiben bestehende Einträge in der Registry. Sobald `DOC-NO-OUTPUT` (`NoOutput`) in der Registry aktiv ist, wird `DOC-OUT-MISSING` (`MissingOutputRule`) automatisch per `registry.pop("DOC-OUT-MISSING", None)` entfernt, damit leere Ergebnisblöcke niemals doppelt gemeldet werden.
-* **Verlustfreies Linter-Merging (`_register_into` & `_merge_linter_rules`):** Da `DocLinterRule` seine `rule_id` als `f"DOC-LINT:{self.linter.name}"` bildet, hätten zwei `CstLinter`-Instanzen beide die ID `"DOC-LINT:CST-Linter"`. Damit der zweite `CstLinter` den ersten nicht stillschweigend überschreibt, prüft `_register_into`:
+* **0-Arg-Klassen-, `WorkspaceCheckRuleProtocol`- / `FileCheckProtocol`- & Linter-Coercion (`_coerce_rule`):** Wird eine Klasse übergeben (`isinstance(item, type)`), instanziiert `_coerce_rule` diese parameterlos (`item()`). Erfüllt das Objekt danach `DocRuleProtocol`, `WorkspaceCheckRuleProtocol` oder `FileCheckProtocol`, wird es direkt genutzt; besitzt es `.check` und `.name` (das `Linter`-Protokoll), wird es automatisch in `DocLinterRule(linter=instance)` gewrappt. Alles andere löst sofort einen `TypeError("STATE-GUARD: ...")` aus.
+* **Deterministischer Override & `DOC-NO-OUTPUT`-Vorrang:** Regeln mit identischer `rule_id` überschreiben bestehende Einträge in der `RuleRegistry`. Sobald `DOC-NO-OUTPUT` (`NoOutput`) in der Registry aktiv ist, wird `DOC-OUT-MISSING` (`MissingOutputRule`) automatisch per `registry.remove("DOC-OUT-MISSING")` entfernt, damit leere Ergebnisblöcke niemals doppelt gemeldet werden.
+* **Verlustfreies Linter-Merging (`_merge_rules` & `_merge_linter_rules`):** Da `DocLinterRule` seine `rule_id` als `f"DOC-LINT:{self.linter.name}"` bildet, greift bei `rule_id`-Kollisionen der an `RuleRegistry` übergebene `merge`-Hook:
   * Handelt es sich bei beiden um `CstLinter` mit identischer `severity`, werden ihre `.rules` und `_excludes` über `_merge_linter_rules` zu einem einzigen kombinierten `CstLinter` verschmolzen.
-  * Können zwei Linter mit derselben `rule_id` nicht verschmolzen werden (z. B. unterschiedliche `severity`), vergibt `_unique_rule_key` einen eindeutigen Slot-Schlüssel `f"{rule_id}#{idx}"`, sodass beide Linter aktiv bleiben.
+  * Können zwei Linter mit derselben `rule_id` nicht verschmolzen werden (z. B. unterschiedliche `severity`), allokiert `RuleRegistry._unique_slot` einen eindeutigen Slot-Schlüssel `f"{rule_id}#{idx}"`, sodass beide Linter aktiv bleiben.
 
 Das folgende Beispiel zeigt, wie `DocEnsurance` zwei separate `CstLinter`-Instanzen sowie `NoOutput` in der internen Regel-Registry zusammenführt und `DOC-OUT-MISSING` automatisch ablöst:
 
@@ -303,8 +303,8 @@ Der Aufruf `service.run()` durchläuft analog zu `EBT` drei strikt getrennte Mak
    * In `is_excluded` wird ein führendes `{root_name}/` über `stripped.removeprefix(f"{root_name}/")` abgetrennt, damit `DocEnsurance(target="docs", excludes=("docs/drafts",))` und `excludes=("drafts",)` identisch funktionieren.
    * Enthält das Exclude-Muster einen Schrägstrich (`/`), prüft `is_excluded` exakt auf `rel_posix == norm` oder `rel_posix.startswith(f"{norm}/")`; nur reine Segmentnamen ohne `/` werden gegen `rel_path.parts` geprüft. So schließt `excludes=("docs/guide.md",)` zwar `docs/guide.md` aus, lässt aber `docs/tutorials/guide.md` unangetastet.
 
-3. **Domänenneutrale Datei-Regeln (`_run_file_rules` & `_prepare_file_rule_contexts`):**
-   Zu Beginn von `_scan_all_sources()` führt `_run_file_rules()` alle registrierten `FileCheckProtocol`-Regeln über die geladenen Dateien aus (sofern keine reine `IN_MEMORY`-Quelle vorliegt). Pro eindeutigem `rule.context_key` wird `rule.prepare_context(self.target, excludes, self._extra_patterns)` genau einmal aufgerufen und der resultierende Kontext an `rule.check_file(file_path, content, context)` weitergereicht — vollständig entkoppelt von einzelnen Geschwister-Services.
+3. **Domänenneutrale Datei-Regeln (`_run_file_rules` via `service_core.rules.execute_file_checks`):**
+   Zu Beginn von `_scan_all_sources()` sammelt `_run_file_rules()` alle registrierten `WorkspaceCheckRuleProtocol`- und Legacy-`FileCheckProtocol`-Regeln und delegiert sie an `qb_cubie.core.service_core.rules.execute_file_checks` (sofern keine reine `IN_MEMORY`-Quelle vorliegt). Pro eindeutigem `rule.context_key` wird der Workspace-Kontext genau einmal erstellt, und `WorkspaceCheckRuleProtocol`-Regeln profitieren automatisch vom per-Datei-`FileContextCache` sowie von `depends_on` — vollständig entkoppelt von Geschwister-Services.
 
 4. **Asymmetrische Vorfilterung bei Strukturfehlern (`_partition_executable` vs. `_has_structural_errors`):**
    Nachdem `self.pattern.scan(...)` alle Beispiele und Strukturdiagnosen (`DOC-PRE`, `DOC-POST`) einer Datei geliefert hat, unterscheidet `_partition_executable` zwischen isolierten Snippets und getaggten Session-Schritten:
@@ -340,7 +340,7 @@ Wird ein statischer Linter (wie `MyPy` oder `CstLinter`) über `DocLinterRule` e
 
 `_report()` bündelt alle `SessionTrace`s und `DocDiagnostic`s in einem unveränderlichen `DocReport`. Dabei gilt:
 * `report.passed` ist genau dann `True`, wenn keine einzige Diagnose `severity == "error"` besitzt (`not self._has_errors(self._diagnostics)`).
-* Ist ein Reporter konfiguriert (Standard: `PytestReporter()`), wird `self.reporter.report(report)` aufgerufen. `PytestReporter` gibt zunächst für jede Diagnose mit `severity == "warning"` eine standardisierte `UserWarning` (`[rule_id] file:line: message`) aus und löst anschließend nur dann einen `AssertionError` aus, wenn `report.passed is False`.
+* Ist ein Reporter konfiguriert (Standard: `PytestReporter()`), wird `self.reporter.report(report)` aufgerufen. `PytestReporter` gibt zunächst für jede Diagnose mit `severity == "warning"` eine standardisierte `UserWarning` aus, formatiert Fehlerzeilen über `service_core.reporting.format_diagnostic_line` (inkl. `session_id`/Kontext) und löst nur bei `report.passed is False` einen `AssertionError` aus. Alternativ persistiert `JsonReporter(path)` den `DocReport` atomar im `schema_version: 1`-Format.
 
 ---
 
@@ -484,6 +484,7 @@ passed=True | sessions=1 | outputs=('21', '42')
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 

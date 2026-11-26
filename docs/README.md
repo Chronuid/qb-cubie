@@ -26,7 +26,7 @@
 | --- | --- |
 | [docs/core](core/README.md) | Verbindliche Core-Referenzen und Nutzungsmuster (`Contract-Semantics`, `EBT`, `RBT`, `Arena-Management`, `Linter`). |
 | `docs/GUIDE_*.md` | Übergreifende Leitfäden zu Qualitätssicherung, Test-Guided Development (TGD), Vertragsaufbau, Quantoren, `expect`-Flags und Benchmarks. |
-| [docs/services](services/GUIDE_DocEnsurance.md) | Leitfäden zu den Services in `qb_cubie.core.services` (`DocEnsurance` sowie [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
+| [docs/services](services/GUIDE_Service-Core.md) | Leitfäden zum gemeinsamen [Service-Core](services/GUIDE_Service-Core.md) (`qb_cubie.core.service_core`) sowie den Services in `qb_cubie.core.services` ([`DocEnsurance`](services/GUIDE_DocEnsurance.md) und [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
 | [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
 | [docs/misc](misc/README.md) | Hintergrundtexte, optionale historische Entwicklungsunterlagen sowie das Sammelbecken [`docs/misc/lake/`](misc/lake/SOLVED_ISSUES.md) (Analysen, CI-Daten, Archiv behobener Bugs). |
 | [tests/README.md](../tests/README.md) | Leitfaden zur Testsuite, Marker-Profilen, `Makefile`-Zielen und Hypothesis-Profilen. |
@@ -82,6 +82,7 @@ beziehen sich dagegen auf dieses Beispielprojekt.
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](./GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](./services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](./services/GUIDE_DocFrame.md)  
 

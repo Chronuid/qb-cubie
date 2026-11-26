@@ -50,7 +50,7 @@ Diese Referenz beschreibt die vorhandene Implementierung von Cubie 0.1.1, abgegl
 | Exceptions | Ohne `post.raises` propagieren Target-Fehler weiterhin; `expect=False` fängt sie nicht ab. Mit Ausnahmevertrag werden normale Rückgabe, Typ und Meldung verglichen. Infrastrukturfehler bleiben Ausführungsabbrüche. |
 | `stdout` / `stderr` | Keine `WorldState`-Felder und keine EBT-Rückgabemuster. `returns` bezeichnet ausschließlich den Python-Rückgabewert. |
 | Reporter | Standardmäßig wertet `PytestReporter` das Ergebnis per Assertion aus. `reporter=None` unterdrückt diese Assertion; Target-, Aufbau- und Vergleichsfehler können weiterhin Exceptions auslösen. |
-| `JsonReporter(path)` | Schreibt einen abgeschlossenen EBT-Lauf als versioniertes JSON, auch bei `evaluation=False`; erhebt selbst keine fachliche Assertion. Schreibfehler propagieren. |
+| `JsonReporter(path)` | Schreibt einen abgeschlossenen EBT-Lauf (`RunTrace`) oder ein `ServiceReportProtocol` atomar als versioniertes JSON (`schema_version: 1`), auch bei `evaluation=False`/`passed=False`; erhebt selbst keine fachliche Assertion. Schreibfehler propagieren. |
 | Traces | Unabhängige Momentaufnahmen für Vergleiche (`EvaluationTrace`) und Gesamtergebnis (`RunTrace`). Die Dataclasses bleiben durch den Empfänger veränderbar. Workspace-Pfade können nach dem Aufräumen nicht mehr existieren. |
 | RBT | Synchrone Übergabe von Zielbezeichnung und Prüfregel an `reviewer.review(...)`; keine automatische Target-Ausführung, Quellenbeschaffung oder Beweisführung. |
 
@@ -244,9 +244,10 @@ Target und Arena werden weiterhin als übergebene Instanzen ausgeführt. Ihre ei
 
 ## Persistente EBT-Berichte
 
-`JsonReporter(path)` speichert einen abgeschlossenen `RunTrace` als UTF-8-JSON mit
+`JsonReporter(path)` speichert einen abgeschlossenen `RunTrace` atomar (`atomic_write_text`) als UTF-8-JSON mit
 `schema_version: 1`, Lauf-ID, Target, Laufzeit, `expect`, `pre_quantor`, `post_quantor`, Gesamtbewertung und allen
 Vergleichsspuren einschließlich positiver und negativer Post-Zustände.
+Übergibt ein Service ein `ServiceReportProtocol` (z. B. `ServiceReport`, `DocReport`, `DocFrameReport`), serialisiert `JsonReporter` es analog über `qb_cubie.core.service_core.reporting.report_to_dict` im `schema_version: 1`-Service-Schema (siehe [Service-Core-Handbuch](../services/GUIDE_Service-Core.md)).
 `pre`, `post`, `outcome` und aufgezeichnete Diffs bleiben nach Teardown auswertbar.
 Die Ausgabe liest weder Workspace noch Referenzdateien erneut. Dateien selbst
 werden nicht archiviert. Ausführungsabbrüche ohne abgeschlossenen `RunTrace`
@@ -320,6 +321,7 @@ Diese Einschränkungen sind offene Implementierungsbefunde. Die beschriebene Han
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../services/GUIDE_DocFrame.md)  
 
