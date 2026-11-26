@@ -9,6 +9,7 @@ DOC_EXCLUDES = (
     "docs/feature-drafts",  # Reason: Feature Drafts
     "GUTACHTEN.md",  # Reason: No Cubie-Rules apply to Inspectors.
     "docs/misc/lake",
+    "docs/misc/runs",  # Reason: Active TGD minimal tickets and run artifacts (E4).
     "CHANGELOG.md",
     "CI-Data.md",
 )

@@ -29,7 +29,7 @@
 | [docs/tgd](tgd/README.md) | Universelle, modulare TGD-Knoten-Handbücher (Zustandsautomat mit 6 Einzelverträgen für Einsteiger, Experten und KI-Agenten). |
 | [docs/services](services/GUIDE_Service-Core.md) | Leitfäden zum gemeinsamen [Service-Core](services/GUIDE_Service-Core.md) (`qb_cubie.core.service_core`) sowie den Services in `qb_cubie.core.services` ([`DocEnsurance`](services/GUIDE_DocEnsurance.md) und [DocFrame (Prototyp)](services/GUIDE_DocFrame.md) – noch zu evaluieren und zu härten). |
 | [docs/dev](dev/README.md) | Entwicklerdokumentation: [Core-Internals](dev/core/README.md), [Services](dev/services/DEV-GUIDE_DocEnsurance.md), [TGD-Workflow-Profil](dev/DEV-GUIDE_TGD-Workflow.md), [Styleguide](dev/Style-Guide.md) und [Release-Leitfaden](dev/DEV-GUIDE_Release-Preparation.md). |
-| [docs/misc](misc/README.md) | Hintergrundtexte, optionale historische Entwicklungsunterlagen sowie das Sammelbecken [`docs/misc/lake/`](misc/lake/SOLVED_ISSUES.md) (Analysen, CI-Daten, Archiv behobener Bugs). |
+| [docs/misc](misc/README.md) | Hintergrundtexte, optionale historische Entwicklungsunterlagen, der entkoppelte TGD-Lauf-Ordner [`docs/misc/runs/`](misc/runs/README.md) sowie das Sammelbecken [`docs/misc/lake/`](misc/lake/SOLVED_ISSUES.md) (Analysen, CI-Daten, Archiv behobener Bugs). |
 | [tests/README.md](../tests/README.md) | Leitfaden zur Testsuite, Marker-Profilen, `Makefile`-Zielen und Hypothesis-Profilen. |
 | `docs/feature-drafts` | Funktionsentwürfe und Prototypen ([Benchmarks](feature-drafts/GUIDE_Benchmarks.md), [Virtualisierung](feature-drafts/virtualization/README.md), `meta-qa/`); keine Zusage einer verfügbaren Produktfunktion. |
 

@@ -33,7 +33,7 @@ Wenn mehrere Services wie `DocEnsurance`, `DocFrame` und künftige Werkzeuge (`c
 
 ## 1. Warum ein Service-Core? (Einbahnstraße & freie Komposition)
 
-Historisch waren `DocEnsurance` und `DocFrame` getrennt gewachsen: `DocFrame` besaß keinen eigenen Prüf-Runner und musste über `DocEnsurance` huckepack geprüft werden, während Projekt-Root-Suche, Exclude-Matching und Guard-Validatoren mehrfach kopiert wurden (siehe [`ANALYSIS.md`](./ANALYSIS.md)).
+Historisch waren `DocEnsurance` und `DocFrame` getrennt gewachsen: `DocFrame` besaß keinen eigenen Prüf-Runner und musste über `DocEnsurance` huckepack geprüft werden, während Projekt-Root-Suche, Exclude-Matching und Guard-Validatoren mehrfach kopiert wurden (siehe [`ANALYSIS_SERVICE-CORE.md`](../misc/lake/ANALYSIS_SERVICE-CORE.md)).
 
 **`qb_cubie.core.service_core`** löst diese Probleme nach zwei verbindlichen Design-Gesetzen (siehe [`DEV-GUIDE_Services.md`](../dev/DEV-GUIDE_Services.md)):
 

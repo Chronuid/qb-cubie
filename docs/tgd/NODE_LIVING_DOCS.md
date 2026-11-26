@@ -48,7 +48,7 @@ Dritter verbindlicher Kernknoten von TGD: Synchronisiert Handbücher, ausführba
 
 1. **Pre-Flight-Triage:** Status des Versionierungssystems gemäß dem [3-Klassen-Modell](./README.md#41-pre-flight-triage-des-arbeitsverzeichnisses-3-klassen-modell) prüfen; fremde Altlasten (Klasse 3) stoppen den Start sofort.
 2. **Auftrags-Konsistenz & grüne Baseline prüfen:** Prüfen, ob Knoten-Rolle (`LIVING_DOCS`) und Zielbeschreibung übereinstimmen und ob der Vorgänger-Knoten (`PHASE_GREEN` oder `GREEN_AUDIT` mit `Status: RESOLVED`) sauber abgeschlossen ist.
-3. **Wahrheitsquelle & Handoff-Liste sammeln:** Die real geänderten Quellcode-Dateien sowie eine eventuelle Living-Docs-Diagnoseliste aus `PHASE_GREEN` (L4-Muster) und relevante Nachbar-Handbücher als Arbeitsbasis bereitstellen.
+3. **Wahrheitsquelle & Handoff-Liste sammeln:** Die real geänderten Quellcode-Dateien sowie eine eventuelle Living-Docs-Diagnoseliste aus `PHASE_GREEN` (*Diagnose-statt-Edit-Regel*) und relevante Nachbar-Handbücher als Arbeitsbasis bereitstellen.
 
 ---
 

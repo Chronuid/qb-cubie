@@ -48,9 +48,9 @@ den jeweiligen Bereichen geführt:
 | Historischer Nutzungstest eigener Developer-Aufgaben und Folgerungen | [Ollama-Nutzungsexperiment](../../experiments/ollama-user-benchmark/README.md) |
 | Separate Testguided-Vergleichsstudie | [Studienprotokoll](../../experiments/testguided-study/PROTOKOLL.md) |
 
-## Sammelbecken (`docs/misc/lake/`)
+## Sammelbecken (`docs/misc/lake/`) & TGD-Lauf-Ordner (`docs/misc/runs/`)
 
-Dokumente ohne feste Bereichszuordnung (CI-Analysen, Konzeptstudien und das Archiv behobener Bugs) werden regelmäßig in [`docs/misc/lake/`](./lake/SOLVED_ISSUES.md) gesammelt, um die übrigen Ordner übersichtlich zu halten:
+Dokumente ohne feste Bereichszuordnung (CI-Analysen, Konzeptstudien, abgeschlossene Grundsatzberichte und das Archiv behobener Bugs) werden in [`docs/misc/lake/`](./lake/SOLVED_ISSUES.md) gesammelt, um die übrigen Ordner übersichtlich zu halten. Aktive, rahmenfreie TGD-Minimal-Tickets liegen während eines Durchlaufs im über `DOC_EXCLUDES` entkoppelten Lauf-Ordner [`docs/misc/runs/`](./runs/README.md) (siehe [`DEV-GUIDE_TGD-Workflow.md`](../dev/DEV-GUIDE_TGD-Workflow.md)).
 
 | Dokument | Inhalt |
 | :--- | :--- |
@@ -58,6 +58,11 @@ Dokumente ohne feste Bereichszuordnung (CI-Analysen, Konzeptstudien und das Arch
 | [Analyse: CI-Matrix](./lake/ANALYSIS_CI_MATRIX.md) | Plattform-Matrix-Analyse (`linux`, `macos`, `windows`) und Härtungsschritte. |
 | [Analyse: Coverage-Optionen](./lake/ANALYSIS_COVERAGE_OPTIONS.md) | Konzeptstudie zu Testabdeckung und statischen/dynamischen Analyse-Optionen. |
 | [CI-Rohdaten (`CI-Data.md`)](./lake/CI-Data.md) | Protokollierte CI-Läufe und Plattform-Befunde. |
+| [Analyse: Service-Core (`ANALYSIS_SERVICE-CORE.md`)](./lake/ANALYSIS_SERVICE-CORE.md) | Ausgangsanalyse zur Entstehung des gemeinsamen `qb_cubie.core.service_core`. |
+| [Hypothesen: Service-Core (`HYPOTHESIS_SERVICE-CORE.md`)](./lake/HYPOTHESIS_SERVICE-CORE.md) | Architekturentwurf und Meta-QA-Hypothesen für `qb_cubie.core.service_core`. |
+| [Analyse: TGD-Experimente (`ANALYSIS_TGD-EXPERIMENTS.md`)](./lake/ANALYSIS_TGD-EXPERIMENTS.md) | Post-Mortem-Analyse der TGD-Durchläufe als Grundlage der Knoten-Handbücher. |
+| [Hypothesen: TGD-Knoten (`HYPOTHESIS_TGD-NODES.md`)](./lake/HYPOTHESIS_TGD-NODES.md) | Entwurf der sechs universellen TGD-Knoten-Handbücher und Prozess-Mutanten (`PM1`–`PM8`). |
+| [Audit-Archiv: Service-Core Z2 (`GREEN_AUDIT_SERVICE-CORE-Z2.md`)](./lake/GREEN_AUDIT_SERVICE-CORE-Z2.md) | Historischer Erstbeleg eines abgeschlossenen autonomen `GREEN_AUDIT`-Laufs (`Status: RESOLVED`). |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->
 
