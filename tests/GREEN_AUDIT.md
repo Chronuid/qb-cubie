@@ -64,3 +64,33 @@ Zwei saubere Optionen stehen zur Auswahl (ohne bestehende Produktions-Verträge 
 
 1. **Option A (Empfohlen — konsistent mit Zyklus 1):** `_seed_docframe_workspace` legt wie `_seed_synced_docframe_workspace` zusätzlich `docs/GUIDE_Quality-Assurance.md` und `docs/services/GUIDE_DocEnsurance.md` mit `CUBIE_DOC_FRAME_1` an; entsprechend werden in `test_ebt_cli_docframe_check_passes_and_fails_with_distinct_exit_codes` `ok_files_checked: 3` (und ggf. `fail_rule_ids` als eindeutige Menge bzw. `["DOCFRAME-OUTDATED", ...]`) sowie in `test_ebt_cli_docframe_update_json_uses_schema_v1_and_keeps_compat_keys` `changed_files` / `updated_files` (3 Dateien) und `catalog_entries: 3` angepasst.
 2. **Option B (Minimal-Fixture mit 1 Datei):** `_seed_docframe_workspace` nutzt für `README.md` das Preset `CUBIE_DOC_FRAME_2` mit vollständigen Provenance-Attributen (`env="CLI" model="Test" effort="Low"`), da `CUBIE_DOC_FRAME_2` kein `HEADER_QUICK_NAV` enthält und `STD_FOOTER_BLOCKS` nur tatsächlich vorhandene Routen sowie `docs/.assets/cubie-small.png` referenziert. Dann bleiben `ok_files_checked: 1`, `changed_files: ["README.md"]` und `catalog_entries: 1` unverändert bei 1 Datei.
+
+---
+
+## Abschluss des Mikro-TGD-Zyklus (Phase Red — Audit-Verifikation & Reparatur)
+
+- **Status:** `RESOLVED` — Audit-Befund unabhängig bestätigt (vorläufig bewährt, nicht falsifiziert); kein Defekt in `src/`.
+- **Schreibgrenze eingehalten:** Änderungen erfolgten ausschließlich in `tests/` (`tests/tests_core/tests_service_core/test_cli_spec_and_lazy_cli.py` und `tests/GREEN_AUDIT.md`); `src/` und `docs/` blieben unverändert.
+
+### 1. Unabhängige Prüfung & Reproduktion (`MICRO-ANALYSIS` & `MICRO-RED`)
+
+Vor jeder Änderung wurden beide Fehlschläge deterministisch reproduziert (`2 failed, 10 passed` in `test_cli_spec_and_lazy_cli.py`; `2 failed, 126 passed` in `tests/tests_core/tests_service_core/`):
+
+1. **Test 1 (`test_ebt_cli_docframe_check_passes_and_fails_with_distinct_exit_codes`):** Bestätigt. `clean_root` lieferte `ok_code=1` und `ok_passed=False` ausschließlich wegen `DOCFRAME-BROKEN-ROUTE` auf `./docs/GUIDE_Quality-Assurance.md` (gerendert durch `HEADER_QUICK_NAV` in `CUBIE_DOC_FRAME_1`). `stale_root` (`DOCFRAME-OUTDATED`, Exit-Code `1`) und `missing_root` (`STATE-GUARD`, Exit-Code `2`) entsprachen bereits vollständig dem Vertrag.
+2. **Test 2 (`test_ebt_cli_docframe_does_not_import_sibling_services`):** Unabhängig im isolierten Subprozess mit aktivem `sys.meta_path`-Blocker für `qb_cubie.core.services.doc_ensurance` geprüft. Sowohl `docframe --help` (`returncode=0`, `stderr=""`) als auch `docframe check` (`returncode=1`, `stderr=""`, JSON-Diagnose `DOCFRAME-BROKEN-ROUTE` auf `README.md`) zeigten **null** Import-Leaks und keinen `ModuleNotFoundError`. Auch Test 2 scheiterte damit nachweislich ausschließlich an `_seed_docframe_workspace`, nicht an der Lazy-CLI-Isolation in `src/`.
+
+### 2. Entscheidung & Begründung (`MICRO-HYPOTHESIS` $\to$ **Option B**)
+
+In eigenständiger Abwägung wurde **Option B (Minimal-Fixture mit `CUBIE_DOC_FRAME_2`)** gegenüber Option A gewählt:
+
+- **Maximale Vertragstreue (Null Assertion-Edits):** Durch die Umstellung ausschließlich der Fixture `_seed_docframe_workspace` (`test_cli_spec_and_lazy_cli.py:32-47`) auf das offizielle, in sich geschlossene Preset `CUBIE_DOC_FRAME_2` (`env="CLI" model="Test" effort="Low"`, Asset `docs/.assets/cubie-small.png`) bleiben **sämtliche** eingefrorenen Phase-Red-Assertions aller 12 Tests (`ok_files_checked: 1`, `fail_rule_ids: ["DOCFRAME-OUTDATED"]`, `changed_files: ["README.md"]`, `updated_files: ["README.md"]`, `catalog_entries: 1`, `check_rc: 0`) zu 100 % unverändert — einschließlich des bereits grünen Tests `test_ebt_cli_docframe_update_json_uses_schema_v1_and_keeps_compat_keys`.
+- **Klare Test-Verantwortung:** `test_cli_spec_and_lazy_cli.py` prüft CLI-Protokolle, Exit-Codes (`0`/`1`/`2`), JSON-Schema `v1` und Subprozess-Isolation (`Mutant M7`); mehrdateiige `CUBIE_DOC_FRAME_1`-Quick-Nav- und Router-Szenarien bleiben weiterhin über `test_rules_and_docframe.py` (`_seed_synced_docframe_workspace`) und `test_docframe_rules_and_guards.py` (`_seed_synced_tree`) abgedeckt.
+- **Keine Meta-QA-Aufweichung:** Auf `clean_root` (`synced=True`) passieren alle 4 `CUBIE_DOCFRAME_RULES` inklusive Provenance- und Asset-Prüfung (`passed=True`, `exit_code=0`); auf `stale_root` (`synced=False`) greifen die Provenance-Attribute, sodass exakt `DOCFRAME-OUTDATED` (`exit_code=1`) deterministisch anschlägt.
+
+### 3. Prüfergebnis nach Reparatur (`MICRO-GREEN`)
+
+| Prüfschritt | Kommando | Ergebnis |
+| :--- | :--- | :--- |
+| **Gezielte CLI-Suite** | `.venv/bin/python -m pytest -vv tests/tests_core/tests_service_core/test_cli_spec_and_lazy_cli.py` | **`12 passed`** (`2.35s`, Exit-Code `0`) |
+| **Statische Prüfung (Testdatei)** | `.venv/bin/ruff check tests/tests_core/tests_service_core/test_cli_spec_and_lazy_cli.py` & `MYPYPATH=src .venv/bin/mypy tests/tests_core/tests_service_core/test_cli_spec_and_lazy_cli.py` | **`All checks passed!` / `Success: no issues found`** |
+| **Service-Core, Services, CLI, Styleguide & Living Docs** | `.venv/bin/python -m pytest -q tests/tests_core/tests_service_core/ tests/tests_core/tests_services/ tests/tests_cli/ tests/test_styleguide.py tests/test_doc_frame.py tests/test_doc_ensurance.py` | **`325 passed, 1 skipped`** (`78.55s`, Exit-Code `0`) |

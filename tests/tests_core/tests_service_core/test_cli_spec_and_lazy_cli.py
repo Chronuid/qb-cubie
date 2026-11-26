@@ -30,16 +30,16 @@ def _cli_spec_module() -> Any:
 
 
 def _seed_docframe_workspace(root: Path, *, synced: bool = True) -> Path:
-    """Creates a minimal project tree with optional DocFrame synchronization."""
+    """Creates a minimal self-contained single-file DocFrame workspace (CUBIE_DOC_FRAME_2) with optional sync."""
     from qb_cubie.core.services.doc_frame import DocFrame
 
     (root / "docs" / ".assets").mkdir(parents=True, exist_ok=True)
     (root / "pyproject.toml").write_text("[project]\nname='cli-demo'\n", encoding="utf-8")
-    (root / "docs" / ".assets" / "cubie-logo-written.png").write_bytes(b"png")
     (root / "docs" / ".assets" / "cubie-small.png").write_bytes(b"png")
     (root / "README.md").write_text(
-        '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" -->\n# Demo\n<!-- /qb:frame -->\n\n'
-        'Body text.\n\n<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->\n<!-- /qb:frame -->\n',
+        '<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="CLI" model="Test" effort="Low" -->\n'
+        "# Demo\n<!-- /qb:frame -->\n\n"
+        'Body text.\n\n<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->\n<!-- /qb:frame -->\n',
         encoding="utf-8",
     )
     if synced:
