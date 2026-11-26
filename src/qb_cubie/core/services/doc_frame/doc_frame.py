@@ -8,6 +8,7 @@ from typing import Any, Final
 
 from ...protocols import Reporter
 from ...reporter import PytestReporter
+from ...service_core.markdown import apply_span_replacements
 from ...service_core.reporting import ServiceReport
 from ...service_core.rules import FileCheckRunner
 from ...service_core.workspace import atomic_write_text, load_sources, normalize_excludes
@@ -155,11 +156,11 @@ class DocFrame:
         if not spans:
             return content
         rel_path = file_path.resolve().relative_to(catalog.root).as_posix()
-        result = content
-        for span in reversed(spans):
-            replacement = self._render_single_span(file_path, rel_path, span, catalog, content)
-            result = result[: span.start_idx] + replacement + result[span.end_idx :]
-        return result
+        replacements = [
+            (span.start_idx, span.end_idx, self._render_single_span(file_path, rel_path, span, catalog, content))
+            for span in spans
+        ]
+        return apply_span_replacements(content, replacements)
 
     def _render_single_span(
         self, file_path: Path, rel_path: str, span: FrameSpan, catalog: DocumentCatalog, full_text: str

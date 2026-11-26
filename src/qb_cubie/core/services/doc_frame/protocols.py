@@ -151,6 +151,11 @@ class DocFrameReport:
     catalog: DocumentCatalog | None = None
     diagnostics: tuple[Diagnostic, ...] = field(default_factory=tuple)
 
+    @property
+    def service(self) -> str:
+        """Return the canonical service identifier for reporting serialization."""
+        return "doc_frame"
+
 
 @runtime_checkable
 class FrameBlockProtocol(Protocol):

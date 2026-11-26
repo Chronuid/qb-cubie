@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-import os
 from pathlib import Path
 import re
 from typing import Final
 
 from ...service_core.guards import parse_bool_attr
+from ...service_core.markdown import HTML_WRAP_RE as _HTML_WRAP_RE, compute_rel_link as compute_rel_link
 from ...service_core.workspace import WorkspaceView
 from .protocols import (
     DocMeta,
@@ -20,7 +20,6 @@ from .protocols import (
     validate_wrap_tag,
 )
 
-_HTML_WRAP_RE = re.compile(r"^</?(?:div|center)\b[^>]*>$", re.IGNORECASE)
 _IMG_BANNER_RE = re.compile(r"^!\[[^\]]*\]\(([^)]+)\)$")
 _PROV_BULLET_RE = re.compile(r"^-\s*\*\*([^*]+?):\*\*\s*(.*)$")
 _EPISTEMIC_MARKER: Final[str] = "erkenntnistheoretischen Grenzen"
@@ -29,14 +28,6 @@ _ATTR_TO_PROV_KEY: Final[dict[str, str]] = {
     "model": "Modell",
     "effort": "Reasoning-Effort",
 }
-
-
-def compute_rel_link(from_file: Path, target_rel: str, root: Path) -> str:
-    """Computes a relative Markdown link prefixed with ./ or ../ from a source file to a repo path."""
-    target_abs = (root.resolve() / target_rel.lstrip("/")).resolve()
-    from_dir = from_file.resolve().parent
-    rel = os.path.relpath(target_abs, start=from_dir).replace("\\", "/")
-    return rel if rel.startswith(".") else f"./{rel}"
 
 
 def resolve_banner_rel_path(

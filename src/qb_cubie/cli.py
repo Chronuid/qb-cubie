@@ -1,82 +1,68 @@
-"""Core command-line interface for qb-cubie."""
+"""Lazy composition-root command-line interface for qb-cubie."""
 
 from __future__ import annotations
 
 import argparse
 from collections.abc import Sequence
-import json
 import sys
-from typing import Any
+from typing import Final
 
-from .core.services.doc_frame import DocFrame, DocFrameReport
+from .core.service_core.cli_spec import (
+    EXIT_ERROR,
+    CommandSpec,
+    ServiceCommandProtocol,
+    load_command,
+    render_command_result,
+)
+
+_COMMAND_SPECS: Final[tuple[CommandSpec, ...]] = (
+    CommandSpec("docframe", "Document frame synchronization and checks.", "qb_cubie.core.services.doc_frame.cli:COMMAND"),
+    CommandSpec("docensurance", "Verify documentation code examples.", "qb_cubie.core.services.doc_ensurance.cli:COMMAND"),
+)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Runs the qb-cubie core CLI and returns its process exit code."""
-    parser = _build_parser()
-    args = parser.parse_args(argv)
-    try:
-        payload = _dispatch(args)
-        print(_render_output(payload, args.format))
-        return 0
-    except (ValueError, TypeError, OSError) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 2
+    """Run the lazy qb-cubie core CLI and return its process exit code."""
+    raw_argv = list(sys.argv[1:]) if argv is None else list(argv)
+    selected = _select_command_spec(raw_argv)
+    command = load_command(selected) if selected is not None else None
+    parser = _build_parser(command)
+    args = parser.parse_args(raw_argv)
+    return _run_command(command, args)
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    """Constructs the top-level qb-cubie argument parser."""
+def _select_command_spec(argv: Sequence[str]) -> CommandSpec | None:
+    """Return the matching CommandSpec for the first positional token before any help flag."""
+    spec_map = {spec.name: spec for spec in _COMMAND_SPECS}
+    for token in argv:
+        if token in ("-h", "--help"):
+            return None
+        if not token.startswith("-"):
+            return spec_map.get(token)
+    return None
+
+
+def _build_parser(active_command: ServiceCommandProtocol | None) -> argparse.ArgumentParser:
+    """Build the top-level parser and register full arguments only for the selected command."""
     parser = argparse.ArgumentParser(prog="qb-cubie", description="qb-cubie command-line interface.")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    _add_docframe_parser(subparsers)
+    for spec in _COMMAND_SPECS:
+        sub = subparsers.add_parser(spec.name, help=spec.help)
+        if active_command is not None and spec.name == active_command.name:
+            active_command.register(sub)
     return parser
 
 
-def _add_docframe_parser(subparsers: Any) -> None:
-    """Registers the 'docframe' command group (prototype) and its subcommands."""
-    df_parser = subparsers.add_parser(
-        "docframe", help="Document frame tools (prototype; pending evaluation and hardening)."
-    )
-    df_sub = df_parser.add_subparsers(dest="docframe_command", required=True)
-    update_parser = df_sub.add_parser("update", help="Synchronize qb:frame header, router, and footer blocks.")
-    update_parser.add_argument(
-        "target", nargs="?", default=None, help="Optional file or directory path (default: project root)."
-    )
-    update_parser.add_argument(
-        "--exclude", action="append", default=[], dest="excludes", help="Additional path or name to exclude (repeatable)."
-    )
-    update_parser.add_argument("--format", choices=("text", "json"), default="text", help="Output format.")
-
-
-def _dispatch(args: argparse.Namespace) -> DocFrameReport:
-    """Dispatches parsed CLI arguments to the selected core service command."""
-    if args.command == "docframe" and args.docframe_command == "update":
-        excludes = tuple(args.excludes) if args.excludes else None
-        return DocFrame.update(target=args.target, excludes=excludes)
-    raise ValueError(f"Unsupported command: {args.command}")
-
-
-def _render_output(report: DocFrameReport, fmt: str) -> str:
-    """Formats a DocFrameReport as either plain text or JSON."""
-    if fmt == "json":
-        return json.dumps(_report_to_dict(report), indent=2)
-    return _format_text_report(report)
-
-
-def _report_to_dict(report: DocFrameReport) -> dict[str, Any]:
-    """Serializes a DocFrameReport into a JSON-compatible dictionary."""
-    return {
-        "target": report.target,
-        "passed": report.passed,
-        "updated_files": list(report.updated_files),
-        "catalog_entries": len(report.catalog.entries) if report.catalog else 0,
-    }
-
-
-def _format_text_report(report: DocFrameReport) -> str:
-    """Renders a concise human-readable summary for a DocFrame.update() run."""
-    count = len(report.updated_files)
-    if count == 0:
-        return "Updated 0 file(s); all frames up to date."
-    files = "\n".join(f"  - {path}" for path in report.updated_files)
-    return f"Updated {count} file(s):\n{files}"
+def _run_command(command: ServiceCommandProtocol | None, args: argparse.Namespace) -> int:
+    """Execute the lazily loaded service command and format its output or error."""
+    if command is None:
+        print(f"Error: Unsupported command: {args.command}", file=sys.stderr)
+        return EXIT_ERROR
+    try:
+        result = command.execute(args)
+        fmt = str(getattr(args, "format", "text"))
+        print(render_command_result(result, fmt))
+        return result.exit_code
+    except (ValueError, TypeError, OSError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return EXIT_ERROR

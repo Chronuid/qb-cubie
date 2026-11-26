@@ -77,6 +77,11 @@ class DocReport:
     sessions: tuple[SessionTrace, ...] = field(default_factory=tuple)
     diagnostics: tuple[DiagnosticProtocol, ...] = field(default_factory=tuple)
 
+    @property
+    def service(self) -> str:
+        """Return the canonical service identifier for reporting serialization."""
+        return "doc_ensurance"
+
 
 # ========== DOC-ENSURANCE PROTOCOLS ===================================================================================
 @runtime_checkable

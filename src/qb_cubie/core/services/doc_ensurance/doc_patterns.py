@@ -8,6 +8,7 @@ from collections.abc import Callable, Sequence
 from typing import Final
 
 from ...linter import Linter, LinterDiagnostic
+from ...service_core.markdown import extract_fence_prefix, is_closing_fence, parse_kv_attrs
 from .protocols import (
     DocBlockProtocol,
     DocDiagnostic,
@@ -17,7 +18,7 @@ from .protocols import (
     validate_severity,
 )
 
-_TAG_RE = re.compile(r"\b(?P<key>session|raises)=(?P<val>[^\s,]+)")
+_ALLOWED_FENCE_TAGS: Final[tuple[str, ...]] = ("session", "raises")
 
 
 # ========== 1. PLUGGABLE CHECK RULES (EXPLANATION, CODE, OUTPUT) ======================================================
@@ -236,7 +237,7 @@ class CodeSnippet:
     @staticmethod
     def parse_tags(meta: str) -> dict[str, str]:
         """Extracts key-value execution tags such as session and raises from fence metadata."""
-        return {m.group("key"): m.group("val") for m in _TAG_RE.finditer(meta)}
+        return parse_kv_attrs(meta, mode="unquoted_whitelist", allowed_keys=_ALLOWED_FENCE_TAGS)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -268,11 +269,12 @@ class CollapsibleResult:
     @staticmethod
     def _is_wrapped_fence(lines: list[str]) -> bool:
         """Checks whether lines start and end with a single matching fence without inner closes."""
-        first, last = lines[0].strip(), lines[-1].strip()
-        if not first.startswith(("```", "~~~")):
+        fence = extract_fence_prefix(lines[0])
+        if fence is None:
             return False
-        fence = first[: len(first) - len(first.lstrip(first[0]))]
-        return last == fence and not any(line.strip() == fence for line in lines[1:-1])
+        return is_closing_fence(lines[-1], fence) and not any(
+            is_closing_fence(line, fence) for line in lines[1:-1]
+        )
 
 
 # ========== 3. PATTERN & SCOPE PROTOCOLS (LEVEL 2) ====================================================================

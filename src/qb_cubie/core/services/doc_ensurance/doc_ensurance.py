@@ -17,7 +17,7 @@ from ...service_core.guards import validate_positive_float
 from ...service_core.rules import RuleRegistry, WorkspaceCheckRuleProtocol, execute_file_checks
 from ...service_core.workspace import FileSource, find_project_root, normalize_excludes
 from ._markdown_scanner import _MarkdownScanner
-from ._source_loader import resolve_sources
+from .adapters import resolve_sources
 from .doc_patterns import (
     CUBIE_DOC_STYLE,
     DEFAULT_DOC_RULES,

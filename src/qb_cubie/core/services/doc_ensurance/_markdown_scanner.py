@@ -5,6 +5,12 @@ from __future__ import annotations
 import re
 import textwrap
 
+from ...service_core.markdown import (
+    FenceTracker,
+    extract_fence_prefix,
+    is_closing_fence,
+    is_horizontal_rule,
+)
 from .protocols import MdBlock
 
 _SUMMARY_RE = re.compile(r"<summary(?:\s[^>]*)?>(.*?)</summary>", re.DOTALL)
@@ -35,9 +41,9 @@ class _MarkdownScanner:
         """Routes the current line to the matching block consumer and returns the next index."""
         line = self.lines[idx]
         stripped = line.strip()
-        if stripped.startswith(("```", "~~~")):
+        fence = extract_fence_prefix(stripped)
+        if fence is not None:
             self.in_list = False
-            fence = self._fence_prefix(stripped)
             return self._consume_code_fence(idx, stripped[len(fence) :].strip(), fence)
         if stripped.startswith(("<!--", "<details")) or _ALERT_RE.match(stripped):
             self.in_list = False
@@ -75,7 +81,9 @@ class _MarkdownScanner:
         return idx
 
     def _consume_text_line(self, idx: int, line: str, stripped: str) -> int:
-        """Classifies headings, lists, blockquotes, tables, blank lines, and paragraphs."""
+        """Classifies horizontal rules, headings, lists, blockquotes, tables, blank lines, and paragraphs."""
+        if is_horizontal_rule(stripped):
+            return self._emit_horizontal_rule(idx, stripped)
         is_non_para = bool(_NON_PARA_RE.match(stripped)) or (self.in_list and line != line.lstrip(" \t"))
         self._flush_if_boundary(stripped, is_non_para)
         self.in_list = is_non_para and bool(stripped) and not stripped.startswith("#")
@@ -85,6 +93,13 @@ class _MarkdownScanner:
             self.blocks.append(MdBlock(kind="list", content=stripped, line=idx + 1))
         elif stripped:
             self._append_paragraph(line, idx + 1)
+        return idx + 1
+
+    def _emit_horizontal_rule(self, idx: int, stripped: str) -> int:
+        """Flushes any active paragraph and emits a CommonMark thematic break block."""
+        self._flush_paragraph()
+        self.in_list = False
+        self.blocks.append(MdBlock(kind="hr", content=stripped, line=idx + 1))
         return idx + 1
 
     def _flush_if_boundary(self, stripped: str, is_non_para: bool) -> None:
@@ -111,7 +126,7 @@ class _MarkdownScanner:
         indent = len(self.lines[start_idx]) - len(self.lines[start_idx].lstrip(" "))
         body: list[str] = []
         idx = start_idx + 1
-        while idx < len(self.lines) and not self._is_closing_fence(self.lines[idx].strip(), fence):
+        while idx < len(self.lines) and not is_closing_fence(self.lines[idx], fence):
             body.append(self._strip_fence_indent(self.lines[idx], indent))
             idx += 1
         code = "\n".join(body) if indent > 0 else textwrap.dedent("\n".join(body))
@@ -124,15 +139,6 @@ class _MarkdownScanner:
         lead = min(indent, len(line) - len(line.lstrip(" ")))
         return line[lead:]
 
-    @staticmethod
-    def _is_closing_fence(stripped: str, fence: str) -> bool:
-        """Checks whether a stripped line closes the active backtick or tilde fence."""
-        return (
-            len(stripped) >= len(fence)
-            and stripped.startswith(fence[0])
-            and not stripped.lstrip(fence[0])
-        )
-
     def _consume_details(self, start_idx: int) -> int:
         """Consumes a collapsible HTML details block if a closing tag precedes the next details."""
         self._flush_paragraph()
@@ -144,23 +150,16 @@ class _MarkdownScanner:
         self._append_paragraph(self.lines[start_idx], start_idx + 1)
         return start_idx + 1
 
-    @staticmethod
-    def _fence_prefix(stripped: str) -> str:
-        """Extracts the leading backtick or tilde fence marker from a stripped line."""
-        return stripped[: len(stripped) - len(stripped.lstrip(stripped[0]))]
-
     def _find_details_end(self, start_idx: int) -> int | None:
         """Finds the matching outer </details> line while ignoring fenced code blocks."""
-        fence: str | None = None
+        fences = FenceTracker()
         for idx in range(start_idx, len(self.lines)):
-            s = self.lines[idx].strip()
-            if fence is not None:
-                fence = None if self._is_closing_fence(s, fence) else fence
-            elif idx > start_idx and s.startswith("<details"):
+            line = self.lines[idx]
+            if fences.feed(line):
+                continue
+            if idx > start_idx and line.strip().startswith("<details"):
                 return None
-            elif s.startswith(("```", "~~~")):
-                fence = self._fence_prefix(s)
-            elif "</details>" in self.lines[idx]:
+            if "</details>" in line:
                 return idx
         return None
 
@@ -181,9 +180,9 @@ class _MarkdownScanner:
         """Splits details lines into outer HTML lines and tagged (is_fenced, text) pairs."""
         outer: list[str] = []
         tagged: list[tuple[bool, str]] = []
-        fence: str | None = None
+        fences = FenceTracker()
         for line in lines:
-            fence, is_fenced = cls._step_details_fence(line.strip(), fence)
+            is_fenced = fences.feed(line)
             chunk = line if is_fenced else cls._trim_details_close(line)
             tagged.append((is_fenced, chunk))
             if not is_fenced:
@@ -191,15 +190,6 @@ class _MarkdownScanner:
                 if "</details>" in line:
                     break
         return outer, tagged
-
-    @classmethod
-    def _step_details_fence(cls, stripped: str, fence: str | None) -> tuple[str | None, bool]:
-        """Advances the inner code-fence state inside a details block."""
-        if fence is not None:
-            return (None if cls._is_closing_fence(stripped, fence) else fence), True
-        if stripped.startswith(("```", "~~~")):
-            return cls._fence_prefix(stripped), True
-        return None, False
 
     @staticmethod
     def _trim_details_close(line: str) -> str:

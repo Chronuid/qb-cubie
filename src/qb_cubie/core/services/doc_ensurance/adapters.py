@@ -1,4 +1,4 @@
-"""Filesystem and in-memory Markdown source resolution for DocEnsurance backed by service_core."""
+"""Imperative filesystem and in-memory source adapters for DocEnsurance backed by service_core."""
 
 from __future__ import annotations
 
@@ -8,10 +8,32 @@ from typing import Any
 
 from ...service_core.workspace import (
     crawl_files,
+    find_project_root,
     is_excluded as _core_is_excluded,
     load_sources,
     looks_like_path as looks_like_path,
 )
+
+
+def resolve_cli_target_path(target: Any) -> Path:
+    """Validate a CLI target argument and resolve it to an existing filesystem Path."""
+    if target is None:
+        return find_project_root()
+    path = _coerce_cli_path(target)
+    if not path.exists():
+        raise FileNotFoundError(f"STATE-GUARD: Documentation path not found: {path}")
+    return path.resolve()
+
+
+def _coerce_cli_path(target: Any) -> Path:
+    """Convert a Path or non-empty CLI target string into a Path or raise STATE-GUARD."""
+    if isinstance(target, Path):
+        return target
+    if isinstance(target, str):
+        if not target.strip():
+            raise ValueError("STATE-GUARD: target path string must not be empty.")
+        return Path(target.strip())
+    raise TypeError(f"STATE-GUARD: target must be a Path, str, or None; received {type(target).__name__}.")
 
 
 def resolve_sources(target: Any, excludes: AbstractSet[str]) -> list[tuple[str, str]]:
