@@ -1,11 +1,11 @@
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="head" banner="cubie-logo-written.png" -->
 <div align="center">
 
-# TGD-Knoten-Handbücher (Zustandsautomat)
+# TGD-Knoten-Handbücher (Modularer Rollen-Baukasten)
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Universelle, projektübergreifend wiederverwendbare Handbuch-Reihe für die sechs operativen Knoten des Test-Guided Development (TGD) – geschrieben für Einsteiger, Experten und zustandslos orchestrierte KI-Agenten.
+Universelle, projekt- und plattformunabhängige Handbuch-Reihe für die sechs flexiblen Knoten des Test-Guided Development (TGD) – geschrieben für Einsteiger, Experten, Menschen und beliebige KI-Agenten.
 
 ---
 
@@ -24,44 +24,42 @@ Universelle, projektübergreifend wiederverwendbare Handbuch-Reihe für die sech
 </div>
 <!-- /qb:frame -->
 
-## 1. Warum TGD als Zustandsautomat?
+## 1. Warum TGD als modularer Knoten-Baukasten?
 
-Das [TGD-Einstiegshandbuch](../GUIDE_TGD.md) erklärt das **Warum** von Test-Guided Development (Karl Poppers Fallibilismus, Bauprüfer-Analogie, Rolle der optionalen Stützräder und das Prinzip der kontrollierten Rückwärtstür). Die sechs Knoten-Handbücher in diesem Ordner bilden das dazugehörige **Wie**: einen schichtsauberen Zustandsautomaten mit klaren Ein- und Austrittsbedingungen.
+Das [TGD-Einstiegshandbuch](../GUIDE_TGD.md) erklärt das **Warum** von Test-Guided Development (Karl Poppers Fallibilismus, Bauprüfer-Analogie, flexible Stützräder und die kontrollierte Rückwärtstür). Die sechs Knoten-Handbücher in diesem Ordner liefern das dazugehörige **Wie**: keinen starr verdrahteten Ablauf, sondern einen **modularen Baukasten aus klar getrennten Rollen**, die du je nach Aufgabe und Komplexität frei kombinierst.
 
-* **Einfach erklärt (für Einsteiger):** Stell dir ein großes Bauprojekt wie einen Staffellauf mit klaren Zuständigkeiten vor: Erst vermisst jemand den Ist-Zustand (**`ANALYSIS`**), dann entsteht ein geprüfter Bauplan mit Alternativen (**`HYPOTHESIS`**), danach erstellt der Prüfer eine versiegelte Checkliste (**`PHASE_RED`**), erst dann baut der Handwerker (**`PHASE_GREEN`**) — mit einer offiziellen Rückfrage-Tür bei fehlerhafter Checkliste (**`GREEN_AUDIT`**) — und zum Schluss werden die Baupläne auf den realen Endstand gebracht (**`LIVING_DOCS`**). Weil jede Rolle genau weiß, was sie anfassen darf und wann sie übergibt, rutscht nichts durcheinander.
-* **Für Experten & KI-Agenten (Hoare-Verträge & zustandslose Übergaben):** Jeder Knoten definiert einen in sich geschlossenen Hoare-Vertrag $\{P\}\ S\ \{Q\}$ mit expliziten Vorbedingungen ($P$), harter Schreibgrenze (Allowlist/Denylist), überprüfbaren Meta-QA-Heuristiken, Kantenfall-Regeln und objektiven Abnahmekriterien ($Q$). Ein nach einem Kontext-Reset frisch gestarteter Mitarbeiter oder KI-Agent lädt genau **ein** Knoten-Handbuch, arbeitet unvoreingenommen gegen die hinterlegten Artefakte des Vorgänger-Knotens und vermeidet so Bestätigungsfehler (*Confirmation Bias*) sowie aufgeblähte Einzel-Aufträge.
+* **Einfach erklärt (für Einsteiger):** Stell dir ein Bauprojekt mit klaren Zuständigkeiten vor. Im Kern braucht es genau drei Schritte: Zuerst legt die Prüferin die verbindliche Checkliste fest (**`PHASE_RED`**), dann baut der Handwerker danach (**`PHASE_GREEN`**) und am Ende werden die Baupläne auf den echten Endstand gebracht (**`LIVING_DOCS`**). Im Idealfall läuft das direkt und ohne Umwege durch. Entdeckt der Handwerker jedoch einen echten Fehler in der Checkliste, nutzt er die offizielle Rückwärtstür (**`GREEN_AUDIT`**) statt sie heimlich umzuschreiben. Und immer dann, wenn irgendwo im Projekt etwas unklar oder knifflig ist, lassen sich jederzeit zwei zusätzliche Helfer dazuschalten: erst objektiv nachmessen (**`ANALYSIS`**) oder mögliche Lösungen und Fehlerquellen auf dem Papier durchdenken (**`HYPOTHESIS`**).
+* **Für Experten & KI-Agenten (Hoare-Verträge & plattformunabhängige Übergaben):** Jeder Knoten definiert einen in sich geschlossenen Hoare-Vertrag $\{P\}\ S\ \{Q\}$ mit klaren Vorbedingungen ($P$), harter Schreibgrenze (Allowlist/Denylist), überprüfbaren Meta-QA-Heuristiken, Kantenfall-Regeln und objektiven Abnahmekriterien ($Q$). Weil jeder Knoten nur gegen explizite Artefakte arbeitet und keinerlei Werkzeug- oder Plattform-Sondersyntax voraussetzt, können Menschen und beliebige externe Agenten nahtlos zusammenarbeiten — mit frischem Kontext pro Rollenwechsel gegen *Confirmation Bias*.
 
 > [!NOTE]
-> **Single-Shot vs. Knoten-Orchestrierung:** Für kleine, lokal eng begrenzte Bugfixes genügt oft ein direkter Single-Shot-Durchlauf entlang des TGD-Kerns (`PHASE_RED` $\to$ `PHASE_GREEN` $\to$ `LIVING_DOCS`). Das volle 6-Knoten-Protokoll mit Kontext-Trennung entfaltet seine Stärke bei komplexen Architektur-Umbauten, sicherheitskritischen Verträgen und mehrschrittiger Agenten-Orchestrierung.
+> **Situative Skalierung statt starrem Pflichtprogramm:** Für kleine, klar umrissene Aufgaben genügt der schlanke TGD-Kern (`PHASE_RED` $\to$ `PHASE_GREEN` $\to$ `LIVING_DOCS`). Erst bei hoher Komplexität, unklaren Abhängigkeiten oder mehrschrittiger Agenten-Orchestrierung schaltest du `ANALYSIS` und `HYPOTHESIS` genau an den Stellen dazu, an denen sie echten Hebel liefern. `GREEN_AUDIT` wird nur im Eskalationsfall gebraucht.
 
 ---
 
-## 2. Zustandsübergangs-Graph (6-Knoten-Topologie)
+## 2. Knoten-Topologie (Kernfluss, Rückwärtstür & zuschaltbare Bausteine)
 
-Der TGD-Automat besteht aus **zwei optionalen Stützrädern** (`ANALYSIS`, `HYPOTHESIS`), **drei verbindlichen Kernknoten** (`PHASE_RED`, `PHASE_GREEN`, `LIVING_DOCS`) sowie einem **eigenständigen Rücksprung-Knoten** (`GREEN_AUDIT`) mit zwei klar getrennten Ausgängen (`RESOLVED` vs. `REFUTED`):
+Die sechs Knoten gliedern sich in **drei verbindliche Kernknoten** (`PHASE_RED`, `PHASE_GREEN`, `LIVING_DOCS`), einen **optionalen Rücksprung-Knoten** (`GREEN_AUDIT`) sowie **zwei überall zuschaltbare Stützräder** (`ANALYSIS`, `HYPOTHESIS`):
 
 ```mermaid
 flowchart TD
-    Start(["Start: Problem / Feature / Bug"]) --> Mode{"Komplexität?"}
-    Mode -- "Komplex / Architektur<br/>(mit Stützrädern)" --> A["NODE_ANALYSIS<br/>(nur Analysebericht)"]
-    Mode -- "Klein & isoliert<br/>(direkter TGD-Kern)" --> R["NODE_PHASE_RED<br/>(nur Test-Suite -> Freeze)"]
+    Opt["Flexible Bausteine \n(überall zuschaltbar)\n<br/>NODE_ANALYSIS | NODE_HYPOTHESIS"]
 
-    A --> H["NODE_HYPOTHESIS<br/>(Modus Pre-Red:<br/>Design & 4-Säulen-Meta-QA)"]
-    H -- "Offene Beschlüsse bestätigt" --> R
+    Start(["Start: Aufgabe / Problem / Ziel"]) --> R["NODE_PHASE_RED<br/>(Prüfkriterien schärfen & einfrieren)"]
+    R -- "Differenzsignal &<br/>Freeze" --> G["NODE_PHASE_GREEN<br/>(Umsetzung unter Freeze)"]
+    G -- "Alle Prüfungen &<br/>Gates grün" --> D["NODE_LIVING_DOCS<br/>(Dokumentation synchronisieren)"]
+    D -- "Doku-Gates grün &<br/>Abschluss-Hygiene" --> Done(["Zyklus abgeschlossen"])
 
-    R -. "Optional: Post-Red-Kritik" .-> H2["NODE_HYPOTHESIS<br/>(Modus Post-Red:<br/>Test-Suite-Härtung)"]
-    H2 -. "Härtungsbefunde" .-> R
+    G -. "Optional (Rückwärtstür):<br/>Audit-Protokoll bei Test-Widerspruch" .-> GA["NODE_GREEN_AUDIT<br/>(AUDIT-REPRO -> VERDICT -> FIX -> CLOSE)"]
+    GA -- "RESOLVED:<br/>Prüffehler behoben" --> D
+    GA -- "REFUTED:<br/>Fehler in der Umsetzung" --> G
 
-    R -- "Differenzsignal &<br/>Test-Freeze" --> G["NODE_PHASE_GREEN<br/>(nur Quellcode)"]
-
-    G -- "Alle funktionalen Tests &<br/>Gates grün" --> D["NODE_LIVING_DOCS<br/>(nur Dokumentation)"]
-    G -- "Unlösbarer Test-Widerspruch:<br/>schreibt Audit-Protokoll" --> GA["NODE_GREEN_AUDIT<br/>(AUDIT-REPRO -> VERDICT<br/>-> FIX -> CLOSE)"]
-
-    GA -- "RESOLVED:<br/>Testfehler bestätigt & behoben,<br/>Suite 100 % grün" --> D
-    GA -- "REFUTED:<br/>Audit widerlegt, Fehler im Quellcode<br/>(Test-Code unverändert!)" --> G
-
-    D -- "Doku-Gates grün &<br/>Abschluss-Hygiene vermerkt" --> Done(["Zyklus abgeschlossen"])
+    Opt -. "bei Bedarf" .-> R
+    Opt -. "bei Bedarf" .-> G
+    Opt -. "bei Bedarf" .-> GA
+    Opt -. "bei Bedarf" .-> D
 ```
+
+* **`ANALYSIS` & `HYPOTHESIS` sind frei positionierbar:** Typische Einsatzpunkte sind vor `PHASE_RED` (Ist-Vermessung & Architekturentwurf), nach einem ersten Test-Entwurf in `PHASE_RED` (*Post-Red-Kritik*), beim Isolieren unerwarteter Fehlschläge in `PHASE_GREEN`, als Prüfdisziplin innerhalb von `GREEN_AUDIT` oder vor größeren Doku-Umbauten in `LIVING_DOCS`.
 
 ---
 
@@ -88,43 +86,45 @@ Um Redundanz und Widersprüche zwischen den sechs Handbüchern auszuschließen, 
 
 ### 4.1 Pre-Flight-Triage des Arbeitsverzeichnisses (3-Klassen-Modell)
 
-Bevor in irgendeinem Knoten die erste Zeile verändert wird, wird der Status des Versionierungssystems (z. B. der Working Tree in Git) geprüft und jede lokale Änderung einer von drei Klassen zugeordnet:
+Bevor in irgendeinem Knoten die erste Änderung erfolgt, wird der Status des Arbeitsverzeichnisses (z. B. im Versionierungssystem) geprüft und jede lokale Änderung einer von drei Klassen zugeordnet:
 
 | Klasse im Arbeitsverzeichnis | Typischer Befund | Verbindliche Reaktion |
 | :--- | :--- | :--- |
-| **Klasse 1: Aktuelles Arbeits-Ticket** | Das laufende Auftragsdokument genau dieses Schritts liegt lokal vor. | **Zulässig:** Kurz im Pre-Flight notieren und unverändert lassen. |
-| **Klasse 2: Vorab angelegter Folge-Auftrag** | Ein bereits entworfener Auftrag für den *nächsten* Knoten liegt unversioniert vor. | **Unberührt & getrennt lassen:** Niemals in den Commit des laufenden Knotens aufnehmen; kurz im Abschlussbericht vermerken. |
-| **Klasse 3: Fremde Altlast in Code, Tests oder Doku** | Unerwartete lokale Änderungen an Quellcode, Test-Suite oder Handbüchern aus früherer Arbeit. | **Harter Stopp vor Arbeitsbeginn:** Nichts ändern, schmutzigen Zustand sofort an die Orchestrierung melden (Bereinigung/Commit/Stash vor Knotenstart) oder nur bei ausdrücklicher Freigabe als streng isolierte Baseline aus dem eigenen Diff heraushalten. |
+| **Klasse 1: Aktuelles Run-Dokument** | Der laufende Arbeitsauftrag (`RUN`) genau dieses Schritts liegt lokal vor. | **Zulässig:** Kurz im Pre-Flight notieren und unverändert lassen. |
+| **Klasse 2: Vorab angelegtes Folge-Run-Dokument** | Ein bereits entworfener Auftrag für einen *späteren* Schritt liegt unversioniert vor. | **Unberührt & getrennt lassen:** Niemals in den Abschluss-Stand des laufenden Knotens aufnehmen; kurz im Abschlussbericht vermerken. |
+| **Klasse 3: Fremde Altlast in produktiven Bereichen** | Unerwartete lokale Änderungen an Quellcode, Prüfsystemen oder Handbüchern aus früherer Arbeit. | **Harter Stopp vor Arbeitsbeginn:** Nichts ändern, schmutzigen Zustand sofort an die Orchestrierung melden (Bereinigung/Sicherung vor Knotenstart) oder nur bei ausdrücklicher Freigabe als streng isolierte Baseline aus dem eigenen Diff heraushalten. |
 
-### 4.2 Rollen-, Kontext- & Ticket-Disziplin
+### 4.2 Rollen-, Kontext- & Run-Disziplin
 
-1. **Frischer Kontext pro Knoten:** Zwischen zwei Knoten (insbesondere vor `NODE_GREEN_AUDIT` und `NODE_LIVING_DOCS`) wird der Gesprächskontext geleert. Alle relevanten Fakten fließen über explizite, versionierte Artefakte — niemals über stilles implizites Erinnerungswissen.
-2. **Widerspruchsprüfung am Arbeits-Ticket (Anti-Copy-Paste-Schutz):** Stimmen die angegebene Knoten-Rolle und das fachliche Ziel im Arbeits-Ticket nicht überein (etwa ein Testbau-Ziel in einem Implementierungs-Ticket) oder fehlen verbindliche Antworten auf offene Design-Entscheidungen aus dem Vorgänger-Knoten (bloßes „Ok.“ bei ungeklärten Alternativen reicht nicht), **stoppt der Knoten vor der ersten Änderung** und meldet die Inkonsistenz zurück.
-3. **Schlanke Arbeits-Tickets statt Regel-Wiederholung:** Da alle stabilen Prozessregeln in den sechs Knoten-Handbüchern stehen, enthält ein Arbeits-Ticket nur noch das laufzeitspezifische Delta:
-   * Knoten-Verweis und Zyklus-Kennung,
+1. **Frischer Kontext bei Rollenwechseln:** Zwischen zwei Knoten (insbesondere vor `NODE_GREEN_AUDIT` und `NODE_LIVING_DOCS`) wird der Arbeits- bzw. Gesprächskontext geleert. Alle relevanten Fakten fließen über explizite, nachvollziehbare Artefakte — niemals über stilles implizites Erinnerungswissen.
+2. **Widerspruchsprüfung & *Consent-by-Exception*:**
+   * Stimmen die angegebene Knoten-Rolle und das fachliche Ziel im Run-Dokument nicht überein (etwa ein Prüfaufbau-Ziel in einem Umsetzungs-Lauf), **stoppt der Knoten vor der ersten Änderung** und meldet die Inkonsistenz zurück.
+   * Offene Entscheidungsfragen (`E1..En`) aus einer vorgelagerten `HYPOTHESIS`-Phase tragen dort stets eine eindeutig markierte **Standard-Empfehlung**. Im nächsten Schritt genügt daher das explizite Signal **`EMPFEHLUNGEN: ALLE`** samt eventuellen konkreten Abweichungen (*Consent-by-Exception*), statt jede Option erneut abschreiben zu müssen. Erst wenn bei offenen Alternativen weder `EMPFEHLUNGEN: ALLE` noch Einzelentscheidungen vorliegen (etwa bei einem ungebundenen, mehrdeutigen „Ok.“), wird vor Arbeitsbeginn kurz nachgefragt.
+3. **Schlanke, plattformunabhängige Run-Dokumente (`RUN`):** Da alle stabilen Prozessregeln in den Knoten-Handbüchern stehen, bleibt ein Run-Dokument bewusst minimal und werkzeugneutral (Standard-Markdown-Links statt plattformspezifischer Sondersyntax) und enthält nur das laufzeitspezifische Delta:
+   * Knoten-Verweis und Lauf-Kennung,
    * 1–2 präzise Sätze zum konkreten Ziel dieses Schritts,
    * Kontext-Delta seit dem letzten Knoten,
-   * explizit bestätigte Beschlüsse (`BESTÄTIGT` / `GEÄNDERT` / `ZURÜCKGESTELLT`) samt bewussten Ausnahmen,
+   * Freigabe per `EMPFEHLUNGEN: ALLE` plus eventuelle Abweichungen / Ausnahmen,
    * kuratierte Liste der realen Eingabe-Artefakte und des Ziel-Outputs.
 
 ### 4.3 Allgemeiner 3-Zustands-Lebenszyklus temporärer Artefakte
 
-Arbeits-Tickets, Analyse-/Hypothesenberichte, Ausführungsprotokolle und Audit-Dateien durchlaufen einen geordneten Lebenszyklus, damit sie während eines Zyklus maximale Orientierung bieten, danach aber keine dauerhaften Dateileichen in produktiven Ordnern hinterlassen:
+Run-Dokumente, Analyse-/Hypothesenberichte, Ausführungsprotokolle und Audit-Dateien durchlaufen einen geordneten Lebenszyklus, damit sie während eines Durchlaufs maximale Orientierung bieten, danach aber keine dauerhaften Dateileichen in produktiven Ordnern hinterlassen:
 
 | Artefakt-Kategorie | Zustand 1: Aktiv (während des Laufs) | Zustand 2: Nach Zyklus-Abschluss (*Archiviert* oder *Bereinigt*) | Hygiene-Invariante |
 | :--- | :--- | :--- | :--- |
-| **Arbeits-Tickets** | In einem von der Produkt-Dokumentation entkoppelten Lauf-Bereich. | Nach Abschluss bereinigen (Versionierungshistorie bewahrt den Verlauf) oder bei Studien gebündelt archivieren. | Folge-Tickets niemals im Commit des vorherigen Knotens mitcommitten. |
-| **Analyse- & Hypothesenberichte** | Als verbindliche Handoff-Anker des laufenden Zyklus (mit Herkunfts- und Verifikationsangaben). | Bei dauerhaftem Architekturwert ins Archiv verschieben; bei reinen Bug-Sprints nach Abschluss entfernen. | Keine dauerhafte visuelle Konkurrenz zu langlebigen Anwender- und Entwickler-Handbüchern. |
-| **Audit-Protokoll (`GREEN_AUDIT`)** | Genau eine eindeutige Audit-Datei im Test-Bereich (**Single-Active-Signal-Invariante**). | Bei `REFUTED` zwingend als Eingabe für `PHASE_GREEN` erhalten; nach `RESOLVED` und grünem `LIVING_DOCS` als nachgelagerte Abschluss-Hygiene archivieren oder entfernen. | **Klare Rollentrennung:** `NODE_LIVING_DOCS` behält die ausnahmefreie Schreibgrenze (kein Zugriff auf Quellcode oder Test-Verzeichnis); das Aufräumen abgeschlossener Audit-Dateien erfolgt nachgelagert durch die Orchestrierung. |
+| **Run-Dokumente (`RUN`)** | Leichtgewichtig in einem von der Produkt-Dokumentation entkoppelten Lauf-Bereich (Dokumentrahmen rein optional). | Nach Abschluss bereinigen (die Historie des Versionierungssystems bewahrt den Verlauf) oder bei Studien gebündelt archivieren. | Folge-Runs niemals im Commit des vorherigen Knotens mitaufnehmen. |
+| **Analyse- & Hypothesenberichte** | Als verbindliche Handoff-Anker des laufenden Durchlaufs (mit Herkunfts- und Verifikationsangaben). | Bei dauerhaftem Grundlagen- oder Architekturwert ins Archiv verschieben; bei reinen Detail-Sprints nach Abschluss entfernen. | Keine dauerhafte visuelle Konkurrenz zu langlebigen Anwender- und Fach-Handbüchern. |
+| **Audit-Protokoll (`GREEN_AUDIT`)** | Genau eine eindeutige Audit-Datei im Prüf-Bereich (**Single-Active-Signal-Invariante**). | Bei `REFUTED` zwingend als Eingabe für `PHASE_GREEN` erhalten; nach `RESOLVED` und grünem `LIVING_DOCS` als nachgelagerte Abschluss-Hygiene archivieren oder entfernen. | **Klare Rollentrennung:** `NODE_LIVING_DOCS` behält die ausnahmefreie Schreibgrenze; das Aufräumen abgeschlossener Audit-Dateien erfolgt nachgelagert durch die Orchestrierung. |
 
 ---
 
 ## 5. Konkrete Projekt-Anbindung & Weiterführendes
 
-Die Handbücher unter `docs/tgd/` sind bewusst **projektneutral** formuliert, damit sie auf beliebige Softwareprojekte übertragbar bleiben.
+Die Handbücher unter `docs/tgd/` sind bewusst **projekt-, werkzeug- und perspektivisch domänenneutral** gehalten, damit sich ihre Prinzipien ohne Plattform-Abhängigkeit auf beliebige Vorhaben übertragen lassen.
 
-* **Konkretes Projekt-Profil für `qb-cubie`:** Sämtliche projektspezifischen Pfade, Prüfkommandos, der Advisory-Check für pausierte Stil-Gates, die konkrete Minimal-Ticket-Vorlage, konkrete Ablagepfade sowie das Prozess-Mutanten-Mapping (`PM1`–`PM8`) sind zentral im technischen Dev-Guide [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) gebündelt.
-* **Epistemologie & Einstieg in TGD:** Grundlagen, Bauprüfer-Analogie und den Fünf-Schritte-Überblick findest du im [TGD-Handbuch](../GUIDE_TGD.md).
+* **Konkretes Projekt-Profil für `qb-cubie`:** Sämtliche projektspezifischen Pfade, Prüfkommandos, der Advisory-Check für pausierte Stil-Gates, die konkrete Minimal-Run-Vorlage (`RUN-*.md`), konkrete Ablagepfade sowie das Prozess-Mutanten-Mapping (`PM1`–`PM8`) sind zentral im technischen Dev-Guide [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) gebündelt.
+* **Epistemologie & Einstieg in TGD:** Grundlagen, Bauprüfer-Analogie und den exemplarischen Fünf-Schritte-Überblick findest du im [TGD-Handbuch](../GUIDE_TGD.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->
 
