@@ -1,11 +1,11 @@
 # RUN-1: Universelle & domänenneutrale TGD-Knoten-Handbücher — `NODE_LIVING_DOCS`
 
-- **Knoten-Handbuch:** [NODE_LIVING_DOCS.md](../../../tgd/NODE_LIVING_DOCS.md)
-- **Projekt-Profil:** [DEV-GUIDE_TGD-Workflow.md](../../../dev/DEV-GUIDE_TGD-Workflow.md)
-- **Run / Zyklus:** `tgd-universal-nodes` *(Ablage: `docs/misc/runs/tgd-universal-nodes/RUN-1.md`)*
-- **Ausgangs-Commit (`HEAD -> main, origin/main`):** `6333d85b` (... slowly but surely - developing the series of TGD-Guides, part 2 ...)
+- **Knoten-Handbuch:** [NODE_LIVING_DOCS.md](../../tgd/NODE_LIVING_DOCS.md)
+- **Projekt-Profil:** [DEV-GUIDE_TGD-Workflow.md](../../dev/DEV-GUIDE_TGD-Workflow.md)
+- **Run / Zyklus:** `tgd-universal-nodes` *(Ablage: `docs/misc/runs/RUN-1.md`)*
+- **Ausgangs-Commit (`HEAD -> main`):** `3329843b` (Prepared the distribution of the cleaned TGD-Guides towards all 'NODE*.md' docs.)
 - **Ziel-Artefakte:** Alle sechs Knoten-Handbücher in `docs/tgd/NODE_*.md` (inkl. idempotentem Router-Sync in `docs/tgd/README.md`)
-- **Herkunft:** `Mensch + Gemini-App`
+- **Herkunft:** `Mensch (Huch? Das bin ja ich!) + Gemini-App (Huch? Das war Neon, Reasoning-Effort: High)`
 
 ## 1. Ziel (Scope dieses Schritts)
 Überarbeite alle sechs TGD-Knoten-Handbücher (`NODE_ANALYSIS.md`, `NODE_HYPOTHESIS.md`, `NODE_PHASE_RED.md`, `NODE_PHASE_GREEN.md`, `NODE_GREEN_AUDIT.md` und `NODE_LIVING_DOCS.md`) auf Basis der aktualisierten Leitdokumente `docs/GUIDE_TGD.md`, `docs/tgd/README.md` und `docs/dev/DEV-GUIDE_TGD-Workflow.md`, sodass sie universell, domänenneutral, plattformunabhängig sowie gleichermaßen für Einsteiger und Experten verständlich formuliert sind. Quellcode (`src/`) und Test-Suite (`tests/`) bleiben vollständig unberührt (`0` Diff).
@@ -30,15 +30,15 @@
 
 ## 4. Relevante Referenzen
 - **Verbindliches Knoten-Handbuch:** [NODE_LIVING_DOCS.md](../../../tgd/NODE_LIVING_DOCS.md)
-- **Projekt-Profil:** [DEV-GUIDE_TGD-Workflow.md](../../../dev/DEV-GUIDE_TGD-Workflow.md)
+- **Projekt-Profil:** [DEV-GUIDE_TGD-Workflow.md](../../dev/DEV-GUIDE_TGD-Workflow.md)
 - **Inhaltliche Leitdokumente:**
-  - [GUIDE_TGD.md](../../../GUIDE_TGD.md)
+  - [GUIDE_TGD.md](../../GUIDE_TGD.md)
   - [TGD-Knoten-Übersicht (docs/tgd/README.md)](../../../tgd/README.md)
-- **Stil-Referenz (Einsteiger & Experten):** [GUIDE_Quality-Assurance.md](../../../GUIDE_Quality-Assurance.md)
+- **Stil-Referenz (Einsteiger & Experten):** [GUIDE_Quality-Assurance.md](../../GUIDE_Quality-Assurance.md)
 - **Zu überarbeitende Ziel-Handbücher:**
-  - [NODE_ANALYSIS.md](../../../tgd/NODE_ANALYSIS.md)
-  - [NODE_HYPOTHESIS.md](../../../tgd/NODE_HYPOTHESIS.md)
-  - [NODE_PHASE_RED.md](../../../tgd/NODE_PHASE_RED.md)
-  - [NODE_PHASE_GREEN.md](../../../tgd/NODE_PHASE_GREEN.md)
-  - [NODE_GREEN_AUDIT.md](../../../tgd/NODE_GREEN_AUDIT.md)
-  - [NODE_LIVING_DOCS.md](../../../tgd/NODE_LIVING_DOCS.md)
+  - [NODE_ANALYSIS.md](../../tgd/NODE_ANALYSIS.md)
+  - [NODE_HYPOTHESIS.md](../../tgd/NODE_HYPOTHESIS.md)
+  - [NODE_PHASE_RED.md](../../tgd/NODE_PHASE_RED.md)
+  - [NODE_PHASE_GREEN.md](../../tgd/NODE_PHASE_GREEN.md)
+  - [NODE_GREEN_AUDIT.md](../../tgd/NODE_GREEN_AUDIT.md)
+  - [NODE_LIVING_DOCS.md](../../tgd/NODE_LIVING_DOCS.md)

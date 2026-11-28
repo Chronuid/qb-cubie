@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Dritter verbindlicher Kernknoten von TGD: Synchronisiert Handbücher, ausführbare Beispiele und Übersichten streng nach dem Prinzip *Code als Wahrheitsquelle*, verifiziert alle Doku-Gates und schließt den Zyklus sauber ab.
+Dritter Kernknoten und durchgehende Dokumentations-Ebene von TGD: Synchronisiert produktive Handbücher, ausführbare Beispiele und Übersichten streng nach dem Prinzip *Arbeitsergebnis als Wahrheitsquelle* (*Code as Source of Truth*), verifiziert alle Doku-Gates und schließt den Zyklus sauber ab.
 
 ---
 
@@ -28,45 +28,50 @@ Dritter verbindlicher Kernknoten von TGD: Synchronisiert Handbücher, ausführba
 
 | Eigenschaft | Verbindliche Festlegung |
 | :--- | :--- |
-| **Rolle** | Verbindlicher Kernknoten 3 — Lebende Dokumentation, Beispiel-Verifikation & Zyklus-Abschluss |
-| **Eintrittsbedingungen ($P$)** | Grüner `PHASE_GREEN`- oder `GREEN_AUDIT (RESOLVED)`-Stand, direkter Lesezugriff auf den realen Quellcode, ggf. Doku-Handoff-Liste aus Phase Green, saubere [Pre-Flight-Triage](./README.md#41-pre-flight-triage-des-arbeitsverzeichnisses-3-klassen-modell) |
+| **Rolle** | TGD-Kernknoten 3 & Abschluss der Dokumentations-Schiene — Synchronisation der produktiven Handbücher, Beispiel-Verifikation & Zyklus-Abschluss |
+| **Eintrittsbedingungen ($P$)** | Grüner Stand aus `PHASE_GREEN` oder `GREEN_AUDIT (RESOLVED)` (bzw. ein eigenständiger Dokumentations-Auftrag im `RUN`-Dokument), direkter Lesezugriff auf das reale Arbeitsergebnis (z. B. Quellcode), ggf. Doku-Handoff-Liste aus Phase Green, saubere [Pre-Flight-Triage](./README.md#41-pre-flight-triage-des-arbeitsverzeichnisses-3-klassen-modell) |
 | **Erlaubte Schreibziele** | Ausschließlich Dokumentationsdateien (Handbücher, Übersichten/Indizes, bekannte Einschränkungen, Änderungsprotokolle) |
-| **Eingefrorene Bereiche (Tabu)** | **Ausnahmefrei** `0` Änderungen an Quellcode und am gesamten Test-Verzeichnis (inkl. abgeschlossener Audit-Protokolle!) |
-| **Abnahme ($Q$)** | Alle betroffenen und angrenzenden Handbücher gegen realen Quellcode abgeglichen, automatische Rahmen/Indizes idempotent synchronisiert (`0` Änderungen im 2. Lauf), Living-Docs-Prüfungen & relevante Tests grün, `0` Änderungen an Quellcode und Test-Verzeichnis |
-| **Folge-Knoten** | **Zyklus abgeschlossen** *(plus ggf. nachgelagerte 1-Schritt-Abschluss-Hygiene für Audit-/Lauf-Artefakte durch die Orchestrierung)* |
+| **Eingefrorene Bereiche (Tabu)** | **Ausnahmefrei** `0` Änderungen an Umsetzung/Arbeitsergebnis (z. B. Quellcode) und am gesamten Prüfsystem/Test-Verzeichnis (inkl. abgeschlossener Audit-Protokolle!) |
+| **Abnahme ($Q$)** | Alle betroffenen und angrenzenden Handbücher gegen das reale Arbeitsergebnis abgeglichen, automatische Rahmen/Indizes idempotent synchronisiert (`0` Änderungen im 2. Lauf), Living-Docs-Prüfungen & relevante Gates grün, `0` Änderungen an Umsetzung und Prüfsystem |
+| **Einsatz & Folge-Knoten im Baukasten** | **Zyklus abgeschlossen** *(plus ggf. nachgelagerte 1-Schritt-Abschluss-Hygiene für Audit-/Run-Artefakte durch die Orchestrierung)*; bei größeren Doku-Umbauten können vorab situativ [`NODE_ANALYSIS`](./NODE_ANALYSIS.md) oder [`NODE_HYPOTHESIS`](./NODE_HYPOTHESIS.md) zugeschaltet werden |
 
 ---
 
 ## 2. Wofür dieser Knoten da ist
 
-* **Einfach erklärt (für Einsteiger):** Das neue Haus steht und die versiegelte Checkliste ist vollständig abgehakt. Jetzt werden Bauplan, Bedienungsanleitung und Inhaltsverzeichnis auf den *tatsächlichen* Zustand des fertigen Hauses gebracht — und zwar durch direkten Blick auf das gebaute Haus, nicht durch blindes Abschreiben alter Entwurfsskizzen. Erst wenn alle Pläne wieder stimmen, können künftige Projekte verlässlich darauf aufbauen.
-* **Für Experten (Lebende Dokumentation als vierte Verifikationsschicht):** In TGD ist Dokumentation kein unverbindlicher Nachtrag, sondern eine **orthogonale Verifikationsschicht**, die ausführbare Beispiele, Links und Dokumentrahmen maschinell prüft. Die strikte Bindung an **Code als Wahrheitsquelle** eliminiert Plan-vs.-Code-Drift (etwa wenn Architektur-Gates während der Implementierung einen geplanten Methodennamen verändert haben). Gleichzeitig garantiert die **ausnahmefreie Schreibgrenze** (`Quellcode = 0`, `Test-Verzeichnis = 0`), dass kein Dokumentations-Commit unbemerkt Code- oder Teständerungen einschleust.
+* **Einfach erklärt (für Einsteiger):** Schon während der gesamten Bauzeit lief das Berichts- und Planwesen im Hintergrund mit: Vorhandene Pläne wurden als Nachschlagewerk genutzt, und die einzelnen Schritte haben bei Bedarf kurze Vermessungs-, Entwurfs- oder Mängelprotokolle hinterlassen. Jetzt, wo das fertige Haus steht und die versiegelte Checkliste komplett abgehakt ist, werden in der Rolle **`NODE_LIVING_DOCS`** die offiziellen Baupläne, Bedienungsanleitungen und Inhaltsverzeichnisse auf den *tatsächlichen* Endstand gebracht — und zwar durch direkten Blick auf das fertige Werk, nicht durch blindes Abschreiben alter Entwurfsskizzen. Erst wenn alle Handbücher wieder exakt stimmen, können Einsteiger, Experten und künftige Projekte verlässlich darauf aufbauen.
+* **Für Experten & KI-Agenten (Doppelrolle der Dokumentations-Schiene & vierte Verifikationsschicht):** Im symmetrischen TGD-Baukasten ([`GUIDE_TGD.md`](../GUIDE_TGD.md)) erfüllt die Dokumentations-Ebene eine klar getrennte Doppelrolle:
+  1. **Querschnittliche Dokumentations- & Berichts-Schiene (während aller Knoten):** Jeder Knoten liest bestehende Handbücher als Vertrags-Referenz und kann begleitende Berichte (`ANALYSIS*`, `HYPOTHESIS*`, `GREEN_AUDIT`, Run-Notizen) erzeugen — während die **produktiven Handbücher** in allen anderen Knoten streng bei `0` Diff eingefroren bleiben.
+  2. **Dedizierter Abschluss-Knoten (`NODE_LIVING_DOCS`):** Hier werden die produktiven Handbücher, ausführbaren Beispiele und Navigationsrahmen als **orthogonale Verifikationsschicht** aktualisiert und maschinell geprüft. Die strikte Bindung an das **reale Arbeitsergebnis als Wahrheitsquelle** (*Code as Source of Truth*) eliminiert Plan-vs.-Umsetzungs-Drift (etwa wenn Qualitäts-Gates während `PHASE_GREEN` eine geplante Signatur verändert haben). Gleichzeitig garantiert die **ausnahmefreie Schreibgrenze** (`Umsetzung = 0`, `Prüfsystem = 0`), dass kein Dokumentations-Stand unbemerkt Änderungen an Produkt oder Tests einschleust.
 
 ---
 
 ## 3. Eintritt & Pre-Flight ($P$)
 
-1. **Pre-Flight-Triage:** Status des Versionierungssystems gemäß dem [3-Klassen-Modell](./README.md#41-pre-flight-triage-des-arbeitsverzeichnisses-3-klassen-modell) prüfen; fremde Altlasten (Klasse 3) stoppen den Start sofort.
-2. **Auftrags-Konsistenz & grüne Baseline prüfen:** Prüfen, ob Knoten-Rolle (`LIVING_DOCS`) und Zielbeschreibung übereinstimmen und ob der Vorgänger-Knoten (`PHASE_GREEN` oder `GREEN_AUDIT` mit `Status: RESOLVED`) sauber abgeschlossen ist.
-3. **Wahrheitsquelle & Handoff-Liste sammeln:** Die real geänderten Quellcode-Dateien sowie eine eventuelle Living-Docs-Diagnoseliste aus `PHASE_GREEN` (*Diagnose-statt-Edit-Regel*) und relevante Nachbar-Handbücher als Arbeitsbasis bereitstellen.
+1. **Pre-Flight-Triage & Kontext-Reset:** Status des Arbeitsverzeichnisses gemäß dem [3-Klassen-Modell](./README.md#41-pre-flight-triage-des-arbeitsverzeichnisses-3-klassen-modell) in einem frischen Kontext prüfen; fremde Altlasten (Klasse 3) stoppen den Start sofort.
+2. **Auftrags-Konsistenz & grüne Baseline prüfen:** Am `RUN`-Dokument gemäß [Rollen-, Kontext- & Run-Disziplin](./README.md#42-rollen--kontext---run-disziplin) prüfen, ob Knoten-Rolle (`LIVING_DOCS`) und Zielbeschreibung übereinstimmen und ob der Vorgänger-Knoten (`PHASE_GREEN` bzw. `GREEN_AUDIT` mit `Status: RESOLVED` oder ein eigenständiger Doku-Auftrag) sauber vorliegt.
+3. **Wahrheitsquelle & Handoff-Liste sammeln:** Das reale Arbeitsergebnis (z. B. die geänderten Quellcode-Dateien), eine eventuelle Living-Docs-Diagnoseliste aus `PHASE_GREEN` (*Diagnose-statt-Edit-Regel*) sowie alle betroffenen und angrenzenden Handbücher als Lese-Basis bereitstellen. Bei umfangreichen Doku-Umbauten kann vorab eine systematische Drift-Bestandsaufnahme per [`NODE_ANALYSIS`](./NODE_ANALYSIS.md) genutzt werden.
 
 ---
 
 ## 4. Arbeits- & Meta-QA-Heuristiken
 
-1. **`Code-as-Source-of-Truth` (Anti-Drift-Regel):**
-   * Sämtliche öffentlichen API-Namen, Modulpfade, Funktionssignaturen, Rückgabetypen, Fehlermeldungen, CLI-Optionen und Exit-Codes werden **direkt am realen Quellcode** verifiziert.
-   * Entwurfsnamen aus früheren Analyse- oder Hypothesenberichten dürfen **niemals ungeprüft** in produktive Handbücher kopiert werden.
+1. **Reales Arbeitsergebnis als Wahrheitsquelle (`Code-as-Source-of-Truth` / Anti-Drift-Regel):**
+   * Sämtliche Fachbegriffe, Schnittstellen, Signaturen, Parameter, Rückgabewerte, Fehlermeldungen, Kommandos und Optionen werden **direkt am realen Arbeitsergebnis (z. B. am Quellcode)** verifiziert.
+   * Vorläufige Entwurfsnamen aus früheren Analyse- oder Hypothesenberichten dürfen **niemals ungeprüft** in produktive Handbücher kopiert werden.
 2. **Nachbarschafts- & Index-Scan:**
-   * Neben dem primären bzw. neu erstellten Handbuch systematisch alle angrenzenden Anwender-Guides, Entwickler-Referenzen, Ordner-Indizes und bekannte Einschränkungen auf veraltete Signaturen, tote Links oder geänderte Konzepte prüfen.
-3. **Ausführbarkeits- & Fence-Hygiene:**
-   * Fachliche Code-Beispiele so schreiben, dass die automatische Living-Docs-Prüfung sie real ausführen und gegen die tatsächliche Ausgabe verifizieren kann.
-   * Nicht-ausführbare Skizzen, Vorlagen, Diagramme oder Pseudocode strikt in nicht-ausführbare Code-Blöcke (z. B. `text`, `markdown` mit passenden verschachtelten Fences oder `mermaid`) setzen — niemals als ausführbare Sprachblöcke tarnen.
-4. **Idempotente Rahmen- & Navigations-Synchronisation:**
-   * Automatische Dokumentrahmen und Index-Tabellen aktualisieren und zwingend durch einen **zweiten Synchronisationslauf** belegen, dass der Zustand stabil und idempotent ist (`0` weitere geänderte Dateien).
-5. **Artefakt-Hygiene & ehrliche Abschluss-Meldung:**
-   * Temporäre Dokumentations-Artefakte gemäß dem [3-Zustands-Lebenszyklus](./README.md#43-allgemeiner-3-zustands-lebenszyklus-temporärer-artefakte) einordnen.
-   * Liegt noch ein abgeschlossenes Audit-Protokoll (`Status: RESOLVED`) im Test-Verzeichnis, wird dieses **nicht** in `NODE_LIVING_DOCS` selbst gelöscht oder verschoben, sondern im Abschlussbericht ausdrücklich als fällige 1-Schritt-Abschluss-Hygiene für die Orchestrierung ausgewiesen.
+   * Neben dem primären bzw. neu erstellten Handbuch systematisch alle angrenzenden Einstiegs-, Fach- und Entwickler-Handbücher, Ordner-Übersichten und bekannte Einschränkungen auf veraltete Angaben, tote Querverweise oder geänderte Konzepte prüfen.
+3. **Zugänglichkeit für Einsteiger & Präzision für Experten (Werkzeugneutralität):**
+   * Komplexe Konzepte beidseitig zugänglich formulieren: anschauliche Alltags- oder Baustellen-Analogien für Einsteiger kombinieren mit präzisen Verträgen, Invarianten und Abnahmekriterien für Experten und KI-Agenten.
+   * Durchgängig plattform- und werkzeugneutrale Sprache sowie Standard-Markdown-Links verwenden (keine proprietären CLI-/IDE-Sonderbefehle oder `@`-Referenzen in produktiven Handbüchern und Rahmen-Zonen).
+4. **Ausführbarkeits- & Fence-Hygiene:**
+   * Fachliche Code- und Anwendungsbeispiele so verfassen, dass die automatische Living-Docs-Prüfung sie real ausführen und gegen die tatsächliche Ausgabe verifizieren kann.
+   * Nicht-ausführbare Skizzen, Vorlagen, Diagramme oder Pseudocode strikt in nicht-ausführbare Blöcke (z. B. `text`, `markdown` mit passenden verschachtelten Fences oder `mermaid`) setzen — niemals als ausführbare Sprachblöcke tarnen.
+5. **Idempotente Rahmen- & Navigations-Synchronisation:**
+   * Automatische Dokumentrahmen und Index-/Router-Tabellen aktualisieren und zwingend durch einen **zweiten Synchronisationslauf** belegen, dass der Zustand stabil und idempotent ist (`0` weitere geänderte Dateien).
+6. **Artefakt-Hygiene & ehrliche Abschluss-Meldung:**
+   * Temporäre Lauf- und Berichts-Artefakte gemäß dem [3-Zustands-Lebenszyklus](./README.md#43-allgemeiner-3-zustands-lebenszyklus-temporärer-artefakte) einordnen.
+   * Liegt noch ein abgeschlossenes Audit-Protokoll (`Status: RESOLVED`) im Prüf-/Test-Verzeichnis, wird dieses **nicht** in `NODE_LIVING_DOCS` selbst gelöscht oder verschoben, sondern im Abschlussbericht ausdrücklich als fällige 1-Schritt-Abschluss-Hygiene für die Orchestrierung ausgewiesen.
 
 ---
 
@@ -74,26 +79,26 @@ Dritter verbindlicher Kernknoten von TGD: Synchronisiert Handbücher, ausführba
 
 | Situation / Konflikt | Verbindliche Reaktion | Ziel / Ausgang |
 | :--- | :--- | :--- |
-| **Ein reales Code-Beispiel in der Doku deckt einen echten Defekt im Quellcode auf** | Quellcode **nicht** still in `LIVING_DOCS` patchen! Stoppen, reproduzierbaren Befund sauber dokumentieren und einen neuen Bugfix-/TGD-Durchlauf anstoßen. | Wahrung der Schreibgrenze & ehrliche Fehlerkultur |
-| **Entwurf aus `HYPOTHESIS` weicht vom realen Quellcode ab** | Der reale Quellcode gewinnt immer. Das Handbuch beschreibt ausschließlich das tatsächlich implementierte Verhalten (bei Bedarf kurzer Hinweis auf bewusste Abweichung im Zyklus-Bericht). | Null Plan-vs.-Code-Drift |
-| **Neues Handbuch erzeugt breiten Navigations-/Footer-Diff über viele bestehende Dokumente** | Erwartetes Verhalten automatischer Navigations-Rahmen — unveränderte Fremd-Inhalte nicht manuell berühren und den automatischen Sync-Anteil im Abschlussbericht transparent benennen. | Nachvollziehbarer, sauberer Doku-Commit |
-| **Abgeschlossenes Audit-Protokoll liegt noch im Test-Verzeichnis** | Strikte Schreibgrenze einhalten (`Test-Verzeichnis = 0`); die fällige Archivierung oder Entfernung klar als nachgelagerte Abschluss-Hygiene für die Orchestrierung protokollieren. | Ausnahmefreie Schreibgrenze |
-| **Fehlende Konvention für Berichts- oder Rahmen-Syntax** | Vor dem Editieren die jeweiligen Projekt-Konventionen prüfen und nach jeder Änderung mit dem automatischen Prüfer verifizieren. | `0` Rahmen- oder Doku-Diagnosen |
+| **Ein reales Beispiel in der Doku deckt einen echten Defekt im Arbeitsergebnis (z. B. im Quellcode) auf** | Arbeitsergebnis **nicht** still in `LIVING_DOCS` patchen! Stoppen, reproduzierbaren Befund sauber dokumentieren und einen regulären Korrektur-Durchlauf (`PHASE_RED` $\to$ `PHASE_GREEN`) anstoßen. | Wahrung der Schreibgrenze & ehrliche Fehlerkultur |
+| **Entwurf aus `HYPOTHESIS` weicht vom realen Arbeitsergebnis ab** | Das reale Arbeitsergebnis gewinnt immer. Das Handbuch beschreibt ausschließlich das tatsächlich umgesetzte Verhalten (bei Bedarf kurzer Hinweis auf die bewusste Abweichung im Zyklus-Bericht). | Null Plan-vs.-Umsetzungs-Drift |
+| **Neues oder umbenanntes Handbuch erzeugt breiten Navigations-/Footer-Diff über viele bestehende Dokumente** | Erwartetes Verhalten automatischer Navigations-Rahmen — unveränderte Fremd-Inhalte nicht manuell berühren und den automatischen Sync-Anteil im Abschlussbericht transparent benennen. | Nachvollziehbarer, sauberer Doku-Stand |
+| **Abgeschlossenes Audit-Protokoll liegt noch im Prüf-/Test-Verzeichnis** | Strikte Schreibgrenze einhalten (`Prüfsystem/Test-Verzeichnis = 0`); die fällige Archivierung oder Entfernung klar als nachgelagerte Abschluss-Hygiene für die Orchestrierung protokollieren. | Ausnahmefreie Schreibgrenze |
+| **Fehlende Konvention für Berichts-, Anker- oder Rahmen-Syntax** | Vor dem Editieren die jeweiligen Projekt-Konventionen prüfen und nach jeder Änderung mit den automatischen Doku-Prüfern verifizieren. | `0` Rahmen- oder Doku-Diagnosen |
 
 ---
 
 ## 6. Austrittsbedingungen & Abnahme ($Q$)
 
-Der Knoten `LIVING_DOCS` (und damit der gesamte TGD-Zyklus) gilt genau dann als abgeschlossen, wenn alle fünf objektiven Kriterien erfüllt sind:
+Der Knoten `LIVING_DOCS` (und damit der aktuelle TGD-Zyklus) gilt genau dann als abgeschlossen, wenn alle fünf objektiven Kriterien erfüllt sind:
 
-1. **Quellcode-Treue belegt:** Alle neuen und aktualisierten Handbücher, Beispiele und Indizes spiegeln nachweislich den realen Quellcode wider (keine ungeprüften Entwurfs-Namen).
+1. **Treue zum Arbeitsergebnis belegt:** Alle neuen und aktualisierten Handbücher, Beispiele und Indizes spiegeln nachweislich den realen Stand des Arbeitsergebnisses wider (keine ungeprüften Entwurfs-Namen).
 2. **Idempotente Synchronisation nachgewiesen:** Der zweite Lauf der automatischen Rahmen-/Index-Synchronisation meldet `0` weitere Änderungen.
-3. **Alle Doku-Gates & relevante Tests grün:** Rahmen-Prüfung, ausführbare Living-Docs-Prüfung und die dazugehörigen Test-Gates laufen mit Exit-Code `0` und `0` Diagnosen durch.
-4. **Schreibgrenzen-Nachweis erbracht:** Der Status des Versionierungssystems weist ausschließlich Dokumentationsdateien aus — **`0` Änderungen an Quellcode und am Test-Verzeichnis**.
-5. **Abschluss-Hygiene klar dokumentiert:** Offene nachgelagerte Aufräum- oder Archivierungsschritte (z. B. ein abgeschlossenes Audit-Protokoll im Test-Verzeichnis oder temporäre Lauf-Tickets) sind im Abschlussbericht explizit benannt.
+3. **Alle Doku-Gates & relevante Prüfungen grün:** Rahmen-Prüfung, ausführbare Living-Docs-Prüfung und die dazugehörigen Doku-Test-Gates laufen mit Exit-Code `0` und `0` Diagnosen durch.
+4. **Schreibgrenzen-Nachweis erbracht:** Der Status des Arbeitsverzeichnisses weist ausschließlich Dokumentationsdateien aus — **`0` Änderungen an Umsetzung/Quellcode und am Prüfsystem/Test-Verzeichnis**.
+5. **Abschluss-Hygiene klar dokumentiert:** Offene nachgelagerte Aufräum- oder Archivierungsschritte (z. B. ein abgeschlossenes Audit-Protokoll im Test-Verzeichnis oder temporäre `RUN`-Dokumente) sind im Abschlussbericht explizit benannt.
 
 > [!TIP]
-> **Konkrete `qb-cubie`-Kommandos & Ablagepfade:** Die exakten Sync-, Check- und Pytest-Kommandos sowie der konkrete 3-Zustands-Lebenszyklus für `qb-cubie` stehen in [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) und den [Dokumentrahmen-Konventionen](../dev/DEV-GUIDE_DocFrame-Conventions.md).
+> **Konkretes Projekt-Profil für `qb-cubie`:** Die exakten `docframe`-, `docensurance`- und `pytest`-Kommandos sowie der konkrete 3-Zustands-Lebenszyklus für `qb-cubie` stehen in [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) und den [Dokumentrahmen-Konventionen](../dev/DEV-GUIDE_DocFrame-Conventions.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 
