@@ -90,25 +90,26 @@ In `src/qb_cubie/services/doc_frame/doc_frame_rules.py` prüft `_has_missing_zon
 
 ### [BUG-006] `tests/test_styleguide.py::test_function_size` unterstützt keine `# noqa`-Ausnahmekommentare mit Begründung
 
-- **Status:** Offen *(Workaround aktiv via `@pytest.mark.skip`)*
+- **Status:** Offen *(Gate `test_function_size` wieder regulär aktiv; `@pytest.mark.skip`-Workaround entfernt)*
 - **Schweregrad:** Niedrig
 - **Bereich:** `tests/test_styleguide.py` (`test_function_size`)
 - **Umgebung / Version:** `v0.0.10`, Python `3.13`, plattformunabhängig
 
 **Ist-Verhalten:**  
-`test_function_size` prüft starr `len(body_lines(source, node)) > FUNCTION_LIMIT` (`12`) ohne Möglichkeit, einzelne Funktionen temporär und begründet per `# noqa`-Kommentar (z. B. `# noqa: function-size -- ...`) auszusetzen. Dadurch lässt sich etwa `src/qb_cubie/ebt.py:618` (`_validate_wrapper_keys`, 14 Zeilen) nicht gezielt pausieren, während die nächste Mutation des `ebt.py`-Moduls noch genauer durchdacht wird.
+`test_function_size` prüft starr `len(body_lines(source, node)) > FUNCTION_LIMIT` (`12`) ohne Möglichkeit, einzelne Funktionen temporär und begründet per `# noqa`-Kommentar (z. B. `# noqa: function-size -- ...`) auszusetzen.
 
 **Soll-Verhalten:**  
 `test_function_size` (und perspektivisch auch weitere Styleguide-Checks in `tests/test_styleguide.py`) erkennt explizite `# noqa`-Kommentare an der Funktionsdefinition (idealerweise mit verpflichtender Begründung), sodass begründete, zeitlich begrenzte Ausnahmen feingranular möglich sind, ohne den gesamten Test global zu überspringen.
 
 **Reproduktion:**  
+Eine beliebige Funktion in `src/qb_cubie/` temporär mit $> 12$ physischen Body-Zeilen und `# noqa`-Kommentar an der `def`-Zeile versehen und ausführen:
 ```bash
 .venv/bin/python -m pytest -q tests/test_styleguide.py -k "test_function_size"
 ```
-Ohne `@pytest.mark.skip` schlägt der Test an `src/qb_cubie/ebt.py:618` (`_validate_wrapper_keys`: 14 body lines, maximum 12) fehl, auch wenn ein `# noqa`-Kommentar gesetzt ist.
+Der Test schlägt trotz `# noqa`-Kommentar fehl.
 
 **Workaround:**  
-`tests/test_styleguide.py::test_function_size` ist bis auf Weiteres mit `@pytest.mark.skip` pausiert (Begründung: die nächste Mutation vom `ebt.py`-Modul wird noch genauer durchdacht).
+Betroffene Funktionen per SRP-Refactoring auf $\le 12$ Body-Zeilen aufteilen (`test_function_size` läuft regulär ohne `@pytest.mark.skip`).
 
 **Hinweise / Ursache:**  
 `body_lines()` filtert `tokenize.COMMENT` heraus und `test_function_size()` wertet die Kommentar-Tokens auf der `def`-Zeile derzeit nicht aus.

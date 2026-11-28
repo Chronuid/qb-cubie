@@ -102,7 +102,7 @@ Je nach Verlauf endet `PHASE_GREEN` über genau einen von zwei objektiv prüfbar
 3. **Schreibgrenzen-Nachweis erbracht:** **`0` Änderungen am Prüfsystem/Test-Code** und **`0` Änderungen an der produktiven Dokumentation**.
 
 > [!TIP]
-> **Konkretes Projekt-Profil für `qb-cubie`:** Die exakten `pytest`-, `ruff`-, `pylint`-, `mypy`- und `body_lines()`-Advisory-Kommandos sowie der Pfad der Audit-Datei (`tests/GREEN_AUDIT.md`) stehen in [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md).
+> **Konkretes Projekt-Profil für `qb-cubie`:** Die exakten `pytest`-, `ruff`-, `pylint`- und `mypy`-Kommandos sowie der Pfad der Audit-Datei (`tests/GREEN_AUDIT.md`) stehen in [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

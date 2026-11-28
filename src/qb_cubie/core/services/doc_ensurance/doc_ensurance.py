@@ -264,16 +264,9 @@ class DocEnsurance:
         if not file_rules or not self._sources or self._sources[0][0] == "IN_MEMORY":
             return
         file_sources = [FileSource(path=fp, rel_path=Path(fp).name, content=txt) for fp, txt in self._sources]
-        options = {
-            "target": self.target,
-            "excludes": tuple(self.excludes),
-            "patterns": self._extra_patterns,
-        }
-        self._diagnostics.extend(
-            execute_file_checks(
-                file_rules, file_sources, target=self.target, excludes=self.excludes, options=options
-            )
-        )
+        options = {"target": self.target, "excludes": tuple(self.excludes), "patterns": self._extra_patterns}
+        diags = execute_file_checks(file_rules, file_sources, target=self.target, excludes=self.excludes, options=options)
+        self._diagnostics.extend(diags)
 
     def _partition_executable(
         self, examples: list[ExtractedExample], diags: list[DocDiagnostic]

@@ -137,7 +137,7 @@ Run-Dokumente, Analyse-/Hypothesenberichte, Ausführungsprotokolle und Audit-Dat
 
 Die Handbücher unter `docs/tgd/` sind bewusst **projekt-, werkzeug- und perspektivisch domänenneutral** gehalten, damit sich ihre Prinzipien ohne Plattform-Abhängigkeit auf beliebige Vorhaben übertragen lassen.
 
-* **Konkretes Projekt-Profil für `qb-cubie`:** Sämtliche projektspezifischen Pfade, Prüfkommandos, der Advisory-Check für pausierte Stil-Gates, die konkrete Minimal-Run-Vorlage (`RUN-*.md`), konkrete Ablagepfade sowie das Prozess-Mutanten-Mapping (`PM1`–`PM8`) sind zentral im technischen Dev-Guide [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) gebündelt.
+* **Konkretes Projekt-Profil für `qb-cubie`:** Sämtliche projektspezifischen Pfade, Prüfkommandos, aktive Stil-Gates, die konkrete Minimal-Run-Vorlage (`RUN-*.md`), konkrete Ablagepfade sowie das Prozess-Mutanten-Mapping (`PM1`–`PM8`) sind zentral im technischen Dev-Guide [`DEV-GUIDE: TGD-Workflow-Profil für qb-cubie`](../dev/DEV-GUIDE_TGD-Workflow.md) gebündelt.
 * **Epistemologie & Einstieg in TGD:** Grundlagen, Bauprüfer-Analogie und den exemplarischen Fünf-Schritte-Überblick findest du im [TGD-Handbuch](../GUIDE_TGD.md).
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->

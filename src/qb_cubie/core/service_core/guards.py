@@ -67,13 +67,10 @@ def parse_bool_attr(raw: Any, field: str, *, default: bool = True) -> bool:
     """Parse a boolean string attribute token with strict type and value guards."""
     if type(default) is not bool:
         raise TypeError(f"STATE-GUARD: default for {field} must be a bool; received {type(default).__name__}.")
-    if raw is None:
+    stripped = _extract_attr_token(raw, field)
+    if stripped is None:
         return default
-    if not isinstance(raw, str):
-        raise TypeError(f"STATE-GUARD: {field} must be a str or None; received {type(raw).__name__}.")
-    token = raw.strip().lower()
-    if not token:
-        return default
+    token = stripped.lower()
     if token in _TRUE_TOKENS:
         return True
     if token in _FALSE_TOKENS:
@@ -83,14 +80,10 @@ def parse_bool_attr(raw: Any, field: str, *, default: bool = True) -> bool:
 
 def parse_int_attr(raw: Any, field: str, *, allow_none: bool = True) -> int | None:
     """Parse an integer string attribute with strict type and optional-blank guards."""
-    if raw is None:
-        _ensure_optional_int(field, raw, allow_none)
-        return None
-    if not isinstance(raw, str):
-        raise TypeError(f"STATE-GUARD: {field} must be a str or None; received {type(raw).__name__}.")
-    stripped = raw.strip()
-    if not stripped:
-        _ensure_optional_int(field, raw, allow_none)
+    stripped = _extract_attr_token(raw, field)
+    if stripped is None:
+        if not allow_none:
+            raise ValueError(f"STATE-GUARD: {field} must be an integer string; received {raw!r}.")
         return None
     try:
         return int(stripped)
@@ -98,7 +91,10 @@ def parse_int_attr(raw: Any, field: str, *, allow_none: bool = True) -> int | No
         raise ValueError(f"STATE-GUARD: {field} must be an integer; received {raw!r}.") from exc
 
 
-def _ensure_optional_int(field: str, raw: Any, allow_none: bool) -> None:
-    """Raise ValueError when a required integer attribute is missing or blank."""
-    if not allow_none:
-        raise ValueError(f"STATE-GUARD: {field} must be an integer string; received {raw!r}.")
+def _extract_attr_token(raw: Any, field: str) -> str | None:
+    """Validate optional string attribute input and return its stripped text or None when blank."""
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raise TypeError(f"STATE-GUARD: {field} must be a str or None; received {type(raw).__name__}.")
+    return raw.strip() or None

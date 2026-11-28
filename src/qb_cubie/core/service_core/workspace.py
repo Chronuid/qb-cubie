@@ -155,19 +155,24 @@ def crawl_files(
     excludes: AbstractSet[str] = frozenset(),
 ) -> list[Path]:
     """Recursively collect deterministically sorted files matching pattern while honoring excludes."""
-    if not isinstance(root, Path):
-        raise TypeError(f"STATE-GUARD: root must be a Path; received {type(root).__name__}.")
-    if not root.exists():
-        raise FileNotFoundError(f"STATE-GUARD: Directory does not exist: {root}")
-    if not root.is_dir():
-        raise ValueError(f"STATE-GUARD: Expected directory for crawl_files; received file: {root}")
-    resolved = root.resolve()
+    resolved = _validate_crawl_dir(root)
     matched = [
         path
         for path in resolved.rglob(pattern)
         if path.is_file() and not is_excluded(path.relative_to(resolved), resolved.name, excludes)
     ]
     return sorted(matched, key=lambda path: path.relative_to(resolved).as_posix())
+
+
+def _validate_crawl_dir(root: Path) -> Path:
+    """Ensure root is an existing directory Path and return its resolved path."""
+    if not isinstance(root, Path):
+        raise TypeError(f"STATE-GUARD: root must be a Path; received {type(root).__name__}.")
+    if not root.exists():
+        raise FileNotFoundError(f"STATE-GUARD: Directory does not exist: {root}")
+    if not root.is_dir():
+        raise ValueError(f"STATE-GUARD: Expected directory for crawl_files; received file: {root}")
+    return root.resolve()
 
 
 def looks_like_path(target: str) -> bool:
@@ -228,15 +233,15 @@ def atomic_write_text(
     """Atomically write text to path via a sibling temp file and os.replace, cleaning up on error."""
     temporary: Path | None = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="wb",
-            dir=path.parent,
-            prefix=f".{path.name}.",
-            delete=False,
-        ) as stream:
-            temporary = Path(stream.name)
+        temporary = _create_sibling_temp(path)
         temporary.write_text(content, encoding=encoding, newline=newline)
         os.replace(temporary, path)
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
+
+
+def _create_sibling_temp(path: Path) -> Path:
+    """Allocate an unlinked-safe sibling temporary file in the target parent directory."""
+    with tempfile.NamedTemporaryFile(mode="wb", dir=path.parent, prefix=f".{path.name}.", delete=False) as stream:
+        return Path(stream.name)

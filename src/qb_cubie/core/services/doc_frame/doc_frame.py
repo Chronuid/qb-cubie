@@ -11,7 +11,7 @@ from ...reporter import PytestReporter
 from ...service_core.markdown import apply_span_replacements
 from ...service_core.reporting import ServiceReport
 from ...service_core.rules import FileCheckRunner
-from ...service_core.workspace import atomic_write_text, load_sources, normalize_excludes
+from ...service_core.workspace import FileSource, atomic_write_text, load_sources, normalize_excludes
 from ._catalog_scanner import parse_frame_spans
 from .adapters import build_workspace_catalog, normalize_frame_patterns, resolve_target_path
 from .doc_frame_rules import CUBIE_DOCFRAME_RULES
@@ -107,26 +107,34 @@ class DocFrame:
     ) -> ServiceReport:
         """Verifies Markdown document frames natively via FileCheckRunner without DocEnsurance."""
         __tracebackhide__ = True
-        target_path = resolve_target_path(target)
-        patterns = normalize_frame_patterns(pattern)
-        norm_excludes = normalize_excludes(excludes)
-        catalog = build_workspace_catalog(target_path, norm_excludes)
-        check_rules = CUBIE_DOCFRAME_RULES if rules is None else rules
-        options = {
-            "catalog": catalog,
-            "patterns": patterns,
-            "target": target_path,
-            "excludes": tuple(norm_excludes),
-        }
-        return FileCheckRunner(
-            rules=check_rules,
+        target_path, norm_excludes, options = cls._prepare_check_context(target, pattern, excludes)
+        runner = FileCheckRunner(
+            rules=CUBIE_DOCFRAME_RULES if rules is None else rules,
             target=target_path,
             glob="*.md",
-            excludes=tuple(norm_excludes),
+            excludes=norm_excludes,
             options=options,
             service="doc_frame",
             reporter=reporter,
-        ).run()
+        )
+        return runner.run()
+
+    @staticmethod
+    def _prepare_check_context(
+        target: str | Path | None,
+        pattern: FramePattern | Sequence[FramePattern] | None,
+        excludes: Sequence[str] | None,
+    ) -> tuple[Path, tuple[str, ...], dict[str, Any]]:
+        """Resolve target path, normalized excludes, and catalog options for frame checking."""
+        target_path = resolve_target_path(target)
+        norm_excludes = normalize_excludes(excludes)
+        options = {
+            "catalog": build_workspace_catalog(target_path, norm_excludes),
+            "patterns": normalize_frame_patterns(pattern),
+            "target": target_path,
+            "excludes": tuple(norm_excludes),
+        }
+        return target_path, tuple(norm_excludes), options
 
     def build_catalog(self) -> DocumentCatalog:
         """Scans all non-excluded Markdown files under the catalog root into a DocumentCatalog."""
@@ -138,17 +146,22 @@ class DocFrame:
             self.target_path, pattern="*.md", excludes=self.excludes, allow_in_memory=False
         )
         catalog = self.build_catalog()
+        updated = self._sync_target_sources(target_sources, catalog)
+        report = DocFrameReport(str(self.target_path), True, tuple(updated), catalog, ())
+        if self.reporter is not None:
+            self.reporter.report(report)
+        return report
+
+    def _sync_target_sources(self, sources: Sequence[FileSource], catalog: DocumentCatalog) -> list[str]:
+        """Re-render frame spans for each source file and atomically persist modified files."""
         updated: list[str] = []
-        for source in target_sources:
+        for source in sources:
             file_path = Path(source.path)
             new_content = self._render_file_frames(file_path, source.content, catalog)
             if new_content != source.content:
                 atomic_write_text(file_path, new_content, encoding="utf-8", newline="\n")
                 updated.append(file_path.resolve().relative_to(catalog.root).as_posix())
-        report = DocFrameReport(str(self.target_path), True, tuple(updated), catalog, ())
-        if self.reporter is not None:
-            self.reporter.report(report)
-        return report
+        return updated
 
     def _render_file_frames(self, file_path: Path, content: str, catalog: DocumentCatalog) -> str:
         """Re-renders all closed qb:frame spans in a single document while protecting outside text."""

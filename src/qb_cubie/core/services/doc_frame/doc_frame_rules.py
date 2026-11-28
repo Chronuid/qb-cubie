@@ -71,17 +71,30 @@ def _find_incomplete_provenance(span: FrameSpan, pattern: FramePattern) -> str |
 def _find_broken_route_in_span(file_path: Path, span: FrameSpan, catalog: DocumentCatalog) -> str | None:
     """Return the first missing asset or link target referenced by a frame span via WorkspaceView."""
     workspace = catalog.workspace
+    if workspace is None:
+        return None
+    broken_banner = _find_broken_banner(span, catalog.root, workspace)
+    if broken_banner is not None:
+        return broken_banner
+    return _find_broken_link_in_content(file_path, span.inner_content, workspace)
+
+
+def _find_broken_banner(span: FrameSpan, root: Path, workspace: Any) -> str | None:
+    """Return the resolved banner relative path when a span's banner attribute points to a missing file."""
     banner = span.attrs.get("banner", "").strip()
-    if banner:
-        banner_rel = resolve_banner_rel_path(banner, catalog.root, workspace)
-        if workspace is not None and not workspace.has_path(banner_rel):
-            return banner_rel
-    for raw_target in _LINK_TARGET_RE.findall(span.inner_content):
+    if not banner:
+        return None
+    banner_rel = resolve_banner_rel_path(banner, root, workspace)
+    return banner_rel if not workspace.has_path(banner_rel) else None
+
+
+def _find_broken_link_in_content(file_path: Path, content: str, workspace: Any) -> str | None:
+    """Return the first local Markdown link target in content that is missing from the workspace."""
+    for raw_target in _LINK_TARGET_RE.findall(content):
         clean = raw_target.split("#", 1)[0].split("?", 1)[0].strip()
         if not clean or clean.startswith(("http://", "https://", "mailto:")):
             continue
-        target_path = (file_path.resolve().parent / clean).resolve()
-        if workspace is not None and not workspace.has_path(target_path):
+        if not workspace.has_path((file_path.resolve().parent / clean).resolve()):
             return clean
     return None
 
@@ -281,16 +294,23 @@ class DocFrameOutdated(_DocFrameRuleBase):
         rel_path = path_obj.resolve().relative_to(catalog.root).as_posix()
         for span in spans:
             pat = patterns[span.frame_id]
-            if _cached_incomplete_provenance(span, pat, file_cache) or _cached_broken_route(
-                path_obj, span, catalog, file_cache
-            ):
+            if self._has_upstream_span_error(path_obj, span, catalog, pat, file_cache):
                 continue
             ctx = FrameRenderContext(path_obj.resolve(), rel_path, catalog, span)
-            expected = pat.render_zone(span.zone, ctx)
-            if span.inner_content.strip() != expected.strip():
+            if span.inner_content.strip() != pat.render_zone(span.zone, ctx).strip():
                 msg = f"Frame zone '{span.zone}' ({span.frame_id}) is out of sync; run DocFrame.update()."
                 return [Diagnostic(str(path_obj), self.rule_id, span.start_line, msg, severity=self.severity)]
         return []
+
+    @staticmethod
+    def _has_upstream_span_error(
+        path_obj: Path, span: FrameSpan, catalog: DocumentCatalog, pat: FramePattern, file_cache: FileContextCache
+    ) -> bool:
+        """Return True when provenance or route checks already reported an upstream error for span."""
+        return bool(
+            _cached_incomplete_provenance(span, pat, file_cache)
+            or _cached_broken_route(path_obj, span, catalog, file_cache)
+        )
 
 
 DocFrameMissingRule = DocFrameMissing

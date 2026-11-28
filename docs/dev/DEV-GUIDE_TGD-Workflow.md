@@ -5,7 +5,7 @@
 
 ![Cubie](../.assets/cubie-logo-written.png)
 
-Technisches Projekt-Profil zur Anwendung der flexiblen TGD-Knoten-Handbücher (`docs/tgd/`) im `qb-cubie`-Repository: Knoten-Kommando-Matrix, Advisory-Check für pausierte Stil-Gates, plattformunabhängiges Minimal-Run-Format (`RUN-*.md`), 3-Zustands-Artefakt-Lebenszyklus und Prozess-Mutanten-Mapping (`PM1`–`PM8`).
+Technisches Projekt-Profil zur Anwendung der flexiblen TGD-Knoten-Handbücher (`docs/tgd/`) im `qb-cubie`-Repository: Knoten-Kommando-Matrix, aktive Stil-Gates, plattformunabhängiges Minimal-Run-Format (`RUN-*.md`), 3-Zustands-Artefakt-Lebenszyklus und Prozess-Mutanten-Mapping (`PM1`–`PM8`).
 
 ---
 
@@ -41,7 +41,7 @@ git status --short && git log -n 1 --oneline
 | **`ANALYSIS`**<br/>[`NODE_ANALYSIS.md`](../tgd/NODE_ANALYSIS.md) | Designierter Bericht `ANALYSIS*.md` (`CUBIE_DOC_FRAME_2`) | `src/`, `tests/`, bestehende `docs/GUIDE_*.md` & `docs/dev/` | `qb-cubie docframe update <bericht>` (2×, 2. Lauf: `Updated 0 file(s)`), `qb-cubie docframe check <bericht> --format text`, `qb-cubie docensurance check <bericht> --format text`, `git status -s` |
 | **`HYPOTHESIS`**<br/>[`NODE_HYPOTHESIS.md`](../tgd/NODE_HYPOTHESIS.md) | Designierter Bericht `HYPOTHESIS*.md` (`CUBIE_DOC_FRAME_2`) | `src/`, `tests/`, bestehende Produkt-Handbücher | Wie `ANALYSIS` auf `<bericht>` + `E1..En`-Entscheidungsmatrix mit eindeutig markierten Standard-Empfehlungen (bzw. Post-Red-Härtungsliste) |
 | **`PHASE_RED`**<br/>[`NODE_PHASE_RED.md`](../tgd/NODE_PHASE_RED.md) | Ausschließlich `tests/**/*.py` | `src/`, `docs/` | 1. Bestand grün: `.venv/bin/python -m pytest -q <bestand>`<br/>2. Neue Verträge deterministisch rot: `.venv/bin/python -m pytest -q <neue_tests>`<br/>3. Statische Test-Hygiene (F3): `.venv/bin/ruff check <geänderte_tests>` und `MYPYPATH=src .venv/bin/mypy <geänderte_tests>`<br/>4. Schreibgrenze: `git diff --name-only` (`src=0`, `docs=0`) |
-| **`PHASE_GREEN`**<br/>[`NODE_PHASE_GREEN.md`](../tgd/NODE_PHASE_GREEN.md) | `src/**/*.py` (+ im Eskalationsfall exklusiv `tests/GREEN_AUDIT.md`) | `tests/**/*.py`, `docs/**/*.md` *(Diagnose-statt-Edit-Regel!)* | 1. Funktionale Tests & Meta-Gates: `.venv/bin/python -m pytest -q --ignore=tests/test_doc_frame.py --ignore=tests/test_doc_ensurance.py`<br/>2. Statische Prüfer: `.venv/bin/ruff check src/`, `.venv/bin/pylint src/qb_cubie`, `MYPYPATH=src .venv/bin/mypy --warn-unreachable src/qb_cubie`<br/>3. Aktive Stil-Gates + Advisory (§2): `.venv/bin/python -m pytest -q tests/test_styleguide.py` + `body_lines()`-Check<br/>4. **Beobachtender Doku-Check** (*Diagnose-statt-Edit-Regel*): `.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py` *(Doku-Diagnosen nur als Handoff-Backlog protokollieren, `docs/` nicht anfassen!)*<br/>5. Schreibgrenze: `git diff --name-only` (`tests/**/*.py=0`, `docs=0`) |
+| **`PHASE_GREEN`**<br/>[`NODE_PHASE_GREEN.md`](../tgd/NODE_PHASE_GREEN.md) | `src/**/*.py` (+ im Eskalationsfall exklusiv `tests/GREEN_AUDIT.md`) | `tests/**/*.py`, `docs/**/*.md` *(Diagnose-statt-Edit-Regel!)* | 1. Funktionale Tests & Meta-Gates: `.venv/bin/python -m pytest -q --ignore=tests/test_doc_frame.py --ignore=tests/test_doc_ensurance.py`<br/>2. Statische Prüfer: `.venv/bin/ruff check src/`, `.venv/bin/pylint src/qb_cubie`, `MYPYPATH=src .venv/bin/mypy --warn-unreachable src/qb_cubie`<br/>3. Aktive Stil-Gates: `.venv/bin/python -m pytest -q tests/test_styleguide.py`<br/>4. **Beobachtender Doku-Check** (*Diagnose-statt-Edit-Regel*): `.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py` *(Doku-Diagnosen nur als Handoff-Backlog protokollieren, `docs/` nicht anfassen!)*<br/>5. Schreibgrenze: `git diff --name-only` (`tests/**/*.py=0`, `docs=0`) |
 | **`GREEN_AUDIT`**<br/>[`NODE_GREEN_AUDIT.md`](../tgd/NODE_GREEN_AUDIT.md) | Betroffene `tests/**/*.py` *(nur bei `CONFIRMED`)* + Abschluss-Sektion in `tests/GREEN_AUDIT.md` | `src/`, `docs/` *(bei `REFUTED`: auch `tests/**/*.py` = 0!)* | 1. `AUDIT-REPRO`: Betroffene Tests (+ ggf. Subprozess-Isolations-Probe mit `sys.meta_path`-Blocker) ohne Edits reproduzieren<br/>2. `AUDIT-FIX` *(nur bei `CONFIRMED`, 0 Assertion-Edits bevorzugen)*: `.venv/bin/python -m pytest -q <betroffene_tests>` (Zielsignal: `PASSED`) + `.venv/bin/ruff check <tests>` + `MYPYPATH=src .venv/bin/mypy <tests>`<br/>3. `AUDIT-CLOSE`: `Status: RESOLVED` ($\to$ `LIVING_DOCS`) oder `Status: REFUTED` ($\to$ `PHASE_GREEN`) in `tests/GREEN_AUDIT.md` + `git diff --name-only` (`src=0`, `docs=0`) |
 | **`LIVING_DOCS`**<br/>[`NODE_LIVING_DOCS.md`](../tgd/NODE_LIVING_DOCS.md) | Ausschließlich `docs/**/*.md`, `README.md`, `KNOWN_ISSUES.md`, `CHANGELOG.md` | **Ausnahmefrei** `src/` und `tests/` *(inkl. `tests/GREEN_AUDIT.md`, Beschluss E5a)* | 1. Sync je Zielpfad/Ordner (2×, 2. Lauf idempotent `Updated 0 file(s)`): `qb-cubie docframe update <pfad>`<br/>2. Gezielte Service-CLI-Checks: `qb-cubie docframe check <pfad> --format text` & `qb-cubie docensurance check <pfad> --format text`<br/>3. Vollständige Doku-Gates: `.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py`<br/>4. Schreibgrenze: `git status -s` (`src=0`, `tests=0`) |
 
@@ -56,35 +56,7 @@ git status --short && git log -n 1 --oneline
 
 ---
 
-## 2. Advisory-Check für pausierte Stil-Gates (`E6`, aktuell `BUG-006`)
-
-Das universelle Zwei-Stufen-Gate-Modell ist in [`docs/tgd/NODE_PHASE_GREEN.md`](../tgd/NODE_PHASE_GREEN.md#4-arbeits---meta-qa-heuristiken) verankert. Im `qb-cubie`-Repository ist aktuell **`tests/test_styleguide.py::test_function_size`** (`FUNCTION_LIMIT = 12` physische Body-Zeilen exkl. Docstring, Kommentare und Leerzeilen) wegen **`BUG-006`** (`KNOWN_ISSUES.md`) per `@pytest.mark.skip` pausiert, während `test_module_size` (`MODULE_LIMIT = 777`) und `test_docstrings` (einzeilige Docstrings) aktiv bleiben.
-
-**Verbindlicher Advisory-Einzeiler in `PHASE_GREEN`** für alle in diesem Zyklus neu angelegten oder geänderten `src/`-Dateien (nutzt direkt `tests.test_styleguide.body_lines`):
-
-```bash
-.venv/bin/python -c '
-import ast, pathlib, sys
-from tests.test_styleguide import FUNCTION_LIMIT, FUNCTIONS, body_lines
-bad = []
-for raw in sys.argv[1:]:
-    p = pathlib.Path(raw)
-    src = p.read_text(encoding="utf-8")
-    for node in ast.walk(ast.parse(src, filename=str(p))):
-        if isinstance(node, FUNCTIONS):
-            n = len(body_lines(src, node))
-            if n > FUNCTION_LIMIT:
-                bad.append(f"{p}:{node.lineno} {node.name}: {n} > {FUNCTION_LIMIT}")
-print("\n".join(bad) if bad else "OK: 0 violations")
-' src/qb_cubie/<geänderte_datei_1.py> src/qb_cubie/<geänderte_datei_2.py>
-```
-
-* **Abnahme-Regel:** Ziel sind **`0` Überschreitungen** auf allen neuen/geänderten `src/`-Dateien. Jede bewusst in Kauf genommene Funktion mit $> 12$ Body-Zeilen muss im Abschlussbericht knapp fachlich begründet werden.
-* **Automatische Ablösung:** Sobald `BUG-006` behoben und `test_function_size` wieder ohne `@pytest.mark.skip` aktiv ist, übernimmt das reguläre `pytest tests/test_styleguide.py`-Gate vollständig und dieser manuelle Advisory-Aufruf entfällt.
-
----
-
-## 3. Plattformunabhängiges Minimal-Run-Dokument (`RUN-*.md`)
+## 2. Plattformunabhängiges Minimal-Run-Dokument (`RUN-*.md`)
 
 Arbeitsaufträge für einzelne Durchläufe heißen **`RUN-*.md`** (z. B. `RUN-01_PHASE_RED.md`) und liegen im entkoppelten Lauf-Ordner `docs/misc/runs/<run-id>/`. Da dieser Ordner über `DOC_EXCLUDES` von den globalen Doku-Gates entkoppelt ist, bleibt sämtliche Struktur in einem `RUN-*.md` bewusst **schlank und optional** — nutzbar für Menschen ebenso wie für beliebige externe Agenten ohne Plattform-Abhängigkeit.
 
@@ -127,7 +99,7 @@ Arbeitsaufträge für einzelne Durchläufe heißen **`RUN-*.md`** (z. B. `RUN-01
 
 ---
 
-## 4. Ablage- & 3-Zustands-Artefakt-Lebenszyklus (`E2`, `E4`, `E5a`)
+## 3. Ablage- & 3-Zustands-Artefakt-Lebenszyklus (`E2`, `E4`, `E5a`)
 
 Die folgende Matrix bildet den universellen 3-Zustands-Lebenszyklus aus [`docs/tgd/README.md`](../tgd/README.md#43-allgemeiner-3-zustands-lebenszyklus-temporärer-artefakte) auf die konkreten Pfade und Gates von `qb-cubie` ab:
 
@@ -147,7 +119,7 @@ Die folgende Matrix bildet den universellen 3-Zustands-Lebenszyklus aus [`docs/t
 
 ---
 
-## 5. Prozess-Mutanten-Referenz (`PM1`–`PM8`)
+## 4. Prozess-Mutanten-Referenz (`PM1`–`PM8`)
 
 Alle acht in der TGD-Analyse identifizierten Prozess-Mutanten sind in `qb-cubie` exakt einem Knoten-Handbuch und einem deterministischen Prüf-Gate zugeordnet:
 
@@ -160,7 +132,7 @@ Alle acht in der TGD-Analyse identifizierten Prozess-Mutanten sind in `qb-cubie`
 | **PM5** | **Unbemerkte Working-Tree-Altlast & Pre-Draft-Vermischung** (fremde Edits oder `RUN-(n+1)` im Commit) | [`docs/tgd/README.md`](../tgd/README.md) & alle `NODE_*.md` | Pflicht-Pre-Flight `git status --short` mit 3-Klassen-Triage (Hard-Stop bei Klasse 3; Klasse-2-Folge-Runs strikt unstaged) + Abschluss-Check `git status -s`. |
 | **PM6** | **Unterdeckte synthetische Fixture & Prosa-Duplikat in `PHASE_RED`** (`CUBIE_DOC_FRAME_1`-Falle, `BUG-007`) | [`NODE_PHASE_RED.md`](../tgd/NODE_PHASE_RED.md) | Fixture-Hygiene **F1** (Referenz-Fixture + Preset-Dry-Run vor Freeze), **F2** (SSOT-Import `EPISTEMIC_NOTICE_TEXT`/`DOC_EXCLUDES`) und **F3** (`ruff` + `MYPYPATH=src mypy` vor Freeze). |
 | **PM7** | **Copy-Paste-Ziel-Drift & mehrdeutige Freigabe (`Ok.`) im Run-Dokument** | [`docs/tgd/README.md`](../tgd/README.md) & alle `NODE_*.md` | Plattformunabhängiges Minimal-Run-Dokument (`RUN-*.md`) ohne doppelten `Auftrag`-Fußblock, eindeutiges `Consent-by-Exception` (`EMPFEHLUNGEN: ALLE` + explizite Abweichungen) und Pre-Flight-Konsistenzcheck `Knoten-Handbuch` $\leftrightarrow$ `## 1. Ziel`. |
-| **PM8** | **Stille Stil-Drift bei pausierten Gates** (`test_function_size` / `BUG-006`) | [`NODE_PHASE_GREEN.md`](../tgd/NODE_PHASE_GREEN.md) | Zwei-Stufen-Gate-Modell: verbindlicher `body_lines()`-Advisory-Einzeiler (§2) auf allen neuen/geänderten `src/`-Dateien mit Refactoring- oder Begründungspflicht. |
+| **PM8** | **Stille Stil-Drift bei Stil-Gates** (`test_function_size` / `test_module_size`) | [`NODE_PHASE_GREEN.md`](../tgd/NODE_PHASE_GREEN.md) | Regulär aktives Gate `.venv/bin/python -m pytest -q tests/test_styleguide.py` (`FUNCTION_LIMIT = 12`, `MODULE_LIMIT = 777`, einzeilige Docstrings); bei künftig pausierten Gates greift das Zwei-Stufen-Gate-Modell aus `NODE_PHASE_GREEN.md`. |
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="foot" -->
 

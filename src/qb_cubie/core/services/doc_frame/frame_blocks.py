@@ -206,19 +206,25 @@ class SiblingRouter:
     def render(self, ctx: FrameRenderContext) -> str:
         """Combines active area hubs with context-dependent sibling routes for subfolder files."""
         hub_routes: list[tuple[str, str]] = []
-        sibling_routes: list[tuple[str, str]] = []
         seen: set[str] = set()
         parent_dir = Path(ctx.rel_path).parent.as_posix()
         expand_sub = parent_dir not in (".", "docs", "docs/services")
         if self.include_hubs:
             self._append_hubs(ctx.catalog, hub_routes, seen, skip_dir=parent_dir if expand_sub else None)
-        if expand_sub:
-            for entry in ctx.catalog.select(parent_dir, glob="*.md", exclude=self.exclude):
-                if entry.path not in seen:
-                    sibling_routes.append((entry.label, entry.path))
-                    seen.add(entry.path)
+        sibling_routes = self._collect_sibling_routes(ctx.catalog, parent_dir, seen) if expand_sub else []
         sections = [s for s in (_format_route_lines(hub_routes, ctx), _format_route_lines(sibling_routes, ctx)) if s]
         return "\n\n".join(sections)
+
+    def _collect_sibling_routes(
+        self, catalog: DocumentCatalog, parent_dir: str, seen: set[str]
+    ) -> list[tuple[str, str]]:
+        """Collect unseen sibling routes in parent_dir from the DocumentCatalog."""
+        routes: list[tuple[str, str]] = []
+        for entry in catalog.select(parent_dir, glob="*.md", exclude=self.exclude):
+            if entry.path not in seen:
+                routes.append((entry.label, entry.path))
+                seen.add(entry.path)
+        return routes
 
     def _append_hubs(
         self, catalog: DocumentCatalog, routes: list[tuple[str, str]], seen: set[str], skip_dir: str | None = None
@@ -306,17 +312,18 @@ class HeaderContentSlot:
         inner_lines = _strip_outer_html_wrappers(ctx.span.inner_content.splitlines())
         first_seg = _split_by_dividers(inner_lines)[0]
         title, existing_banner, body_lines = self._parse_header_parts(first_seg, ctx)
-        banner_name = ctx.span.attrs.get("banner", "").strip() or existing_banner or self.default_banner
-        banner_rel = compute_rel_link(
-            ctx.file_path,
-            resolve_banner_rel_path(banner_name, ctx.catalog.root, ctx.catalog.workspace),
-            ctx.catalog.root,
-        )
+        banner_rel = self._resolve_banner_link(ctx, existing_banner)
         parts = [f"# {title}", f"![{self.alt}]({banner_rel})"]
         intro = "\n".join(body_lines).strip()
         if intro:
             parts.append(intro)
         return "\n\n".join(parts)
+
+    def _resolve_banner_link(self, ctx: FrameRenderContext, existing_banner: str | None) -> str:
+        """Compute the relative banner image path from span override, existing banner, or default."""
+        banner_name = ctx.span.attrs.get("banner", "").strip() or existing_banner or self.default_banner
+        target = resolve_banner_rel_path(banner_name, ctx.catalog.root, ctx.catalog.workspace)
+        return compute_rel_link(ctx.file_path, target, ctx.catalog.root)
 
     @staticmethod
     def _parse_header_parts(

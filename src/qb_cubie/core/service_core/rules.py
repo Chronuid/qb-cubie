@@ -270,14 +270,18 @@ class FileCheckRunner:
         diagnostics = execute_file_checks(
             self.rules, sources, target=self.target, excludes=self.excludes, options=self.options
         )
+        report = self._build_report(sources, diagnostics)
+        if self.reporter is not None:
+            self.reporter.report(report)
+        return report
+
+    def _build_report(self, sources: Sequence[FileSource], diagnostics: Sequence[DiagnosticProtocol]) -> ServiceReport:
+        """Aggregate checked file count and error-level diagnostics into an immutable ServiceReport."""
         passed = not any(getattr(d, "severity", "error") == "error" for d in diagnostics)
-        report = ServiceReport(
+        return ServiceReport(
             service=self.service,
             target=str(self.target),
             passed=passed,
             diagnostics=tuple(diagnostics),
             files_checked=len(sources),
         )
-        if self.reporter is not None:
-            self.reporter.report(report)
-        return report

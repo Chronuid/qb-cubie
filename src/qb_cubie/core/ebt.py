@@ -623,6 +623,12 @@ class EBT:
                 f"STATE-GUARD: {field} dict must define 'quantor' and 'states', "
                 "or pass a WorldState, a list of WorldStates or None."
             )
+        EBT._check_wrapper_key_bounds(wrapper, field)
+
+    @staticmethod
+    def _check_wrapper_key_bounds(wrapper: dict[str, Any], field: str) -> None:
+        """Reject unexpected or missing keys on a non-empty quantor wrapper dictionary."""
+        __tracebackhide__ = True
         extra = set(wrapper) - {"quantor", "states"}
         if extra:
             raise ValueError(
