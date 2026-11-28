@@ -1,152 +1,80 @@
-<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="ChatGPT-Web (Deep Research)" model="unbekannt (kostenlose Version; ChatGPT-Web)" effort="unbekannt (kostenlose Version)" -->
-# Gutachten: Technische Bestandsaufnahme von qb-cubie 0.1.1
+# Gutachten: TGD und seine Umsetzung in qb-cubie
 
-**Dokument-Informationen & Herkunft:**
-- **Plattform / Umgebung:** ChatGPT-Web (Deep Research)
-- **Modell:** unbekannt (kostenlose Version; ChatGPT-Web)
-- **Reasoning-Effort:** unbekannt (kostenlose Version)
-- **Analysedatum:** 25. November 2026 (Datum des bereitgestellten Berichts; genaue Uhrzeit nicht ausgewiesen)
-- **Synthesebasis:** `docs/misc/lake/deep-research-report(1).md`; Abgleich mit `pyproject.toml`, `CHANGELOG.md`, `KNOWN_ISSUES.md`, `CI_PLATFORM_STATUS.md`, `docs/misc/lake/SOLVED_ISSUES.md`, `README.md` und den verlinkten QA-Handbüchern
-- **Stand:** qb-cubie (`v0.1.1`, Branch und Arbeitsbaum-Commit nicht als sauberer Snapshot verifiziert)
-- **Git-Log:** `5bb93d42` ("whoopsie :3", Arbeitsbaum-HEAD)
+**Prüfdatum:** 28. November 2026
+**Repository:** Branch `main`, HEAD `2086ea156fbdb25048eebf64db8956f886bcfb01` (`Tried to prepare RUN-006`), Version `0.1.3` laut `pyproject.toml`. `main` ist laut lokalem Git-Status `origin/main` um einen Commit voraus. Arbeitsbaum bei Beginn sauber. Das Tag `v0.1.3` zeigt auf Release-Commit `20c4b42b`; `v0.1.2` bis `v0.1.3` umfassen 10 Commits, nicht 12. Der zusätzliche HEAD-Commit fügt nur `RUN-6.md` und den Deep-Research-Bericht hinzu. Remote-Erreichbarkeit wurde nicht geprüft.
 
----
+**Auftrag und Provenance:** Dieses Gutachten aktualisiert die frühere Fassung in `GUTACHTEN.md`. Erkenntnisebene A ist `docs/misc/lake/deep-research-report(2).md` (ChatGPT-Web, kostenloses Deep Research, Modell/Effort unbekannt; dort angegebene Quellenmarker `[18]`, `[26]` sind ohne Quellenverzeichnis nicht auflösbar). Ebene B ist die hier dokumentierte erneute Prüfung von Git, Projektdateien, ausgewählten TGD-Dokumenten, Implementierung und Tests. Ebene C sind die daraus abgeleiteten Bewertungen und Empfehlungen. Die frühere Fassung bezog sich auf 0.1.1 und ist als historische Provenance, nicht als aktueller Befund zu lesen.
 
-**Auftrag und Einordnung:** Der Deep-Research-Bericht wurde gemäß `docs/dev/DEV-GUIDE_Agent-Reports.md` in ein Gutachten mit `CUBIE_DOC_FRAME_2`-Provenance-Rahmen überführt und gegen ausgewählte aktuelle Repository-Dokumente abgeglichen. Dies ist kein vollständiges Code-, Test- oder CI-Audit. Wo Quellbericht und Repository-Stand voneinander abweichen, ist der Abgleich ausgewiesen; unverifizierte Bewertungen bleiben als Einschätzungen gekennzeichnet.
-<!-- /qb:frame -->
+## Management Summary
 
-## Kurzfassung (Executive Summary)
+Die frühere Einschätzung, der v0.1.3-Code sei nicht eingesehen worden, ist durch diese Prüfung überholt. Das Release enthält konkret implementierte Regelprofile, DocFrame- und DocEnsurance-Regelcontainer, Service-Core-Anpassungen und gezielte Tests. Die Dokumentation beschreibt einen modularen, situativ skalierbaren TGD-Prozess; insbesondere sind `ANALYSIS`, `HYPOTHESIS` und `GREEN_AUDIT` keine stets erforderlichen Phasen. Agent-Reports und ihre Formatregeln sind Konventionen bzw. Hilfsmittel, kein universelles Prozess-Gate. DocFrame ist laut Routing weiterhin ein Prototyp.
 
-- **[BEFUND]** Der Repository-Stand weist Version `0.1.1` aus. Die in älteren Analysen als offen beschriebenen Fehler `BUG-002` (Assertions unter `python -O`), `BUG-003` (ungültige Linter-Ziele) und `BUG-007` (DocFrame-Erhalt des Erkenntnisgrenzen-Hinweises) sind im Changelog als behoben dokumentiert und in `docs/misc/lake/SOLVED_ISSUES.md` archiviert.
-- **[BEFUND]** Linux und macOS sind laut `CI_PLATFORM_STATUS.md` für Python 3.13 und 3.14 Tier 1 und aktiv. Windows-CI ist vorübergehend eingefroren; `KNOWN_ISSUES.md` und der CI-Status nennen weiterhin plattformspezifische offene Befunde.
-- **[BEFUND]** Die Core-Arenen `TempFS` und `PyVenv` bieten keine OS-Sicherheitsgrenze. Nicht vertrauenswürdiger Code darf daher nicht als sicher isoliert behandelt werden.
-- **[EINSCHÄTZUNG]** Der aktuelle Dokumentations- und Changelog-Stand zeigt ein funktionsreiches, aktiv weiterentwickeltes Vorab-Release. Aussagen zur tatsächlichen Zuverlässigkeit, Testabdeckung und Produktionsreife erfordern reproduzierbare Tests und CI-Evidenz; dieses Gutachten liefert diese nicht.
-- **[SCOPE]** Der Deep-Research-Quelltext ist qualitativ zusammengefasst, nicht wörtlich übernommen. Seine ursprünglichen Quellenmarker sind nicht auflösbar, da keine Quellenliste mitgeliefert wurde.
+Stärken sind die expliziten Schreibgrenzen der Kernknoten, die begründete Audit-Rückführung und konkrete Tests für konfigurierte Regelprofile und deren Fehlersignale. Einschränkungen: Dokumentierte Gates belegen zunächst nur die ausgeführten, kodifizierten Prüfungen; ihre fachliche Vollständigkeit folgt daraus nicht. Git-Commit-Reihenfolge oder Testnamen beweisen keine gelebte Freeze-Disziplin. Für diesen Auftrag wurden keine Tests ausgeführt. Der Stand `0.1.3` gilt für Paketcode; der lokale HEAD enthält spätere, nur dokumentarische Run-Dateien.
 
-## 1. Umfang und Quellenlage
+**Gesamturteil:** Für ein experimentelles Projekt ist TGD nachvollziehbar und in Teilen operativ konkretisiert. Das Material rechtfertigt weder eine pauschale Produktionsreifeaussage noch die Deep-Research-Empfehlung, alle Möglichkeiten zu formalisieren. Sinnvoll sind kleine Klarstellungen zu Gate-Nachweisen und Abschlussstatus; zusätzliche CI-Gates, Mutationstestpflichten oder verpflichtende Berichte sind anhand der vorliegenden Belege nicht verhältnismäßig begründet.
 
-Der bereitgestellte Deep-Research-Bericht behandelt QA-Dokumentation, EBT/RBT, Arenen, statische Analyse, DocEnsurance und DocFrame, Reifegrad, CI sowie eine priorisierte Roadmap. Seine konkreten Aussagen wurden mit den oben genannten Projektdateien abgeglichen. Die Prüfung des Repositorys war dokumentationsbasiert und selektiv; Implementierung und Testläufe wurden nicht erneut untersucht.
+## Prüfstand und Untersuchungsumfang
 
-Der Quelltext enthält pauschale Quellenhinweise auf das GitHub-Repository und im älteren Bericht nummerierte Marker, aber keine nachvollziehbare Quellenliste. Solche Marker werden hier nicht als Beleg verwendet. Aussagen aus dem Quellbericht, die sich im aktuellen Repository nicht bestätigen ließen, sind ausdrücklich als dortige Einschätzungen oder als ungeprüft gekennzeichnet.
+Geprüft wurden `docs/README.md`, `docs/tgd/README.md` und die sechs verlinkten `NODE_*.md`, `docs/GUIDE_TGD.md`, `docs/dev/DEV-GUIDE_TGD-Workflow.md`, `docs/dev/DEV-GUIDE_Agent-Reports.md`, `docs/misc/runs/README.md`, `RUN-5.md`, `RUN-6.md`, der Deep-Research-Bericht, `CHANGELOG.md`, `pyproject.toml` sowie frühere Fassung dieses Gutachtens. Git-Log und Diff `v0.1.2..v0.1.3` wurden untersucht; besonders `rule_profiles.py`, `doc_frame_rules.py`, `doc_rules.py`, Service-Core `guards.py`, `rules.py`, `workspace.py` und die einschlägigen Tests.
 
-## 2. Aktueller Repository-Stand
+Die Release-Historie enthält Commit `8ff3d79e` zum DocFrame-Regelumbau, weitere TGD-/Dokumentationsänderungen und `20c4b42b` als Release-Vorbereitung. Changelog dokumentiert die neuen `FrameRuleProfile`, `DocFrameRuleSet`, `DocRuleSet`, `DocFrameFootLinks`, konfigurierbare `foot`-Schweregrade sowie Service-Core-Refactoring und Fehlerbehebungen. Die Versionsangabe 0.1.3 stimmt mit Tag und pyproject überein; spätere Codeentwicklung nach dem Tag wurde nicht behauptet.
 
-### 2.1 Metadaten und Lieferumfang
+## Prozessmodell, Rollen und Übergaben
 
-- **[BEFUND]** `pyproject.toml` weist `qb-cubie` Version `0.1.1` und Python `>=3.13` aus. Die Classifier führen Python 3.13 und 3.14 sowie „Operating System :: OS Independent“ auf. Letzteres ist Paket-Metadatum und kein Nachweis gleichwertiger CI-Unterstützung auf allen Betriebssystemen.
-- **[BEFUND]** Optionale Abhängigkeitsgruppen sind `linters`, `benchmarks` und `swebench`. Das README grenzt Benchmark-Infrastruktur und die Testguided-Vergleichsstudie ausdrücklich vom Core ab.
-- **[BEFUND]** Das Changelog datiert `0.1.1` auf den 24.11.2026. Der bereitgestellte Research-Text nennt den 25.11.2026 als aktuellen Stand, nicht als Changelog-Veröffentlichungsdatum.
+`docs/tgd/README.md` und `GUIDE_TGD.md` stellen sechs Knoten vor: `ANALYSIS`, `HYPOTHESIS`, `PHASE_RED`, `PHASE_GREEN`, `GREEN_AUDIT`, `LIVING_DOCS`. Die ersten beiden sind situative Stützräder; der reguläre schlanke Kern kann Red → Green → Living Docs sein. Die Handbücher enthalten Eintritts-/Austrittsbedingungen und Schreibgrenzen. Das Projektprofil konkretisiert diese für qb-cubie. Das ist eine Kombination aus expliziten Invarianten und projektspezifischen Konventionen, nicht der Nachweis, dass jeder mögliche Lauf alle Dokumente oder Artefakte erzeugen muss.
 
-### 2.2 Dokumentation und QA-Methodik
+`PHASE_GREEN` friert Prüfsystem und produktive Doku ein und bearbeitet das Arbeitsergebnis. Bei reproduzierbarem Widerspruch wird ein Audit-Artefakt übergeben. `GREEN_AUDIT` sieht Reproduktion, Urteil (`RESOLVED`/`REFUTED`) und begrenzte Korrektur vor. `REFUTED` führt zurück zu Green; `RESOLVED` zum Abschluss. Die operative Tabelle im Workflow-Profil beschreibt erlaubte Änderungen und Prüfungen. Das Audit ist damit ein begründeter Eskalationspfad, keine Pflichtphase. Die Dokumentation kann nicht technisch verhindern, dass Erwartungen informell geändert oder Freeze-Regeln missachtet werden; Git-Diff und Prüfprotokolle liefern dafür prüfbare Indizien, keinen Beweis über Absichten.
 
-- **[BEFUND]** Die Dokumentation gliedert Nutzer- und Entwicklerwissen in Guides zu Vertragsdesign, Expect-Flags, Quantoren, TGD, EBT/RBT, Arenen, Linter, DocEnsurance und DocFrame. Die semantische Referenz ist `docs/core/GUIDE_Contract-Semantics.md`.
-- **[BEFUND]** Die Repository-Konfiguration (`pyproject.toml`) definiert pytest-Marker für unter anderem `fast`, `slow`, `ebt`, `arena`, `linter`, `services`, `workflows`, `reviewer`, `meta` und `lint`. `addopts` schließt standardmäßig mit `-m 'not slow'` langsame Tests aus.
-- **[BEFUND]** Der Entwicklerleitfaden für Berichte verlangt eine kurze Zusammenfassung, belegbare Aussagen, die Trennung von Ist/Hypothese/Soll, Scope-Angaben und die Dokumentation tatsächlich ausgeführter Prüfungen. Dieses Gutachten übernimmt diese Struktur.
-- **[EINSCHÄTZUNG DES QUELLBERICHTS]** Die modulare Gliederung und Beispiele seien didaktisch nützlich. Ob die Lernprogression und Verständlichkeit für Zielgruppen im praktischen Einsatz genügen, wurde hier nicht evaluiert.
+RUN-Dateien halten laufbezogenen Kontext fest; Format und Provenance-Frame sind optional. `RUN-6.md` ist ein umfangreicher, auf diesen Auftrag zugeschnittener Arbeitsauftrag, kein Beleg für die generische Minimalform und kein abgeschlossenes Testprotokoll. `RUN-5.md` enthält Release-Vorbereitung und expliziten Stopp vor Veröffentlichung; der Auftrag verweist auf einen Quota-Abbruch-Run, der in den hier zugänglichen Beispielen nicht eindeutig identifiziert werden konnte. Ein unterbrochener Run behält dokumentarischen Wert, belegt aber keinen abgeschlossenen Gate-Durchlauf. Der Status sollte jeweils im konkreten Run erkennbar sein.
 
-### 2.3 Semantik und Prüfwerkzeuge
+## Implementierung und Testbasis
 
-- **[BEFUND LAUT QUELLBERICHT]** EBT verwendet pro angegebenem Eingang ein Zielaufruf; als Standard werden `pre`-All-Quantifizierung und `post`-Existenz-Quantifizierung beschrieben. Der Quellbericht weist zudem auf die Einschränkung für `expect=False` im `post`-Zustand hin. Die vollständige Semantik ist in `docs/core/GUIDE_Contract-Semantics.md` beschrieben; in dieser Transformation wurden die Laufzeitregeln nicht durch Tests verifiziert.
-- **[BEFUND]** `pyproject.toml` stellt LibCST, MyPy und Pylint über das Extra `linters` bereit. Die Konfiguration belegt Verfügbarkeit als optionale Entwicklungswerkzeuge, nicht die Qualität oder Vollständigkeit konkreter Diagnosen.
-- **[BEFUND LAUT QUELLBERICHT]** DocEnsurance führt Dokumentationsbeispiele aus und vergleicht erwartete Ausgaben. Der Bericht weist auf das allgemeine Risiko hin, dass Soll-Ausgaben unpassend gepflegt sein könnten. Eine unabhängige Bewertung der konkreten Regeln und Testabdeckung fand nicht statt.
+`rule_profiles.py` bindet `FramePattern`-Profile an Regelsequenzen; `DocFrameRuleSet` prüft Profiltypen und eindeutige Pattern-IDs, dispatcht Regeln passend zu den gefundenen Frame-IDs und nutzt einen Fallback auf das erste Profil bei ungeframten Dateien. Die Presets unterscheiden unter anderem `DOCFRAME-FOOT-LINKS`: Frame 1 als Fehler, Frames 2/3 als Warnung. `DocRuleSet` bündelt DocEnsurance-Regeln. Dies ist konkrete Abstraktion, nicht bloß eine aus Commitnamen abgeleitete SRP-Absicht. Ob die Aufteilung langfristig die beste ist, bleibt eine Designbewertung.
 
-### 2.4 Fehlerstatus: Änderungen seit älterer Bestandsaufnahme
+Die Tests in `test_rules_and_docframe.py`, `test_doc_frame.py` und `test_doc_ensurance.py` decken unter anderem unterschiedliche Schweregrade, defekte Routen, leere/ungültige Regelsets und Guards ab. Sie prüfen damit ausgewählte Verträge und Mutanten-artige Gegenbeispiele; sie sind keine allgemeine Mutationstestquote und decken nicht automatisch alle Integrationskombinationen ab. Service-Core-Änderungen umfassen gemeinsame Attribut-Token-Validierung, Report-Aufbau und Workspace-Regeln; der Diff und Release-Changelog belegen Anpassungen, aber für dieses Gutachten wurden keine Laufzeitergebnisse erzeugt.
 
-Der Quellbericht ist zeitlich nicht einheitlich: Die Datei `deep-research-report(1).md` beschreibt den Stand `0.1.1`, während die ältere `GUTACHTEN.md`-Fassung und `deep-research-report.md` noch `0.1.0` behandeln. Für den aktuellen Abgleich gilt der Repository-Stand `0.1.1`.
+**Prüfstatus:** keine Test-, Lint-, CI- oder DocFrame-Läufe ausgeführt. Vorhandene Tests wurden statisch gelesen; Testergebnisse werden daher nicht als bestanden behauptet. Kein Netzwerk-/Remote-Abgleich. Keine Prüfung sämtlicher sechs Knoten bis in jede Randregel; der Fokus lag auf Übergang, Freeze, Routing und den im Bericht behaupteten Codeänderungen.
 
-- **[BEFUND] BUG-002 behoben:** `CHANGELOG.md` beschreibt die Ersetzung optimierungsabhängiger `assert`-Anweisungen im `PytestReporter` durch explizite Fehlerauslösung und nennt Subprozess-Verträge für `-O`/`-OO`. Der Eintrag ist außerdem in `SOLVED_ISSUES.md` archiviert.
-- **[BEFUND] BUG-003 behoben:** Das Changelog dokumentiert explizite Validierung nicht existierender oder ungeeigneter `Path`-Ziele im `CstLinter` sowie zugehörige Verträge; der Fehler ist archiviert.
-- **[BEFUND] BUG-007 behoben:** Das Changelog dokumentiert den zentralen DocFrame-Erkenntnisgrenzen-Hinweis, verlustfreie Erhaltung dokumenteigener Segmente und wieder aktivierte Dokumentations-Frame-Prüfungen; der Fehler ist archiviert.
-- **[BEFUND] Noch offene Punkte:** `KNOWN_ISSUES.md` führt weiterhin `BUG-004` (verstreute relative Links bei Doku-Umbauten), `BUG-005` (redundante `foot`-Zone bei Routing-Dokumenten) und `BUG-006` (fehlende begründete `# noqa`-Ausnahmen in `test_function_size`) als offen. Der Quellbericht, der eine mögliche DocFrame-Gate-Scheinsicherheit anspricht, ist eine Einschätzung; der aktuelle Projektstand dokumentiert ein aktives Gate, beweist aber nicht dessen vollständige Wirksamkeit.
+## Deep-Research-Befunde: erneute Einordnung
 
-## 3. Plattformstatus und Sicherheitsgrenzen
+| Aussage des Berichts | Einordnung nach Repository-Prüfung |
+|---|---|
+| TGD habe Gates und getrennte Rollen; Kriterien müssten überprüfbar sein | **Präzisiert:** Handbücher enthalten Rollen, Schreibgrenzen und Abnahmekriterien. Nicht jede Gate-Aussage ist ein automatisch verifiziertes Gate; Testausführung und fachliche Vollständigkeit müssen separat belegt werden. |
+| `rule_profiles.py`/DocRuleSet seien vermutlich SRP-Abstraktionen, Code nicht geprüft | **Bestätigt und präzisiert:** Implementierung und gezielte Tests existieren; konkrete Profilbindung und Delegation nachvollzogen. „SRP-konform“ bleibt eine wertende, nicht binär beweisbare Designaussage. |
+| Test-Freeze solle per Commit- und CI-Regel erzwungen werden | **Eingeschränkt:** Freeze ist als Prozessinvariante dokumentiert. Commit-Reihenfolge ist kein hinreichender Beleg. Eine CI-Regel für „Tests im vorletzten Commit“ ist aus dem Projektbedarf nicht begründet. |
+| Living Docs müsse automatisch Testergebnisse veröffentlichen | **Nicht gestützt / Empfehlung nicht übernommen:** Dokumentation synchronisiert Handbücher und Beispiele; kein Beleg, dass Stakeholder-Reports Teil des Projektziels sind. |
+| Lücken bei Artefakten, Übergaben und Synchronität | **Teilweise widerlegt:** Konkrete Handoffs und Routing-Indizes sind vorhanden; GUIDE, Knoten und Workflow-Profil verweisen aufeinander. Vollständige Driftfreiheit ist nicht durch statische Sichtung aller Randfälle bewiesen. |
+| Plattformneutralität und Minimalität der RUN-Dateien unklar | **Präzisiert:** Workflow-Profil definiert werkzeugneutrales Minimalformat und optionale Frames. `RUN-6.md` ist absichtlich ausführlich, weil es einen komplexen Gutachtenauftrag trägt. |
+| Mutationstests seien erforderlich | **Eingeschränkt:** Es gibt mutanten-artige Testfälle und Prozess-Mutanten-Mappings. Eine allgemeine Mutationstestpflicht ist weder aus Dokumentation noch Prüfziel abzuleiten. |
+| Prozess könne unnötig aufwändig sein | **Offen als Praxiseffekt:** Dokumentation erlaubt situative Skalierung. Tatsächlicher Zeit-/Nutzenaufwand wurde nicht gemessen. |
+| Commit-Messages seien zu wenig erklärend | **Offen/teilweise präzisiert:** Changelog beschreibt v0.1.3 substantiell; einzelne Commit-Nachrichten sind knapp. Ob ein Issue-Link nötig wäre, lässt sich ohne konkreten Nachvollziehbarkeitsfehler nicht behaupten. |
+| Quellen [18], [26] stützen Best Practices | **Offen:** Quellenverzeichnis und genaue Referenzen fehlen; Aussagen können nicht unabhängig attribuiert werden. |
 
-### 3.1 CI-Abdeckung
+Der Bericht korrigiert sich selbst als codearme Vorprüfung. Seine Unsicherheiten waren daher sachgerecht, aber aus diesen Vermutungen dürfen keine aktuellen Mängel fortgeschrieben werden.
 
-`CI_PLATFORM_STATUS.md` ist die maßgebliche Statusquelle für die hier vorgenommene Einordnung:
+## Kritische Bewertung und Empfehlungen
 
-| Plattform | Python | Dokumentierter Status | Einordnung |
-| --- | --- | --- | --- |
-| Linux (`ubuntu-24.04`) | 3.13, 3.14 | Tier 1, aktiv; Wheel- und Repository-Suite laut Status bestanden | Dokumentierter Status, keine erneute CI-Ausführung für dieses Gutachten |
-| macOS (`macos-15`) | 3.13, 3.14 | Tier 1, aktiv; Wheel- und Repository-Suite laut Status bestanden | Dokumentierter Status, keine erneute CI-Ausführung für dieses Gutachten |
-| Windows (`windows-2022`) | 3.13, 3.14 | Vorübergehend eingefroren | Offene Befunde und deaktivierte Matrix laut Statusdokument |
+**Stärken:** modulare, ausdrücklich skalierbare Rollen; dokumentierte Schreibgrenzen; definierter Audit-Rückweg; konkrete, konfigurierbare DocFrame-Regeln; Tests für ausgewählte Fehlersignale; zentrale Routing-Indizes. Die Trennung zwischen Produktdokumentation, Run-Artefakten und optionalen Berichten reduziert Verwechslungen.
 
-Der Statusbericht führt unter anderem einen unvollständigen Study-Run im Wheel-Job sowie Windows-spezifische Probleme bei Pfad-/Diagnose-Sortierung, Shebang-Verarbeitung und Callable-Pickling auf. Umfang und Aktualität dieser Einzelfehler wurden nicht separat verifiziert. Eine OS-unabhängige PyPI-Klassifizierung ersetzt keine Windows-CI.
+**Risiken/Grenzen:** Dokumentation allein erzwingt keine Prozessdisziplin. Ein grüner Testlauf besagt nur, dass die ausgeführten Tests unter den jeweiligen Bedingungen bestanden haben. Er belegt weder vollständige Anforderungen noch fehlerfreie Implementierung. Prototypisches DocFrame sollte nicht als unabhängige Qualitätsgarantie verstanden werden. Agenten, die alte Berichte lesen, sind nur insoweit unabhängig, wie sie den aktuellen Stand selbst prüfen und frühere Aussagen als Hypothesen behandeln.
 
-### 3.2 Isolation
+Empfehlungen, ausdrücklich als Vorschläge und nicht als bestehende Pflichten:
 
-- **[BEFUND]** `KNOWN_ISSUES.md` dokumentiert, dass `TempFS` und `PyVenv` mit den Benutzerrechten des Hosts laufen und keine OS-Sicherheitsgrenze bereitstellen. Sie sind damit für vertrauenswürdigen Code vorgesehen.
-- **[EINSCHÄTZUNG]** Diese Einschränkung ist eine Einsatzgrenze, kein Beleg für einen neu entdeckten Fehler. Soll nicht vertrauenswürdiger Code ausgeführt werden, ist eine externe Sicherheitsgrenze erforderlich. Die Entwürfe in den Virtualisierungs-Feature-Drafts sind nicht als verfügbare öffentliche Core-Schnittstelle zu behandeln.
+1. **Abschlussstatus im jeweiligen RUN klar markieren (niedrig, optional):** begonnen, teilweise geprüft, abgeschlossen oder abgebrochen; dazu tatsächliche Befehle/Ergebnisse. Nutzen: Teilergebnisse bleiben verwertbar, ohne abgeschlossene Gates vorzutäuschen. `RUN-6.md` enthält bereits umfangreiche Prüfkriterien; Status folgt erst im Abschluss.
+2. **Gate-Aussagen an konkrete Evidenz binden (niedrig, optional):** Bei einem als bestanden bezeichneten Gate Prüfkommando, Zielumfang und Ergebnis nennen. Nutzen: Leser unterscheiden dokumentierte Kriterien von tatsächlich ausgeführten Prüfungen.
+3. **Keine pauschale CI-/Mutationstestpflicht einführen:** erst bei konkretem wiederkehrendem Fehlermuster prüfen, ob Automatisierung mehr Nutzen als Wartungsaufwand bringt.
 
-## 4. Einschätzung von Reifegrad und Risiken
+## Threads of Validity / Gültigkeitsgrenzen
 
-### Stärken
+- **Belastbar:** Branch/HEAD/Version/Tagstatus lokal; Diff zwischen Release-Tags; Existenz und Struktur der untersuchten Implementierung und Tests; dokumentierte Prozessbeschreibung und Run-Konventionen.
+- **Eingeschränkt:** Designqualität und Synchronität beruhen auf gezielter, nicht erschöpfender Code-/Dokumentensichtung. Die Tests wurden nicht ausgeführt. Aussagen über erfolgreiche Laufzeit, vollständige Regelabdeckung oder reale Agentendisziplin sind damit nicht belegt.
+- **Offen:** Remote-Referenzen außerhalb des lokalen Clone-Zustands; tatsächliche CI-Läufe; praktische Prozesskosten; die nicht auflösbaren Deep-Research-Quellenmarker; genaue Zuordnung des im Auftrag erwähnten Quota-Abbruch-Beispiels.
+- **Für höhere Sicherheit erforderlich:** gezielte Testläufe für die betroffenen Regelprofile und unabhängiger Review eines konkreten TGD-Laufprotokolls. Eine vollständige Suite oder Mutationstestkampagne war für die dokumentarische Synthese nicht erforderlich und wurde nicht ausgeführt.
 
-- **[EINSCHÄTZUNG]** Die klare Trennung aus Semantikreferenz, Nutzungsguides und Entwicklerdokumentation unterstützt nachvollziehbares Arbeiten.
-- **[BEFUND]** Das Changelog dokumentiert konkrete Fehlerkorrekturen für Reporter-Verhalten, Linter-Pfade und DocFrame. Das Bug-Archiv macht deren Lebenszyklus sichtbar.
-- **[BEFUND]** Plattformstatus und bekannte Einschränkungen werden explizit dokumentiert, einschließlich eingefrorener Windows-CI und fehlender OS-Sandbox.
+## Quellen und Provenance
 
-### Risiken und Grenzen
+**A – Extern übernommener Bericht:** `docs/misc/lake/deep-research-report(2).md`, datiert 28.11.2026. Er verweist auf GUIDE_TGD, DEV-Guide, Commits und nicht auflösbare externe Marker; seine genannten externen Fachquellen sind mangels Bibliographie nicht nachvollziehbar.
 
-- **[RISIKO] Windows-Abdeckung:** Windows ist laut aktuellem Status nicht Teil der aktiven CI-Matrix. Nutzer, die Windows benötigen, sollten die dokumentierten Einschränkungen berücksichtigen und eigene Validierung durchführen.
-- **[RISIKO] Keine Sandbox:** Die Core-Arenen schützen den Host nicht vor nicht vertrauenswürdigem Zielcode.
-- **[RISIKO] Offene Dokumentations-/Style-Themen:** `BUG-004` bis `BUG-006` sind in `KNOWN_ISSUES.md` offen. Ihre Auswirkung hängt vom betroffenen Workflow ab.
-- **[HINWEIS] Grenzen formaler Gates:** Tests, DocEnsurance und DocFrame prüfen kodifizierte Erwartungen. Sie belegen nicht, dass Erwartungen vollständig oder fachlich richtig sind.
-- **[UNGEPRÜFT] Produktionsreife:** Weder Fehlerquote noch praktische Wirksamkeit der QA-Methodik wurden im Rahmen dieser Transformation gemessen. Eine pauschale Aussage, das Paket sei produktionsreif oder nicht produktionsreif, wäre durch die hier erhobene Evidenz nicht gedeckt.
+**B – Eigenständige Repository-Prüfung:** `docs/README.md`; `docs/tgd/README.md` und `NODE_ANALYSIS.md`, `NODE_HYPOTHESIS.md`, `NODE_PHASE_RED.md`, `NODE_PHASE_GREEN.md`, `NODE_GREEN_AUDIT.md`, `NODE_LIVING_DOCS.md`; `docs/GUIDE_TGD.md`; `docs/dev/DEV-GUIDE_TGD-Workflow.md`; `docs/dev/DEV-GUIDE_Agent-Reports.md`; `docs/misc/runs/README.md`, `RUN-5.md`, `RUN-6.md`; `pyproject.toml`; `CHANGELOG.md`; Quellmodule und Tests aus dem Abschnitt „Implementierung und Testbasis“; Git `v0.1.2..v0.1.3` und aktueller HEAD.
 
-## 5. Empfehlungen
-
-1. **Windows-Support gezielt wiederherstellen oder klar begrenzen.** Die dokumentierten CI-Befunde als reproduzierbare Verträge behandeln und die aktive Matrix erst nach verifizierten grünen Läufen erweitern.
-2. **Sicherheitsgrenze deutlich im Nutzungskontext halten.** Beispiele und API-Dokumentation zu Arenen sollen unmissverständlich vermitteln, dass Host-Rechte gelten und nicht vertrauenswürdiger Code eine externe Isolation benötigt.
-3. **Offene Dokumentationsprobleme nach Nutzerwirkung priorisieren.** `BUG-004` betrifft Linkpflege bei Umbauten; `BUG-005` die Frame-Konvention; `BUG-006` Style-Ausnahmen. Je Fix sollen Akzeptanzkriterien und gezielte Regressionstests dokumentiert werden.
-4. **Gutachten mit reproduzierbaren Nachweisen ergänzen, wenn eine Reifegradentscheidung ansteht.** Dazu gehören konkrete CI-Run-IDs, Testprofile und Ergebnisse sowie eine Prüfung der Semantik und Dokumentationsbeispiele gegen Implementierung und Tests.
-5. **Versionierte externe Bestandsaufnahmen zeitlich trennen.** Berichte für `0.1.0` und `0.1.1` nicht vermischen; Quellenmarker nur dann als Belege führen, wenn eine zugängliche Referenzliste und Abrufdaten vorliegen.
-
-Diese Empfehlungen sind gutachterliche Vorschläge und keine bereits ausgeführten Maßnahmen.
-
-## 6. Gesamturteil
-
-**[GESAMTEINSCHÄTZUNG]** qb-cubie `0.1.1` weist eine umfangreiche, modular aufgebaute QA-Dokumentation und mehrere klar dokumentierte Test- und Analysebausteine auf. Gegenüber der älteren `0.1.0`-Bestandsaufnahme sind mindestens drei dort priorisierte Bugs laut Changelog behoben. Gleichzeitig ist die Plattformabdeckung nicht vollständig: Windows-CI ist eingefroren, und die Arenen bilden keine Sicherheitsgrenze gegen nicht vertrauenswürdigen Code. Offene Dokumentations- und Style-Themen sind nachvollziehbar gelistet.
-
-Auf Basis der hier geprüften Dokumente lässt sich der Stand als aktiv entwickeltes Vorab-Release mit dokumentierten Einsatzgrenzen einordnen. Eine belastbare Aussage über Fehlerfreiheit oder allgemeine Produktionsreife lässt sich ohne unabhängige Ausführung der Tests, Prüfung des Codes und aktuelle CI-Belege nicht treffen.
-
-## 7. Verifikation und Grenzen
-
-| Prüfschritt | Kommando / Quelle | Ergebnis |
-| --- | --- | --- |
-| Berichtsvorgaben gelesen | Manuelle Sichtung `docs/dev/DEV-GUIDE_Agent-Reports.md` | Provenance-Header, Kurzfassung, Belegtrennung und Prüfprotokoll berücksichtigt |
-| Quellbericht gesichtet | Manuelle Sichtung `docs/misc/lake/deep-research-report(1).md` | Themen und Empfehlungen extrahiert; keine Quellenliste vorhanden |
-| Versionsstand geprüft | `pyproject.toml`, `CHANGELOG.md` | Version `0.1.1`; Changelog-Eintrag datiert auf 24.11.2026 |
-| Bugstatus abgeglichen | `KNOWN_ISSUES.md`, `docs/misc/lake/SOLVED_ISSUES.md`, `CHANGELOG.md` | `BUG-002`, `BUG-003`, `BUG-007` als behoben dokumentiert; `BUG-004` bis `BUG-006` als offen gelistet |
-| CI-Status abgeglichen | `CI_PLATFORM_STATUS.md` | Linux/macOS aktiv laut Status; Windows eingefroren |
-| Laufzeittests / CI erneut ausgeführt | Keine | Nicht Teil des Auftrags; Befunde wurden nicht dynamisch reproduziert |
-| DocFrame synchronisiert | Nicht ausgeführt | Rahmenzonen wurden manuell in Anlehnung an den Leitfaden strukturiert; kein `docframe update`-Lauf erfolgt |
-
-<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="foot" -->
-
----
-
----
-
-<div align="center">
-
-![Cubie](./docs/.assets/cubie-small.png)
-
-[↦ | Vertragsaufbau: Eindeutigkeit & Kopplung | ↤](./docs/GUIDE_Contract-Design.md)  
-[↦ | Erwartungssteuerung & Safety (`expect`-Flags) | ↤](./docs/GUIDE_Expect-Flags.md)  
-[↦ | Qualitätssicherung mit Cubie | ↤](./docs/GUIDE_Quality-Assurance.md)  
-[↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](./docs/GUIDE_Quantifiers.md)  
-[↦ | Test-Guided Development (TGD) | ↤](./docs/GUIDE_TGD.md)  
-
-[↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](./docs/services/GUIDE_DocEnsurance.md)  
-[↦ | DocFrame (Prototyp) | ↤](./docs/services/GUIDE_DocFrame.md)  
-
-[↦ | Dokumentations-Übersicht | ↤](./docs/README.md)  
-[↦ | Core-Dokumentation | ↤](./docs/core/README.md)  
-[↦ | Entwicklerdokumentation | ↤](./docs/dev/README.md)  
-[↦ | Core-Internals | ↤](./docs/dev/core/README.md)  
-[↦ | Hintergrund & Essays | ↤](./docs/misc/README.md)  
-[↦ | Feature-Drafts: Virtualisierung | ↤](./docs/feature-drafts/virtualization/README.md)  
-
-</div>
-<!-- /qb:frame -->
+**C – Synthese:** Bewertungen und Empfehlungen in diesem Dokument. Sie sind gutachterliche Einschätzungen, keine Projektinvarianten. Es wurden keine externen Quellen zusätzlich recherchiert.
