@@ -28,8 +28,8 @@ Um einen einheitlichen, testbaren und pflegbaren Code im gesamten Projekt zu hab
 
 ### Automatisierte Prüfung
 
-`tests/test_styleguide.py` prüft sämtliche Python-Dateien unter `src/` auf maximal
-500 physische Modulzeilen (vorübergehend ausgesetzt), maximal 12 Codezeilen pro Funktionskörper und einzeilige
+`tests/test_styleguide.py` prüft sämtliche Python-Dateien unter `src/` aktiv auf maximal
+777 physische Modulzeilen (Zielrichtwert für neue Module: 500 Zeilen), maximal 12 Codezeilen pro Funktionskörper und einzeilige
 Docstring-Beschreibungen. Signaturen, der eigene Docstring, Leerzeilen und Kommentare
 zählen nicht zum Funktionskörper; mehrzeilige Ausdrücke und verschachtelte Definitionen
 zählen mit. Bei Docstrings wird der mit `ast.get_docstring` bereinigte Text geprüft;

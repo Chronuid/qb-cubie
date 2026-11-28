@@ -151,7 +151,7 @@ qb-cubie docensurance check docs/dev/
 ```
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_styleguide.py
+.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py
 ```
 
 <!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->

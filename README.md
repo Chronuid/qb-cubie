@@ -176,10 +176,10 @@ Speichere das Beispiel als `test_logging_review.py` und starte es mit freigegebe
 
 Antworte nach der Prüfung mit `y` oder `n` und gib optional einen Bericht ein. Eine Ablehnung lässt den Test fehlschlagen.
 
-Die Python-Beispiele dieser README und der Dokumentation werden durch `DocEnsurance` nach dem `CUBIE_DOC_STYLE` direkt ausgeführt und gegen ihre erwarteten `<details>`-Ergebnisse geprüft:
+Die Python-Beispiele und Dokumentrahmen dieser README und der Dokumentation werden durch `DocFrame` und `DocEnsurance` nach dem `CUBIE_DOC_STYLE` direkt ausgeführt und gegen ihre erwarteten `<details>`-Ergebnisse geprüft:
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_styleguide.py
+.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py
 ```
 
 ## Bekannte Fehler und Einschränkungen

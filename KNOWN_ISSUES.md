@@ -27,6 +27,57 @@ Hinweise zum Eintragen und Pflegen neuer Bugs stehen im [DEV-GUIDE: Bugs dokumen
 
 ## Offene Bugs
 
+### [BUG-008] `DocFrame`: `foot`-Zone-Kopplung, `update()`-Überschreibung kuratierter Footer & 1-Tupel-Regelübergabe
+
+- **Status:** Offen
+- **Schweregrad:** Mittel
+- **Bereich:** `src/qb_cubie/core/services/doc_frame/doc_frame_rules.py` (`DocFrameOutdated`, `_should_skip_span`, `_has_missing_zones`), `src/qb_cubie/core/services/doc_frame/doc_frame.py` (`DocFrame.check`) & `src/qb_cubie/core/services/doc_ensurance/doc_ensurance.py` (`DocEnsurance`)
+- **Umgebung / Version:** `v0.1.2` / Commit `8ff3d79e`, Python `3.13`, Linux (plattformunabhängig)
+
+**Ist-Verhalten:**  
+1. `DocFrameOutdated` (`doc_frame_rules.py`) erfordert aktuell zwingend `allow_empty_foot=True`, sobald `DocFrameFootLinks(severity="warning")` genutzt wird. Zudem unterdrückt `_should_skip_span()` `DOCFRAME-OUTDATED` nur bei komplett linkfreien `foot`-Zonen (`not _has_markdown_links(span.inner_content)`), sodass eigene kuratierte Markdown-Links in `zone="foot"` (oder ein `DocFrame.update()`-Lauf gegen `STD_FOOTER_BLOCKS`) bei `CUBIE_DOC_FRAME_2` und `CUBIE_DOC_FRAME_3` weiterhin einen `DOCFRAME-OUTDATED`-Error auslösen; `DocFrameMissing` (`_has_missing_zones()`) verlangt die `foot`-Tags zudem weiterhin hart als `error`.
+2. `DocFrame.check()` und `DocEnsurance` akzeptieren `DocFrameRuleSet` bzw. `DocRuleSet` derzeit nur verpackt als 1-Tupel (`rules=(REPO_DOCFRAME_RULES,)` bzw. `rules=(REPO_DOC_RULES,)`), statt eine einzelne Regelset-Instanz direkt entgegenzunehmen.
+
+**Soll-Verhalten:**  
+1. Bei Presets mit optionaler/abgeschwächter `foot`-Zone (`CUBIE_DOC_FRAME_2`, `CUBIE_DOC_FRAME_3`) bleiben kuratierte eigene Markdown-Links in `zone="foot"` (oder das bewusste Weglassen der `foot`-Zone bei `CUBIE_DOC_FRAME_3`, vgl. archivierten [`BUG-005`](./docs/misc/lake/SOLVED_ISSUES.md)) ohne `DOCFRAME-OUTDATED`-Error zulässig und werden von `DocFrame.update()` nicht still mit `STD_FOOTER_BLOCKS` überschrieben.
+2. `DocFrame.check(..., rules=...)` und `DocEnsurance(..., rules=...)` akzeptieren `DocFrameRuleSet` bzw. `DocRuleSet` sowohl direkt als Einzelinstanz als auch innerhalb einer Sequenz.
+
+**Reproduktion:**  
+1. In einem `CUBIE_DOC_FRAME_2`-Dokument (z. B. einem Bericht) eigene kuratierte Links in `zone="foot"` ablegen und `DocFrame.check(rules=(REPO_DOCFRAME_RULES,))` ausführen $\to$ `DOCFRAME-OUTDATED` (`error`).
+2. `DocFrame.check(rules=REPO_DOCFRAME_RULES)` oder `DocEnsurance(rules=REPO_DOC_RULES)` ohne 1-Tupel-Wrapper aufrufen.
+
+**Workaround:**  
+Bei `CUBIE_DOC_FRAME_2` die `foot`-Zone leer lassen (`allow_empty_foot=True`) bzw. `DocFrame.update()` die Standard-Footer rendern lassen; `DocFrameRuleSet` und `DocRuleSet` als 1-Tupel `(REPO_DOCFRAME_RULES,)` / `(REPO_DOC_RULES,)` übergeben.
+
+**Hinweise / Ursache:**  
+`_should_skip_span()` in `doc_frame_rules.py` prüft `self.allow_empty_foot and span.zone == "foot" and not _has_markdown_links(span.inner_content)` statt eines expliziten Opt-outs für kuratierte oder optionale Footer; die `rules`-Normalisierung in `DocFrame.check()` / `DocEnsurance` prüft bislang auf `Sequence` statt auch `DocFrameRuleSet` / `DocRuleSet` direkt zu akzeptieren.
+
+---
+
+### [BUG-009] GitHub Actions CI-Matrix läuft bei reinen Dokumentations-Änderungen vollständig durch
+
+- **Status:** Offen
+- **Schweregrad:** Niedrig
+- **Bereich:** `.github/workflows/ci.yml`
+- **Umgebung / Version:** `v0.1.2`, GitHub Actions (`ubuntu-24.04`, `macos-15`, Python `3.13` & `3.14`)
+
+**Ist-Verhalten:**  
+Bei Pushes und Pull Requests, die ausschließlich Dokumentationsdateien (`docs/**`, `*.md`, `KNOWN_ISSUES.md`, `CHANGELOG.md`) betreffen, startet `.github/workflows/ci.yml` die komplette CI-Test-Matrix (`Wheel` und `Repository` über alle aktiven Plattform- und Python-Kombinationen inklusive `slow`-Tests).
+
+**Soll-Verhalten:**  
+Reine Dokumentations-Änderungen ohne Code- oder Test-Diffs außerhalb der Doku-Gates triggern einen schlanken Doku-Gate-Lauf (`docframe`, `docensurance`, `tests/test_doc_frame.py`, `tests/test_doc_ensurance.py`), statt die vollständige Multi-OS-Testmatrix zu blockieren.
+
+**Reproduktion:**  
+Einen Commit oder Pull Request erstellen, der ausschließlich Dateien unter `docs/` oder Root-Markdown-Dateien (`README.md`, `KNOWN_ISSUES.md`, `CHANGELOG.md`) ändert, und die ausgelösten Jobs in `.github/workflows/ci.yml` prüfen.
+
+**Workaround:**  
+Vor dem Push lokal `.venv/bin/python -m pytest -q tests/test_doc_frame.py tests/test_doc_ensurance.py` ausführen; auf GitHub den vollständigen Matrix-Durchlauf abwarten.
+
+**Hinweise / Ursache:**  
+In `.github/workflows/ci.yml` fehlen `paths`/`paths-ignore`-Filter bzw. eine vorgeschaltete Change-Detection (`dorny/paths-filter` oder `git diff`), die reine Doku-Commits auf ein dediziertes `docs`-Gate routet.
+
+---
+
 ### [BUG-004] `DocFrame.update()` aktualisiert keine verstreuten relativen Links außerhalb generierter Router-/Footer-Blöcke bei Doku-Umbauten
 
 - **Status:** Offen
@@ -56,63 +107,6 @@ Nach dem Verschieben von Dokumenten alle verstreuten Links im Repository per Suc
 
 **Hinweise / Ursache:**  
 `DocFrame._render_file_frames()` fasst per Design ausschließlich `<!-- qb:frame ... -->`-Spans an und lässt `HeaderContentSlot`-Fließtext sowie den Dokumentkörper unangetastet; `DocFrameBrokenRoute` prüft zudem nur Links innerhalb von `FrameSpan.inner_content`. Da `DocumentCatalog` in Pass 1 bereits alle Markdown-Dateien im Repository kennt, ließe sich ein optionaler Link-Healer (z. B. auf Basis eindeutiger Basenames oder eines expliziten Rename-Mappings) sauber in Pass 2 integrieren.
-
----
-
-### [BUG-005] `CUBIE_DOC_FRAME_3`-Routing-Dokumente (`README.md`) erzwingen eine redundante `foot`-Zone
-
-- **Status:** Offen
-- **Schweregrad:** Niedrig
-- **Bereich:** `src/qb_cubie/services/doc_frame/doc_frame.py` (`CUBIE_DOC_FRAME_3`) & `src/qb_cubie/services/doc_frame/doc_frame_rules.py` (`_has_missing_zones`, `DocFrameMissing`)
-- **Umgebung / Version:** `v0.0.9` / Commit `561338af`, Python `3.13`, Linux (plattformunabhängig)
-
-**Ist-Verhalten:**  
-`_has_missing_zones()` erzwingt für jedes Dokument pauschal sowohl eine `head`- als auch eine `foot`-Zone (`if "head" not in zones or "foot" not in zones`), und das Preset `CUBIE_DOC_FRAME_3` konfiguriert `foot=STD_FOOTER_BLOCKS`. Dadurch müssen reine Routing-Dokumente (z. B. `docs/core/README.md`, `docs/dev/README.md`, `docs/misc/README.md`) zusätzlich zu ihrer `zone="router"`-Übersichtstabelle noch eine vollständige `zone="foot"`-Navigation mitführen, die das lokale Routing erneut dupliziert. Fehlt `zone="foot"`, bricht `DocFrameMissing` mit `DOCFRAME-MISSING` ab.
-
-**Soll-Verhalten:**  
-Routing-Dokumente mit `CUBIE_DOC_FRAME_3` benötigen keine `foot`-Zone (bzw. `foot` ist für `FramePattern`-Presets ohne konfigurierte `foot`-Blöcke optional), da diese Dokumente das Routing bereits selbst über `zone="router"` abbilden. `_has_missing_zones()` sollte eine Zone nur dann als Pflicht prüfen, wenn das zugehörige `FramePattern` für diese Zone auch Blöcke definiert (`pat.head`, `pat.router`, `pat.foot`).
-
-**Reproduktion:**  
-1. In einem `CUBIE_DOC_FRAME_3`-Dokument (z. B. `docs/core/README.md`) den `<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->`-Block entfernen.
-2. `DocEnsurance` mit `CUBIE_DOCFRAME_RULES` ausführen:
-```bash
-.venv/bin/python -m pytest tests/test_styleguide.py -k "test_docs_code_examples"
-```
-3. Ergebnis: `[DOCFRAME-MISSING] ... Document is missing required 'head' or 'foot' qb:frame block.`
-
-**Workaround:**  
-In `CUBIE_DOC_FRAME_3`-Routing-Dokumenten vorerst weiterhin eine `zone="foot"`-Sektion mitführen.
-
-**Hinweise / Ursache:**  
-In `src/qb_cubie/services/doc_frame/doc_frame_rules.py` prüft `_has_missing_zones()` die Existenz von `"head"` und `"foot"` hartkodiert statt dynamisch anhand von `bool(pat.head)` / `bool(pat.foot)` (wie es für `pat.router` bereits geschieht). Zudem weist `CUBIE_DOC_FRAME_3` in `doc_frame.py` derzeit `foot=STD_FOOTER_BLOCKS` statt `foot=()` zu.
-
----
-
-### [BUG-006] `tests/test_styleguide.py::test_function_size` unterstützt keine `# noqa`-Ausnahmekommentare mit Begründung
-
-- **Status:** Offen *(Gate `test_function_size` wieder regulär aktiv; `@pytest.mark.skip`-Workaround entfernt)*
-- **Schweregrad:** Niedrig
-- **Bereich:** `tests/test_styleguide.py` (`test_function_size`)
-- **Umgebung / Version:** `v0.0.10`, Python `3.13`, plattformunabhängig
-
-**Ist-Verhalten:**  
-`test_function_size` prüft starr `len(body_lines(source, node)) > FUNCTION_LIMIT` (`12`) ohne Möglichkeit, einzelne Funktionen temporär und begründet per `# noqa`-Kommentar (z. B. `# noqa: function-size -- ...`) auszusetzen.
-
-**Soll-Verhalten:**  
-`test_function_size` (und perspektivisch auch weitere Styleguide-Checks in `tests/test_styleguide.py`) erkennt explizite `# noqa`-Kommentare an der Funktionsdefinition (idealerweise mit verpflichtender Begründung), sodass begründete, zeitlich begrenzte Ausnahmen feingranular möglich sind, ohne den gesamten Test global zu überspringen.
-
-**Reproduktion:**  
-Eine beliebige Funktion in `src/qb_cubie/` temporär mit $> 12$ physischen Body-Zeilen und `# noqa`-Kommentar an der `def`-Zeile versehen und ausführen:
-```bash
-.venv/bin/python -m pytest -q tests/test_styleguide.py -k "test_function_size"
-```
-Der Test schlägt trotz `# noqa`-Kommentar fehl.
-
-**Workaround:**  
-Betroffene Funktionen per SRP-Refactoring auf $\le 12$ Body-Zeilen aufteilen (`test_function_size` läuft regulär ohne `@pytest.mark.skip`).
-
-**Hinweise / Ursache:**  
-`body_lines()` filtert `tokenize.COMMENT` heraus und `test_function_size()` wertet die Kommentar-Tokens auf der `def`-Zeile derzeit nicht aus.
 
 ---
 

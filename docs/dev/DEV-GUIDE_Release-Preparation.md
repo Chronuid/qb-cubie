@@ -210,7 +210,7 @@ Vor dem Release-Commit müssen die vollständige Testsuite (inklusive `slow`-Tes
 make test-all
 ```
 
-`make test-all` führt `.venv/bin/python -m pytest -m "" --hypothesis-profile=ci -q` aus und deckt damit auch die in der Standard-Entwicklung übersprungenen `slow`-Tests, `tests/test_styleguide.py` (inklusive `test_module_size` und `test_docs_code_examples` via `DocEnsurance`) sowie `tests/test_lint.py` (`ruff`, `pylint`, `mypy`) ab.
+`make test-all` führt `.venv/bin/python -m pytest -m "" --hypothesis-profile=ci -q` aus und deckt damit auch die in der Standard-Entwicklung übersprungenen `slow`-Tests, `tests/test_styleguide.py` (inklusive `test_module_size` und `test_function_size`), die Doku-Gates (`tests/test_doc_frame.py` und `tests/test_doc_ensurance.py`) sowie `tests/test_lint.py` (`ruff`, `pylint`, `mypy`) ab.
 
 ### 4.2 Build-Artefakte bauen und isoliert verifizieren
 

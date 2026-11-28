@@ -2,6 +2,33 @@
 
 Alle nennenswerten Änderungen an `qb-cubie` werden in dieser Datei dokumentiert.
 
+## [0.1.3] - 2026-11-28
+
+### Added
+- **SRP-Regel-Interfaces & preset-spezifische Profilbindungen (`DocFrame` & `DocEnsurance`):**
+  - Neues Modul [`rule_profiles.py`](./src/qb_cubie/core/services/doc_frame/rule_profiles.py) mit `FrameRuleProfile` (bindet ein `FramePattern` an seine atomare Regelsequenz), `DocFrameRuleSet` (bündelt und delegiert `FrameRuleProfile`-Instanzen als `WorkspaceCheckRuleProtocol`) sowie `CUBIE_DOCFRAME_PROFILE_1..3` und `CUBIE_DOCFRAME_RULE_SET`.
+  - Neue atomare Regel `DocFrameFootLinks` (`DOCFRAME-FOOT-LINKS`, Alias `DocFrameFootLinksRule`) in [`doc_frame_rules.py`](./src/qb_cubie/core/services/doc_frame/doc_frame_rules.py) und `DocFrameOutdated(..., allow_empty_foot=True)` zur granularen Steuerung der `foot`-Zone je Preset.
+  - Neues `DocRuleSet` in [`doc_rules.py`](./src/qb_cubie/core/services/doc_ensurance/doc_rules.py) als SRP-Regelcontainer für `DocEnsurance`, exportiert über [`services/__init__.py`](./src/qb_cubie/core/services/__init__.py), [`doc_frame/__init__.py`](./src/qb_cubie/core/services/doc_frame/__init__.py) und [`doc_ensurance/__init__.py`](./src/qb_cubie/core/services/doc_ensurance/__init__.py).
+- **Erweiterte Testabdeckung für `FrameRuleProfile`, `DocFrameRuleSet` & `DocRuleSet`:**
+  - Neue Vertrags- und Isolations-Tests in [`test_rules_and_docframe.py`](./tests/tests_core/tests_service_core/test_rules_and_docframe.py), [`test_doc_frame.py`](./tests/test_doc_frame.py) und [`test_doc_ensurance.py`](./tests/test_doc_ensurance.py).
+
+### Changed
+- **Konfigurierbare `foot`-Zone-Warnstufe für `CUBIE_DOC_FRAME_2` & `CUBIE_DOC_FRAME_3`:**
+  - [`tests/test_doc_frame.py`](./tests/test_doc_frame.py) nutzt `REPO_DOCFRAME_RULES` (`DocFrameRuleSet`): `CUBIE_DOC_FRAME_1` prüft `DocFrameFootLinks(severity="error")` strikt, während `CUBIE_DOC_FRAME_2` und `CUBIE_DOC_FRAME_3` auf `DocFrameFootLinks(severity="warning")` mit `DocFrameOutdated(allow_empty_foot=True)` kalibriert sind.
+- **Reaktivierung des 12-Zeilen-Funktionslimits (`test_function_size`, `BUG-006`):**
+  - `@pytest.mark.skip` in [`tests/test_styleguide.py`](./tests/test_styleguide.py) entfernt; Funktionen in [`ebt.py`](./src/qb_cubie/core/ebt.py), `service_core/` ([`guards.py`](./src/qb_cubie/core/service_core/guards.py), [`rules.py`](./src/qb_cubie/core/service_core/rules.py), [`workspace.py`](./src/qb_cubie/core/service_core/workspace.py)), [`doc_ensurance.py`](./src/qb_cubie/core/services/doc_ensurance/doc_ensurance.py) sowie `doc_frame/` ([`doc_frame.py`](./src/qb_cubie/core/services/doc_frame/doc_frame.py), [`doc_frame_rules.py`](./src/qb_cubie/core/services/doc_frame/doc_frame_rules.py), [`frame_blocks.py`](./src/qb_cubie/core/services/doc_frame/frame_blocks.py)) nach SRP auf $\le 12$ physische Body-Zeilen aufgeteilt.
+
+### Fixed
+- **Stil- und Signatur-Drift bereinigt:** Alle produktiven Quellmodule unter `src/qb_cubie/` erfüllen wieder `tests/test_styleguide.py` (`FUNCTION_LIMIT = 12`, `MODULE_LIMIT = 777`, einzeilige Docstrings) ohne Skip-Ausnahmen.
+
+### Documentation
+- **TGD-Handbuchreihe & plattformunabhängige `RUN-*.md`-Workflows:**
+  - [`GUIDE_TGD.md`](./docs/GUIDE_TGD.md), [`docs/tgd/`](./docs/tgd/README.md) (`README.md` und alle sechs `NODE_*.md`-Handbücher) sowie [`DEV-GUIDE_TGD-Workflow.md`](./docs/dev/DEV-GUIDE_TGD-Workflow.md) auf den modularen Baukasten (symmetrische Stützräder- und Berichts-Schienen), plattformunabhängige `RUN-*.md`-Minimal-Runs und Standard-Markdown-Links umgestellt.
+- **Living-Docs-Synchronisation & Bug-Tracking für `v0.1.3`:**
+  - Veraltete `pytest`-Kommandos, Gate-Limits und Service-Modultabellen in [`README.md`](./README.md), [`docs/dev/README.md`](./docs/dev/README.md), [`Style-Guide.md`](./docs/dev/Style-Guide.md), [`DEV-GUIDE_Release-Preparation.md`](./docs/dev/DEV-GUIDE_Release-Preparation.md), [`DEV-GUIDE_DocFrame.md`](./docs/dev/services/DEV-GUIDE_DocFrame.md), [`DEV-GUIDE_DocEnsurance.md`](./docs/dev/services/DEV-GUIDE_DocEnsurance.md) und [`docs/misc/runs/README.md`](./docs/misc/runs/README.md) an den realen Quellcode angepasst.
+  - Neue Bugs `[BUG-008]` (`DocFrame` `foot`-Zone-Kopplung & 1-Tupel-Regelübergabe) und `[BUG-009]` (ungefilterte CI-Matrix bei reinen Doku-Commits) in [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md) dokumentiert.
+  - `[BUG-005]` (niedriger Schweregrad, ausreichende Workarounds) und `[BUG-006]` (keine `# noqa`-Inline-Ausnahmen; zentrale Steuerung über die Test-Suite bevorzugt) als *Won't Fix / By Design* geschlossen und nach [`docs/misc/lake/SOLVED_ISSUES.md`](./docs/misc/lake/SOLVED_ISSUES.md) archiviert.
+
 ## [0.1.2] - 2026-11-26
 
 ### Neu

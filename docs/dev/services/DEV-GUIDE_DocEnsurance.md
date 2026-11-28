@@ -39,7 +39,7 @@ Um das Modul-Limit des Cubie-Styleguides ($\le 500$ Zeilen pro Service-Datei, $\
 | **`adapters.py`** | Imperative I/O-Shell (ersetzt Legacy-`_source_loader.py`), die Pfad-Heuristik, CLI-Zielauflösung, Verzeichnis-Crawling und Excludes an `qb_cubie.core.service_core.workspace` delegiert | `resolve_cli_target_path`, `resolve_sources`, `looks_like_path`, `crawl_directory`, `is_excluded`, `load_path_sources` |
 | **`cli.py` & `__main__.py`** | Lazy CLI-Adapter nach `service_core.cli_spec.ServiceCommandProtocol` (`qb-cubie docensurance check`) | `DocEnsuranceCommand`, `COMMAND`, Module-Entrypoint `python -m qb_cubie.core.services.doc_ensurance` |
 | **`doc_patterns.py`** | Atomare Struktur-Matcher (Ebene 1, gestützt auf `service_core.markdown`: `parse_kv_attrs`, `extract_fence_prefix`, `is_closing_fence`), Basis-Regeln (Ebene 2), Anker-Scanner (Ebene 3) & Session-Scoping (Ebene 4) | `Explanation`, `CodeSnippet`, `CollapsibleResult`, `ExplanationRule`, `CodeRule`, `OutputRule`, `DocLinterRule`, `MissingOutputRule`, `OutputMatchRule`, `ExamplePattern`, `TaggedScope`, `CUBIE_DOC_STYLE`, `DEFAULT_DOC_RULES` |
-| **`doc_rules.py`** | Didaktische Standard-Prüfregeln (Ebene 2) | `NoOutput`, `HighComplexity`, `LargeOutput`, `RawTraceback`, `CUBIE_DOC_RULES` |
+| **`doc_rules.py`** | Didaktische Standard-Prüfregeln & Regelset-Wrapper (Ebene 2) | `NoOutput`, `HighComplexity`, `LargeOutput`, `RawTraceback`, `DocRuleSet`, `CUBIE_DOC_RULES` |
 | **`doc_ensurance.py`** | Stateful Orchestrator (Ebene 5, gestützt auf `service_core.{guards, workspace, rules}`) & IPC-sicherer Arena-Worker | `DocEnsurance`, `_execute_session_payload`, `_execute_single_step`, `_classify_step_exception` |
 
 ---

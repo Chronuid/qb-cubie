@@ -10,7 +10,7 @@ Details zum Ablauf stehen im [DEV-GUIDE: Bugs dokumentieren](../../dev/DEV-GUIDE
 
 ---
 
-> [!Note]  
+> [!NOTE]  
 > qb-cubie anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System (und damit auch jeder Testfall als formalisierte Soll-Spezifikation) ist grundsätzlich **fehlbar** (*Fallibilismus*).  
 >
 > **Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese.**  
@@ -34,6 +34,29 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 ---
 
 ## Archivierte Bug-Fixes
+
+### [BUG-006] `tests/test_styleguide.py::test_function_size` unterstützt keine `# noqa`-Ausnahmekommentare mit Begründung
+
+- **Status:** Geschlossen *(Won't Fix / By Design in `v0.1.3`)*
+- **Schweregrad:** Niedrig
+- **Bereich:** `tests/test_styleguide.py` (`test_function_size`)
+
+**Begründung & Abschluss:**  
+- Inline-`# noqa`-Ausnahmekommentare im Produktivcode sind unerwünscht; etwaige Ausnahmen sollen – falls jemals nötig – zentral über das Interface der Test-Suite (`tests/test_styleguide.py`) verwaltet werden.
+- Das 12-Zeilen-Funktionslimit (`FUNCTION_LIMIT = 12`) ist seit `RUN-2` (`348b8ed0`) wieder regulär aktiv, und alle betroffenen Funktionen unter `src/qb_cubie/` wurden per SRP-Refactoring sauber auf $\le 12$ Body-Zeilen aufgeteilt.
+
+---
+
+### [BUG-005] `CUBIE_DOC_FRAME_3`-Routing-Dokumente (`README.md`) erzwingen eine redundante `foot`-Zone
+
+- **Status:** Geschlossen *(Won't Fix / toleriert ab `v0.1.3`)*
+- **Schweregrad:** Niedrig
+- **Bereich:** `src/qb_cubie/core/services/doc_frame/presets.py` (`CUBIE_DOC_FRAME_3`), `src/qb_cubie/core/services/doc_frame/doc_frame_rules.py` (`_has_missing_zones`)
+
+**Begründung & Abschluss:**  
+- Der Schweregrad ist niedrig und die vorhandenen Workarounds (Mitführen der `zone="foot"`-Tags bzw. die in `RUN-3` eingeführte Warnstufe `DocFrameFootLinks(severity="warning")` mit `DocFrameOutdated(allow_empty_foot=True)`) sind für den produktiven Betrieb ausreichend.
+
+---
 
 ### [BUG-003] `CstLinter.check()` gibt für nicht existierende Pfade stumm `[]` zurück
 
@@ -90,6 +113,7 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 [↦ | Fortgeschrittene Quantoren (`all` vs. `exists`) | ↤](../../GUIDE_Quantifiers.md)  
 [↦ | Test-Guided Development (TGD) | ↤](../../GUIDE_TGD.md)  
 
+[↦ | Service-Core | ↤](../../services/GUIDE_Service-Core.md)  
 [↦ | GUIDE: `DocEnsurance` – Lebende und verifizierte Dokumentation | ↤](../../services/GUIDE_DocEnsurance.md)  
 [↦ | DocFrame (Prototyp) | ↤](../../services/GUIDE_DocFrame.md)  
 
@@ -102,7 +126,15 @@ Sobald ein Bug-Fix vollständig in einem veröffentlichten Release im [`CHANGELO
 
 [↦ | Analysis: Stärkung der CI-Matrix für Windows und macOS | ↤](./ANALYSIS_CI_MATRIX.md)  
 [↦ | Analyse: Möglichkeiten zum Bau eines Analyse-Werkzeugs für EBT-Case-Coverage auf Quellcode-Objekten | ↤](./ANALYSIS_COVERAGE_OPTIONS.md)  
+[↦ | Analyse: Service-Core-Vermessung (`DocEnsurance` & `DocFrame`) | ↤](./ANALYSIS_SERVICE-CORE.md)  
+[↦ | Analyse: Empirische Git- & Artefakt-Vermessung der TGD-Versuchsreihe (`v0.0.3` bis `HEAD`) | ↤](./ANALYSIS_TGD-EXPERIMENTS.md)  
+[↦ | Wheel / windows-2022 / Python 3.13 sagt: | ↤](./CI-Data.md)  
+[↦ | GREEN_AUDIT — Zyklus 2, Phase Green (`qb_cubie.core.service_core`) | ↤](./GREEN_AUDIT_SERVICE-CORE-Z2.md)  
+[↦ | Hypothesen: Konzepte & Architektur-Design für einen `qb-cubie` Service-Core | ↤](./HYPOTHESIS_SERVICE-CORE.md)  
+[↦ | Hypothesen: Modulare TGD-Knoten-Handbücher (`docs/tgd/`) & Minimal-Orchestrierung | ↤](./HYPOTHESIS_TGD-NODES.md)  
 [↦ | Archiv behobener Bugs (`SOLVED_ISSUES.md`) | ↤](./SOLVED_ISSUES.md)  
+[↦ | Überblick | ↤](./deep-research-report(1).md)  
+[↦ | Technische Bestandsaufnahme von **qb-cubie** 0.1.0 | ↤](./deep-research-report.md)  
 
 </div>
 <!-- /qb:frame -->
