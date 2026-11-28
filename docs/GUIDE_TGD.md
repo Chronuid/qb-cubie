@@ -5,7 +5,7 @@
 
 ![Cubie](.assets/cubie-logo-written.png)
 
-Dieses Handbuch erklärt Test-Guided Development (TGD) für Einsteiger und Experten: Warum TGD im Kern TDD mit einer kontrollierten Rückwärtstür für fehlbare Tests ist (Karl Poppers Fallibilismus), wie sich die optionalen Bausteine `ANALYSIS` und `HYPOTHESIS` flexibel in **jeder** Phase zuschalten lassen, wie ein exemplarischer Fünf-Schritte-Ablauf aussieht und wo die operativen [TGD-Knoten-Handbücher (`docs/tgd/`)](tgd/README.md) zu finden sind.
+Dieses Handbuch erklärt Test-Guided Development (TGD) für Einsteiger und Experten: Warum TGD im Kern TDD mit einer kontrollierten Rückwärtstür für fehlbare Tests ist (Karl Poppers Fallibilismus), wie die optionalen Stützräder (`ANALYSIS` & `HYPOTHESIS`) und die Dokumentations-Ebene (`PHASE LIVING DOCS`) symmetrisch mit jedem Knoten zusammenspielen, wie ein exemplarischer Fünf-Schritte-Ablauf aussieht und wo die operativen [TGD-Knoten-Handbücher (`docs/tgd/`)](tgd/README.md) zu finden sind.
 
 ---
 
@@ -31,51 +31,80 @@ Um es auf den Punkt zu bringen: **TGD ist praktisch TDD** – mit einer einzigen
 * **TDD (*Test-Driven Development*)** folgt im Kern einem Zweischritt: **Phase Red** (erst den fehlschlagenden Test schreiben) $\to$ **Phase Green** (dann den Code so lange entwickeln, bis der Test grün wird).
 * **TGD (*Test-Guided Development*)** folgt genau demselben Prinzip – aber **während der Phase Green darfst du das Produkt aus Phase Red hinterfragen**. Denn auch die Qualitätssicherung macht Fehler.
 
-Der verbindliche Kern von TGD besteht daher aus drei Schritten: **Phase Red $\to$ Phase Green $\to$ Phase Living-Documentation**. Im besten Fall läuft dieser Kern glatt durch und braucht keinerlei Umwege. Wenn sich während der **Phase Green** jedoch herausstellt, dass wir in der **Phase Red** einen Denkfehler gemacht oder eine falsche Annahme festgeschrieben haben, öffnet TGD eine **kontrollierte Rückwärtstür (`GREEN_AUDIT`)**, um den Test sauber zu hinterfragen und zu reparieren – statt ihn heimlich umzuschreiben.
+Der klassische Kernzyklus von TGD besteht daher aus **Phase Red $\to$ Phase Green** – ergänzt um eine **kontrollierte Rückwärtstür (`GREEN_AUDIT`)**, falls sich während der Phase Green ein Denkfehler oder Widerspruch in einem Test aus Phase Red zeigt. Im besten Fall läuft der Kern glatt durch und braucht gar kein `GREEN_AUDIT`.
 
-Wichtig dabei: **TGD ist kein starr verdrahteter Zustandsautomat, sondern ein Baukasten aus klar getrennten Rollen.** Je nach Aufgabe und Komplexität wählst du einen ganz schlanken Durchlauf oder schaltest bei Bedarf zusätzliche Denk- und Prüfbausteine (`ANALYSIS` und `HYPOTHESIS`) genau dort dazu, wo sie gerade helfen.
+Flankiert wird dieser Kern symmetrisch von zwei querschnittlichen Bausteinen, die **bei Bedarf mit jedem Knoten** zusammenspielen:
+1. **Links — Optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`):** Können jederzeit zugeschaltet werden, wenn der Kontext erst vermessen oder ein Entwurf bzw. eine Test-Suite kritisch durchdacht werden soll.
+2. **Rechts — `PHASE LIVING DOCS` (Dokumentation & Berichte):** Einerseits die abschließende Phase zur Synchronisation der Produkt-Handbücher, andererseits eine durchgehende Ebene im gesamten Workflow – denn in jedem Knoten greifen wir auf Dokumentation zurück und halten Erkenntnisse über Berichte oder Protokolle fest.
+
+Wichtig dabei: **TGD ist kein starr verdrahteter Zustandsautomat, sondern ein symmetrischer Baukasten aus klar getrennten Rollen.** Je nach Komplexität der Aufgabe kombinierst du ihn so schlank oder so gründlich, wie es die Situation verlangt.
 
 ```mermaid
-flowchart LR
-    Opt["Flexible Bausteine \n(überall zuschaltbar)\n<br/>ANALYSIS | HYPOTHESIS"] -. "bei Bedarf" .-> Red
-    Opt -. "bei Bedarf" .-> Green
-    Opt -. "bei Bedarf" .-> Docs
+flowchart TB
+    TopBus["Dokumentations- & Berichts-Schiene<br/>(bei Bedarf in jedem Knoten)"]
+    BotBus["Stützräder-Schiene<br/>(bei Bedarf in jedem Knoten)"]
 
-    Red["Phase Red<br/>Tests schärfen & einfrieren"] --> Green["Phase Green<br/>Code in src/ reparieren"]
-    Green --> Docs["Phase Living-Documentation<br/>Docs & Beispiele synchronisieren"]
-    Green -. "Optional (Rückwärtstür): GREEN_AUDIT<br/>(Testfehler aus Red belegen)" .-> Red
+    subgraph Stuetz["Optionale Stützräder"]
+        direction TB
+        A["ANALYSIS"]
+        H["HYPOTHESIS"]
+    end
+
+    subgraph Kern["TGD-Kern"]
+        direction LR
+        Red["PHASE RED<br/>Tests schärfen & einfrieren"] --> Green["PHASE GREEN<br/>Code implementieren"]
+        Red <-.->|"Test-Reparatur"| Audit["GREEN AUDIT<br/>Rückwärtstür"]
+        Audit <-.->|"Test-Widerspruch /<br/>REFUTED"| Green
+    end
+
+    subgraph Living["PHASE LIVING DOCS"]
+        direction TB
+        Docs["Handbücher, Berichte &<br/>Beispiele synchronisieren"]
+    end
+
+    TopBus <-.->|"bei Bedarf"| Stuetz
+    TopBus <-.->|"bei Bedarf<br/>(Red · Audit · Green)"| Kern
+    TopBus === Living
+
+    Stuetz === BotBus
+    Kern <-.->|"bei Bedarf<br/>(Red · Audit · Green)"| BotBus
+    Living <-.->|"bei Bedarf"| BotBus
 ```
 
-* **Einfach erklärt (für Einsteiger):** Stell dir vor, ein Bauprüfer schreibt zuerst eine Checkliste (**Phase Red**) und ein Handwerker baut danach das Haus (**Phase Green**). Im Idealfall passt alles auf Anhieb und am Ende wird nur noch der Bauplan aktualisiert (**Phase Living-Documentation**). Bei strengem TDD wäre die Checkliste jedoch selbst dann unantastbar, wenn der Prüfer sich vertippt hat und versehentlich eine 20 cm hohe Haustür fordert. Bei TGD darf der Handwerker die Checkliste zwar trotzdem **nicht heimlich selbst umschreiben** (sonst könnte er sich alles schönreden), aber er hat eine **offizielle Rückwärtstür**: Er dokumentiert den Widerspruch mit klarem Beleg und stößt über **`GREEN_AUDIT`** eine gezielte Reparatur der Checkliste an. Und immer wenn auf der Baustelle etwas unklar ist, darf jederzeit kurz nachgemessen (**`ANALYSIS`**) oder ein Plan auf dem Papier durchdacht (**`HYPOTHESIS`**) werden.
-* **Für Experten (Karl Poppers Epistemologie & Fallibilismus):** TGD anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System – und damit auch jeder Testfall als formalisierte Soll-Spezifikation ($Q_{\text{Soll}}$) – ist grundsätzlich **fehlbar** (*Fallibilismus*). Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese. Während die **Phase Green** ein strenges Änderungsverbot auf `tests/` durchsetzt (um stilles *Test-Hacking* und Bestätigungsfehler zu verhindern), öffnet das Eskalations-Protokoll (`GREEN_AUDIT`) einen transparenten, falsifizierbaren Weg zurück zur Test-Korrektur, sobald die Implementierung einen reproduzierbaren Widerspruch in der Test-Suite offenlegt.
+* **Einfach erklärt (für Einsteiger):** Stell dir eine Baustelle mit drei klaren Bereichen vor. **In der Mitte** passiert die eigentliche Bauarbeit: Zuerst legt der Bauprüfer die verbindliche Checkliste fest (**Phase Red**), dann baut der Handwerker danach (**Phase Green**). Bei strengem TDD wäre die Checkliste selbst dann unantastbar, wenn der Prüfer sich vertippt hat und eine 20 cm hohe Haustür fordert. Bei TGD darf der Handwerker die Checkliste zwar trotzdem **nicht heimlich selbst umschreiben**, hat aber eine **offizielle Rückwärtstür (`GREEN_AUDIT`)**, über die ein belegter Mangel sauber geprüft und repariert wird. **Links** stehen zwei Helfer auf Abruf bereit (**`ANALYSIS`** zum Nachmessen, **`HYPOTHESIS`** zum Durchdenken auf dem Papier), die bei jeder unklaren Stelle dazugerufen werden können. Und **rechts** liegt das Bauplan- und Berichts-Archiv (**`PHASE LIVING DOCS`**): Schon während der Arbeit fließen kurze Notizen und Berichte in den jeweiligen Schritten mit, und zum Abschluss werden die offiziellen Baupläne sauber auf den echten Endstand gebracht.
+* **Für Experten (Karl Poppers Epistemologie & Fallibilismus):** TGD anerkennt explizit unsere **erkenntnistheoretischen Grenzen** im Sinne von Karl Poppers kritischem Rationalismus. Jede Aussage über ein System – und damit auch jeder Testfall als formalisierte Soll-Spezifikation ($Q_{\text{Soll}}$) – ist grundsätzlich **fehlbar** (*Fallibilismus*). Ein Test ist kein unfehlbares Dogma, sondern eine vorläufig bewährte Falsifikationshypothese. Während **Phase Green** ein strenges Änderungsverbot auf `tests/` durchsetzt (um stilles *Test-Hacking* und Bestätigungsfehler zu verhindern), öffnet **`GREEN_AUDIT`** einen transparenten, falsifizierbaren Weg zur minimal-invasiven Test-Korrektur (oder zur Widerlegung des Audits via `REFUTED`). Gleichzeitig bilden die optionalen Stützräder (links) und die lebende Dokumentation (rechts) zwei symmetrische Rückkopplungsschienen um den Kern herum.
 
 ---
 
-## 2. Flexible Stützräder: Analyse & Hypothese (überall zuschaltbar)
+## 2. Die zwei symmetrischen Schienen: Stützräder & Living Docs
 
-Neben dem TGD-Kern kennt TGD zwei optionale **Stützräder**: **`ANALYSIS`** und **`HYPOTHESIS`**. Beide sind **keine** festen Vorstufen, die man nur ganz am Anfang vor der Phase Red nutzen dürfte. Vielmehr sind es modulare Denk- und Prüfwerkzeuge, die sich **in jedem Knoten und an jeder Stelle des Ablaufs** zuschalten lassen, sobald der Kontext es erfordert.
+Neben dem eigentlichen TGD-Kern (`PHASE RED`, `PHASE GREEN`, `GREEN AUDIT`) sorgen die beiden äußeren Blöcke dafür, dass Wissen sauber entsteht und nicht verloren geht. Beide sind **keine** starren Einzelpositionen an Anfang oder Ende einer Kette, sondern können situativ an jedem Knoten ansetzen.
 
-### Stützrad 1: Analyse (`ANALYSIS`) – erst verstehen, was gerade Sache ist
-* **Einfach erklärt:** Bevor etwas verändert wird, schaut man in Ruhe nach, wie der Ist-Zustand tatsächlich aussieht ($Q_{\text{Ist}}$) und was eigentlich gelten müsste ($Q_{\text{Soll}}$). Man misst erst nach, statt blind loszulegen.
-* **Warum das überall hilft:** Nicht nur vor dem ersten Test, sondern auch mitten in einer Implementierung oder beim Aufräumen von Dokumentationen neigen Menschen wie KI-Agenten dazu, vorschnell zu handeln, ohne alle Abhängigkeiten zu überblicken. Eine kurze Analyse-Schleife zwingt dazu, erst Belege zu sammeln.
+### Schiene 1 (links / unten): Optionale Stützräder (`ANALYSIS` & `HYPOTHESIS`)
 
-### Stützrad 2: Hypothese (`HYPOTHESIS`) – wissenschaftliche Sprache statt voreiliger Gewissheit
-* **Einfach erklärt:** Eine Hypothese ist eine klar formulierte Vermutung, *was* die Ursache eines Problems sein könnte oder *wie* eine Lösung funktionieren sollte – zusammen mit der Frage, woran man merken würde, falls man falsch liegt. Sich bewusst an diese wissenschaftliche Sprache zu halten (*„Hypothese: ...“* statt *„Beweis: ...“*), hält die Arbeit ehrlich und ordentlich, selbst wenn eine Vermutung später widerlegt wird.
-* **Für Experten (Meta-QA-Fragen an Verträge & Test-Suiten):** In der Hypothesen-Arbeit werden geplante oder frisch geschriebene Tests gezielt auf vier formale Schwachstellen abgeklopft:
+* **Stützrad `ANALYSIS` – erst verstehen, was gerade Sache ist:** Bevor etwas verändert wird, vermisst man in Ruhe den Ist-Zustand ($Q_{\text{Ist}}$) gegen das Ziel ($Q_{\text{Soll}}$). Das verhindert vorschnelles Ändern nicht nur vor dem ersten Test, sondern genauso beim Isolieren eines unerwarteten Fehlschlags in `PHASE GREEN` oder vor einem größeren Umbau in `PHASE LIVING DOCS`.
+* **Stützrad `HYPOTHESIS` – wissenschaftliche Sprache statt voreiliger Gewissheit:** Eine Hypothese formuliert eine überprüfbare Vermutung (*„Hypothese: ...“* statt *„Beweis: ...“*) samt Risiko und klarem Falsifikationskriterium. So bleibt die Arbeit selbst dann ehrlich und verwertbar, wenn eine Idee widerlegt wird.
+* **Für Experten (Vier-Säulen-Meta-QA):** In der Hypothesen-Arbeit werden geplante oder frisch geschriebene Tests gezielt auf vier formale Schwachstellen abgeklopft:
   1. **Logische Subsumtion** ($Q_{\text{pos}} \implies \neg Q_{\text{neg}}$: Ein positives Ziel impliziert das Verbot bereits, wodurch das Verbot nie eigenständig geprüft wird),
   2. **Prädikatenlogische Tautologien** (z. B. $(y \in \mathbb{Z}) \lor (y \neq 99) \equiv \top$ unter `post="exists"`),
   3. **Vacuous Passes** (`0pos/Kneg`: Ein Test wird grün, weil gar kein relevanter Prüfgegenstand getroffen wurde),
   4. **Überlebende Core-Mutanten** (Schlägt wirklich ein Test fehl, wenn eine Kernfunktion fehlerhaft bleibt?).
 
-### Wo sich `ANALYSIS` und `HYPOTHESIS` in der Praxis zuschalten lassen
+### Schiene 2 (rechts / oben): Lebende Dokumentation & Berichte (`PHASE LIVING DOCS`)
 
-| Situation im Ablauf | Sinnvoller Baustein | Konkreter Nutzen |
+Warum verbindet die obere Schiene `PHASE LIVING DOCS` symmetrisch mit **allen** anderen Knoten?
+
+* **Begleitende Berichte & Lese-Basis in jedem Knoten:** In der Praxis aktualisieren oder nutzen wir die Dokumentations-Ebene in fast jedem Schritt: `ANALYSIS` und `HYPOTHESIS` schreiben eigene Berichte, `PHASE RED` liest bestehende Handbücher und Verträge, `PHASE GREEN` prüft Doku-Gates beobachtend (und protokolliert ggf. einen `GREEN_AUDIT`-Bericht), und `GREEN_AUDIT` schließt sein Prüfprotokoll sauber ab.
+* **Saubere Trennung bei Produkt-Handbüchern:** Trotz dieser durchgehenden Verknüpfung bleibt die Schreibgrenze jedes Knotens klar geschützt. Während Berichte, Run-Dokumente und Protokolle ihren jeweiligen Knoten begleiten, werden die **produktiven Produkt-Handbücher** und ausführbaren Beispiele erst gezielt in der eigenen Rolle **`PHASE LIVING DOCS`** streng gegen den realen Quellcode (*Code als Wahrheitsquelle*) synchronisiert.
+
+### Zusammenspiel der beiden Schienen in der Praxis
+
+| Knoten / Situation | Einsatz der Stützräder (`ANALYSIS` / `HYPOTHESIS`) | Berührung mit Doku & Berichten (`LIVING DOCS`) |
 | :--- | :--- | :--- |
-| **Vor `Phase Red`** *(bei komplexen Umbauten oder unklaren Bugs)* | `ANALYSIS` $\to$ `HYPOTHESIS` | Bestehende Abhängigkeiten vermessen ($Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$), Lösungsalternativen abwägen und Denkfehler vor dem ersten Test abfangen. |
-| **In oder direkt nach `Phase Red`** *(vor dem endgültigen Test-Freeze)* | `HYPOTHESIS` *(Post-Red-Kritik)* | Frisch geschriebene Tests mit frischem Blick auf Subsumtion, Tautologien, Vacuous Passes und Mutanten-Lücken prüfen und härten. |
-| **Mitten in `Phase Green`** *(bei überraschendem Fehlschlag)* | `ANALYSIS` / `HYPOTHESIS` | Statt blind am Code herumzudoktern: erst isoliert prüfen, ob der Fehler im Quellcode oder doch in einer fehlerhaften Test-Annahme (`GREEN_AUDIT`) liegt. |
-| **In `GREEN_AUDIT`** *(bei gemeldetem Test-Widerspruch)* | `ANALYSIS` + `HYPOTHESIS` | Das Audit-Protokoll selbst als widerlegbare Hypothese behandeln: unabhängig reproduzieren, Alternativen abwägen und minimal-invasiv entscheiden. |
-| **Vor oder in `Phase Living-Documentation`** *(bei größeren Doku-Umbauten)* | `ANALYSIS` | Betroffene Handbücher, Querverweise und Drift-Stellen systematisch erfassen, bevor Texte umgebaut werden. |
+| **Vor oder in `PHASE RED`** | Ist-Vermessung ($Q_{\text{Ist}}$ vs. $Q_{\text{Soll}}$), Design-Alternativen oder *Post-Red-Kritik* zur Härtung frischer Tests. | Bestehende Handbücher als Vertrags-Referenz lesen; ggf. Analyse-/Hypothesenberichte als Grundlage ablegen. |
+| **In `PHASE GREEN`** | Bei überraschenden Fehlschlägen erst isoliert analysieren statt blind am Code zu schrauben. | Doku-Gates rein diagnostisch prüfen (Produkt-Handbücher bleiben eingefroren) und bei Test-Widerspruch ein Audit-Protokoll verfassen. |
+| **In `GREEN AUDIT`** | Das gemeldete Audit-Protokoll im frischen Kontext selbst als widerlegbare Hypothese prüfen und Alternativen abwägen. | Eigenständige Reproduktion, Urteil (`RESOLVED` / `REFUTED`) und Begründung sauber im Audit-Protokoll dokumentieren. |
+| **In `PHASE LIVING DOCS`** | Bei größeren Doku-Umbauten vorab betroffene Handbücher, Querverweise und Drift-Stellen per `ANALYSIS` erfassen. | Produkt-Handbücher, ausführbare Beispiele und Rahmen gegen den realen Code synchronisieren und als neue Wahrheitsquelle bereitstellen. |
 
 ---
 
@@ -101,13 +130,13 @@ Zwanzig fast identische Gutwetter-Tests erhöhen nur die Laufzeit, aber nicht di
 * **Lebenszyklus- & Mutations-Übergänge:** Wenn Objekte wiederverwendet werden (wie ein `EBT`-Fall über mehrere `.run()`-Aufrufe), prüfe den gesamten Zyklus: (1) zweiter Lauf *ohne* Neuzuweisung (Quantor bleibt erhalten), (2) In-Place-Listenmutation `case.post.append(...)` bzw. Attribut-Mutation `ws.expect = False`, und (3) Attribut-Neuzuweisung `case.post = [...]` ohne Wrapper (Quantor springt sauber auf den Standard `"exists"` bzw. `"all"` zurück).
 
 ### Schritt 4 *(TGD-Kern — Phase Red)*: Test-Suite isoliert schärfen, Red-Nachweis führen & Tests einfrieren
-In der Red-Phase wird ausschließlich die **Test-Suite** bearbeitet (Quellcode und Dokumentation bleiben unberührt): Bestehende Altlasten ($Q_{\text{Ist}}$) werden auf $Q_{\text{Soll}}$ migriert (Bestand 100 % grün), neue Verträge und Wächter gezielt gegen den noch unreparierten Code **rot** nachgewiesen (Differenzsignal) und anschließend als **Test-Freeze** eingefroren. Bei kritischen Test-Suites kann optional noch vor dem endgültigen Freeze eine kurze `HYPOTHESIS`-Runde (*Post-Red-Kritik*) eingeschoben werden.
+In der Red-Phase wird ausschließlich die **Test-Suite** bearbeitet (Quellcode und Produkt-Handbücher bleiben unberührt): Bestehende Altlasten ($Q_{\text{Ist}}$) werden auf $Q_{\text{Soll}}$ migriert (Bestand 100 % grün), neue Verträge und Wächter gezielt gegen den noch unreparierten Code **rot** nachgewiesen (Differenzsignal) und anschließend als **Test-Freeze** eingefroren. Bei kritischen Test-Suites kann optional noch vor dem endgültigen Freeze eine kurze `HYPOTHESIS`-Runde (*Post-Red-Kritik*) eingeschoben werden.
 
 👉 **Operativer Knoten-Vertrag (Pre-Flight, Fixture-Hygiene, Wächter-Kalibrierung & Abnahme):** [`NODE_PHASE_RED`](tgd/NODE_PHASE_RED.md)
 
 ### Schritt 5 *(TGD-Kern — Phase Green + optionale Rückwärtstür & Phase Living-Documentation)*: Code reparieren & Schichten synchronisieren
 Nach dem Test-Freeze folgen die Implementierung und die abschließende Dokumentations-Synchronisation in klar getrennten Rollen:
-* **Phase Green (Implementierung unter Freeze):** Ausschließlich der Quellcode wird innerhalb der Architektur-, Linter- und Stil-Gates repariert, bis alle eingefrorenen Verträge grün laufen — ohne stilles Test-Hacking und ohne vorgezogene Dokumentations-Edits. Operative Details stehen in [`NODE_PHASE_GREEN`](tgd/NODE_PHASE_GREEN.md).
+* **Phase Green (Implementierung unter Freeze):** Ausschließlich der Quellcode wird innerhalb der Architektur-, Linter- und Stil-Gates repariert, bis alle eingefrorenen Verträge grün laufen — ohne stilles Test-Hacking und ohne vorgezogene Edits an Produkt-Handbüchern. Operative Details stehen in [`NODE_PHASE_GREEN`](tgd/NODE_PHASE_GREEN.md).
 * **Optionale Rückwärtstür (`GREEN_AUDIT`):** Im Idealfall wird dieser Schritt gar nicht gebraucht. Deckt die Implementierung jedoch einen echten, reproduzierbaren Widerspruch in einem Test aus Phase Red auf, wird der Test nicht heimlich geändert, sondern über ein strukturiertes Audit-Protokoll an den eigenständigen Rücksprung-Knoten [`NODE_GREEN_AUDIT`](tgd/NODE_GREEN_AUDIT.md) übergeben (unabhängige Prüfung mit klarem Ausgang `RESOLVED` oder `REFUTED`).
 * **Phase Living-Documentation:** Zum Abschluss synchronisiert [`NODE_LIVING_DOCS`](tgd/NODE_LIVING_DOCS.md) Handbücher, ausführbare Beispiele und Dokumentrahmen strikt nach dem Prinzip *Code als Wahrheitsquelle* (`0` Änderungen an Quellcode und Tests), sodass die Dokumentation im nächsten Zyklus wieder als verlässliche Wahrheitsquelle bereitsteht.
 
@@ -123,7 +152,6 @@ Nach dem Test-Freeze folgen die Implementierung und die abschließende Dokumenta
 
 > [!TIP]
 > **Der Gesamt-Durchlauf durch orchestrierende Agenten sollte noch als experimentell verstanden werden.**
-
 
 ---
 
