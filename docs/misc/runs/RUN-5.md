@@ -4,9 +4,9 @@
 - **Knoten-Handbücher:** [TGD-Baukasten (docs/tgd/README.md)](../../tgd/README.md) · [NODE_LIVING_DOCS.md](../../tgd/NODE_LIVING_DOCS.md)
 - **Projekt- & Release-Guides:** [DEV-GUIDE_Release-Preparation.md](../../dev/DEV-GUIDE_Release-Preparation.md) · [DEV-GUIDE_TGD-Workflow.md](../../dev/DEV-GUIDE_TGD-Workflow.md)
 - **Run / Zyklus:** `release-0-1-3-prep` *(Ablage: `docs/misc/runs/release-0-1-3-docs/RUN-5.md`)*
-- **Ausgangs-Commit (`HEAD`):** `<kurzer-hash>` *("<Commit-Message aus RUN-4>")*
+- **Ausgangs-Commit:** `bdab5e31` (HEAD -> main) Tried RUN-004.
 - **Ziel-Artefakte:** `pyproject.toml`, `uv.lock`, aktive Versions-/Wheel-Referenzen (`README.md`, `docs/core/GUIDE_Contract-Semantics.md`, `experiments/`), `CHANGELOG.md`, Abschluss-Hygiene (`docs/misc/lake/`, `docs/misc/runs/`) sowie lokaler Build-Nachweis in `dist/`
-- **Herkunft:** `Mensch + Gemini-App`
+- **Herkunft:** `Mensch (o7) + Gemini-App (Hydrogen, High)`
 
 ## 1. Ziel (Scope dieses Durchlaufs)
 Bereite das Repository vollständig und reproduzierbar für den Release **`v0.1.3`** vor:
@@ -19,7 +19,7 @@ Bereite das Repository vollständig und reproduzierbar für den Release **`v0.1.
 - `pyproject.toml` steht aktuell noch auf `version = "0.1.2"`, im Test-Verzeichnis liegt noch das abgeschlossene Audit-Protokoll `tests/GREEN_AUDIT.md` (`Status: RESOLVED` aus `RUN-3`), und im Lauf-Bereich `docs/misc/runs/` liegen die abgeschlossenen Arbeitsartefakte aus `RUN-1` bis `RUN-4`.
 
 ## 3. Freigabe, Leitlinien & Phasen-Fahrplan (`Consent-by-Exception`)
-- **Basis:** `EMPFEHLUNGEN: ALLE` (alle Regeln aus [DEV-GUIDE_Release-Preparation.md](../../../dev/DEV-GUIDE_Release-Preparation.md) und [DEV-GUIDE_TGD-Workflow.md](../../../dev/DEV-GUIDE_TGD-Workflow.md) gelten verbindlich).
+- **Basis:** `EMPFEHLUNGEN: ALLE` (alle Regeln aus [DEV-GUIDE_Release-Preparation.md](../../dev/DEV-GUIDE_Release-Preparation.md) und [DEV-GUIDE_TGD-Workflow.md](../../dev/DEV-GUIDE_TGD-Workflow.md) gelten verbindlich).
 - **Verbindlicher Ablauf (5 Schritte):**
   1. **Schritt 1 — Pre-Flight & Branch-Abgleich (Release-Phase 1):**
      - Prüfe `git status --short`, `git branch -vv`, `git log -n 5 --oneline` und `git ls-remote --tags origin`.
@@ -47,16 +47,16 @@ Bereite das Repository vollständig und reproduzierbar für den Release **`v0.1.
 
 ## 4. Relevante Referenzen
 - **Release- & Workflow-Leitfäden:**
-  - [DEV-GUIDE_Release-Preparation.md](../../../dev/DEV-GUIDE_Release-Preparation.md)
-  - [DEV-GUIDE_TGD-Workflow.md](../../../dev/DEV-GUIDE_TGD-Workflow.md)
-  - [TGD-Knoten-Übersicht (docs/tgd/README.md)](../../../tgd/README.md)
-  - [NODE_LIVING_DOCS.md](../../../tgd/NODE_LIVING_DOCS.md)
+  - [DEV-GUIDE_Release-Preparation.md](../../dev/DEV-GUIDE_Release-Preparation.md)
+  - [DEV-GUIDE_TGD-Workflow.md](../../dev/DEV-GUIDE_TGD-Workflow.md)
+  - [TGD-Knoten-Übersicht (docs/tgd/README.md)](../../tgd/README.md)
+  - [NODE_LIVING_DOCS.md](../../tgd/NODE_LIVING_DOCS.md)
 - **Betroffene Konfigurations-, Doku- & Prüfdateien:**
-  - [pyproject.toml](../../../../pyproject.toml)
-  - [CHANGELOG.md](../../../../CHANGELOG.md)
-  - [KNOWN_ISSUES.md](../../../../KNOWN_ISSUES.md)
-  - [README.md](../../../../README.md)
-  - [docs/core/GUIDE_Contract-Semantics.md](../../../core/GUIDE_Contract-Semantics.md)
-  - [scripts/provision_test_arenas.py](../../../../scripts/provision_test_arenas.py)
-  - [scripts/check_wheel.py](../../../../scripts/check_wheel.py)
-  - [.github/workflows/release.yml](../../../../.github/workflows/release.yml)
+  - [pyproject.toml](../../../pyproject.toml)
+  - [CHANGELOG.md](../../../CHANGELOG.md)
+  - [KNOWN_ISSUES.md](../../../KNOWN_ISSUES.md)
+  - [README.md](../../../README.md)
+  - [docs/core/GUIDE_Contract-Semantics.md](../../core/GUIDE_Contract-Semantics.md)
+  - [scripts/provision_test_arenas.py](../../../scripts/provision_test_arenas.py)
+  - [scripts/check_wheel.py](../../../scripts/check_wheel.py)
+  - [.github/workflows/release.yml](../../../.github/workflows/release.yml)
