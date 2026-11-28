@@ -38,7 +38,7 @@ Kurzanleitung für Agenten zum korrekten Ausfüllen des `CUBIE_DOC_FRAME_2`-Prov
 Jedes `CUBIE_DOC_FRAME_2`-Dokument benötigt **zwei geschlossene Rahmen-Zonen** (andernfalls schlägt `DOCFRAME-MISSING` fehl):
 
 1. `zone="head"` ganz am Dateianfang (`TitleSlot` → `ProvenanceBlock` → `---` → optionaler `PromptSlot`).
-2. `zone="foot"` ganz am Dateiende (wird von `DocFrame` automatisch mit Navigation befüllt).
+2. `zone="foot"` ganz am Dateiende (wird von `DocFrame` automatisch mit Navigation befüllt; fehlende Links in `foot` lösen bei `CUBIE_DOC_FRAME_2` unter `CUBIE_DOCFRAME_RULE_SET` lediglich eine `DOCFRAME-FOOT-LINKS`-Warnung aus, während vorhandene defekte Links weiterhin als `DOCFRAME-BROKEN-ROUTE`-Fehler gemeldet werden).
 
 ### Pflichtfelder (`DOCFRAME-PROVENANCE-INCOMPLETE`)
 

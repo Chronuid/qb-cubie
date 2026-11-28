@@ -83,16 +83,17 @@ Rahmen werden als einzeilige HTML-Kommentar-Paare außerhalb von Code-Fences not
 
 ---
 
-## 4. Prüfregeln (`CUBIE_DOCFRAME_RULES` via `DocFrame.check()`)
+## 4. Prüfregeln (`CUBIE_DOCFRAME_RULES`, `DocFrameRuleSet` & `FrameRuleProfile`)
 
-Die vier `WorkspaceCheckRuleProtocol`-Regeln werden nativ über `DocFrame.check()` (`qb_cubie.core.service_core.FileCheckRunner` mit `FileContextCache` und `depends_on=("DOCFRAME-MISSING",)` auf `DocFrameOutdated`) ohne `DocEnsurance`-Kopplung ausgewertet:
+Die atomaren `WorkspaceCheckRuleProtocol`-Regeln werden nativ über `DocFrame.check()` (`qb_cubie.core.service_core.FileCheckRunner` mit `FileContextCache` und `depends_on=("DOCFRAME-MISSING",)` auf `DocFrameOutdated`) ohne `DocEnsurance`-Kopplung ausgewertet und lassen sich über `FrameRuleProfile` / `DocFrameRuleSet` (`CUBIE_DOCFRAME_RULE_SET`) pro Preset granular konfigurieren:
 
 | Regel-ID | Auslöser |
 | :--- | :--- |
 | `DOCFRAME-MISSING` | Ungeschlossener `qb:frame`-Tag, fehlende `head`-/`foot`-Zone oder fehlende `router`-Zone bei `FRAME_3` |
 | `DOCFRAME-PROVENANCE-INCOMPLETE` | Pflichtfeld (`Plattform / Umgebung`, `Modell`, `Reasoning-Effort`) in `FRAME_2` fehlt oder ist leer |
 | `DOCFRAME-BROKEN-ROUTE` | Banner-Asset oder relativer Markdown-Link innerhalb eines Rahmens fehlt im `WorkspaceView` |
-| `DOCFRAME-OUTDATED` | Gespeicherter Rahmen-Inhalt weicht vom aktuellen `DocumentCatalog`/Renderer ab |
+| `DOCFRAME-OUTDATED` | Gespeicherter Rahmen-Inhalt weicht vom aktuellen `DocumentCatalog`/Renderer ab (`allow_empty_foot=True` optional für `FRAME_2`/`FRAME_3`) |
+| `DOCFRAME-FOOT-LINKS` | `zone="foot"` fehlt oder enthält keinen Standard-Markdown-Link (`error` bei `FRAME_1`, `warning` bei `FRAME_2`/`FRAME_3` in `CUBIE_DOCFRAME_RULE_SET`) |
 
 ---
 

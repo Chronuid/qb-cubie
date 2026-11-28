@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import dataclasses
-from typing import Final
+from typing import Any, Final
 
+from ...protocols import FileCheckProtocol
+from ...service_core.rules import WorkspaceCheckRuleProtocol
 from .protocols import (
     DocDiagnostic,
     DocRuleProtocol,
@@ -165,6 +168,30 @@ class RawTraceback:
             "Raw stack traces depend on local file paths and line numbers; "
             "use the 'raises=<Exception>' fence tag to verify expected exceptions cleanly."
         )
+
+
+def _validate_doc_rule_set(rules: Any) -> tuple[Any, ...]:
+    """Validate and freeze a non-empty sequence of DocEnsurance or WorkspaceCheck rules."""
+    if isinstance(rules, (str, bytes)) or not isinstance(rules, Sequence) or not rules:
+        raise ValueError("STATE-GUARD: DocRuleSet rules must be a non-empty sequence.")
+    for item in rules:
+        if isinstance(item, bool):
+            raise TypeError("STATE-GUARD: DocRuleSet rules must not contain bool values.")
+        inst = item() if isinstance(item, type) else item
+        is_valid = isinstance(inst, (DocRuleProtocol, WorkspaceCheckRuleProtocol, FileCheckProtocol))
+        if not is_valid and not (hasattr(inst, "check") and hasattr(inst, "name")):
+            raise TypeError(f"STATE-GUARD: Invalid rule in DocRuleSet: {type(item).__name__}.")
+    return tuple(rules)
+
+
+@dataclasses.dataclass(frozen=True)
+class DocRuleSet:
+    """Immutable, validated rule profile container for DocEnsurance."""
+
+    rules: Sequence[Any]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "rules", _validate_doc_rule_set(self.rules))
 
 
 NoOutputRule = NoOutput

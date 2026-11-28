@@ -77,12 +77,12 @@ Arbeitsaufträge für einzelne Durchläufe heißen **`RUN-*.md`** (z. B. `RUN-01
 <1–2 präzise Sätze, die fachlich eindeutig zum gewählten Knoten passen.>
 
 ## 2. Kontext-Delta (seit letztem Knoten)
-<Nur Fakten Projekt-Vorgeschichte. Vorgänger-Commit dem keine neue seit wiederholte —>
+<Nur neue Fakten seit dem Vorgänger-Commit — keine wiederholte Projekt-Vorgeschichte.>
 
 ## 3. Freigabe & Beschlüsse (`Consent-by-Exception`)
 - **Basis:** `EMPFEHLUNGEN: ALLE` *(übernimmt alle Standard-Empfehlungen aus dem Vorgänger-Bericht)*
 - **Abweichungen / Ausnahmen:** *(nur benennen, was von den Empfehlungen abweicht — sonst `Keine`)*
-  - `E2`: <Konkrete / Abweichung Alternative gewählte>
+  - `E2`: <Konkrete gewählte Abweichung / Alternative>
   - `E5`: `ZURÜCKGESTELLT`
 
 ## 4. Relevante Referenzen
@@ -115,7 +115,7 @@ Die folgende Matrix bildet den universellen 3-Zustands-Lebenszyklus aus [`docs/t
 > * **`DOC_EXCLUDES` (`E4` — aktiv):** `docs/misc/runs` ist in `tests/test_doc_ensurance.py::DOC_EXCLUDES` eingetragen und wird über direkten SSOT-Import automatisch auch von `tests/test_doc_frame.py` übernommen.
 > * **`DocFrame`-Footer (`E2` — unverändert):** `src/qb_cubie/core/services/doc_frame/presets.py` (`CONTEXT_ROUTER`) bleibt unverändert; `docs/tgd/README.md` ist direkt über [`docs/GUIDE_TGD.md`](../GUIDE_TGD.md), [`docs/README.md`](../README.md) und [`docs/dev/README.md`](./README.md) verlinkt.
 > * **`Single-Active-Signal`-Hygiene (`E5a` — aktiv):** Abgeschlossene `tests/GREEN_AUDIT.md`-Protokolle werden nach grünem `NODE_LIVING_DOCS` nach `docs/misc/lake/GREEN_AUDIT_<run-id>.md` archiviert (historischer Erstbeleg: [`GREEN_AUDIT_SERVICE-CORE-Z2.md`](../misc/lake/GREEN_AUDIT_SERVICE-CORE-Z2.md)).
-> * **Geplante `foot`-Zone-Konfiguration (`tests/test_doc_frame.py`):** Perspektivisch soll die Link-Liste in der `foot`-Zone gezielt pro Rahmen-Preset im Testmodul konfigurierbar abgeschwächt werden können — zunächst für `CUBIE_DOC_FRAME_2` (Berichte/optionale Runs) und anschließend für `CUBIE_DOC_FRAME_3` (Index-Dokumente), sodass eine fehlende Link-Liste dort als Warnung statt als harter Fehler gewertet wird.
+> * **Konfigurierbare `foot`-Zone-Prüfung (`tests/test_doc_frame.py` — aktiv):** Über `DocFrameRuleSet`, `FrameRuleProfile` und `DocFrameFootLinks` (`DOCFRAME-FOOT-LINKS`) ist die Link-Liste in der `foot`-Zone pro Preset granular konfiguriert: strikt (`severity="error"`) für `CUBIE_DOC_FRAME_1`, abgeschwächt auf `severity="warning"` (mit `DocFrameOutdated(allow_empty_foot=True)`) für `CUBIE_DOC_FRAME_2` und `CUBIE_DOC_FRAME_3`. Vorhandene Links in der `foot`-Zone werden weiterhin durch `DocFrameBrokenRoute` (`error`) als Standard-Markdown-Links validiert.
 
 ---
 

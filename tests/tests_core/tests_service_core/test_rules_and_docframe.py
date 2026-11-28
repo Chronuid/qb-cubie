@@ -653,3 +653,238 @@ def test_ebt_doc_ensurance_compatibility_bridge_runs_docframe_rules_without_fram
         post=WorldState(returns={"passed": False, "rules": ["DOC-OUT", "DOCFRAME-MISSING"]}),
         custom_id="service_core_e2_doc_ensurance_compatibility_bridge",
     ).run()
+
+
+# ======================================================================================================================
+# 5. RUN-3: SRP-Regel-Interfaces, FrameRuleProfile, DocFrameRuleSet, DocFrameFootLinks & DocRuleSet
+# ======================================================================================================================
+
+
+def _services_module() -> Any:
+    """Lazily imports qb_cubie.core.services so Phase-Red collection of existing tests stays clean."""
+    return importlib.import_module("qb_cubie.core.services")
+
+
+def _seed_preset_workspace(root: Path, preset_id: str, foot_inner: str) -> Path:
+    """Seeds a minimal workspace containing a document with the requested preset_id and foot_inner."""
+    _seed_synced_docframe_workspace(root)
+    if preset_id == "CUBIE_DOC_FRAME_1":
+        doc = (
+            '<!-- qb:frame id="CUBIE_DOC_FRAME_1" zone="head" banner="cubie-logo-written.png" -->\n'
+            '<div align="center">\n\n# Guide\n\n![Cubie](.assets/cubie-logo-written.png)\n\n'
+            "Kurze Beschreibung.\n\n---\n\n---\n\n</div>\n<!-- /qb:frame -->\n\n"
+            f"Body.\n\n<!-- qb:frame id=\"CUBIE_DOC_FRAME_1\" zone=\"foot\" -->\n{foot_inner}\n<!-- /qb:frame -->\n"
+        )
+        (root / "docs" / "TARGET.md").write_text(doc, encoding="utf-8")
+    elif preset_id == "CUBIE_DOC_FRAME_2":
+        doc = (
+            '<!-- qb:frame id="CUBIE_DOC_FRAME_2" zone="head" env="CLI" model="Hydrogen" effort="Medium" -->\n'
+            "# Report\n\n**Dokument-Informationen & Herkunft:**\n"
+            "- **Plattform / Umgebung:** CLI\n- **Modell:** Hydrogen\n- **Reasoning-Effort:** Medium\n\n"
+            "---\n\n<!-- /qb:frame -->\n\n"
+            f"Body.\n\n<!-- qb:frame id=\"CUBIE_DOC_FRAME_2\" zone=\"foot\" -->\n{foot_inner}\n<!-- /qb:frame -->\n"
+        )
+        (root / "docs" / "REPORT.md").write_text(doc, encoding="utf-8")
+    else:
+        idx_dir = root / "docs" / "idx"
+        idx_dir.mkdir(parents=True, exist_ok=True)
+        (idx_dir / "ITEM.md").write_text(_framed_doc("Item"), encoding="utf-8")
+        readme = (
+            '<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="head" banner="cubie-logo-written.png" -->\n'
+            '<div align="center">\n\n# Index\n\n![Cubie](../.assets/cubie-logo-written.png)\n\n'
+            "Index.\n\n---\n\n---\n\n</div>\n<!-- /qb:frame -->\n\n"
+            '<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="router" mode="table" dir="." recursive="false" -->\n'
+            "<!-- /qb:frame -->\n\n"
+            '<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->\n<!-- /qb:frame -->\n'
+        )
+        readme_path = idx_dir / "README.md"
+        readme_path.write_text(readme, encoding="utf-8")
+        DocFrame.update(target=root, excludes=("experiments",))
+        head_router = readme_path.read_text(encoding="utf-8").split('<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->')[0]
+        readme_path.write_text(
+            f'{head_router}<!-- qb:frame id="CUBIE_DOC_FRAME_3" zone="foot" -->\n{foot_inner}\n<!-- /qb:frame -->\n',
+            encoding="utf-8",
+        )
+    return root
+
+
+def _build_tiered_rule_set() -> Any:
+    """Builds a DocFrameRuleSet with strict error on FRAME_1 and warning on FRAME_2/FRAME_3."""
+    svc = _services_module()
+    p1 = svc.FrameRuleProfile(
+        pattern=svc.CUBIE_DOC_FRAME_1,
+        rules=(
+            svc.DocFrameMissing(severity="error"),
+            svc.DocFrameOutdated(severity="error"),
+            svc.DocFrameBrokenRoute(severity="error"),
+            svc.DocFrameFootLinks(severity="error"),
+        ),
+    )
+    p2 = svc.FrameRuleProfile(
+        pattern=svc.CUBIE_DOC_FRAME_2,
+        rules=(
+            svc.DocFrameMissing(severity="error"),
+            svc.DocFrameOutdated(severity="error", allow_empty_foot=True),
+            svc.DocFrameBrokenRoute(severity="error"),
+            svc.DocFrameProvenanceIncomplete(severity="error"),
+            svc.DocFrameFootLinks(severity="warning"),
+        ),
+    )
+    p3 = svc.FrameRuleProfile(
+        pattern=svc.CUBIE_DOC_FRAME_3,
+        rules=(
+            svc.DocFrameMissing(severity="error"),
+            svc.DocFrameOutdated(severity="error", allow_empty_foot=True),
+            svc.DocFrameBrokenRoute(severity="error"),
+            svc.DocFrameFootLinks(severity="warning"),
+        ),
+    )
+    return svc.DocFrameRuleSet(profiles=(p1, p2, p3))
+
+
+def test_ebt_docframe_foot_links_strict_error_on_frame_1(tmp_path: Path) -> None:
+    """Mutant M1: Missing link list in CUBIE_DOC_FRAME_1 foot zone must fail with error."""
+    root = _seed_preset_workspace(tmp_path / "f1_empty", "CUBIE_DOC_FRAME_1", "")
+
+    def run_check() -> dict[str, Any]:
+        report = DocFrame.check(target=root, rules=(_build_tiered_rule_set(),), excludes=("experiments",), reporter=None)
+        foot_diags = [d for d in report.diagnostics if d.rule_id == "DOCFRAME-FOOT-LINKS"]
+        return {
+            "passed": report.passed,
+            "foot_diags": [(Path(d.file_path).name, d.rule_id, d.severity) for d in foot_diags],
+        }
+
+    EBT(
+        target=run_check,
+        post=WorldState(
+            returns={"passed": False, "foot_diags": [("TARGET.md", "DOCFRAME-FOOT-LINKS", "error")]}
+        ),
+        custom_id="srp_foot_links_strict_error_frame_1",
+    ).run()
+
+
+@pytest.mark.parametrize("preset_id, filename", [("CUBIE_DOC_FRAME_2", "REPORT.md"), ("CUBIE_DOC_FRAME_3", "README.md")])
+def test_ebt_docframe_foot_links_warning_on_frame_2_and_3(tmp_path: Path, preset_id: str, filename: str) -> None:
+    """Mutant M2: Missing link list in FRAME_2/FRAME_3 foot zone emits warning and keeps passed=True."""
+    root = _seed_preset_workspace(tmp_path / preset_id, preset_id, "")
+
+    def run_check() -> dict[str, Any]:
+        report = DocFrame.check(target=root, rules=(_build_tiered_rule_set(),), excludes=("experiments",), reporter=None)
+        return {
+            "passed": report.passed,
+            "diags": [(Path(d.file_path).name, d.rule_id, d.severity) for d in report.diagnostics],
+        }
+
+    EBT(
+        target=run_check,
+        post=WorldState(returns={"passed": True, "diags": [(filename, "DOCFRAME-FOOT-LINKS", "warning")]}),
+        custom_id=f"srp_foot_links_warning_{preset_id.lower()}",
+    ).run()
+
+
+def test_ebt_docframe_broken_route_still_errors_on_frame_2_and_3(tmp_path: Path) -> None:
+    """Mutant M3: Broken Markdown links in FRAME_2/FRAME_3 foot zone still fail with DOCFRAME-BROKEN-ROUTE."""
+    root2 = _seed_preset_workspace(tmp_path / "f2_broken", "CUBIE_DOC_FRAME_2", "[Missing](./DOES_NOT_EXIST.md)")
+    root3 = _seed_preset_workspace(tmp_path / "f3_broken", "CUBIE_DOC_FRAME_3", "[Missing](./DOES_NOT_EXIST.md)")
+
+    def run_broken() -> dict[str, Any]:
+        r2 = DocFrame.check(target=root2, rules=(_build_tiered_rule_set(),), excludes=("experiments",), reporter=None)
+        r3 = DocFrame.check(target=root3, rules=(_build_tiered_rule_set(),), excludes=("experiments",), reporter=None)
+        return {
+            "f2_passed": r2.passed,
+            "f2_broken": any(d.rule_id == "DOCFRAME-BROKEN-ROUTE" and d.severity == "error" for d in r2.diagnostics),
+            "f3_passed": r3.passed,
+            "f3_broken": any(d.rule_id == "DOCFRAME-BROKEN-ROUTE" and d.severity == "error" for d in r3.diagnostics),
+        }
+
+    EBT(
+        target=run_broken,
+        post=WorldState(returns={"f2_passed": False, "f2_broken": True, "f3_passed": False, "f3_broken": True}),
+        custom_id="srp_broken_route_still_errors_frame_2_3",
+    ).run()
+
+
+def test_ebt_docframe_rule_set_preserves_distinct_preset_severities() -> None:
+    """Mutant M4: DocFrameRuleSet preserves separate FrameRuleProfiles without RuleRegistry overwriting."""
+
+    def inspect_profiles() -> dict[str, Any]:
+        rule_set = _build_tiered_rule_set()
+        by_id = {p.pattern_id: p for p in rule_set.profiles}
+        foot_sev = {
+            pid: next(r.severity for r in prof.rules if r.rule_id == "DOCFRAME-FOOT-LINKS")
+            for pid, prof in by_id.items()
+        }
+        return {"profile_count": len(rule_set.profiles), "foot_severities": foot_sev}
+
+    EBT(
+        target=inspect_profiles,
+        post=WorldState(
+            returns={
+                "profile_count": 3,
+                "foot_severities": {
+                    "CUBIE_DOC_FRAME_1": "error",
+                    "CUBIE_DOC_FRAME_2": "warning",
+                    "CUBIE_DOC_FRAME_3": "warning",
+                },
+            }
+        ),
+        custom_id="srp_rule_set_distinct_preset_severities",
+    ).run()
+
+
+def test_ebt_docframe_srp_rule_state_guards() -> None:
+    """Mutant M5: STATE-GUARDs reject bools, invalid severities, and empty profiles/rule sets."""
+    svc = _services_module()
+
+    EBT(
+        target=lambda: svc.DocFrameFootLinks(severity="fatal"),
+        post=WorldState(raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")),
+        custom_id="srp_foot_links_invalid_severity_guard",
+    ).run()
+    EBT(
+        target=lambda: svc.FrameRuleProfile(pattern=True, rules=(svc.DocFrameMissing(),)),
+        post=WorldState(raises=ExceptionExpectation(TypeError, match=r"STATE-GUARD:")),
+        custom_id="srp_profile_bool_pattern_guard",
+    ).run()
+    EBT(
+        target=lambda: svc.FrameRuleProfile(pattern="CUBIE_DOC_FRAME_1", rules=()),
+        post=WorldState(raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")),
+        custom_id="srp_profile_empty_rules_guard",
+    ).run()
+    EBT(
+        target=lambda: svc.DocFrameRuleSet(profiles=()),
+        post=WorldState(raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")),
+        custom_id="srp_rule_set_empty_profiles_guard",
+    ).run()
+
+
+def test_ebt_doc_rule_set_symmetry_and_state_guards(tmp_path: Path) -> None:
+    """Symmetry H3: DocRuleSet in DocEnsurance matches CUBIE_DOC_RULES and enforces STATE-GUARDs."""
+    svc = _services_module()
+    doc = tmp_path / "GUIDE_Demo.md"
+    doc.write_text(
+        "# Demo\n\nAusreichende Erklärung für das Beispiel.\n\n"
+        "```python\nprint(1 + 1)\n```\n\n<details>\n<summary>Ergebnis</summary>\n\n```text\n2\n```\n</details>\n",
+        encoding="utf-8",
+    )
+
+    def run_doc_rule_set() -> dict[str, Any]:
+        rule_set = svc.DocRuleSet(rules=CUBIE_DOC_RULES)
+        report = DocEnsurance(target=doc, pattern=CUBIE_DOC_STYLE, rules=(rule_set,), reporter=None).run()
+        return {"passed": report.passed, "rule_count": len(rule_set.rules), "diags": len(report.diagnostics)}
+
+    EBT(
+        target=run_doc_rule_set,
+        post=WorldState(returns={"passed": True, "rule_count": len(CUBIE_DOC_RULES), "diags": 0}),
+        custom_id="srp_doc_rule_set_symmetry_pass",
+    ).run()
+    EBT(
+        target=lambda: svc.DocRuleSet(rules=()),
+        post=WorldState(raises=ExceptionExpectation(ValueError, match=r"STATE-GUARD:")),
+        custom_id="srp_doc_rule_set_empty_guard",
+    ).run()
+    EBT(
+        target=lambda: svc.DocRuleSet(rules=(True,)),
+        post=WorldState(raises=ExceptionExpectation(TypeError, match=r"STATE-GUARD:")),
+        custom_id="srp_doc_rule_set_bool_guard",
+    ).run()

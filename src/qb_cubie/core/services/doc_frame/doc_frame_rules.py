@@ -18,6 +18,7 @@ from .presets import FramePattern
 from .protocols import DocumentCatalog, FrameRenderContext, FrameSpan
 
 _LINK_TARGET_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+_STANDARD_MD_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\([^)]+\)")
 _DocFrameContext = tuple[DocumentCatalog, dict[str, FramePattern]]
 _ParsedSpans = tuple[list[FrameSpan], list[int]]
 
@@ -258,9 +259,12 @@ class DocFrameOutdated(_DocFrameRuleBase):
 
     severity: str = "error"
     rule_id: str = "DOCFRAME-OUTDATED"
+    allow_empty_foot: bool = False
 
     def __post_init__(self) -> None:
         validate_severity(self.severity)
+        if not isinstance(self.allow_empty_foot, bool):
+            raise TypeError("STATE-GUARD: allow_empty_foot must be a bool.")
 
     @property
     def depends_on(self) -> tuple[str, ...]:
@@ -294,13 +298,26 @@ class DocFrameOutdated(_DocFrameRuleBase):
         rel_path = path_obj.resolve().relative_to(catalog.root).as_posix()
         for span in spans:
             pat = patterns[span.frame_id]
-            if self._has_upstream_span_error(path_obj, span, catalog, pat, file_cache):
+            if self._should_skip_span(path_obj, span, catalog, pat, file_cache):
                 continue
             ctx = FrameRenderContext(path_obj.resolve(), rel_path, catalog, span)
             if span.inner_content.strip() != pat.render_zone(span.zone, ctx).strip():
                 msg = f"Frame zone '{span.zone}' ({span.frame_id}) is out of sync; run DocFrame.update()."
                 return [Diagnostic(str(path_obj), self.rule_id, span.start_line, msg, severity=self.severity)]
         return []
+
+    def _should_skip_span(
+        self,
+        path_obj: Path,
+        span: FrameSpan,
+        catalog: DocumentCatalog,
+        pat: FramePattern,
+        file_cache: FileContextCache,
+    ) -> bool:
+        """Return True when an upstream span error or allowed empty foot zone suppresses outdated checks."""
+        if self._has_upstream_span_error(path_obj, span, catalog, pat, file_cache):
+            return True
+        return self.allow_empty_foot and span.zone == "foot" and not _has_markdown_links(span.inner_content)
 
     @staticmethod
     def _has_upstream_span_error(
@@ -313,10 +330,48 @@ class DocFrameOutdated(_DocFrameRuleBase):
         )
 
 
+def _has_markdown_links(content: str) -> bool:
+    """Return True when content contains at least one standard Markdown link."""
+    return bool(_STANDARD_MD_LINK_RE.search(content))
+
+
+@dataclass(frozen=True)
+class DocFrameFootLinks(_DocFrameRuleBase):
+    """Flag documents whose foot qb:frame zone is missing or contains no standard Markdown links."""
+
+    severity: str = "error"
+    rule_id: str = "DOCFRAME-FOOT-LINKS"
+
+    def __post_init__(self) -> None:
+        validate_severity(self.severity)
+
+    def _check_parsed(
+        self,
+        file_path: str,
+        parsed: _ParsedSpans,
+        catalog: DocumentCatalog,
+        patterns: dict[str, FramePattern],
+        file_cache: FileContextCache,
+    ) -> list[Diagnostic]:
+        """Emit DOCFRAME-FOOT-LINKS when the foot zone is absent or lacks Markdown links."""
+        _ = (catalog, patterns, file_cache)
+        spans, unclosed = parsed
+        if unclosed:
+            return []
+        foot_spans = [s for s in spans if s.zone == "foot"]
+        if not foot_spans:
+            return [Diagnostic(file_path, self.rule_id, 1, "Document is missing a 'foot' qb:frame link list.", severity=self.severity)]
+        for span in foot_spans:
+            if not _has_markdown_links(span.inner_content):
+                return [Diagnostic(file_path, self.rule_id, span.start_line, "Footer frame zone contains no Markdown links.", severity=self.severity)]
+        return []
+
+
 DocFrameMissingRule = DocFrameMissing
 DocFrameOutdatedRule = DocFrameOutdated
 DocFrameBrokenRouteRule = DocFrameBrokenRoute
 DocFrameProvenanceRule = DocFrameProvenanceIncomplete
+DocFrameFootLinksRule = DocFrameFootLinks
 
 CUBIE_DOCFRAME_RULES: Final[tuple[WorkspaceCheckRuleProtocol, ...]] = (
     DocFrameMissing(severity="error"),

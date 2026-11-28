@@ -20,6 +20,7 @@ from .doc_patterns import (
 )
 from .doc_rules import (
     CUBIE_DOC_RULES,
+    DocRuleSet,
     HighComplexity,
     HighComplexityRule,
     LargeOutput,
@@ -60,6 +61,7 @@ __all__ = [
     "DocPatternProtocol",
     "DocReport",
     "DocRuleProtocol",
+    "DocRuleSet",
     "DocScopeProtocol",
     "ExamplePattern",
     "ExampleSession",

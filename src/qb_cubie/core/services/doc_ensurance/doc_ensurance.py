@@ -33,6 +33,7 @@ from .doc_patterns import (
     OutputRule,
     TaggedScope,
 )
+from .doc_rules import DocRuleSet
 from .protocols import (
     DocDiagnostic,
     DocPatternProtocol,
@@ -137,7 +138,7 @@ class DocEnsurance:
     def register_rule(self, *rules: Any) -> DocEnsurance:
         """Registers or overrides one or more check rules without muting orthogonal linters."""
         registry = RuleRegistry(self.rules, coerce=self._coerce_rule, merge=self._merge_doc_rule)
-        registry.register(*rules)
+        registry.register(*self._unpack_rule_sets(rules))
         if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.rules):
             registry.remove("DOC-OUT-MISSING")
         self.rules = list(registry.rules)
@@ -151,10 +152,23 @@ class DocEnsurance:
         explicit_empty = custom is not None and len(custom) == 0
         defaults = (OutputMatchRule(severity="error"),) if explicit_empty else DEFAULT_DOC_RULES
         registry = RuleRegistry(defaults, coerce=cls._coerce_rule, merge=cls._merge_doc_rule)
-        registry.register(*cls._extract_pattern_rules(pattern), *(custom or ()))
+        registry.register(*cls._extract_pattern_rules(pattern), *cls._unpack_rule_sets(custom or ()))
         if any(r.rule_id == "DOC-NO-OUTPUT" for r in registry.rules):
             registry.remove("DOC-OUT-MISSING")
         return list(registry.rules)
+
+    @classmethod
+    def _unpack_rule_sets(cls, items: Sequence[Any]) -> list[Any]:
+        """Expand DocRuleSet containers into their underlying rule entries."""
+        unpacked: list[Any] = []
+        for item in items:
+            if isinstance(item, DocRuleSet):
+                unpacked.extend(item.rules)
+            elif isinstance(item, (list, tuple)):
+                unpacked.extend(cls._unpack_rule_sets(item))
+            else:
+                unpacked.append(item)
+        return unpacked
 
     @staticmethod
     def _normalize_patterns(raw: Any) -> tuple[DocPatternProtocol, tuple[DocPatternProtocol, ...]]:

@@ -500,9 +500,9 @@ Nach Update: passed=True | checked=1 | diagnostics=0
 
 ---
 
-## 7. Diagnose-Codes (`CUBIE_DOCFRAME_RULES`)
+## 7. Diagnose-Codes (`CUBIE_DOCFRAME_RULES` & `CUBIE_DOCFRAME_RULE_SET`)
 
-Jeder Rahmen-Befund wird als unveränderliches Core-`Diagnostic(file_path, rule_id, line, message, severity="error", context=None)` (`qb_cubie.core.protocols`) im `ServiceReport.diagnostics` abgelegt. `CUBIE_DOCFRAME_RULES` umfasst vier spezialisierte Dokument-Regeln:
+Jeder Rahmen-Befund wird als unveränderliches Core-`Diagnostic(file_path, rule_id, line, message, severity="error", context=None)` (`qb_cubie.core.protocols`) im `ServiceReport.diagnostics` abgelegt. Über `FrameRuleProfile(pattern, rules)` und `DocFrameRuleSet(profiles)` (z. B. `CUBIE_DOCFRAME_RULE_SET`) lassen sich Regeln und Schweregrade (`"error"` vs. `"warning"`) pro Rahmen-Preset granular konfigurieren:
 
 * **`DOCFRAME-MISSING` (`DocFrameMissing` / Alias `DocFrameMissingRule`):**
   Meldet strukturell unvollständige Rahmen:
@@ -514,7 +514,9 @@ Jeder Rahmen-Befund wird als unveränderliches Core-`Diagnostic(file_path, rule_
 * **`DOCFRAME-BROKEN-ROUTE` (`DocFrameBrokenRoute` / Alias `DocFrameBrokenRouteRule`):**
   Prüft jeden Rahmen-Span darauf, ob ein referenziertes `banner="..."`-Asset oder ein relativer Markdown-Link bzw. Bild-Verweis `[...](...)` innerhalb des Rahmen-Inhalts physisch im Dateisystem fehlt. URL-Anker (`#...`) und Query-Strings (`?...`) werden vor der Pfadprüfung abgetrennt; externe Links (`http://`, `https://`, `mailto:`) werden ignoriert.
 * **`DOCFRAME-OUTDATED` (`DocFrameOutdated` / Alias `DocFrameOutdatedRule`):**
-  Vergleicht jede strukturell gültige und fehlerfreie Rahmen-Zone im Dry-Run mit dem frisch gerenderten Soll-Zustand (`pat.render_zone(span.zone, ctx)`). Weicht der gespeicherte Inhalt ab (z. B. weil ein neues Handbuch hinzugekommen ist oder sich ein Titel geändert hat), weist die Diagnose mit Zeilennummer und Zonenname auf `DocFrame.update()` hin.
+  Vergleicht jede strukturell gültige und fehlerfreie Rahmen-Zone im Dry-Run mit dem frisch gerenderten Soll-Zustand (`pat.render_zone(span.zone, ctx)`). Weicht der gespeicherte Inhalt ab (z. B. weil ein neues Handbuch hinzugekommen ist oder sich ein Titel geändert hat), weist die Diagnose mit Zeilennummer und Zonenname auf `DocFrame.update()` hin. Mit `allow_empty_foot=True` wird eine `foot`-Zone ohne Links toleriert, wenn deren Prüfung über `DocFrameFootLinks(severity="warning")` erfolgt.
+* **`DOCFRAME-FOOT-LINKS` (`DocFrameFootLinks` / Alias `DocFrameFootLinksRule`):**
+  Prüft, ob eine `zone="foot"` vorhanden ist und mindestens einen Standard-Markdown-Link (`[...](...)`) enthält. In `CUBIE_DOCFRAME_RULE_SET` (und `tests/test_doc_frame.py`) ist die Regel für `CUBIE_DOC_FRAME_1` strikt (`severity="error"`) und für `CUBIE_DOC_FRAME_2` sowie `CUBIE_DOC_FRAME_3` auf `severity="warning"` abgeschwächt.
 
 ---
 
@@ -524,7 +526,7 @@ Wie `DocEnsurance` folgt auch `DocFrame` dem Open-Closed-Prinzip über klar getr
 
 1. **Ebene 0 (`_catalog_scanner` via `service_core.markdown`):** Fence-sicherer Span-Scanner (`parse_frame_spans` auf Basis von `DirectiveSpanScanner("frame")`), Metadaten-Extraktor (`extract_doc_meta`) und Katalog-Builder (`DocumentCatalog` inkl. `WorkspaceView`-Port).
 2. **Ebene 1 (`FrameBlockProtocol` in `frame_blocks`):** 100 % I/O-freie Struktur-Bausteine (`Divider`, `StaticBlock`, `AssetImage`, `CenterWrap`, `CompactNav`, `RouteGroup`), dynamische Katalog-Router (`FolderRouter`, `SiblingRouter`, `CatalogRouter`) und geschützte Content-Slots (`HeaderContentSlot`, `DisclaimerSlot`, `TitleSlot`, `ProvenanceBlock`, `PromptSlot`).
-3. **Ebene 2 (`doc_frame_rules`):** Dokument-weite Prüfregeln nach `WorkspaceCheckRuleProtocol` (`_DocFrameRuleBase` mit `FileContextCache` und `depends_on`) für `DocFrame.check()` und `FileCheckRunner`.
+3. **Ebene 2 (`doc_frame_rules` & `rule_profiles`):** Atomare Prüfregeln nach `WorkspaceCheckRuleProtocol` (`_DocFrameRuleBase` mit `FileContextCache` und `depends_on`) sowie preset-spezifische Profilbindungen (`FrameRuleProfile`, `DocFrameRuleSet`) für `DocFrame.check()` und `FileCheckRunner`.
 4. **Ebene 3 (`presets`, `adapters`, `cli` & `doc_frame`):** Zentrale Kopf-/Fuß-Templates (`STD_HEAD_BLOCKS`, `STD_FOOTER_BLOCKS`), verpflichtender erkenntnistheoretischer Hinweis-Anker (`EPISTEMIC_NOTICE` / `EPISTEMIC_NOTICE_TEXT`), Imperative Shell (`adapters.py`), Lazy-CLI-Adapter (`cli.py` / `DocFrameCommand`) und 2-Pass-Orchestrator (`DocFrame` mit `apply_span_replacements`).
 
 ### 8.1 Die mitgelieferten „Lego-Bausteine“ zu eigenen `FramePattern`s zusammensetzen

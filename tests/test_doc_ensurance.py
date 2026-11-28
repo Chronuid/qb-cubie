@@ -1,6 +1,14 @@
 """Enforce living documentation code example conventions via DocEnsurance."""
 
-from qb_cubie.core.services import CUBIE_DOC_RULES, CUBIE_DOC_STYLE, DocEnsurance
+from qb_cubie.core.services import (
+    CUBIE_DOC_STYLE,
+    DocEnsurance,
+    DocRuleSet,
+    HighComplexity,
+    LargeOutput,
+    NoOutput,
+    RawTraceback,
+)
 
 DOC_EXCLUDES = (
     ".pytest_cache",
@@ -14,11 +22,20 @@ DOC_EXCLUDES = (
     "CI-Data.md",
 )
 
+REPO_DOC_RULES = DocRuleSet(
+    rules=(
+        NoOutput(severity="warning"),
+        HighComplexity(max_lines=30, severity="error"),
+        LargeOutput(max_lines=25, severity="warning"),
+        RawTraceback(severity="warning"),
+    )
+)
+
 
 def test_docs_code_examples() -> None:
     """Verifies that all documentation code examples follow Cubie conventions."""
     DocEnsurance(
         pattern=CUBIE_DOC_STYLE,
-        rules=CUBIE_DOC_RULES,
+        rules=(REPO_DOC_RULES,),
         excludes=DOC_EXCLUDES,
     ).run()
