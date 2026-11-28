@@ -1,0 +1,67 @@
+# Gutachten zu Chronuid/qb‑cubie v0.1.3 (Stand 2026‑11‑28)
+
+Dieses Gutachten fasst die TGD‑Dokumentation und die Implementierung von **qb‑cubie v0.1.3** kritisch zusammen. Wir unterscheiden klar zwischen (1) dem offiziell dokumentierten Prozessmodell, (2) dem, was sich tatsächlich im Code abbilden lässt, und (3) unserer fachlichen Einschätzung. Dabei stützen wir uns – wo möglich – auf allgemeine Fachliteratur zu Test-driven Development und Softwareprozessen (siehe unten).
+
+## Dokumentierter TGD‑Prozess vs. tatsächliche Umsetzung
+
+**TGD-Konzept und Phasengates.** Laut *GUIDE_TGD.md* und den NODE-Handbüchern führt *Test-Guided Development* (TGD) den Entwicklungsprozess schrittweise durch definierten Phasen (ANALYSIS, HYPOTHESIS, PHASE_RED, PHASE_GREEN, GREEN_AUDIT, LIVING_DOCS), getrennt durch Gates. Ein Phasen-Gate-Prozess („Phase-Gate-Prozess“) ist ein bekanntes Verfahren, bei dem Projekte in Phasen geteilt werden und an jedem Gate über Fortführung entschieden wird. Gates müssen klare Ein- und Austrittskriterien haben, damit sie als harte Qualitätskontrollpunkte dienen. 
+
+Im vorliegenden Fall müsste jedes TGD-Gate definierte *Go/Kill*-Kriterien vorweisen: z.B. benötigt jede Phase bestimmte Artefakte (z.B. Tests, Analysen, Dokumente) und Qualitätsnachweise. Die Dokumentation enthält offenbar Checklisten und Mindestspezifikationen, doch ohne Quellzugriff bleibt unklar, ob **jeder Gate-Feststellung** konkrete Akzeptanztests zugeordnet sind (z.B. Mutanten-Tests oder Abdeckungskriterien). In etablierten TDD-Ansätzen spricht man etwa von „Mutationstests“, bei denen man den Code leicht variiert, um die Wirksamkeit der Tests zu prüfen. Wenn die TGD-Dokumentation dies vorsieht, wäre zu prüfen, ob diese Anforderungen auch in *docs/dev/DEV‑GUIDE_TGD‑Workflow.md* oder in Commit-Beschreibungen belegt sind. Ist dies nicht der Fall, besteht die Gefahr, dass Gates eher symbolischer Natur sind und keine falsifizierbaren Kriterien liefern. 
+
+**Rollen und Verantwortlichkeiten.** Jedes TGD-Node-Handbuch definiert offenbar Rollen (Autor vs. Reviewer) und Grenzen, wer was schreibt. Nach dem Single-Responsibility-Prinzip (SRP) sollte dabei jede Entität nur einen Verantwortungsbereich haben. Demnach müsste z.B. in `rule_profiles.py` jede Profile-Klasse nur eine Regelsammlung für einen bestimmten Zweck implementieren. Ohne Codeeinblick lässt sich dies nicht abschließend prüfen, aber es wird erwartet, dass keine Profil-Klasse mehrere Funktionen mischt. Gilt auch für DocRuleSet/DocEnsurance: Die Klassen sollten klar getrennt sein. Die genannten Commits haben dieses Abstraktionsprinzip wohl im Blick; es wäre jedoch kritisch, ob die getroffenen Entscheidungen tatsächlich SRP-konform sind, etwa indem Profile nur Preset-Regeln kapseln. 
+
+**Test Freeze & Phasenübergänge.** In der TDD-Praxis ist es entscheidend, dass Tests fixiert werden, bevor Agenten oder Entwickler Code schreiben. Cursor-Lernressourcen empfehlen, Tests vor dem Implementieren zu commiten, um sie als *eingefrorenen Vertrag* zu sichern. Ähnlich schreibt Wong: „Commit the tests before the agent writes any implementation. A committed test is a frozen contract“. Im TGD-Workflow entspricht das dem Test-Freeze nach PHASE_RED: Die Tests aus der roten Phase müssen fest stehen und dürfen nicht heimlich geändert werden, um einen grünen Status zu erzwingen. Der beschriebene erlaubte Weg **PHASE_GREEN → GREEN_AUDIT → PHASE_GREEN** legt nahe, dass man nach Erreichen grüner Tests in eine Audit-Phase gehen kann und bei Bedarf (bei festgestellten Mängeln) wieder in die Entwicklungsphase zurückkehrt. Dies entspricht dem Grundgedanken, dass ein Gate mehrere Iterationen ermöglichen kann, solange die Kriterien (getestete Korrektheit) noch nicht endgültig erfüllt sind. Entscheidend ist hier, dass in GREEN_AUDIT keine neuen Funktionen implementiert werden – nur Tests und Code werden auf Einhaltung geprüft – bevor man endgültig das Gate passiert.
+
+**Einstiegskriterien, Artefakte, Unabhängigkeit.** Jeder TGD-Knoten sollte klar definierte Ein- und Austrittskriterien haben: etwa im Knoten ANALYSIS konkrete Analyseergebnisse, in HYPOTHESIS eine neue Designhypothese plus zugehörige Tests etc. Idealerweise übergeben die Artefakte einer Phase eindeutig kontrollierten Output an die nächste (z.B. Test-Suite, die nur das bisherige Verhalten abdeckt, oder ein ausgefülltes Formblatt). Die Dokumentation erwähnt „LIVING_DOCS“ als abschließende Dokumentationsphase – hier müssten die gesammelten Testergebnisse lebendigen Dokumenten entsprechen. Aktuell ist unklar, ob „LIVING_DOCS“ einfach ein Stichwort für generische Doku ist oder tatsächlich z.B. ein automatisch generiertes Testreport-Format. In einer guten TGD-Praxis sollten Tests selbst als lebende Dokumentation gelten; d.h. aus den Testfällen soll direkt ersichtlich sein, welche Anforderungen erfüllt wurden. 
+
+**Synchronität von generischer Anleitung und Projekt-Profil.** GUIDE_TGD.md und die Knoten-Handbücher sind allgemeiner gehalten; in `docs/dev/DEV-GUIDE_TGD-Workflow.md` findet sich das konkrete qb‑cubie-Profil. Es ist wichtig, dass beide synchron sind. Gibt es neue Gate-Kriterien im DEV-Guide, müssten diese in der generischen Dokumentation reflektiert sein (oder umgekehrt). Ein inkonsistenter Stand birgt Risiken (z.B. wenn im Code Ein- oder Austrittskriterien eingeführt wurden, die in GUIDE_TGD nicht dokumentiert sind). Ohne Versionskontroll-Analyse bleibt abzuwägen, ob sich die Schritte in DEV-GUIDE an der Kapitelnavigation der Handbücher orientieren. 
+
+## Code-Review: Änderungen zwischen 0.1.2 und 0.1.3
+
+Der Compare-Endpunkt nennt 12 Commits zwischen den Releases. Darunter sind u.a. **neue Abstraktionen** (`rule_profiles.py`), **erweiterte DocFrame-Regeln**, **DocRuleSet/DocEnsurance**, **Service-Core-Härtungen** und Tests. Ohne Quellcode-Öffnung können wir die Details nur grob beurteilen. 
+
+- **Regelprofil-Abstraktion (`rule_profiles.py`)**: Dieses Modul kapselt offenbar regelbasierte Vorgaben in „Preset Profiles“. Es liegt nahe, dass hier SRP eine Rolle spielt: Jedes Profil sollte nur ein Regel-Set definieren. Wichtig ist, dass keine Überschneidungen oder Redundanzen bestehen (z.B. zwei Profile dieselbe Regel unterschiedlich auslegen). Einheitliche Schnittstellen helfen, Profile austauschbar zu machen. Ohne Tests könnte man übersehen, ob ein neues Profil-Konzept korrekt in alle Komponenten (z.B. DocFrame-Regeln) integriert ist. Dass Tests nachgezogen wurden, ist positiv. 
+
+- **DocFrame-Regeln und DocRuleSet/DocEnsurance**: Die Änderungen in den Dokumentationsregeln (DocFrame, DocRuleSet) deuten auf Verfeinerungen hin. Man sollte prüfen, ob jede Regel einen präzisen Zweck hat und ob Delegationsmuster korrekt implementiert sind (z.B. ob ein Regelset nur seine eigenen Regeln verwaltet, ohne unerwünschte Kopplung). Auch hier gilt: Single Responsibility – ein DocRuleSet sollte nicht mehrere Technologien oder Dokumententypen vermischen. Regdelegation könnte ein Designsmell sein, wenn z.B. ein Regel-Manager zu viel über konkrete Regel-Implementierungen weiß. 
+
+- **Tests**: Neuerungen müssten von aussagekräftigen Tests begleitet sein. Tests dienen nicht nur dem Nachweis der Funktion, sondern auch als lebende Dokumentation. Sie sollten sowohl Unit-Tests für neue Klassen (rule profiles, DocFrame etc.) als auch Integrationstests (Workflow-Szenarien) umfassen. Fehlt etwa ein Test, dass *alle* Regeln angewendet werden, besteht Regressionsrisiko. Wichtig ist dabei, dass Tests präzise („focused“) sind und nicht zu allgemeine Voraussetzungen testen. 
+
+- **Service-Core-Härtungen**: Dies klingt nach verstärkten Validierungen oder Robustheitsverbesserungen im Kernsystem. Dabei muss aufpassen: Mehr Validierung kann rückwärts inkompatibel wirken. Jegliche Änderungen in Core-Diensten sollten streng spezifizierte Verträge haben: Parameter, Ausnahmen, Rückgabewerte. Fehlen automatisierte Tests, die Grenzfälle abdecken (z.B. fehlerhafte Eingaben), können diese Härtungen zu unerwarteten Fehlern führen. Außerdem sollte überprüft werden, dass solche Änderungen nicht die TGD-Logik unbeabsichtigt beeinflussen (z.B. wenn sie interne APIs ändern). 
+
+- **Fehlende Dokumentation der Änderungen**: Wenn in den Commits nicht klar beschrieben steht, warum etwas gemacht wurde (Use Cases, Probleme), bleibt vieles unbestätigt. Das Gutachten kann darauf hinweisen, dass nachvollziehbare Commit-Nachrichten und Verweise auf Ticket-System (falls vorhanden) wichtig sind, um die Nachvollziehbarkeit zu gewährleisten. 
+
+Auf Grundlage der Commits lässt sich insgesamt feststellen, dass man bestrebt ist, Architekturprinzipien wie SRP umzusetzen und die Prozesse zu stärken. Die tatsächliche Konsistenz der Implementierung (Test-Abdeckung, klare Interfaces) muss sich jedoch in einer späteren, eingehenden Prüfung zeigen.
+
+## Bewertung von Stärken und Schwächen
+
+- **Stärken:** Die TGD-Dokumentation wirkt umfangreich und ist modular gegliedert. Sie deckt die gesamten Phasen ab und stellt Rollen/Kriterien bereit. Der Ansatz, Tests als „lebende Doku“ zu nutzen, entspricht modernen Best Practices. Die Commit-Historie zeigt Bemühungen um verbesserte Abstraktion (regel_profiles) und Robustheit. Der Einsatz von Test-first-Phasen (siehe Ansatz in [26][18]) ist erkennbar.
+
+- **Schwächen/Risiken:** Ohne Einsicht in Code können wir nur vermuten: Möglicherweise ist der Prozess sehr aufwändig; das „Test-Freeze“-Konzept muss diszipliniert eingehalten werden, damit Agenten es nicht umgehen (siehe [18], [26]). Ein häufiger Kritikpunkt im Stage-Gate-Modell ist der Overhead durch zu viele Gates; hier sollte man prüfen, ob alle Knoten des TGD sinnvoll sind oder unnötige Bürokratie verursachen. Außerdem könnte eine fehlende Synchronität zwischen generischem TGD-Guide und praktischem DEV-Guide dazu führen, dass Entwickler an zwei verschiedenen Leitfäden arbeiten. 
+
+  Ferner ist unklar, wie platformneutral und minimal die **RUN-Dateien** (Testausführungs-Skripte) sind. Wenn diese zu komplex oder environment-spezifisch sind, behindert das den reproduzierbaren Testablauf. 
+
+  Zu den *epistemischen Grenzen* zählt: TGD basiert auf Annahmen (Hypothesen), die falsifiziert werden sollen. Es ist wichtig, dass solche Hypothesen klar formuliert und prüfbar sind, z.B. durch spezifische Mutationen oder Grenzfalltests. Fehlen solche Kriterien, bleibt unklar, ob eine Hypothese wirklich widerlegt oder bestätigt wurde.
+
+## Priorisierte Verbesserungen
+
+1. **Dokumentation und Artefakte konkretisieren:** Stellen Sie sicher, dass für jede Phase klare Ein-/Austrittskriterien mit Beispielen existieren. Beschreiben Sie z.B. genau, welche Artefakte (Tests, Diagramme, Checklisten) erstellt und übergeben werden. Das macht Gates überprüfbar.
+
+2. **Tests als lebende Dokumentation nutzen:** Binden Sie die Idee der *Living Documentation* ein. Automatisieren Sie, dass Testergebnisse direkt in Leseseiten oder Tickets einfließen, so dass nicht nur Entwickler, sondern auch Stakeholder den Status einsehen können.
+
+3. **Single-Responsibility sicherstellen:** Überprüfen Sie rule_profiles.py und andere neue Abstraktionen darauf, dass jede Klasse/Komponente genau eine Verantwortlichkeit hat. Dokumentieren Sie die Zuständigkeiten, um Kopplungen zu vermeiden.
+
+4. **Test-Freeze disziplinieren:** Machen Sie das Prinzip „Tests festschreiben, bevor Code implementiert wird“ zur verbindlichen Praxis. Entsprechende Automatisierungen (z.B. CI-Regeln, dass Tests im vorletzten Commit stehen) könnten helfen.
+
+5. **Code-Qualität und Abdeckung erhöhen:** Erweitern Sie Testfälle insbesondere für Grenzfälle und mutierende Szenarien. Fügen Sie ggf. Mutations- oder automatische Kontrakttests hinzu, um die Aussagekraft der Tests zu stärken.
+
+6. **Prozessaufwand minimieren:** Evaluieren Sie kritisch, ob alle TGD-Phasen und Zwischenschritte notwendig sind. Wie in klassischen Stage-Gate-Prozessen können zu viele Gates Projekte aufhalten. Straffen Sie gegebenenfalls die Schritte auf das Wesentliche, ohne die Qualitätssicherung zu gefährden.
+
+7. **Synchronicität von Dokumenten:** Pflegen Sie die generischen TGD-Handbücher und das projekt-spezifische Workflow-Profil parallel. Prüfen Sie, ob in DEV-GUIDE Änderungen implementiert wurden, die auch in GUIDE_TGD Eingang finden müssen. 
+
+8. **Transparenz der Änderungen:** Stellen Sie sicher, dass Commit-Beschreibungen, ggf. Issue-Links oder Changelog-Einträge ausreichen, um den Grund für jede Änderung nachzuvollziehen. Das hilft Dritten (und zukünftigen Ihnen selbst), Verständnislücken zu vermeiden.
+
+## Fazit
+
+Zusammenfassend bietet **qb‑cubie v0.1.3** eine ambitionierte Test-Driven-Development-Architektur mit klar getrennten Phasen. Viele Konzepte (TDD-Prinzipien, lebende Dokumentation, Phase-Gates) entsprechen Industriestandards. Der Erfolg hängt jedoch stark von disziplinierter Anwendung ab: klare Kriterien an den Gates, strikte Trennung von Verantwortlichkeiten und eine schlanke Prozessgestaltung. Bis die temporäre Situation gelöst ist, liegt der Schwerpunkt darauf, die fachliche Logik der Vorgehensweise und ihre geforderten Ergebnisse zu prüfen, ohne Änderungen vorzunehmen. Unsere Einschätzung kann als vorläufig gelten, bis Code und Dokumente tiefergehend verfügbar sind.
+
+**Quellen:** Allgemeine TDD- und Entwicklungsmodelle (sowie die projektspezifische Dokumentation und Commit-Logs von Chronuid/qb-cubie).
